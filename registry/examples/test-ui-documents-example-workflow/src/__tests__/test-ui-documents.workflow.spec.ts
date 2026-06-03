@@ -42,7 +42,7 @@ describe('TestUiDocumentsWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: {
               role: 'assistant',
               content: 'This is the default message',
@@ -60,7 +60,7 @@ describe('TestUiDocumentsWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'ErrorDocument',
+            documentName: 'error',
             content: {
               error: 'This is an error message',
             },
@@ -77,7 +77,7 @@ describe('TestUiDocumentsWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MarkdownDocument',
+            documentName: 'markdown',
             content: {
               markdown: expect.stringContaining('# Markdown'),
             },
@@ -94,7 +94,7 @@ describe('TestUiDocumentsWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'PlainDocument',
+            documentName: 'plain',
             content: {
               text: 'This is plain text',
             },

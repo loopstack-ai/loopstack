@@ -28,7 +28,7 @@ interface ChoicesRendererProps {
 const ChoicesRenderer: React.FC<ChoicesRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as ChoicesContent;
   const documentConfigs = useDocumentConfigs();
-  const docConfig = documentConfigs.get(document.alias);
+  const docConfig = documentConfigs.get(document.documentName);
   const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, docConfig);
 
   const [selected, setSelected] = useState<string>(content.answer ?? '');

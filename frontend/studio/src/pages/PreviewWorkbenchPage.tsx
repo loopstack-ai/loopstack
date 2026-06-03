@@ -68,9 +68,7 @@ function PreviewWorkbenchContent({
   const fetchWorkflow = useWorkflow(workflowId);
   const notifiedRef = useRef(false);
 
-  const fetchWorkflowConfig = useWorkflowConfigByName(
-    fetchWorkflow.data?.alias ?? fetchWorkflow.data?.className ?? undefined,
-  );
+  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.workflowName);
 
   // Notify parent when workflow has completed
   useEffect(() => {

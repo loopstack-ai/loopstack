@@ -50,8 +50,7 @@ function createStreamingDocument(
 
   return {
     id: `streaming-${state.messageId}`,
-    name: 'llm_message',
-    alias: 'llm_message',
+    documentName: 'llm_message',
     content: {
       id: state.messageId,
       role: 'assistant',
@@ -60,8 +59,6 @@ function createStreamingDocument(
     validationError: null,
     meta: { streaming: !state.readyForFinal && !state.error, streamReadyForFinal: state.readyForFinal },
     isInvalidated: false,
-    isPendingRemoval: false,
-    version: 0,
     index: Number.MAX_SAFE_INTEGER,
     transition: null,
     place,

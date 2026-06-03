@@ -62,7 +62,7 @@ export class ConfigController {
 
   private resolveWorkflow(workflowName: string): WorkflowInterface {
     try {
-      return this.workflowRegistryService.getByName(workflowName);
+      return this.workflowRegistryService.resolve(workflowName).instance;
     } catch {
       throw new BadRequestException(`Workflow "${workflowName}" not found.`);
     }

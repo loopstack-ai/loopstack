@@ -52,7 +52,7 @@ describe('ChatWorkflow', () => {
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          className: 'LlmMessageDocument',
+          documentName: 'llm_message',
           content: expect.objectContaining({ role: 'user' }),
           meta: expect.objectContaining({ hidden: true }),
         }),
@@ -114,11 +114,11 @@ describe('ChatWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'LlmMessageDocument',
+            documentName: 'llm_message',
             content: expect.objectContaining({ role: 'user', content: 'Hello, how are you?' }),
           }),
           expect.objectContaining({
-            className: 'LlmMessageDocument',
+            documentName: 'llm_message',
             content: expect.objectContaining({ role: 'assistant' }),
           }),
         ]),

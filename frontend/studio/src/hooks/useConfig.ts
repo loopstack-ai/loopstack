@@ -24,7 +24,7 @@ export function useAvailableEnvironments(options?: { enabled?: boolean }) {
 }
 
 /**
- * Returns a Map of document configs keyed by alias.
+ * Returns a Map of document configs keyed by documentName.
  * Document configs are fetched as part of the apps config and are global (same across all apps).
  */
 export function useDocumentConfigs(): Map<string, StudioDocumentConfig> {
@@ -37,7 +37,7 @@ export function useDocumentConfigs(): Map<string, StudioDocumentConfig> {
     // Documents are global — use first app's documents (identical across apps)
     const documents = apps[0].documents ?? [];
     for (const doc of documents) {
-      map.set(doc.alias, doc);
+      map.set(doc.documentName, doc);
     }
     return map;
   }, [apps]);

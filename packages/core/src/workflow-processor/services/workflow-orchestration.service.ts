@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Type } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
   QueueResult,
@@ -13,6 +13,7 @@ import { WorkflowService } from '../../persistence/services/workflow.service.js'
 import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
 import { ExecutionScope } from '../utils/index.js';
 import { CreateWorkflowService } from './create-workflow.service.js';
+import { WorkflowRegistryService } from './workflow-registry.service.js';
 
 /**
  * Handles sub-workflow orchestration for the TypeScript-first workflow model.
@@ -31,22 +32,20 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     private readonly createWorkflowService: CreateWorkflowService,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly workflowService: WorkflowService,
+    private readonly workflowRegistryService: WorkflowRegistryService,
   ) {}
 
-  async queue(args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
+  async queue(workflowClass: Type, args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
     const scope = this.executionScope.get();
-
-    if (!options?.workflowName) {
-      throw new Error('RunOptions.workflowName is required to queue a sub-workflow.');
-    }
 
     if (scope.options?.stateless) {
       throw new Error('Sub-workflow launching requires stateful workflow execution.');
     }
 
-    const workflowName = options.workflowName;
+    const { instance: workflow, workflowName } = this.workflowRegistryService.resolve(workflowClass);
 
     const workflowEntity = await this.createWorkflowService.create(
+      workflow,
       { id: scope.workspaceId },
       {
         workflowName,

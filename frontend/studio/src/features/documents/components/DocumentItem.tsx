@@ -18,7 +18,7 @@ const DocumentItem: React.FC<{
   settings: WorkbenchSettingsInterface;
 }> = ({ document, workflow, parentWorkflow, isActive, isLastItem, settings }) => {
   const documentConfigs = useDocumentConfigs();
-  const docConfig = documentConfigs.get(document.alias);
+  const docConfig = documentConfigs.get(document.documentName);
   const staticMeta = docConfig?.meta;
   const dynamicMeta = document.meta as { data?: Record<string, unknown> } | null;
   const isDocumentActive = document.place === workflow.place || !!staticMeta?.enableAtPlaces?.includes(workflow.place);
@@ -26,7 +26,6 @@ const DocumentItem: React.FC<{
   const workflowContext: WorkflowDebugContext = {
     workflowId: workflow.id,
     workflowName: workflow.workflowName,
-    className: workflow.className,
     title: workflow.title,
     status: workflow.status,
     place: workflow.place,

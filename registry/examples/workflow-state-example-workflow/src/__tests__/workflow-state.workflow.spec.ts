@@ -35,14 +35,14 @@ describe('WorkflowStateWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({
             role: 'assistant',
             content: 'Data from state: Hello :)',
           }),
         }),
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({
             role: 'assistant',
             content: 'Use workflow helper method: HELLO :)',

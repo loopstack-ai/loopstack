@@ -13,7 +13,7 @@ interface WorkflowFormsProps {
 }
 
 const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit, isLoading }) => {
-  const fetchConfig = useWorkflowConfigByName(workflow.className ?? undefined);
+  const fetchConfig = useWorkflowConfigByName(workflow.workflowName);
 
   const uiTyped = fetchConfig.data?.ui as { widgets?: unknown[]; actions?: unknown[] } | undefined;
   // New format: ui.widgets, legacy fallback: ui.actions

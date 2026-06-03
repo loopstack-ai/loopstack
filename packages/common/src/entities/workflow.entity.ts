@@ -4,8 +4,6 @@ import {
   Entity,
   Index,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -26,9 +24,6 @@ export class WorkflowEntity {
   @Column({ type: 'varchar', name: 'workflow_name' })
   @Index()
   workflowName!: string;
-
-  @Column({ type: 'varchar', name: 'class_name', nullable: true })
-  className!: string | null;
 
   @Column({ type: 'varchar', nullable: true })
   title!: string;
@@ -91,25 +86,6 @@ export class WorkflowEntity {
 
   @Column('varchar', { name: 'labels', array: true, default: [] })
   labels!: string[];
-
-  @ManyToMany(() => DocumentEntity, (document) => document.dependentStates, {
-    onDelete: 'CASCADE',
-  })
-  @JoinTable({
-    name: 'core_workflow_document',
-    joinColumn: {
-      name: 'workflow_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'document_id',
-      referencedColumnName: 'id',
-    },
-  })
-  dependencies!: Relation<DocumentEntity[]>;
-
-  @Column('jsonb', { name: 'hash_record', nullable: true })
-  hashRecord!: Record<string, string | null> | null;
 
   @OneToMany(() => DocumentEntity, (document: DocumentEntity) => document.workflow, {
     onDelete: 'CASCADE',

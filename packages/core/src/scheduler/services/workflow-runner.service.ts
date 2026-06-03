@@ -21,6 +21,7 @@ import type { ScheduledTask } from '@loopstack/contracts/types';
 import { WorkflowService, WorkspaceService } from '../../persistence/index.js';
 import { CreateWorkflowService } from '../../workflow-processor/services/create-workflow.service.js';
 import { RootProcessorService } from '../../workflow-processor/services/root-processor.service.js';
+import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import { TaskSchedulerService } from './task-scheduler.service.js';
 
 @Injectable()
@@ -34,6 +35,7 @@ export class WorkflowRunner {
     private readonly workflowService: WorkflowService,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly rootProcessorService: RootProcessorService,
+    private readonly workflowRegistryService: WorkflowRegistryService,
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {}
 
@@ -41,7 +43,7 @@ export class WorkflowRunner {
    * Execute from a controller — handles start, resume, and retry based on payload shape.
    */
   async execute<TArgs>(
-    workflowClass: Type<BaseWorkflow<TArgs>>,
+    workflow: Type<BaseWorkflow<TArgs>> | string,
     payload: WorkflowPayload<TArgs>,
     options: { userId: string; appName: string; labels?: string[] },
   ): Promise<WorkflowRunResult> {
@@ -58,12 +60,13 @@ export class WorkflowRunner {
     }
 
     // Start new workflow
-    const _workerId = this.configService.getOrThrow<string>('auth.clientId');
     const labels = payload.labels ?? options.labels;
+    const { instance, workflowName } = this.workflowRegistryService.resolve(workflow as Type | string);
     const workspace = await this.findOrCreateWorkspace(options.appName, options.userId, payload.workspaceId);
     const workflowEntity = await this.createWorkflowService.create(
+      instance,
       { id: workspace.id },
-      { workflowName: workflowClass.name, args: payload.args as unknown, labels },
+      { workflowName, args: payload.args as unknown, labels },
       options.userId,
     );
 
@@ -96,12 +99,14 @@ export class WorkflowRunner {
     options: WorkflowRunnerOptions,
   ): Promise<RunResult> {
     const workerId = this.configService.getOrThrow<string>('auth.clientId');
+    const { instance, workflowName } = this.workflowRegistryService.resolve(workflow);
 
     const workspace = await this.findOrCreateWorkspace(options.appName, options.userId, options.workspaceId);
 
     const workflowEntity = await this.createWorkflowService.create(
+      instance,
       { id: workspace.id },
-      { workflowName: workflow.name, args: args as unknown, labels: options.labels },
+      { workflowName, args: args as unknown, labels: options.labels },
       options.userId,
     );
 
@@ -134,12 +139,15 @@ export class WorkflowRunner {
     args: WorkflowArgs<W>,
     options: WorkflowRunnerSyncOptions,
   ): Promise<SyncRunResult | StatelessRunResult> {
+    const { instance, workflowName } = this.workflowRegistryService.resolve(workflow);
+
     if (options.stateless) {
       const workspace = await this.findOrCreateWorkspace(options.appName, options.userId, options.workspaceId);
 
       const meta = await this.rootProcessorService.runStateless(
+        instance,
         {
-          workflowName: workflow.name,
+          workflowName,
           userId: options.userId,
           workspaceId: workspace.id,
           args: args as Record<string, unknown> | undefined,
@@ -158,8 +166,9 @@ export class WorkflowRunner {
     const workspace = await this.findOrCreateWorkspace(options.appName, options.userId, options.workspaceId);
 
     const workflowEntity = await this.createWorkflowService.create(
+      instance,
       { id: workspace.id },
-      { workflowName: workflow.name, args: args as unknown, labels: options.labels },
+      { workflowName, args: args as unknown, labels: options.labels },
       options.userId,
     );
 

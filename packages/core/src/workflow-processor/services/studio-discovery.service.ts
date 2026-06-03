@@ -8,11 +8,11 @@ import {
   STUDIO_APP_EXTENSION_KEY,
   STUDIO_APP_KEY,
   deriveDocumentIdentifier,
-  deriveWorkflowIdentifier,
   getBlockArgsSchema,
   getBlockConfig,
   getBlockOptions,
   getRegisteredDocuments,
+  getWorkflowIdentifier,
 } from '@loopstack/common';
 import type { FeatureRegistration, StudioAppExtension, StudioAppMetadata, StudioUiConfig } from '@loopstack/common';
 import type { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
@@ -26,8 +26,7 @@ export interface StudioWorkflowConfig {
 }
 
 export interface StudioDocumentConfig {
-  alias: string;
-  className: string;
+  documentName: string;
   title?: string;
   description?: string;
   ui?: UiFormType;
@@ -52,7 +51,7 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
   private readonly logger = new Logger(StudioDiscoveryService.name);
   private apps: StudioAppConfig[] = [];
 
-  /** Maps workflow class name → appName for reverse lookup. */
+  /** Maps workflowName → appName for reverse lookup. */
   private workflowToApp = new Map<string, string>();
 
   constructor(
@@ -105,11 +104,11 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
   }
 
   /**
-   * Returns the app name that declares the given workflow class name,
+   * Returns the app name that declares the given workflow,
    * or undefined if the workflow is not declared in any @StudioApp.
    */
-  getAppNameForWorkflow(workflowClassName: string): string | undefined {
-    return this.workflowToApp.get(workflowClassName);
+  getAppNameForWorkflow(workflowName: string): string | undefined {
+    return this.workflowToApp.get(workflowName);
   }
 
   // ── Module Discovery ────────────────────────────────────────────────
@@ -178,9 +177,10 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
       const argsSchema = getBlockArgsSchema(workflowClass);
       const jsonSchema = argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined;
 
+      const workflowName = getWorkflowIdentifier(workflowClass);
       return {
-        workflowName: workflowClass.name,
-        title: options?.title ?? deriveWorkflowIdentifier(workflowClass.name),
+        workflowName,
+        title: options?.title ?? workflowName,
         description: options?.description,
         schema: jsonSchema,
       };
@@ -199,12 +199,10 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
       const contentSchema = getBlockArgsSchema(documentClass as object);
       const jsonSchema = contentSchema ? (toJSONSchema(contentSchema) as JSONSchemaDefinition) : undefined;
 
-      const className = documentClass.name;
-      const alias = options?.name ?? deriveDocumentIdentifier(className);
+      const documentName = options?.name ?? deriveDocumentIdentifier(documentClass.name);
 
       documents.push({
-        alias,
-        className,
+        documentName,
         title: options?.title,
         description: options?.description,
         ui: config?.ui as UiFormType | undefined,
@@ -215,7 +213,7 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
     }
 
     this.logger.log(
-      `Discovered ${documents.length} document type(s): ${documents.map((d) => d.alias).join(', ') || 'none'}`,
+      `Discovered ${documents.length} document type(s): ${documents.map((d) => d.documentName).join(', ') || 'none'}`,
     );
     return documents;
   }

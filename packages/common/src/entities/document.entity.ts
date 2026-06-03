@@ -4,7 +4,6 @@ import {
   Entity,
   Index,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   Relation,
@@ -23,12 +22,9 @@ export class DocumentEntity<T = any> {
   @Index()
   messageId!: string;
 
-  @Column({ type: 'varchar', name: 'alias' })
+  @Column({ type: 'varchar', name: 'document_name' })
   @Index()
-  alias!: string;
-
-  @Column({ type: 'varchar', name: 'class_name', nullable: true })
-  className!: string | null;
+  documentName!: string;
 
   @Column({ name: 'workspace_id' })
   @Index()
@@ -48,12 +44,6 @@ export class DocumentEntity<T = any> {
 
   @Column({ name: 'is_invalidated', default: false })
   isInvalidated!: boolean;
-
-  @Column({ name: 'is_pending_removal', default: false })
-  isPendingRemoval!: boolean;
-
-  @Column({ default: 1 })
-  version!: number;
 
   @Column({ default: 0 })
   index!: number;
@@ -81,11 +71,6 @@ export class DocumentEntity<T = any> {
 
   @Column({ name: 'workflow_id', nullable: true })
   workflowId!: string;
-
-  @ManyToMany(() => WorkflowEntity, (state) => state.dependencies, {
-    onDelete: 'CASCADE',
-  })
-  dependentStates!: Relation<WorkflowEntity[]>;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })

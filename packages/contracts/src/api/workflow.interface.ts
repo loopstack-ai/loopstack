@@ -9,7 +9,6 @@ export interface WorkflowContextInterface {
 export interface WorkflowItemInterface {
   id: string;
   workflowName: string;
-  className: string | null;
   title: string;
   run: number;
   labels: string[];

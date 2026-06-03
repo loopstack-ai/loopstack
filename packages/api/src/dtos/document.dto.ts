@@ -14,16 +14,10 @@ export class DocumentDto {
   id: string;
 
   /**
-   * Name of the document
+   * Snake_case identifier of the document type
    */
   @Expose()
-  name: string;
-
-  /**
-   * Config Key of the document
-   */
-  @Expose()
-  alias: string;
+  documentName: string;
 
   /**
    * Contents of the document.
@@ -44,18 +38,6 @@ export class DocumentDto {
   isInvalidated: boolean;
 
   /**
-   * Indicates if the document is pending removal
-   */
-  @Expose()
-  isPendingRemoval: boolean;
-
-  /**
-   * Version of the document
-   */
-  @Expose()
-  version: number;
-
-  /**
    * Index of the document
    */
   @Expose()
@@ -71,7 +53,7 @@ export class DocumentDto {
    * Place when this document was created
    */
   @Expose()
-  place?: string | null;
+  place: string | null;
 
   @Expose()
   labels: string[];

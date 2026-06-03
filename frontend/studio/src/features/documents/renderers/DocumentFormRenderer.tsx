@@ -80,7 +80,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 }) => {
   const runWorkflow = useRunWorkflow();
   const documentConfigs = useDocumentConfigs();
-  const docConfig = documentConfigs.get(document.alias);
+  const docConfig = documentConfigs.get(document.documentName);
   const schema = docConfig?.schema as Record<string, unknown> | undefined;
 
   const form = useForm<Record<string, unknown>>({

@@ -74,7 +74,7 @@ describe('HitlAskUserExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({
             role: 'assistant',
             content: 'Thanks! You answered: Jakob',

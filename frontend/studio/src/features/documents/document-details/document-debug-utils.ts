@@ -15,7 +15,6 @@ export interface ContentSummary {
 export interface WorkflowDebugContext {
   workflowId: string;
   workflowName: string;
-  className: string | null;
   title: string;
   status: string;
   place: string;

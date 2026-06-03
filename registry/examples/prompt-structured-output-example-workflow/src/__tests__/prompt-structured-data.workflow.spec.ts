@@ -68,7 +68,7 @@ describe('PromptStructuredOutputWorkflow', () => {
       );
 
       expect(result.documents.length).toBeGreaterThanOrEqual(1);
-      const statusDoc = result.documents.find((d) => d.className === 'LlmMessageDocument');
+      const statusDoc = result.documents.find((d) => d.documentName === 'llm_message');
       expect(statusDoc).toBeDefined();
       expect(statusDoc!.content).toEqual(
         expect.objectContaining({

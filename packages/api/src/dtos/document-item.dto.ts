@@ -15,16 +15,10 @@ export class DocumentItemDto implements DocumentItemInterface {
   id: string;
 
   /**
-   * Name of the document
+   * Snake_case identifier of the document type
    */
   @Expose()
-  name: string;
-
-  /**
-   * Config Key of the document
-   */
-  @Expose()
-  alias: string;
+  documentName: string;
 
   /**
    * Contents of the document.
@@ -43,18 +37,6 @@ export class DocumentItemDto implements DocumentItemInterface {
    */
   @Expose()
   isInvalidated: boolean;
-
-  /**
-   * Indicates if the document is pending removal
-   */
-  @Expose()
-  isPendingRemoval: boolean;
-
-  /**
-   * Version of the document
-   */
-  @Expose()
-  version: number;
 
   /**
    * Index of the document

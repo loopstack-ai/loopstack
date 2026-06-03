@@ -116,7 +116,7 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = (props) => {
   const features = useFeatureRegistry();
   const documentConfigs = useDocumentConfigs();
   const doc = props.document as unknown as DocumentItemInterface;
-  const docConfig = documentConfigs.get(doc.alias);
+  const docConfig = documentConfigs.get(doc.documentName);
   const widget = resolveWidgetName(docConfig?.ui);
 
   const featureRenderers = useMemo(() => {

@@ -34,7 +34,7 @@ describe('WorkflowToolResultsWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
               content: 'Stored in initial transition: Hello World.',
@@ -53,7 +53,7 @@ describe('WorkflowToolResultsWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
               content: 'Accessed from previous transition: Hello World.',

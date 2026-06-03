@@ -109,7 +109,7 @@ describe('CustomToolExampleWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
               content: expect.stringContaining('10 + 20 = 30'),

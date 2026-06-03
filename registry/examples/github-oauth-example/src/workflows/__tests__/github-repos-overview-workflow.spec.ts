@@ -326,9 +326,7 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(result.place).toBe('end');
 
       // Verify markdown document was created
-      expect(result.documents).toEqual(
-        expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
-      );
+      expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ documentName: 'markdown' })]));
 
       // Verify all read tools were called
       expect(mockGetAuthenticatedUser.call).toHaveBeenCalledTimes(1);
@@ -548,9 +546,7 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     expect(result.place).toBe('end');
 
     // Verify markdown document was created after auth resume
-    expect(result.documents).toEqual(
-      expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
-    );
+    expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ documentName: 'markdown' })]));
 
     expect(mockGetAuthenticatedUser.call).toHaveBeenCalledTimes(1);
     expect(mockGetRepo.call).toHaveBeenCalledTimes(1);

@@ -30,7 +30,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
   });
 
   const { listRef, scrollTo, canScrollDown, scrollToBottom } = useWorkflowListState();
-  const fetchWorkflowConfig = useWorkflowConfigByName(workflow.className ?? undefined);
+  const fetchWorkflowConfig = useWorkflowConfigByName(workflow.workflowName);
   const fetchChildWorkflows = useChildWorkflows(workflow.id);
   const childWorkflows = fetchChildWorkflows.data ?? [];
 

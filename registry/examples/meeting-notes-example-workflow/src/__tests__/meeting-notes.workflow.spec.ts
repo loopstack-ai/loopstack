@@ -51,7 +51,7 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          className: 'MeetingNotesDocument',
+          documentName: 'meeting_notes',
           content: expect.objectContaining({
             text: expect.stringContaining('1.1.2025'),
           }),
@@ -107,7 +107,7 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MeetingNotesDocument',
+            documentName: 'meeting_notes',
           }),
         ]),
       );
@@ -159,7 +159,7 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'OptimizedNotesDocument',
+            documentName: 'optimized_notes',
           }),
         ]),
       );

@@ -1,12 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Type } from '@nestjs/common';
 import { z } from 'zod';
 import type { DocumentStore } from '../interfaces/document-store.interface.js';
 import type { WorkflowOrchestrator } from '../interfaces/workflow-orchestrator.interface.js';
 import { DOCUMENT_STORE, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
 
 export interface RunOptions {
-  /** @internal Used by BaseWorkflow.run() to pass the class name to the orchestrator. Not needed when calling run() directly. */
-  workflowName?: string;
   callback?: { transition: string; metadata?: Record<string, unknown> };
 }
 
@@ -62,9 +60,6 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>, _TState = Re
    * @param options — Optional callback to resume the parent workflow when this one completes
    */
   async run(args?: TArgs, options?: RunOptions): Promise<QueueResult> {
-    return this.__orchestrator.queue(args as Record<string, unknown>, {
-      workflowName: this.constructor.name,
-      ...options,
-    });
+    return this.__orchestrator.queue(this.constructor as Type, args as Record<string, unknown>, options);
   }
 }

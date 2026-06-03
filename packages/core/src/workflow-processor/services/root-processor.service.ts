@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
   RunContext,
@@ -29,24 +29,11 @@ export class RootProcessorService {
   ) {}
 
   private resolveWorkflowConfig(workflow: WorkflowEntity): WorkflowInterface {
-    if (!workflow.className) {
-      throw new Error(`Workflow entity ${workflow.id} has no className. Cannot resolve.`);
-    }
-
-    return this.workflowRegistryService.getByName(workflow.className);
-  }
-
-  private resolveWorkflowByNames(workflowName: string): WorkflowInterface {
-    try {
-      return this.workflowRegistryService.getByName(workflowName);
-    } catch {
-      throw new BadRequestException(
-        `Workflow ${workflowName} not found. Ensure it is registered as a provider in the module.`,
-      );
-    }
+    return this.workflowRegistryService.resolve(workflow.workflowName).instance;
   }
 
   async runStateless(
+    workflow: WorkflowInterface,
     params: {
       workflowName: string;
       userId: string;
@@ -56,8 +43,6 @@ export class RootProcessorService {
     },
     payload: RunPayload,
   ): Promise<WorkflowMetadataInterface> {
-    const workflowConfig = this.resolveWorkflowByNames(params.workflowName);
-
     const ctx: RunContext = {
       root: params.workflowName,
       userId: params.userId,
@@ -69,7 +54,7 @@ export class RootProcessorService {
 
     this.logger.debug(`Running stateless workflow: ${params.workflowName}`);
 
-    return this.blockProcessor.processBlock(workflowConfig, params.args, ctx);
+    return this.blockProcessor.processBlock(workflow, params.args, ctx);
   }
 
   async runWorkflow(workflow: WorkflowEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {

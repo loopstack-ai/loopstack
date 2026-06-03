@@ -72,7 +72,7 @@ describe('PromptWorkflow', () => {
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          className: 'LlmMessageDocument',
+          documentName: 'llm_message',
           content: expect.objectContaining({ role: 'assistant' }),
         }),
       );

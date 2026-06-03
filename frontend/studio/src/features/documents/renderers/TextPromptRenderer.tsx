@@ -24,7 +24,7 @@ interface TextPromptRendererProps {
 const TextPromptRenderer: React.FC<TextPromptRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as TextPromptContent;
   const documentConfigs = useDocumentConfigs();
-  const docConfig = documentConfigs.get(document.alias);
+  const docConfig = documentConfigs.get(document.documentName);
   const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, docConfig);
 
   const [text, setText] = useState('');

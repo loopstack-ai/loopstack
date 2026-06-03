@@ -65,7 +65,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'LinkDocument',
+            documentName: 'link',
             content: expect.objectContaining({
               label: 'Executing Sub-Workflow...',
               workflowId: 'test-workflow-id',
@@ -108,7 +108,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
               content: 'A message from sub workflow 1: Hi mom!',
@@ -149,7 +149,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
               content: 'A message from sub workflow 2: Hello from sub workflow 2!',

@@ -128,9 +128,7 @@ describe('CalendarSummaryWorkflow', () => {
       expect(mockGoogleCalendarFetchEventsTool.call).toHaveBeenCalledTimes(1);
 
       // Verify markdown summary document was created
-      expect(result.documents).toEqual(
-        expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
-      );
+      expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ documentName: 'markdown' })]));
     });
 
     it('should execute fetch_events and auth_required when unauthorized', async () => {
@@ -161,7 +159,7 @@ describe('CalendarSummaryWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'LinkDocument',
+            documentName: 'link',
             content: expect.objectContaining({
               label: 'Google authentication required',
             }),
@@ -242,8 +240,6 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
     expect(mockGoogleCalendarFetchEvents.call).toHaveBeenCalledTimes(1);
 
     // Verify markdown summary was created after auth resume
-    expect(result.documents).toEqual(
-      expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
-    );
+    expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ documentName: 'markdown' })]));
   });
 });

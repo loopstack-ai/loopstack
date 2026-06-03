@@ -40,8 +40,7 @@ export interface StaticDocumentMeta {
 }
 
 export interface StudioDocumentConfig {
-  alias: string;
-  className: string;
+  documentName: string;
   title?: string;
   description?: string;
   ui?: { widgets?: StudioWidgetConfig[] };

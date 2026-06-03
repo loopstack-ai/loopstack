@@ -9,7 +9,7 @@ import DocumentItem from './DocumentItem.tsx';
 
 function getDocumentKey(item: DocumentItemInterface): string {
   const content = item.content as { id?: unknown } | undefined;
-  if (item.alias === 'llm_message' && typeof content?.id === 'string') {
+  if (item.documentName === 'llm_message' && typeof content?.id === 'string') {
     return `llm-message-${content.id}`;
   }
   return item.id;
@@ -37,7 +37,7 @@ const DocumentList: React.FC<{
   return (
     <div className="flex flex-col gap-3">
       {documents.map((item: DocumentItemInterface, documentIndex: number) => {
-        const docConfig = documentConfigs.get(item.alias);
+        const docConfig = documentConfigs.get(item.documentName);
 
         // document is active when created at current place
         // or when explicitly set to enabled for specific places

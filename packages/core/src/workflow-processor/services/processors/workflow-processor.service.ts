@@ -18,6 +18,7 @@ import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor } from '../../../common/index.js';
 import { ExecutionScope, ExecutionScopeData } from '../../utils/index.js';
 import { DocumentPersistenceService } from '../document-persistence.service.js';
+import { resolveDocumentName } from '../document-store.service.js';
 import { TransitionResolverService } from '../transition-resolver.service.js';
 import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service.js';
 import { WorkflowStateService } from '../workflow-state.service.js';
@@ -355,8 +356,7 @@ export class WorkflowProcessorService implements Processor {
     try {
       await this.executionScope.run(scopeData, async () => {
         await this.documentPersistenceService.create(
-          'ErrorDocument',
-          'error',
+          resolveDocumentName(ErrorDocument),
           ErrorDocument,
           { error: error.message },
           { id: `error_${Date.now()}` },

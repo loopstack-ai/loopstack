@@ -20,9 +20,7 @@ const WorkflowDebugPage: React.FC = () => {
   const fetchWorkspace = useWorkspace(workspaceId);
   const fetchChildWorkflows = useChildWorkflows(workflowId);
   const childWorkflows = useMemo(() => fetchChildWorkflows.data ?? [], [fetchChildWorkflows.data]);
-  const fetchWorkflowConfig = useWorkflowConfigByName(
-    fetchWorkflow.data?.alias ?? fetchWorkflow.data?.className ?? undefined,
-  );
+  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.workflowName);
 
   const breadcrumbData = useMemo(
     () => [

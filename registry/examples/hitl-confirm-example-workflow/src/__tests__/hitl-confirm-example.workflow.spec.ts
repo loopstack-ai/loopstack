@@ -73,7 +73,7 @@ describe('HitlConfirmExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({ content: expect.stringContaining('confirmed') }),
         }),
       ]),
@@ -107,7 +107,7 @@ describe('HitlConfirmExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({ content: expect.stringContaining('denied') }),
         }),
       ]),

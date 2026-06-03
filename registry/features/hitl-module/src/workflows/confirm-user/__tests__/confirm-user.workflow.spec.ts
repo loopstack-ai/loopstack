@@ -36,7 +36,7 @@ describe('ConfirmUserWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'ConfirmUserDocument',
+          documentName: 'confirm_user',
           content: expect.objectContaining({ markdown: '## Ready to merge\n\nProceed?' }),
         }),
       ]),

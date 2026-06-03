@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { FindOptionsWhere } from 'typeorm';
 import { WorkflowEntity, WorkflowInterface, WorkspaceEntity, getBlockArgsSchema } from '@loopstack/common';
 import { WorkflowService, WorkspaceService } from '../../persistence/index.js';
-import { WorkflowRegistryService } from './workflow-registry.service.js';
 
 @Injectable()
 export class CreateWorkflowService {
@@ -11,7 +10,6 @@ export class CreateWorkflowService {
   constructor(
     private readonly workspaceService: WorkspaceService,
     private readonly workflowService: WorkflowService,
-    private readonly workflowRegistryService: WorkflowRegistryService,
   ) {}
 
   private validateWorkflowArgs(workflow: WorkflowInterface, data: Partial<WorkflowEntity>): Partial<WorkflowEntity> {
@@ -22,14 +20,19 @@ export class CreateWorkflowService {
     return data;
   }
 
+  /**
+   * Create a workflow entity from an already-resolved workflow instance.
+   * The caller is responsible for resolving the workflow from the registry.
+   */
   async create(
+    workflow: WorkflowInterface,
     workspaceWhere: FindOptionsWhere<WorkspaceEntity>,
     data: Partial<WorkflowEntity>,
     user: string,
     parentWorkflowId?: string,
   ): Promise<WorkflowEntity> {
     if (!data.workflowName) {
-      throw new Error('alias is required to create a workflow.');
+      throw new Error('workflowName is required to create a workflow.');
     }
 
     const workspace = await this.workspaceService.getWorkspace(workspaceWhere, user);
@@ -42,10 +45,7 @@ export class CreateWorkflowService {
       parentWorkflow = await this.workflowService.getWorkflow(parentWorkflowId, user, []);
     }
 
-    const workflow = this.workflowRegistryService.getByName(data.workflowName);
-
     const validData = this.validateWorkflowArgs(workflow, data);
-    validData.className = workflow.constructor.name;
     return this.workflowService.createRootWorkflow(validData, workspace, user, parentWorkflow);
   }
 }

@@ -148,7 +148,7 @@ export function useChildWorkflows(parentId: string | undefined, enabled: boolean
 }
 
 /**
- * Fetch workflow config by block name (class name).
+ * Fetch workflow config by workflow name (the identifier stored on the workflow entity).
  */
 export function useWorkflowConfigByName(workflowName: string | undefined) {
   const { envKey, api } = useApiClient();

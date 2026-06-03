@@ -28,7 +28,7 @@ const ConfirmPromptRenderer: React.FC<ConfirmPromptRendererProps> = ({
 }) => {
   const content = document.content as ConfirmPromptContent;
   const documentConfigs = useDocumentConfigs();
-  const docConfig = documentConfigs.get(document.alias);
+  const docConfig = documentConfigs.get(document.documentName);
   const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, docConfig);
 
   const hasAnswer = !!content.answer;

@@ -16,9 +16,6 @@ export class WorkflowDto {
   workflowName: string;
 
   @Expose()
-  className: string | null;
-
-  @Expose()
   title: string;
 
   @Expose()

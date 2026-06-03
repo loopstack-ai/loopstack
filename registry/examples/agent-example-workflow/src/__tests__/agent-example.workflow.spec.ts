@@ -55,7 +55,7 @@ describe('AgentExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'LinkDocument',
+          documentName: 'link',
           content: expect.objectContaining({ workflowId: 'agent-sub-id' }),
         }),
       ]),
@@ -89,7 +89,7 @@ describe('AgentExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({ content: expect.stringContaining('714') }),
         }),
       ]),

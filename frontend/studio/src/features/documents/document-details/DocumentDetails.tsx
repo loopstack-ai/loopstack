@@ -173,7 +173,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
   const documentConfigs = useDocumentConfigs();
   if (!data) return null;
 
-  const docConfig = documentConfigs.get(data.alias);
+  const docConfig = documentConfigs.get(data.documentName);
   const staticMeta = docConfig?.meta;
   const dynMeta = (data.meta ?? {}) as DynMeta;
   const widget = docConfig?.ui?.widgets?.[0]?.widget ?? 'form';
@@ -220,11 +220,6 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
             Invalidated
           </Badge>
         )}
-        {data.isPendingRemoval && (
-          <Badge variant="secondary" className="text-xs">
-            Pending removal
-          </Badge>
-        )}
         {hasValidationError && (
           <Badge variant="destructive" className="gap-1 text-xs">
             <AlertCircle className="size-3" />
@@ -258,16 +253,13 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
           </AccordionTrigger>
           <AccordionContent>
             <div className="space-y-2 pb-1">
-              <DetailRow label="Name">{data.name}</DetailRow>
-              <DetailRow label="Alias">{data.alias}</DetailRow>
+              <DetailRow label="Document name">{data.documentName}</DetailRow>
               <DetailRow label="Widget">
                 <Badge variant="secondary" className="font-mono text-xs">
                   {widget}
                 </Badge>
               </DetailRow>
-              <DetailRow label="Version">
-                v{data.version} · index {data.index}
-              </DetailRow>
+              <DetailRow label="Index">{data.index}</DetailRow>
               {staticMeta?.mimeType && <DetailRow label="MIME">{staticMeta.mimeType}</DetailRow>}
             </div>
           </AccordionContent>
@@ -280,7 +272,6 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
               <div className="space-y-2 pb-1">
                 <DetailRow label="Title">{workflowContext.title}</DetailRow>
                 <DetailRow label="Workflow">{workflowContext.workflowName}</DetailRow>
-                {workflowContext.className && <DetailRow label="Class">{workflowContext.className}</DetailRow>}
                 <DetailRow label="Status">
                   <Badge variant="outline" className="text-xs capitalize">
                     {workflowContext.status}

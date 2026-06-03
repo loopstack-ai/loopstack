@@ -54,15 +54,15 @@ export class DocumentStore {
       const documentClass = classOrInstance;
       const data = dataOrOptions as T;
       const options = maybeOptions;
-      const alias = resolveDocumentAlias(documentClass);
-      return this.documentPersistenceService.create(documentClass.name, alias, documentClass, data, options);
+      const documentName = resolveDocumentName(documentClass);
+      return this.documentPersistenceService.create(documentName, documentClass, data, options);
     } else {
       const instance = classOrInstance;
       const options = dataOrOptions as DocumentSaveOptions | undefined;
       const documentClass = instance.constructor;
       const data = Object.assign({}, instance) as Record<string, unknown>;
-      const alias = resolveDocumentAlias(documentClass);
-      return this.documentPersistenceService.create(documentClass.name, alias, documentClass, data, options);
+      const documentName = resolveDocumentName(documentClass);
+      return this.documentPersistenceService.create(documentName, documentClass, data, options);
     }
   }
 
@@ -71,10 +71,10 @@ export class DocumentStore {
    */
   findAll<T extends object>(documentClass: DocumentClass<T>): T[] {
     const scope = this.executionScope.get();
-    const className = documentClass.name;
+    const documentName = resolveDocumentName(documentClass);
 
     return scope.documents
-      .filter((d) => !d.isInvalidated && d.className === className)
+      .filter((d) => !d.isInvalidated && d.documentName === documentName)
       .map((d) => plainToInstance(documentClass, d.content as Record<string, unknown>));
   }
 
@@ -104,10 +104,10 @@ export class DocumentStore {
 }
 
 /**
- * Resolves the snake_case alias for a document class.
+ * Resolves the snake_case document name for a document class.
  * Uses explicit `name` from @Document({ name }) if set, otherwise derives from class name.
  */
-function resolveDocumentAlias(documentClass: object): string {
+export function resolveDocumentName(documentClass: object): string {
   const explicitName = getBlockName(documentClass);
   const className = (documentClass as { name: string }).name;
   // getBlockName returns className when no explicit name is set — in that case, derive snake_case

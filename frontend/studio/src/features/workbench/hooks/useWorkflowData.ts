@@ -14,7 +14,7 @@ interface UseWorkflowDataOptions {
 
 function getLlmMessageId(item: DocumentItemInterface): string | undefined {
   const content = item.content as { id?: unknown } | undefined;
-  return item.alias === 'llm_message' && typeof content?.id === 'string' ? content.id : undefined;
+  return item.documentName === 'llm_message' && typeof content?.id === 'string' ? content.id : undefined;
 }
 
 function isStreamReadyForFinal(item: DocumentItemInterface): boolean {
@@ -30,7 +30,7 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
 
   const filterDocuments = useCallback(
     (item: DocumentItemInterface) => {
-      const docConfig = documentConfigs.get(item.alias);
+      const docConfig = documentConfigs.get(item.documentName);
       const staticMeta = docConfig?.meta;
 
       let hidden = staticMeta?.hidden || !!staticMeta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');

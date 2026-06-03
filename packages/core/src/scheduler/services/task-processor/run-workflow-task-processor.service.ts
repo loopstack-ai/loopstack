@@ -3,6 +3,7 @@ import type { RunWorkflowTask } from '@loopstack/contracts/types';
 import { WorkflowService, WorkspaceService } from '../../../persistence/index.js';
 import { RootProcessorService } from '../../../workflow-processor/services/root-processor.service.js';
 import { WorkflowMemoryMonitorService } from '../../../workflow-processor/services/workflow-memory-monitor.service.js';
+import { WorkflowRegistryService } from '../../../workflow-processor/services/workflow-registry.service.js';
 
 @Injectable()
 export class RunWorkflowTaskProcessorService {
@@ -13,6 +14,7 @@ export class RunWorkflowTaskProcessorService {
     private readonly workflowService: WorkflowService,
     private readonly rootProcessorService: RootProcessorService,
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
+    private readonly workflowRegistryService: WorkflowRegistryService,
   ) {}
 
   public async process(task: RunWorkflowTask) {
@@ -51,8 +53,10 @@ export class RunWorkflowTaskProcessorService {
       }
 
       this.logger.debug(`Running stateless workflow: ${task.workflowName}`);
+      const { instance } = this.workflowRegistryService.resolve(task.workflowName);
 
       await this.rootProcessorService.runStateless(
+        instance,
         {
           workspaceId: task.workspaceId,
           correlationId: task.correlationId,

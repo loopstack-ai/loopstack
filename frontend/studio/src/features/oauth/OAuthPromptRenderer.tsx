@@ -27,7 +27,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflo
 
   // Resolve transition from document config ui.widgets[0].options.transition
   const documentConfigs = useDocumentConfigs();
-  const docConfig = documentConfigs.get(document.alias);
+  const docConfig = documentConfigs.get(document.documentName);
   const widgets = docConfig?.ui?.widgets as { options?: { transition?: string } }[] | undefined;
   const transitionId = widgets?.[0]?.options?.transition;
 

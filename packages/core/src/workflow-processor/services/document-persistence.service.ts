@@ -26,8 +26,7 @@ export class DocumentPersistenceService {
    * in-memory cache.
    */
   async create(
-    className: string,
-    alias: string,
+    documentName: string,
     documentClass: object,
     content: unknown,
     options?: DocumentSaveOptions,
@@ -54,8 +53,7 @@ export class DocumentPersistenceService {
 
     const entity = this.documentRepository.create({
       messageId,
-      alias,
-      className,
+      documentName,
       content: validatedContent,
       meta: dynamicMeta && Object.keys(dynamicMeta).length > 0 ? dynamicMeta : null,
       error: error ?? null,
@@ -90,13 +88,11 @@ export class DocumentPersistenceService {
     // Collect all existing documents with the same messageId that need invalidation
     const invalidated: DocumentEntity[] = [];
     let inheritedIndex: number | undefined;
-    let inheritedVersion: number | undefined;
 
     for (const doc of documents) {
       if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
         if (inheritedIndex === undefined) {
           inheritedIndex = doc.index;
-          inheritedVersion = doc.version;
         }
         doc.isInvalidated = true;
         if (doc.id) {
@@ -115,18 +111,13 @@ export class DocumentPersistenceService {
         .execute();
     }
 
-    // Bump version when replacing an existing document
-    if (inheritedVersion !== undefined) {
-      document.version = inheritedVersion + 1;
-    }
-
     if (existingIndex !== -1) {
       document.index = documents[existingIndex].index;
       documents[existingIndex] = document;
     } else {
       document.index = inheritedIndex ?? documents.length;
       this.logger.debug(
-        `addDocument: ${document.alias}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
+        `addDocument: ${document.documentName}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
       );
       documents.push(document);
     }

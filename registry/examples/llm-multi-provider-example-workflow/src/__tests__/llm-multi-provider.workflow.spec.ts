@@ -63,7 +63,7 @@ describe('LlmMultiProviderWorkflow', () => {
     // User message
     expect(result.documents[0]).toEqual(
       expect.objectContaining({
-        className: 'LlmMessageDocument',
+        documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'user',
           content: 'What is the meaning of life?',
@@ -74,7 +74,7 @@ describe('LlmMultiProviderWorkflow', () => {
     // Claude response
     expect(result.documents[1]).toEqual(
       expect.objectContaining({
-        className: 'LlmMessageDocument',
+        documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'assistant',
           content: expect.stringContaining('Claude'),
@@ -85,7 +85,7 @@ describe('LlmMultiProviderWorkflow', () => {
     // OpenAI response
     expect(result.documents[2]).toEqual(
       expect.objectContaining({
-        className: 'LlmMessageDocument',
+        documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'assistant',
           content: expect.stringContaining('OpenAI'),

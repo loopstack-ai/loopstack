@@ -4,7 +4,6 @@ import { WorkflowTransitionType } from '../types/workflow-transition.type.js';
 export interface WorkflowInterface {
   id: string;
   workflowName: string;
-  className: string | null;
   title: string;
   run: number;
   labels: string[];
