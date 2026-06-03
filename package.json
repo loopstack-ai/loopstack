@@ -71,6 +71,7 @@
     "frontend/*",
     "registry/*/*",
     "services/*",
-    "sandbox/*"
+    "sandbox/hello-world",
+    "sandbox/smoke-tests"
   ]
 }

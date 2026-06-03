@@ -24,10 +24,9 @@ import { AgentFinishTool } from '../tools/agent-finish.tool.js';
  * Runs an agent loop like AgentWorkflow, but instead of exiting on end_turn,
  * it waits for user input. The user can chat with the agent between LLM turns.
  *
- * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`
- * - **Config** (per-injection via `@InjectWorkflow()`): `provider`, `model`, `providerConfig`, `taskMode`
+ * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`, `taskMode`
  *
- * Exit behavior is controlled by `taskMode` config:
+ * Exit behavior is controlled by `taskMode` arg:
  * - When true, the AgentFinishTool is added to the tool list. The agent exits
  *   when the LLM calls it, returning the finish tool's result.
  * - When false (default), the agent never finishes on its own. The parent
@@ -40,6 +39,7 @@ const ChatAgentArgsSchema = z.object({
   tools: z.array(z.string()),
   userMessage: z.string(),
   context: z.string().optional(),
+  taskMode: z.boolean().optional(),
 });
 
 type ChatAgentArgs = z.infer<typeof ChatAgentArgsSchema>;
@@ -49,6 +49,7 @@ interface ChatAgentState {
   tools: string[];
   userMessage: string;
   context?: string;
+  taskMode?: boolean;
   llmResult?: LlmGenerateTextResult;
   llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
@@ -90,13 +91,15 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
   async llmTurn(state: ChatAgentState): Promise<ChatAgentState> {
+    const tools = state.taskMode ? [...state.tools, 'agent_finish'] : state.tools;
+
     const result = await this.llmGenerateText.call(
       {},
       {
         config: {
           provider: 'claude',
           system: state.system,
-          tools: state.tools,
+          tools,
         },
       },
     );
