@@ -9,7 +9,7 @@
     "llm",
     "workflow"
   ],
-  "version": "0.4.1",
+  "version": "0.5.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,8 +32,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.31.0",
-    "@loopstack/llm-provider-module": "^0.3.1",
+    "@loopstack/common": "^0.32.0",
+    "@loopstack/llm-provider-module": "^0.4.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
@@ -41,7 +41,7 @@
     "dist"
   ],
   "devDependencies": {
-    "@loopstack/core": "^0.31.0"
+    "@loopstack/core": "^0.32.0"
   },
   "jest": {
     "testEnvironment": "node",
