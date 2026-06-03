@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.29.5
+
+### Patch Changes
+
+- [#165](https://github.com/loopstack-ai/loopstack/pull/165) [`2b3d4ac`](https://github.com/loopstack-ai/loopstack/commit/2b3d4acd91ec6f262a05686d8dd8a31ce3caaef1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Remove unused schema defaults extraction from Form component
+
 ## 0.29.4
 
 ### Patch Changes
