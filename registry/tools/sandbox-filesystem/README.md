@@ -30,7 +30,7 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## Usage
 
-Inject the tools in your workflow class using the `@InjectTool()` decorator:
+Inject the tools in your workflow class via the constructor:
 
 ```typescript
 import { z } from 'zod';
@@ -53,18 +53,21 @@ import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
   }),
 })
 export class MyWorkflow extends BaseWorkflow<{ outputDir: string }> {
-  // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
-  @InjectTool() sandboxInit: SandboxInit;
-  @InjectTool() sandboxDestroy: SandboxDestroy;
-
-  // Filesystem tools (from @loopstack/sandbox-filesystem)
-  @InjectTool() sandboxWriteFile: SandboxWriteFile;
-  @InjectTool() sandboxReadFile: SandboxReadFile;
-  @InjectTool() sandboxListDirectory: SandboxListDirectory;
-  @InjectTool() sandboxCreateDirectory: SandboxCreateDirectory;
-  @InjectTool() sandboxDelete: SandboxDelete;
-  @InjectTool() sandboxExists: SandboxExists;
-  @InjectTool() sandboxFileInfo: SandboxFileInfo;
+  constructor(
+    // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
+    private readonly sandboxInit: SandboxInit,
+    private readonly sandboxDestroy: SandboxDestroy,
+    // Filesystem tools (from @loopstack/sandbox-filesystem)
+    private readonly sandboxWriteFile: SandboxWriteFile,
+    private readonly sandboxReadFile: SandboxReadFile,
+    private readonly sandboxListDirectory: SandboxListDirectory,
+    private readonly sandboxCreateDirectory: SandboxCreateDirectory,
+    private readonly sandboxDelete: SandboxDelete,
+    private readonly sandboxExists: SandboxExists,
+    private readonly sandboxFileInfo: SandboxFileInfo,
+  ) {
+    super();
+  }
 
   containerId?: string;
   fileContent?: string;

@@ -1,7 +1,5 @@
-import { Expose, Type, plainToInstance } from 'class-transformer';
+import { Expose, plainToInstance } from 'class-transformer';
 import { WorkspaceEntity } from '@loopstack/common';
-import { FeaturesDto, VolumeDto } from './workspace-config.dto.js';
-import { WorkspaceEnvironmentDto } from './workspace-environment.dto.js';
 
 /**
  * Data Transfer Object for Workspace entity
@@ -17,7 +15,7 @@ export class WorkspaceDto {
    * Config Key of the workspace
    */
   @Expose()
-  className: string;
+  appName: string;
 
   @Expose()
   title: string;
@@ -42,17 +40,6 @@ export class WorkspaceDto {
    */
   @Expose()
   updatedAt: Date;
-
-  @Expose()
-  volumes?: Record<string, VolumeDto>;
-
-  @Expose()
-  @Type(() => FeaturesDto)
-  features?: FeaturesDto;
-
-  @Expose()
-  @Type(() => WorkspaceEnvironmentDto)
-  environments?: WorkspaceEnvironmentDto[];
 
   /**
    * Creates a WorkspaceDto instance from a WorkspaceEntity

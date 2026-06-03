@@ -1,9 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
+import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ChatWorkflow } from '../chat.workflow';
 
@@ -17,7 +17,7 @@ describe('ChatWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
-      .withImports(ClaudeModule)
+      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 
@@ -32,9 +32,8 @@ describe('ChatWorkflow', () => {
   });
 
   describe('initialization', () => {
-    it('should be defined with correct tools', () => {
+    it('should be defined', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('llmGenerateText');
     });
   });
 
@@ -53,7 +52,7 @@ describe('ChatWorkflow', () => {
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          className: 'LlmMessageDocument',
+          documentName: 'llm_message',
           content: expect.objectContaining({ role: 'user' }),
           meta: expect.objectContaining({ hidden: true }),
         }),
@@ -115,11 +114,11 @@ describe('ChatWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'LlmMessageDocument',
+            documentName: 'llm_message',
             content: expect.objectContaining({ role: 'user', content: 'Hello, how are you?' }),
           }),
           expect.objectContaining({
-            className: 'LlmMessageDocument',
+            documentName: 'llm_message',
             content: expect.objectContaining({ role: 'assistant' }),
           }),
         ]),

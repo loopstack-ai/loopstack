@@ -7,4 +7,5 @@ export {
   GrepMatch,
   GrepResponse,
 } from './remote-client.service.js';
-export { SandboxEnvironmentService } from './sandbox-environment.service.js';
+export { EnvironmentService } from './environment.service.js';
+export { EnvironmentConfigService } from './environment-config.service.js';

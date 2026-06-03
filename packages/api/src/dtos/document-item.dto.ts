@@ -1,8 +1,7 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { DocumentEntity } from '@loopstack/common';
-import type { DocumentItemInterface, JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
+import type { DocumentItemInterface, DynamicDocumentMeta } from '@loopstack/contracts/types';
 import { DocumentContentDto } from './document-content.dto.js';
-import { DocumentMetaDto } from './document-meta.dto.js';
 
 /**
  * Data Transfer Object for Document Item entities
@@ -16,16 +15,10 @@ export class DocumentItemDto implements DocumentItemInterface {
   id: string;
 
   /**
-   * Name of the document
+   * Snake_case identifier of the document type
    */
   @Expose()
-  name: string;
-
-  /**
-   * Config Key of the document
-   */
-  @Expose()
-  alias: string;
+  documentName: string;
 
   /**
    * Contents of the document.
@@ -34,37 +27,16 @@ export class DocumentItemDto implements DocumentItemInterface {
   content: DocumentContentDto | null;
 
   @Expose()
-  schema: JSONSchemaConfigType;
-
-  @Expose()
   validationError: any;
 
   @Expose()
-  ui: UiFormType;
-
-  /**
-   * Document metadata
-   */
-  @Expose()
-  meta: DocumentMetaDto | null;
+  meta: DynamicDocumentMeta | null;
 
   /**
    * Indicates if the document is invalidated
    */
   @Expose()
   isInvalidated: boolean;
-
-  /**
-   * Indicates if the document is pending removal
-   */
-  @Expose()
-  isPendingRemoval: boolean;
-
-  /**
-   * Version of the document
-   */
-  @Expose()
-  version: number;
 
   /**
    * Index of the document

@@ -2,12 +2,10 @@ import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  Final,
-  Initial,
-  InjectWorkflow,
   LinkDocument,
   MessageDocument,
   QueueResult,
+  Transition,
   Workflow,
 } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
@@ -28,24 +26,26 @@ We're about to deploy **v1.2.3** to production.
 Proceed?`;
 
 @Workflow({
-  uiConfig: __dirname + '/hitl-confirm-example.ui.yaml',
+  title: 'HITL Confirm Example',
 })
 export class HitlConfirmExampleWorkflow extends BaseWorkflow {
-  @InjectWorkflow() private confirmUser: ConfirmUserWorkflow;
+  constructor(private readonly confirmUserWorkflow: ConfirmUserWorkflow) {
+    super();
+  }
 
-  @Initial({ to: 'waiting_for_confirmation' })
-  async askForConfirmation() {
-    const result: QueueResult = await this.confirmUser.run(
+  @Transition({ to: 'waiting_for_confirmation' })
+  async askForConfirmation(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const result: QueueResult = await this.confirmUserWorkflow.run(
       { markdown: MARKDOWN_SUMMARY },
-      { alias: 'confirmUser', callback: { transition: 'decisionReceived' } },
+      { callback: { transition: 'decisionReceived' } },
     );
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Requesting confirmation (sub-workflow ${result.workflowId})...`,
     });
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'pending',
@@ -56,15 +56,17 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
       },
       { id: `link_${result.workflowId}` },
     );
+    return state;
   }
 
-  @Final({
+  @Transition({
     from: 'waiting_for_confirmation',
+    to: 'end',
     wait: true,
     schema: ConfirmCallbackSchema,
   })
-  async decisionReceived(payload: ConfirmCallback) {
-    await this.repository.save(
+  async decisionReceived(state: Record<string, unknown>, payload: ConfirmCallback): Promise<unknown> {
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'success',
@@ -78,9 +80,10 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
 
     const content = payload.data.confirmed ? 'User confirmed — proceeding with deploy.' : 'User denied — aborting.';
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content,
     });
+    return {};
   }
 }

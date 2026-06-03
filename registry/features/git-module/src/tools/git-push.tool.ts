@@ -1,7 +1,7 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitPushArgs = {
   remote?: string;
@@ -10,7 +10,14 @@ export type GitPushArgs = {
   token?: string;
 };
 
+export type GitPushResult = {
+  success: boolean;
+  output?: string;
+};
+
 @Tool({
+  name: 'git_push',
+  description: 'Pushes commits to a remote repository.',
   schema: z
     .object({
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
@@ -19,17 +26,18 @@ export type GitPushArgs = {
       token: z.string().optional().describe('Access token for authentication'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Pushes commits to a remote repository.',
-  },
 })
-export class GitPushTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitPushTool extends BaseTool<GitPushArgs, object, GitPushResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitPushArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitPush(agentUrl, {
+  protected async handle(args: GitPushArgs, _ctx: LoopstackContext): Promise<ToolResult<GitPushResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitPush(agentUrl, {
       remote: args.remote,
       branch: args.branch,
       force: args.force,

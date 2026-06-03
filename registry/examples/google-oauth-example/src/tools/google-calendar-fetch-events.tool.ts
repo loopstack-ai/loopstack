@@ -1,6 +1,7 @@
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const GoogleCalendarFetchEventsSchema = z
@@ -12,6 +13,12 @@ const GoogleCalendarFetchEventsSchema = z
   .strict();
 
 type GoogleCalendarFetchEventsArgs = z.infer<typeof GoogleCalendarFetchEventsSchema>;
+
+export type GoogleCalendarFetchEventsResult = {
+  error?: string;
+  message?: string;
+  events?: { id: string; summary: string; start: string | undefined; end: string | undefined }[];
+};
 
 interface GoogleCalendarEvent {
   id: string;
@@ -25,20 +32,26 @@ interface GoogleCalendarListResponse {
 }
 
 @Tool({
-  uiConfig: {
-    description:
-      'Fetches events from Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'google_calendar_fetch_events',
+  description: 'Fetches events from Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   schema: GoogleCalendarFetchEventsSchema,
 })
-export class GoogleCalendarFetchEventsTool extends BaseTool {
+export class GoogleCalendarFetchEventsTool extends BaseTool<
+  GoogleCalendarFetchEventsArgs,
+  object,
+  GoogleCalendarFetchEventsResult
+> {
   private readonly logger = new Logger(GoogleCalendarFetchEventsTool.name);
 
-  @Inject()
-  private tokenStore: OAuthTokenStore;
+  constructor(private readonly tokenStore: OAuthTokenStore) {
+    super();
+  }
 
-  async call(args: GoogleCalendarFetchEventsArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(
+    args: GoogleCalendarFetchEventsArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GoogleCalendarFetchEventsResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -65,7 +78,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool {
     );
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

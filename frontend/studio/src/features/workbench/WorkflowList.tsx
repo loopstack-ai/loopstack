@@ -30,7 +30,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
   });
 
   const { listRef, scrollTo, canScrollDown, scrollToBottom } = useWorkflowListState();
-  const fetchWorkflowConfig = useWorkflowConfigByName(workflow.alias ?? workflow.className ?? undefined);
+  const fetchWorkflowConfig = useWorkflowConfigByName(workflow.workflowName);
   const fetchChildWorkflows = useChildWorkflows(workflow.id);
   const childWorkflows = fetchChildWorkflows.data ?? [];
 
@@ -50,7 +50,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
       <div className="mb-10" ref={listRef}>
         <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 backdrop-blur">
           <div className="flex w-full items-center gap-2 rounded-md p-2 px-3 text-left text-sm font-medium">
-            <span className="flex-1 truncate text-sm">{fetchWorkflowConfig.data?.title ?? workflow.alias}</span>
+            <span className="flex-1 truncate text-sm">{fetchWorkflowConfig.data?.title ?? workflow.workflowName}</span>
             <WorkflowButtons workflow={workflow} workflowId={workflow.id} />
 
             <Dialog>
@@ -101,7 +101,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
                   <ReactFlowProvider>
                     <WorkflowFlowViewer
                       workflowId={workflow.id}
-                      workflows={childWorkflows}
+                      workflows={[workflow, ...childWorkflows]}
                       workflowConfig={fetchWorkflowConfig.data}
                     />
                   </ReactFlowProvider>

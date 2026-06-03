@@ -1,5 +1,1 @@
-tags:
-  - error
-ui:
-  widgets:
-    - widget: error
+widget: error

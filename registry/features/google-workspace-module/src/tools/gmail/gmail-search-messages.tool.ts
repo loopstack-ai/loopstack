@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -14,21 +15,39 @@ const inputSchema = z
 
 export type GmailSearchMessagesArgs = z.infer<typeof inputSchema>;
 
+export type GmailSearchMessagesResult =
+  | {
+      messages: Array<{
+        id: string;
+        threadId: string;
+        snippet: string;
+        from: string;
+        to: string;
+        subject: string;
+        date: string;
+      }>;
+      nextPageToken?: string;
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'gmail_search_messages',
+  description:
+    'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GmailSearchMessagesTool extends BaseTool {
+export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, object, GmailSearchMessagesResult> {
   private readonly logger = new Logger(GmailSearchMessagesTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GmailSearchMessagesArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(
+    args: GmailSearchMessagesArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GmailSearchMessagesResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -56,7 +75,7 @@ export class GmailSearchMessagesTool extends BaseTool {
 
     if (listResponse.status === 401 || listResponse.status === 403) {
       const body = await listResponse.text();
-      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${this.ctx.app.userId}: ${body}`);
+      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${ctx.userId}: ${body}`);
       return {
         data: {
           error: 'unauthorized',

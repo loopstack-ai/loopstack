@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 
 const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
 source code to answer the user's question thoroughly.
@@ -23,35 +24,42 @@ const ExploreTaskInputSchema = z
 
 type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
 
+export type ExploreTaskResult = { workflowId: string } | string | Record<string, unknown>;
+
 @Tool({
-  uiConfig: {
-    description:
-      'Launch a sub-agent to explore and analyze the codebase. ' +
-      'The agent will use glob, grep, and read tools to search for files and code patterns, ' +
-      'then return a synthesized summary. Use this when you need to understand existing code ' +
-      'patterns, find specific implementations, or gather context before making changes. ' +
-      'IMPORTANT: This must be the only tool call in your response.',
-  },
+  name: 'explore_task',
+  description:
+    'Launch a sub-agent to explore and analyze the codebase. ' +
+    'The agent will use glob, grep, and read tools to search for files and code patterns, ' +
+    'then return a synthesized summary. Use this when you need to understand existing code ' +
+    'patterns, find specific implementations, or gather context before making changes. ' +
+    'IMPORTANT: This must be the only tool call in your response.',
   schema: ExploreTaskInputSchema,
 })
-export class ExploreTask extends BaseTool {
-  @InjectWorkflow() private agent: AgentWorkflow;
+export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskResult> {
+  constructor(private readonly agentWorkflow: AgentWorkflow) {
+    super();
+  }
 
   private readonly tools = ['glob', 'grep', 'read'];
 
-  async call(args: ExploreTaskInput, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.agent.run(
+  protected async handle(
+    args: ExploreTaskInput,
+    ctx: LoopstackContext,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<ExploreTaskResult>> {
+    const result = await this.agentWorkflow.run(
       {
         system: EXPLORE_SYSTEM_PROMPT,
         tools: this.tools,
         userMessage: args.instructions,
       },
-      { alias: 'exploreAgent', callback: options?.callback },
+      { callback: options?.callback },
     );
 
     const workflowId = result.workflowId;
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'pending', label: 'Exploring...', workflowId, embed: true, expanded: true },
       { id: 'explore_link' },
@@ -63,10 +71,10 @@ export class ExploreTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<ExploreTaskResult>> {
     const data = result as { workflowId?: string; data?: { response?: string } };
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'success', label: 'Exploring complete', workflowId: data.workflowId! },
       { id: 'explore_link' },

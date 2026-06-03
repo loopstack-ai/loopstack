@@ -17,7 +17,7 @@ const UiWidget: React.FC<UiWidgetProps> = ({ config, onSubmit, disabled, isLoadi
 
   switch (config.widget) {
     case 'prompt-input':
-      return <AiPromptInput disabled={disabled} onSubmit={onSubmit} ui={options} />;
+      return <AiPromptInput disabled={disabled} isLoading={isLoading} onSubmit={onSubmit} ui={options} />;
     case 'button':
       return (
         <SubmitButton

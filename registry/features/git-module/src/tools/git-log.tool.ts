@@ -1,29 +1,44 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitLogArgs = {
   limit?: number;
 };
 
+export type GitCommit = {
+  hash: string;
+  shortHash: string;
+  message: string;
+  author: string;
+  date: string;
+};
+
+export type GitLogResult = {
+  commits: GitCommit[];
+};
+
 @Tool({
+  name: 'git_log',
+  description: 'Shows the git commit log for the workspace repository.',
   schema: z
     .object({
       limit: z.number().optional().default(20).describe('Maximum number of log entries to return'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Shows the git commit log for the workspace repository.',
-  },
 })
-export class GitLogTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitLogTool extends BaseTool<GitLogArgs, object, GitLogResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitLogArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitLog(agentUrl, args.limit);
+  protected async handle(args: GitLogArgs, _ctx: LoopstackContext): Promise<ToolResult<GitLogResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitLog(agentUrl, args.limit);
     return { data: result };
   }
 }

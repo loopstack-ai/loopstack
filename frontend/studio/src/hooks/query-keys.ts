@@ -27,6 +27,10 @@ export function getWorkflowTypesCacheKey(envKey: string, appBlockName: string) {
   return ['workflowTypes', envKey, appBlockName];
 }
 
+export function getStudioAppsCacheKey(envKey: string) {
+  return ['studio-apps', envKey];
+}
+
 export function getAvailableEnvironmentsCacheKey(envKey: string) {
   return ['available-environments', envKey];
 }
@@ -47,6 +51,14 @@ export function getWorkflowsCacheKey(envKey: string) {
 
 export function getChildWorkflowsCacheKey(envKey: string, parentId: string) {
   return ['childWorkflows', envKey, parentId];
+}
+
+export function getToolConfigsCacheKey(envKey: string) {
+  return ['toolConfigs', envKey];
+}
+
+export function getToolConfigCacheKey(envKey: string, toolName: string) {
+  return ['toolConfig', envKey, toolName];
 }
 
 export function getWorkflowConfigCacheKey(envKey: string, alias: string) {

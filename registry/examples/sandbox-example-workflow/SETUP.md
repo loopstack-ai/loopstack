@@ -21,13 +21,13 @@ import { SandboxExampleModule } from '@loopstack/sandbox-example-workflow';
 export class DefaultModule {}
 ```
 
-2. Inject the `SandboxExampleWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `SandboxExampleWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { SandboxExampleWorkflow } from '@loopstack/sandbox-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() sandboxExample: SandboxExampleWorkflow;
+  constructor(public readonly sandboxExample: SandboxExampleWorkflow) {}
 }
 ```
 

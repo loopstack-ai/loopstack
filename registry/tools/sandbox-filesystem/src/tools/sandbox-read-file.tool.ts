@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -19,17 +20,21 @@ interface SandboxReadFileResult {
 }
 
 @Tool({
-  uiConfig: {
-    description: 'Read file contents from a sandbox container',
-  },
+  name: 'sandbox_read_file',
+  description: 'Read file contents from a sandbox container',
   schema: inputSchema,
 })
-export class SandboxReadFile extends BaseTool {
+export class SandboxReadFile extends BaseTool<SandboxReadFileArgs, object, SandboxReadFileResult> {
   private readonly logger = new Logger(SandboxReadFile.name);
 
-  @InjectTool() private sandboxCommand: SandboxCommand;
+  constructor(private readonly sandboxCommand: SandboxCommand) {
+    super();
+  }
 
-  async call(args: SandboxReadFileArgs): Promise<ToolResult<SandboxReadFileResult>> {
+  protected async handle(
+    args: SandboxReadFileArgs,
+    _ctx: LoopstackContext,
+  ): Promise<ToolResult<SandboxReadFileResult>> {
     const { containerId, path, encoding } = args;
 
     this.logger.debug(`Reading file ${path} from container ${containerId} (encoding: ${encoding})`);

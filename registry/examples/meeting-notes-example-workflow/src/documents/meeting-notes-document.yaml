@@ -1,13 +1,10 @@
-type: document
-ui:
-  widgets:
-    - widget: form
-      options:
-        properties:
-          text:
-            title: Text
-            widget: textarea
-        actions:
-          - type: button
-            transition: userResponse
-            label: 'Optimize Notes'
+widget: form
+options:
+  properties:
+    text:
+      title: Text
+      widget: textarea
+  actions:
+    - type: button
+      transition: userResponse
+      label: 'Optimize Notes'

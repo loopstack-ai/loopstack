@@ -1,6 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { LlmDelegateService } from '../services/llm-delegate.service.js';
 import type { LlmDelegateResult } from '../types/index.js';
 
@@ -19,20 +20,20 @@ export const LlmUpdateToolResultToolSchema = z.object({
 type LlmUpdateToolResultToolArgs = z.infer<typeof LlmUpdateToolResultToolSchema>;
 
 @Tool({
-  uiConfig: {
-    description: 'Handles async tool completion callbacks and updates the delegate result.',
-  },
+  name: 'llm_update_tool_result',
+  description: 'Handles async tool completion callbacks and updates the delegate result.',
   schema: LlmUpdateToolResultToolSchema,
 })
-export class LlmUpdateToolResultTool extends BaseTool {
+export class LlmUpdateToolResultTool extends BaseTool<LlmUpdateToolResultToolArgs, object, LlmDelegateResult> {
   @Inject() private readonly delegateService: LlmDelegateService;
 
-  async call(args: LlmUpdateToolResultToolArgs): Promise<ToolResult<LlmDelegateResult>> {
+  protected async handle(
+    args: LlmUpdateToolResultToolArgs,
+    _ctx: LoopstackContext,
+  ): Promise<ToolResult<LlmDelegateResult>> {
     const result = await this.delegateService.updateToolResult(
       args.delegateResult as LlmDelegateResult,
       args.completedTool,
-      this.ctx.workflow,
-      this.ctx.app,
     );
 
     return { data: result };

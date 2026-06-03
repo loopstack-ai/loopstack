@@ -11,7 +11,7 @@ Demonstrates browsing a remote workspace. Imports [`@loopstack/remote-file-explo
 ## Installation
 
 ```sh
-loopstack add @loopstack/remote-file-explorer-example-workflow
+npm install @loopstack/remote-file-explorer-example-workflow
 ```
 
 `@loopstack/remote-client` must be configured with a sandbox environment pointing at a running remote agent.
@@ -30,6 +30,6 @@ loopstack add @loopstack/remote-file-explorer-example-workflow
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/remote-client`
 - `@loopstack/remote-file-explorer-module`

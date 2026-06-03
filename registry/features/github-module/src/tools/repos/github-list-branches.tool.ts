@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -13,21 +14,33 @@ const inputSchema = z
 
 export type GitHubListBranchesArgs = z.input<typeof inputSchema>;
 
+export type GitHubListBranchesResult = {
+  branches?: Array<{
+    name: string;
+    commitSha: string;
+    protected: boolean;
+  }>;
+  error?: string;
+  message?: string;
+};
+
 @Tool({
-  uiConfig: {
-    description:
-      'Lists branches for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_list_branches',
+  description:
+    'Lists branches for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubListBranchesTool extends BaseTool {
+export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, object, GitHubListBranchesResult> {
   private readonly logger = new Logger(GitHubListBranchesTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubListBranchesArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    args: GitHubListBranchesArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubListBranchesResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -52,7 +65,7 @@ export class GitHubListBranchesTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

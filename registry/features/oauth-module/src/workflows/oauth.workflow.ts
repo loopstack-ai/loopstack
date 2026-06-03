@@ -1,12 +1,25 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents/index.js';
 import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
 
-@Injectable()
+interface OAuthArgs {
+  provider: string;
+  scopes: string[];
+}
+
+interface OAuthState {
+  provider: string;
+  scopes: string[];
+  oauthState?: string;
+  authUrl?: string;
+}
+
 @Workflow({
-  uiConfig: import.meta.dirname + '/oauth.ui.yaml',
+  title: 'OAuth',
+  description:
+    'Authenticate with an OAuth 2.0 provider.\nCan be run standalone to pre-authenticate, or invoked from\nother workflows when authentication is required.',
   schema: z
     .object({
       provider: z.string(),
@@ -14,57 +27,62 @@ import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '
     })
     .strict(),
 })
-export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: string[] }> {
-  @InjectTool() buildOAuthUrl: BuildOAuthUrlTool;
-  @InjectTool() exchangeOAuthToken: ExchangeOAuthTokenTool;
+export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
+  constructor(
+    private readonly buildOAuthUrl: BuildOAuthUrlTool,
+    private readonly exchangeOAuthToken: ExchangeOAuthTokenTool,
+  ) {
+    super();
+  }
 
-  provider!: string;
-  oauthState?: string;
-  authUrl?: string;
-
-  @Initial({ to: 'awaiting_auth' })
-  async initiateOAuth(args: { provider: string; scopes: string[] }) {
-    this.provider = args.provider;
-
+  @Transition({ to: 'awaiting_auth' })
+  async initiateOAuth(state: OAuthState, ctx: LoopstackContext): Promise<OAuthState> {
+    const args = ctx.args as OAuthArgs;
     const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
       provider: args.provider,
       scopes: args.scopes,
     });
 
-    this.oauthState = result.data!.state;
-    this.authUrl = result.data!.authUrl;
+    const oauthState = result.data!.state;
+    const authUrl = result.data!.authUrl;
 
-    await this.repository.save(
+    await this.documentStore.save(
       OAuthPromptDocument,
       {
-        provider: this.provider,
-        authUrl: this.authUrl,
-        state: this.oauthState,
+        provider: args.provider,
+        authUrl,
+        state: oauthState,
         status: 'pending' as const,
       },
       { id: 'oauthPrompt' },
     );
+
+    return { ...state, provider: args.provider, scopes: args.scopes, oauthState, authUrl };
   }
 
-  @Final({
+  @Transition({
     from: 'awaiting_auth',
+    to: 'end',
     wait: true,
     schema: z.object({ code: z.string(), state: z.string() }),
   })
-  async exchangeToken(payload: { code: string; state: string }): Promise<{ authenticated: boolean }> {
+  async exchangeToken(
+    state: OAuthState,
+    payload: { code: string; state: string },
+  ): Promise<{ authenticated: boolean }> {
     await this.exchangeOAuthToken.call({
-      provider: this.provider,
+      provider: state.provider,
       code: payload.code,
       state: payload.state,
-      expectedState: this.oauthState!,
+      expectedState: state.oauthState!,
     });
 
-    await this.repository.save(
+    await this.documentStore.save(
       OAuthPromptDocument,
       {
-        provider: this.provider,
-        authUrl: this.authUrl!,
-        state: this.oauthState!,
+        provider: state.provider,
+        authUrl: state.authUrl!,
+        state: state.oauthState!,
         status: 'success' as const,
         message: 'Successfully connected.',
       },

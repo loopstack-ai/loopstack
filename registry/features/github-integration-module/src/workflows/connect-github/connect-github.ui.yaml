@@ -1,5 +1,0 @@
-title: 'Connect to GitHub'
-
-description: |
-  Connects your workspace to a GitHub repository.
-  Authenticates with GitHub, lets you create or link a repo, and configures git push access.

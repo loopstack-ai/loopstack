@@ -1,28 +1,25 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { BaseTool, ToolCallOptions, ToolResult, WorkflowInterface, resolveBlockTool } from '@loopstack/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { TOOL_REGISTRY, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { ToolRegistry } from '@loopstack/common';
 import type { LlmDelegateResult, LlmToolCall, LlmToolErrorEntry, LlmToolResultEntry } from '../types/index.js';
 
 /**
  * Shared tool execution logic for LLM tool calling.
  *
- * Resolves tools from the parent workflow and workspace, executes them,
- * and handles async completion callbacks. Provider-agnostic — no LLM-specific
- * logic, just framework tool dispatch.
+ * Resolves tool names from LLM responses via ToolRegistry.
+ * Provider-agnostic — no LLM-specific logic, just framework tool dispatch.
  */
 @Injectable()
 export class LlmDelegateService {
   private readonly logger = new Logger(LlmDelegateService.name);
 
+  constructor(@Inject(TOOL_REGISTRY) private readonly toolRegistry: ToolRegistry) {}
+
   /**
    * Execute tool calls from an LLM response.
-   * Resolves each tool from workflow/workspace and executes in parallel.
+   * Resolves tool names to instances via ToolRegistry.
    */
-  async delegateToolCalls(
-    toolCalls: LlmToolCall[],
-    parent: WorkflowInterface,
-    workspace?: object,
-    callback?: { transition: string },
-  ): Promise<LlmDelegateResult> {
+  async delegateToolCalls(toolCalls: LlmToolCall[], callback?: { transition: string }): Promise<LlmDelegateResult> {
     if (toolCalls.length === 0) {
       return { allCompleted: true, toolResults: [], pendingCount: 0, errorCount: 0, hasErrors: false, errors: [] };
     }
@@ -32,7 +29,7 @@ export class LlmDelegateService {
         const toolCallback = callback
           ? { transition: callback.transition, metadata: { toolUseId: toolCall.id, toolName: toolCall.name } }
           : undefined;
-        return this.executeTool(toolCall, parent, workspace, toolCallback ? { callback: toolCallback } : undefined);
+        return this.executeTool(toolCall, toolCallback ? { callback: toolCallback } : undefined);
       }),
     );
 
@@ -73,12 +70,7 @@ export class LlmDelegateService {
   /**
    * Handle async tool completion callback and update the delegate result.
    */
-  async updateToolResult(
-    delegateResult: LlmDelegateResult,
-    completedTool: unknown,
-    parent: WorkflowInterface,
-    workspace?: object,
-  ): Promise<LlmDelegateResult> {
+  async updateToolResult(delegateResult: LlmDelegateResult, completedTool: unknown): Promise<LlmDelegateResult> {
     const completedToolRecord = completedTool as Record<string, unknown>;
 
     const subscriberMetadata = completedToolRecord._subscriberMetadata as
@@ -93,7 +85,7 @@ export class LlmDelegateService {
 
     const { toolUseId, toolName } = subscriberMetadata;
 
-    const toolResult = await this.handleToolCompletion(toolName, completedToolRecord, parent, workspace);
+    const toolResult = await this.handleToolCompletion(toolName, completedToolRecord);
 
     const isError = !!toolResult.error;
     const completedEntry: LlmToolResultEntry = {
@@ -124,21 +116,12 @@ export class LlmDelegateService {
   }
 
   /**
-   * Resolve a tool by name from workflow/workspace and execute it.
+   * Execute a single tool call by resolving the tool from the registry.
    */
-  async executeTool(
-    toolCall: LlmToolCall,
-    parent: WorkflowInterface,
-    workspace?: object,
-    options?: ToolCallOptions,
-  ): Promise<ToolResult> {
+  private async executeTool(toolCall: LlmToolCall, options?: ToolCallOptions): Promise<ToolResult> {
     try {
-      const tool = resolveBlockTool<BaseTool>(parent, toolCall.name, workspace);
-      if (!tool) {
-        throw new Error(`Tool with name ${toolCall.name} not found.`);
-      }
-
-      return await tool.call(toolCall.args, options);
+      const tool = this.toolRegistry.get(toolCall.name);
+      return await tool.call(toolCall.args as Record<string, unknown>, options);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Tool "${toolCall.name}" failed: ${errorMessage}`);
@@ -147,18 +130,13 @@ export class LlmDelegateService {
   }
 
   /**
-   * Handle async tool completion — resolve tool and call complete().
+   * Handle async tool completion — resolve tool from registry and call complete().
    */
-  async handleToolCompletion(
+  private async handleToolCompletion(
     toolName: string,
     completedToolRecord: Record<string, unknown>,
-    parent: WorkflowInterface,
-    workspace?: object,
   ): Promise<ToolResult> {
-    const tool = resolveBlockTool<BaseTool>(parent, toolName, workspace);
-    if (!tool) {
-      throw new Error(`Tool with name ${toolName} not found.`);
-    }
+    const tool = this.toolRegistry.get(toolName);
 
     const callbackStatus = completedToolRecord.status as string | undefined;
     const subWorkflowFailed = callbackStatus === 'failed' || callbackStatus === 'canceled';

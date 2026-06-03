@@ -50,7 +50,9 @@ import { RequestSecretsTool } from '@loopstack/secrets-module';
 
 @Workflow({ uiConfig: __dirname + '/my.ui.yaml' })
 export class MyWorkflow extends BaseWorkflow {
-  @InjectTool() requestSecrets: RequestSecretsTool;
+  constructor(private readonly requestSecrets: RequestSecretsTool) {
+    super();
+  }
 
   @Transition({ from: 'ready', to: 'authenticated' })
   async collectToken() {

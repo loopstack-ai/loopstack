@@ -11,7 +11,7 @@ import {
 /**
  * Resolves transitions for the new TypeScript-first workflow model.
  *
- * Reads transition metadata from decorators (@Initial, @Transition, @Final),
+ * Reads transition metadata from @Transition decorators,
  * sorts by priority, and evaluates guards by calling methods on the proxy.
  *
  * Replaces StateMachineProcessorService for decorator-based workflows.
@@ -28,14 +28,14 @@ export class TransitionResolverService {
     const transitions = getTransitionMetadata(target);
     const guards = getGuardMetadata(target);
 
-    // Must have exactly one @Initial transition
+    // Must have exactly one initial transition (from: 'start')
     const initialTransitions = transitions.filter((t) => t.from === 'start');
     if (initialTransitions.length === 0) {
-      throw new Error(`Workflow ${target.constructor.name} has no @Initial transition.`);
+      throw new Error(`Workflow ${target.constructor.name} has no initial transition (from: 'start').`);
     }
     if (initialTransitions.length > 1) {
       throw new Error(
-        `Workflow ${target.constructor.name} has ${initialTransitions.length} @Initial transitions — exactly one is required.`,
+        `Workflow ${target.constructor.name} has ${initialTransitions.length} initial transitions — exactly one is required.`,
       );
     }
 
@@ -93,10 +93,17 @@ export class TransitionResolverService {
    * Evaluates auto-transitions (non-wait) from a given state and returns the
    * first one whose guard passes (or that has no guard).
    */
+  /**
+   * Evaluates auto-transitions (non-wait) from a given state and returns the
+   * first one whose guard passes (or that has no guard).
+   *
+   * Guards receive the workflow state as the first argument.
+   */
   resolveNextTransition(
-    proxy: WorkflowInterface,
+    workflow: WorkflowInterface,
     transitions: TransitionMetadata[],
     guards: Map<string, GuardMetadata>,
+    state?: Record<string, unknown>,
   ): TransitionMetadata | undefined {
     const autoTransitions = transitions.filter((t) => !t.wait);
 
@@ -104,10 +111,10 @@ export class TransitionResolverService {
       const guard = guards.get(transition.methodName);
 
       if (guard) {
-        const method = (proxy as Record<string, unknown>)[guard.guardMethodName];
+        const method = (workflow as Record<string, unknown>)[guard.guardMethodName];
         if (typeof method !== 'function') continue;
 
-        const passes = (method as () => boolean).call(proxy);
+        const passes = (method as (s?: Record<string, unknown>) => boolean).call(workflow, state);
         if (!passes) continue;
       }
 

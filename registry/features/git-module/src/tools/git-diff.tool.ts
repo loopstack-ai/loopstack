@@ -1,29 +1,41 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitDiffArgs = {
   staged?: boolean;
 };
 
+export type GitDiffFile = {
+  path: string;
+  status: string;
+};
+
+export type GitDiffResult = {
+  files: GitDiffFile[];
+};
+
 @Tool({
+  name: 'git_diff',
+  description: 'Shows changed files in the workspace. Returns file paths and their change status.',
   schema: z
     .object({
       staged: z.boolean().optional().describe('Show staged changes instead of unstaged'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Shows changed files in the workspace. Returns file paths and their change status.',
-  },
 })
-export class GitDiffTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitDiffTool extends BaseTool<GitDiffArgs, object, GitDiffResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitDiffArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitDiff(agentUrl, args.staged);
+  protected async handle(args: GitDiffArgs, _ctx: LoopstackContext): Promise<ToolResult<GitDiffResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitDiff(agentUrl, args.staged);
     return { data: result };
   }
 }

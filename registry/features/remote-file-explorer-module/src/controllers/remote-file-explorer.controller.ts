@@ -1,53 +1,32 @@
-import { Controller, Get, NotFoundException, Param, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
-import { RemoteClient } from '@loopstack/remote-client';
+import { Controller, Get, Param, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces/:workspaceId/files')
 export class RemoteFileExplorerController {
   constructor(
-    private readonly remoteAgentClient: RemoteClient,
-    @InjectRepository(WorkspaceEntity)
-    private readonly workspaceRepository: Repository<WorkspaceEntity>,
+    private readonly remote: RemoteClient,
+    private readonly env: EnvironmentService,
   ) {}
-
-  private async getAgentUrl(workspaceId: string, userId: string): Promise<string> {
-    const workspace = await this.workspaceRepository.findOne({
-      where: { id: workspaceId, createdBy: userId },
-      relations: ['environments'],
-    });
-
-    if (!workspace) {
-      throw new NotFoundException(`Workspace with ID ${workspaceId} not found`);
-    }
-
-    const environment = workspace.environments?.find((e) => !!e.agentUrl);
-    if (!environment?.agentUrl) {
-      throw new NotFoundException(`No remote environment configured for workspace ${workspaceId}`);
-    }
-
-    return environment.agentUrl;
-  }
 
   @Get('tree')
   async getFileTree(
     @Param('workspaceId') workspaceId: string,
     @Query('path') basePath: string | undefined,
-    @CurrentUser() user: CurrentUserInterface,
+    @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
-    return this.remoteAgentClient.getFileTree(agentUrl, basePath ?? './src');
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    return this.remote.getFileTree(agentUrl, basePath ?? './src');
   }
 
   @Get('read')
   async readFile(
     @Param('workspaceId') workspaceId: string,
     @Query('path') filePath: string,
-    @CurrentUser() user: CurrentUserInterface,
+    @CurrentUser() _user: CurrentUserInterface,
   ) {
-    const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
-    return this.remoteAgentClient.readFile(agentUrl, filePath);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    return this.remote.readFile(agentUrl, filePath);
   }
 }

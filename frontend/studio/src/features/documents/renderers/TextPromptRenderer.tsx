@@ -6,6 +6,7 @@ import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import { useDocumentTransition } from './useDocumentTransition.ts';
 
 interface TextPromptContent {
@@ -22,7 +23,9 @@ interface TextPromptRendererProps {
 
 const TextPromptRenderer: React.FC<TextPromptRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as TextPromptContent;
-  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, document.ui);
+  const documentConfigs = useDocumentConfigs();
+  const docConfig = documentConfigs.get(document.documentName);
+  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, docConfig);
 
   const [text, setText] = useState('');
   const hasAnswer = !!content.answer;

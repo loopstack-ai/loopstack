@@ -6,21 +6,21 @@ import { ConfirmUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { HitlConfirmExampleWorkflow } from '../hitl-confirm-example.workflow';
 
+const mockConfirmUserWorkflow = {
+  run: vi.fn(),
+};
+
 describe('HitlConfirmExampleWorkflow', () => {
   let module: TestingModule;
   let workflow: HitlConfirmExampleWorkflow;
   let processor: WorkflowProcessorService;
-
-  const mockConfirmUser = {
-    run: vi.fn(),
-  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     module = await createWorkflowTest()
       .forWorkflow(HitlConfirmExampleWorkflow)
-      .withMock(ConfirmUserWorkflow, mockConfirmUser)
+      .withMock(ConfirmUserWorkflow, mockConfirmUserWorkflow)
       .compile();
 
     workflow = module.get(HitlConfirmExampleWorkflow);
@@ -32,7 +32,7 @@ describe('HitlConfirmExampleWorkflow', () => {
   });
 
   it('launches ConfirmUserWorkflow and stops at waiting_for_confirmation', async () => {
-    mockConfirmUser.run.mockResolvedValue({ workflowId: 'sub-id' });
+    mockConfirmUserWorkflow.run.mockResolvedValue({ workflowId: 'sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
@@ -40,9 +40,9 @@ describe('HitlConfirmExampleWorkflow', () => {
     expect(result.stop).toBe(true);
     expect(result.place).toBe('waiting_for_confirmation');
 
-    expect(mockConfirmUser.run).toHaveBeenCalledWith(
+    expect(mockConfirmUserWorkflow.run).toHaveBeenCalledWith(
       expect.objectContaining({ markdown: expect.stringContaining('Ready to deploy') }),
-      expect.objectContaining({ alias: 'confirmUser', callback: { transition: 'decisionReceived' } }),
+      { callback: { transition: 'decisionReceived' } },
     );
   });
 
@@ -73,7 +73,7 @@ describe('HitlConfirmExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({ content: expect.stringContaining('confirmed') }),
         }),
       ]),
@@ -107,7 +107,7 @@ describe('HitlConfirmExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({ content: expect.stringContaining('denied') }),
         }),
       ]),

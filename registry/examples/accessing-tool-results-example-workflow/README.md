@@ -2,17 +2,18 @@
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
 
-This module provides an example workflow demonstrating how to store and access data across workflow transitions using instance properties.
+This module provides an example workflow demonstrating how to store and access data across workflow transitions using typed workflow state.
 
 ## Overview
 
-The Workflow State Example shows how to persist data between transitions using class instance properties. Understanding these patterns is essential for building workflows that pass data between operations.
+The workflow shows how to persist data between transitions by returning updated state from transition methods. Understanding this pattern is essential for building workflows that pass data between steps. For example, storing tool results in one transition and reading them in the next.
 
 By using this workflow as a reference, you'll learn how to:
 
-- Store data as workflow instance properties for use across transitions
-- Access stored data in later transitions via instance properties
-- Create private helper methods to encapsulate data access logic
+- Define a typed state interface for your workflow
+- Store data in the initial transition and return updated state
+- Access stored data in later transitions via the `state` parameter
+- Save chat messages with `MessageDocument` and `DocumentStore`
 
 This example is useful for developers learning to build data-driven workflows that need to pass information between steps.
 
@@ -22,16 +23,22 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## How It Works
 
-### Workflow Class
+### Workflow State
 
-The workflow extends `BaseWorkflow` and stores data as instance properties that persist across transitions:
+State is defined as a TypeScript interface and passed to each transition method. Return the updated state from a transition to persist it for subsequent steps:
 
 ```typescript
+interface ToolResultsState {
+  storedMessage?: string;
+}
+
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
-export class WorkflowToolResultsWorkflow extends BaseWorkflow {
-  storedMessage?: string;
+export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {
+  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
+    super();
+  }
 }
 ```
 
@@ -39,90 +46,79 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow {
 
 #### 1. Storing Data in State
 
-In a transition method, assign values to instance properties:
+In the initial transition, save a message document and return updated state:
 
 ```typescript
-@Initial({ to: 'data_created' })
-async createSomeData() {
-  this.storedMessage = 'Hello World.';
-
-  await this.repository.save(MessageDocument, {
+@Transition({ to: 'data_created' })
+async createSomeData(
+  ctx: WorkflowContext,
+  args: Record<string, unknown>,
+  state: ToolResultsState,
+): Promise<ToolResultsState> {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Stored in initial transition: ${this.storedMessage}`,
+    content: `Stored in initial transition: Hello World.`,
   });
+  return { ...state, storedMessage: 'Hello World.' };
 }
 ```
 
-The value is stored in `this.storedMessage` for later use.
+The returned state is persisted automatically and available in later transitions.
 
 #### 2. Accessing Data Across Transitions
 
-Instance properties persist across transitions. In a subsequent `@Final` method, the stored data is still available:
+In a subsequent transition, read values from the `state` parameter:
 
 ```typescript
-@Final({ from: 'data_created' })
-async accessData() {
-  await this.repository.save(MessageDocument, {
+@Transition({ from: 'data_created', to: 'end' })
+async accessData(ctx: WorkflowContext, state: ToolResultsState): Promise<unknown> {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Accessed from previous transition: ${this.storedMessage}`,
+    content: `Accessed from previous transition: ${state.storedMessage}`,
   });
-
-  await this.repository.save(MessageDocument, {
-    role: 'assistant',
-    content: `Accessed via helper method: ${this.theMessage()}`,
-  });
+  return {};
 }
 ```
-
-#### 3. Private Helper Methods
-
-Define private methods on the workflow class to encapsulate data access logic:
-
-```typescript
-private theMessage(): string {
-  return this.storedMessage!;
-}
-```
-
-These are standard TypeScript methods -- no decorator needed. Call them from any transition method using `this.theMessage()`.
 
 ### Complete Workflow
 
 ```typescript
-import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/common';
+import { Inject } from '@nestjs/common';
+import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
+import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+
+interface ToolResultsState {
+  storedMessage?: string;
+}
 
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
-export class WorkflowToolResultsWorkflow extends BaseWorkflow {
-  storedMessage?: string;
-
-  @Initial({ to: 'data_created' })
-  async createSomeData() {
-    this.storedMessage = 'Hello World.';
-
-    await this.repository.save(MessageDocument, {
-      role: 'assistant',
-      content: `Stored in initial transition: ${this.storedMessage}`,
-    });
+export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {
+  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
+    super();
   }
 
-  @Final({ from: 'data_created' })
-  async accessData() {
-    await this.repository.save(MessageDocument, {
+  @Transition({ to: 'data_created' })
+  async createSomeData(
+    ctx: WorkflowContext,
+    args: Record<string, unknown>,
+    state: ToolResultsState,
+  ): Promise<ToolResultsState> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Accessed from previous transition: ${this.storedMessage}`,
+      content: `Stored in initial transition: Hello World.`,
     });
-
-    await this.repository.save(MessageDocument, {
-      role: 'assistant',
-      content: `Accessed via helper method: ${this.theMessage()}`,
-    });
+    return { ...state, storedMessage: 'Hello World.' };
   }
 
-  private theMessage(): string {
-    return this.storedMessage!;
+  @Transition({ from: 'data_created', to: 'end' })
+  async accessData(ctx: WorkflowContext, state: ToolResultsState): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, {
+      role: 'assistant',
+      content: `Accessed from previous transition: ${state.storedMessage}`,
+    });
+    return {};
   }
 }
 ```
@@ -131,8 +127,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow {
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Base classes, decorators, and tool injection
-- `@loopstack/common` - Provides `MessageDocument` for chat messages
+- `@loopstack/common` — Base classes, decorators, `DocumentStore`, and `MessageDocument`
 
 ## About
 

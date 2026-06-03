@@ -9,10 +9,11 @@ interface WorkflowFormsProps {
   workflow: WorkflowFullInterface;
   parentWorkflow: WorkflowFullInterface;
   onSubmit: (transition: string, data: Record<string, unknown> | string | undefined) => void;
+  isLoading?: boolean;
 }
 
-const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => {
-  const fetchConfig = useWorkflowConfigByName(workflow.className ?? undefined);
+const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit, isLoading }) => {
+  const fetchConfig = useWorkflowConfigByName(workflow.workflowName);
 
   const uiTyped = fetchConfig.data?.ui as { widgets?: unknown[]; actions?: unknown[] } | undefined;
   // New format: ui.widgets, legacy fallback: ui.actions
@@ -31,6 +32,7 @@ const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => 
         availableTransitions={availableTransitions}
         currentPlace={workflow.place}
         disabled={workflow.status === WorkflowState.Completed}
+        isLoading={isLoading}
         onSubmit={onSubmit}
       />
     </div>

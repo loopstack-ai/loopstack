@@ -1,10 +1,18 @@
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
+interface CustomToolExampleState {
+  total?: number;
+}
+
 @Workflow({
-  uiConfig: __dirname + '/custom-tool-example.ui.yaml',
+  title: 'Custom Tool',
+  description:
+    'This workflow demonstrates the usage of custom tools, including both stateless and stateful tools.\nIt performs a simple addition operation using a custom MathSumTool and showcases the behavior of\nstateless and stateful counter tools. It also tests that tool state persists across checkpoints.',
+  widget: __dirname + '/custom-tool-example.ui.yaml',
   schema: z
     .object({
       a: z.number().default(1),
@@ -12,26 +20,29 @@ import { CounterTool } from '../tools';
     })
     .strict(),
 })
-export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }> {
-  @InjectTool() private counterTool: CounterTool;
-  @InjectTool() private mathTool: MathSumTool;
+export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }, CustomToolExampleState> {
+  constructor(
+    private readonly counterTool: CounterTool,
+    private readonly mathTool: MathSumTool,
+  ) {
+    super();
+  }
 
-  total?: number;
-
-  @Initial({ to: 'waiting_for_user' })
-  async calculate(args: { a: number; b: number }) {
+  @Transition({ to: 'waiting_for_user' })
+  async calculate(state: CustomToolExampleState, ctx: LoopstackContext): Promise<CustomToolExampleState> {
+    const args = ctx.args as { a: number; b: number };
     // Use a custom tool
     const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
-    this.total = calcResult.data as number;
+    const total = calcResult.data as number;
 
     // Display the result
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Tool calculation result:\n${args.a} + ${args.b} = ${this.total}`,
+      content: `Tool calculation result:\n${args.a} + ${args.b} = ${total}`,
     });
 
     // Alternatively, use a custom workflow method
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Alternatively, using workflow method:\n${args.a} + ${args.b} = ${this.sum(args.a, args.b)}`,
     });
@@ -41,30 +52,32 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     const c2 = await this.counterTool.call();
     const c3 = await this.counterTool.call();
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Counter before pause: ${c1.data}, ${c2.data}, ${c3.data}\n\nPress Next to continue...`,
     });
+    return { ...state, total };
   }
 
   @Transition({ from: 'waiting_for_user', to: 'resumed', wait: true })
-  async userContinue() {
+  async userContinue(state: CustomToolExampleState): Promise<CustomToolExampleState> {
     // User pressed Next — counter state should persist from checkpoint
+    return state;
   }
 
-  @Final({ from: 'resumed' })
-  async continueCount(): Promise<{ total: number | undefined }> {
+  @Transition({ from: 'resumed', to: 'end' })
+  async continueCount(state: CustomToolExampleState): Promise<{ total: number | undefined }> {
     // Count after resume — should continue: 4, 5, 6
     const c4 = await this.counterTool.call();
     const c5 = await this.counterTool.call();
     const c6 = await this.counterTool.call();
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Counter after resume: ${c4.data}, ${c5.data}, ${c6.data}\n\nIf state persisted, this should be 4, 5, 6.`,
     });
 
-    return { total: this.total };
+    return { total: state.total };
   }
 
   private sum(a: number, b: number) {

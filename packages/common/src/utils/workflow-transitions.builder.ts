@@ -3,7 +3,7 @@ import { getGuardMetadataMap, getTransitionMetadata } from './block-metadata.uti
 
 /**
  * Builds the serializable workflow transition list from a workflow's
- * decorator metadata (`@Initial`, `@Transition`, `@Final`, `@Guard`).
+ * decorator metadata (`@Transition`, `@Guard`).
  *
  * The result matches `WorkflowTransitionConfigSchema` and is the shape
  * the frontend graph (and other consumers of `WorkflowConfigDto.transitions`)

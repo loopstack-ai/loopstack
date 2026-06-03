@@ -8,14 +8,14 @@ import { AgentExampleWorkflow } from '../agent-example.workflow';
 import { CalculatorTool } from '../tools/calculator.tool';
 import { WeatherLookupTool } from '../tools/weather-lookup.tool';
 
+const mockAgentWorkflow = {
+  run: vi.fn(),
+};
+
 describe('AgentExampleWorkflow', () => {
   let module: TestingModule;
   let workflow: AgentExampleWorkflow;
   let processor: WorkflowProcessorService;
-
-  const mockAgent = {
-    run: vi.fn(),
-  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -23,7 +23,7 @@ describe('AgentExampleWorkflow', () => {
     module = await createWorkflowTest()
       .forWorkflow(AgentExampleWorkflow)
       .withProviders(CalculatorTool, WeatherLookupTool)
-      .withMock(AgentWorkflow, mockAgent)
+      .withMock(AgentWorkflow, mockAgentWorkflow)
       .compile();
 
     workflow = module.get(AgentExampleWorkflow);
@@ -35,7 +35,7 @@ describe('AgentExampleWorkflow', () => {
   });
 
   it('launches AgentWorkflow and stops at running', async () => {
-    mockAgent.run.mockResolvedValue({ workflowId: 'agent-sub-id' });
+    mockAgentWorkflow.run.mockResolvedValue({ workflowId: 'agent-sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
@@ -43,19 +43,19 @@ describe('AgentExampleWorkflow', () => {
     expect(result.stop).toBe(true);
     expect(result.place).toBe('running');
 
-    expect(mockAgent.run).toHaveBeenCalledWith(
+    expect(mockAgentWorkflow.run).toHaveBeenCalledWith(
       expect.objectContaining({
         system: expect.any(String),
-        tools: ['weatherLookup', 'calculator'],
+        tools: ['weather_lookup', 'calculator'],
         userMessage: expect.any(String),
       }),
-      expect.objectContaining({ alias: 'agent', callback: { transition: 'agentComplete' } }),
+      { callback: { transition: 'agentComplete' } },
     );
 
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'LinkDocument',
+          documentName: 'link',
           content: expect.objectContaining({ workflowId: 'agent-sub-id' }),
         }),
       ]),
@@ -89,7 +89,7 @@ describe('AgentExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({ content: expect.stringContaining('714') }),
         }),
       ]),

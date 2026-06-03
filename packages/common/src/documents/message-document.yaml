@@ -1,5 +1,1 @@
-tags:
-  - message
-ui:
-  widgets:
-    - widget: message
+widget: message

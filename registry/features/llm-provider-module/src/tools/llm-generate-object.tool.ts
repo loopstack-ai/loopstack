@@ -1,7 +1,10 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { LlmContext } from '../contracts/index.js';
+import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
+import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
 import type { LlmGenerateObjectResult, LlmMessage, LlmResultMeta } from '../types/index.js';
 
@@ -33,40 +36,42 @@ type LlmGenerateObjectConfig = z.infer<typeof LlmGenerateObjectConfigSchema>;
 export const LlmGenerateObjectToolSchema = LlmGenerateObjectArgsSchema;
 
 @Tool({
-  uiConfig: {
-    description:
-      'Generates a structured object conforming to a JSON Schema using the configured LLM provider. ' +
-      'Configure provider, model, and system prompt via @InjectTool config.',
-  },
+  name: 'llm_generate_object',
+  description:
+    'Generates a structured object conforming to a JSON Schema using the configured LLM provider. ' +
+    'Configure provider, model, and system prompt via options.config.',
   schema: LlmGenerateObjectArgsSchema,
   configSchema: LlmGenerateObjectConfigSchema,
 })
-export class LlmGenerateObjectTool extends BaseTool<LlmGenerateObjectArgs, LlmGenerateObjectConfig> {
+export class LlmGenerateObjectTool extends BaseTool<
+  LlmGenerateObjectArgs,
+  LlmGenerateObjectConfig,
+  LlmGenerateObjectResult,
+  LlmResultMeta
+> {
   @Inject() private readonly registry: LlmProviderRegistry;
+  @Inject(LLM_MODULE_CONFIG) private readonly moduleConfig: LlmModuleConfig;
 
-  async call(
+  protected async handle(
     args: LlmGenerateObjectArgs,
+    ctx: LoopstackContext,
     options?: ToolCallOptions<LlmGenerateObjectConfig>,
   ): Promise<ToolResult<LlmGenerateObjectResult, LlmResultMeta>> {
     const config = options?.config;
-    const provider = this.registry.get(config?.provider ?? 'claude');
-    const ctx: LlmContext = {
-      documents: this.ctx.runtime.documents,
-      workflow: this.ctx.workflow,
-      workspace: this.ctx.app,
-    };
+    const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
+    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments() };
 
     const providerArgs = {
       system: config?.system,
       messages: args.messages as LlmMessage[] | undefined,
       prompt: args.prompt,
       messagesSearchTag: config?.messagesSearchTag,
-      model: config?.model,
+      model: config?.model ?? this.moduleConfig.model,
       providerConfig: config?.providerConfig,
       outputSchema: args.outputSchema,
     };
 
-    const result = await provider.generateObject(providerArgs, ctx);
+    const result = await provider.generateObject(providerArgs, llmCtx);
 
     const usage = provider.extractUsage(result.response);
 
@@ -74,7 +79,7 @@ export class LlmGenerateObjectTool extends BaseTool<LlmGenerateObjectArgs, LlmGe
       data: result,
       metadata: {
         provider: provider.providerId,
-        model: config?.model ?? 'default',
+        model: config?.model ?? this.moduleConfig.model ?? 'default',
         ...(usage && { usage }),
       },
     };

@@ -1,12 +1,6 @@
-title: 'LLM Chat Example (Assistant Bob)'
-
-description: An example workflow that demonstrates how to create a simple chat interface. Messages are processed by an LLM to generate responses.
-
-ui:
-  widgets:
-    - widget: prompt-input
-      enabledWhen:
-        - waiting_for_user
-      options:
-        transition: userMessage
-        label: Send Message
+widget: prompt-input
+enabledWhen:
+  - waiting_for_user
+options:
+  transition: userMessage
+  label: Send Message

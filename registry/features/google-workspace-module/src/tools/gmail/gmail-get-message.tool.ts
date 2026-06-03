@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -12,6 +13,23 @@ const inputSchema = z
 
 export type GmailGetMessageArgs = z.infer<typeof inputSchema>;
 
+export type GmailGetMessageResult =
+  | {
+      id: string;
+      threadId: string;
+      from: string;
+      to: string;
+      cc: string;
+      subject: string;
+      date: string;
+      body: string;
+      snippet: string;
+      labelIds: string[];
+      attachments: Array<{ attachmentId: string; filename: string; mimeType: string; size: number }>;
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
 interface GmailMessagePart {
   mimeType: string;
   filename?: string;
@@ -21,20 +39,19 @@ interface GmailMessagePart {
 }
 
 @Tool({
-  uiConfig: {
-    description:
-      'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'gmail_get_message',
+  description:
+    'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GmailGetMessageTool extends BaseTool {
+export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, GmailGetMessageResult> {
   private readonly logger = new Logger(GmailGetMessageTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GmailGetMessageArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(args: GmailGetMessageArgs, ctx: LoopstackContext): Promise<ToolResult<GmailGetMessageResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -52,7 +69,7 @@ export class GmailGetMessageTool extends BaseTool {
     );
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Gmail API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`Gmail API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -13,21 +14,48 @@ const inputSchema = z
 
 export type GitHubGetCommitArgs = z.infer<typeof inputSchema>;
 
+export type GitHubGetCommitResult =
+  | {
+      commit: {
+        sha: string;
+        message: string;
+        author: {
+          name: string;
+          email: string;
+          date: string;
+          login: string | null;
+        };
+        committer: {
+          name: string;
+          date: string;
+        };
+        htmlUrl: string;
+        stats: { additions: number; deletions: number; total: number };
+        files: Array<{
+          filename: string;
+          status: string;
+          additions: number;
+          deletions: number;
+          changes: number;
+        }>;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Gets detailed information about a specific commit in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_get_commit',
+  description:
+    'Gets detailed information about a specific commit in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubGetCommitTool extends BaseTool {
+export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, GitHubGetCommitResult> {
   private readonly logger = new Logger(GitHubGetCommitTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubGetCommitArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubGetCommitArgs, ctx: LoopstackContext): Promise<ToolResult<GitHubGetCommitResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -48,7 +76,7 @@ export class GitHubGetCommitTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 
 const AgentFinishInputSchema = z
   .object({
@@ -9,17 +10,18 @@ const AgentFinishInputSchema = z
 
 type AgentFinishInput = z.infer<typeof AgentFinishInputSchema>;
 
+export type AgentFinishResult = { __agentFinish: true; result: unknown };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Call this tool when you have completed the task and are ready to return the final result. ' +
-      'Pass the result as a structured object or string. ' +
-      'IMPORTANT: This must be the only tool call in your response.',
-  },
+  name: 'agent_finish',
+  description:
+    'Call this tool when you have completed the task and are ready to return the final result. ' +
+    'Pass the result as a structured object or string. ' +
+    'IMPORTANT: This must be the only tool call in your response.',
   schema: AgentFinishInputSchema,
 })
-export class AgentFinishTool extends BaseTool {
-  async call(args: AgentFinishInput): Promise<ToolResult> {
+export class AgentFinishTool extends BaseTool<AgentFinishInput, object, AgentFinishResult> {
+  protected async handle(args: AgentFinishInput, _ctx: LoopstackContext): Promise<ToolResult<AgentFinishResult>> {
     return Promise.resolve({ data: { __agentFinish: true, result: args.result ?? null } });
   }
 }

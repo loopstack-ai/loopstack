@@ -1,12 +1,14 @@
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
+
+export type SlowToolResult = string;
 
 @Tool({
-  uiConfig: {
-    description: 'A tool that takes a configurable amount of time to complete.',
-  },
+  name: 'slow',
+  description: 'A tool that takes a configurable amount of time to complete.',
 })
-export class SlowTool extends BaseTool {
-  async call(args: { delayMs: number }): Promise<ToolResult> {
+export class SlowTool extends BaseTool<{ delayMs: number }, object, SlowToolResult> {
+  protected async handle(args: { delayMs: number }, _ctx: LoopstackContext): Promise<ToolResult<SlowToolResult>> {
     await new Promise((resolve) => setTimeout(resolve, args.delayMs));
     return {
       type: 'text',

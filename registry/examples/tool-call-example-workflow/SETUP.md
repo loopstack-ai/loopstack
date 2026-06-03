@@ -21,13 +21,13 @@ import { ToolCallingExampleModule } from '@loopstack/tool-call-example-workflow'
 export class DefaultModule {}
 ```
 
-2. Inject the `ToolCallWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `ToolCallWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { ToolCallWorkflow } from '@loopstack/tool-call-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() toolCall: ToolCallWorkflow;
+  constructor(public readonly toolCall: ToolCallWorkflow) {}
 }
 ```
 

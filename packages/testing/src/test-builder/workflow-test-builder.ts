@@ -11,7 +11,7 @@ type ModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardRefer
 
 export const DEFAULT_WORKFLOW_ENTITY: Partial<WorkflowEntity> = {
   id: '00000000-0000-0000-0000-000000000000',
-  alias: '',
+  workflowName: '',
   title: '',
   run: 1,
   status: WorkflowState.Pending,
@@ -27,7 +27,6 @@ export const DEFAULT_WORKFLOW_ENTITY: Partial<WorkflowEntity> = {
   workspaceId: '',
   parentId: null,
   labels: [],
-  hashRecord: null,
   createdBy: '',
   creator: {} as User,
   documents: [],
@@ -40,7 +39,6 @@ export const DEFAULT_WORKFLOW_ENTITY: Partial<WorkflowEntity> = {
 export interface WorkflowServiceMock {
   save: Mock;
   create: Mock;
-  findOneByQuery: Mock;
 }
 
 /**
@@ -57,7 +55,6 @@ export function createWorkflowServiceMock(mockEntity = {}): WorkflowServiceMock 
         ...mockEntity,
       }),
     ),
-    findOneByQuery: vi.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -166,8 +163,8 @@ export class WorkflowTestBuilder<TWorkflow = unknown> {
   }
 
   /**
-   * Configure findOneByQuery to return an existing workflow entity
-   * Use to test resuming from an existing workflow state
+   * Configure the workflow service mock with an existing workflow entity.
+   * Use to test resuming from an existing workflow state.
    */
   withExistingWorkflow(entity: Partial<WorkflowEntity>): this {
     this.workflowServiceMock = createWorkflowServiceMock(entity);

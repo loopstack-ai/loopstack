@@ -6,6 +6,7 @@ import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import type { DocumentItemInterface, MimeType, TransitionPayloadInterface } from '@loopstack/contracts/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 
 interface FormAction {
@@ -78,12 +79,13 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
   viewOnly,
 }) => {
   const runWorkflow = useRunWorkflow();
+  const documentConfigs = useDocumentConfigs();
+  const docConfig = documentConfigs.get(document.documentName);
+  const schema = docConfig?.schema as Record<string, unknown> | undefined;
 
   const form = useForm<Record<string, unknown>>({
     defaultValues:
-      document.schema.type === 'object'
-        ? (document.content as Record<string, unknown>)
-        : { raw: document.content as unknown },
+      schema?.type === 'object' ? (document.content as Record<string, unknown>) : { raw: document.content as unknown },
     mode: 'onChange',
   });
 
@@ -123,7 +125,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
   };
 
   const handleFormSubmit = (transition: string) => (data: Record<string, unknown>) => {
-    if (document.schema.type === 'object') {
+    if (schema?.type === 'object') {
       executeWorkflowRun(transition, data);
     } else {
       executeWorkflowRun(transition, data.raw);
@@ -138,8 +140,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
     )();
   };
 
-  const { formUi, actions } = resolveFormConfig(document.ui);
-  const schema = document.schema;
+  const { formUi, actions } = resolveFormConfig(docConfig?.ui as Record<string, unknown> | undefined);
   const formDisabled = !!(formUi?.form as { disabled?: boolean } | undefined)?.disabled;
   const disabledProps = !enabled || formDisabled || false;
 
@@ -147,9 +148,9 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
     <div className="flex">
       <Form
         form={form}
-        schema={schema}
+        schema={schema ?? {}}
         ui={formUi ?? undefined}
-        mimeType={(document.meta as { mimeType?: MimeType } | undefined)?.mimeType}
+        mimeType={docConfig?.meta?.mimeType as MimeType | undefined}
         disabled={disabledProps}
         viewOnly={viewOnly}
         actions={

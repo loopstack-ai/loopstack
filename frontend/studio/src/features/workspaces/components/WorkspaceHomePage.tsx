@@ -37,7 +37,7 @@ const WorkspaceHomePage = ({ workspace, action }: WorkspaceHomePageProps) => {
     createWorkflow.mutate(
       {
         workflowCreateDto: {
-          alias: workflow,
+          workflowName: workflow,
           title: null,
           workspaceId: workspace.id,
           transition: null,

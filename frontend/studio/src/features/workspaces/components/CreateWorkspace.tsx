@@ -14,6 +14,7 @@ import { Input } from '../../../components/ui/input.tsx';
 import { Label } from '../../../components/ui/label.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select.tsx';
 import { useAvailableEnvironments } from '../../../hooks/useConfig.ts';
+import { useReplaceEnvironments, useWorkspaceEnvironments } from '../../../hooks/useEnvironments.ts';
 import { useCreateWorkspace, useUpdateWorkspace } from '../../../hooks/useWorkspaces.ts';
 import type { EnvironmentOption } from './EnvironmentSlotSelector.tsx';
 import { EnvironmentSlotSelector } from './EnvironmentSlotSelector.tsx';
@@ -27,17 +28,19 @@ export interface CreateWorkspaceProps {
 const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) => {
   const createWorkspace = useCreateWorkspace();
   const updateWorkspace = useUpdateWorkspace();
+  const replaceEnvironments = useReplaceEnvironments();
+  const { data: existingEnvironments } = useWorkspaceEnvironments(workspace?.id);
 
-  const [workspaceType, setWorkspaceType] = useState(types[0]?.className ?? '');
+  const [workspaceType, setWorkspaceType] = useState(types[0]?.appName ?? '');
   const [isFavourite, setIsFavourite] = useState(workspace?.isFavourite ?? false);
   const [envSelections, setEnvSelections] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    setWorkspaceType(types[0]?.className ?? '');
+    setWorkspaceType(types[0]?.appName ?? '');
   }, [types]);
 
   // Get environment slots for the selected workspace type
-  const selectedConfig = useMemo(() => types.find((t) => t.className === workspaceType), [types, workspaceType]);
+  const selectedConfig = useMemo(() => types.find((t) => t.appName === workspaceType), [types, workspaceType]);
   const slots = selectedConfig?.environments ?? [];
 
   const { data: availableEnvironments } = useAvailableEnvironments({ enabled: slots.length > 0 });
@@ -56,9 +59,9 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
 
     const autoSelections: Record<string, string> = {};
     for (const slot of slots) {
-      // If editing, pre-populate from workspace
-      if (workspace?.environments) {
-        const existing = workspace.environments.find((e) => e.slotId === slot.id);
+      // If editing, pre-populate from existing environments
+      if (existingEnvironments) {
+        const existing = existingEnvironments.find((e) => e.slotId === slot.id);
         if (existing) {
           autoSelections[slot.id] = existing.remoteEnvironmentId;
           continue;
@@ -71,7 +74,7 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
       }
     }
     setEnvSelections(autoSelections);
-  }, [environments, slots, workspace?.environments]);
+  }, [environments, slots, existingEnvironments]);
 
   // Reset env selections when workspace type changes
   const handleWorkspaceTypeChange = (value: string) => {
@@ -108,6 +111,16 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
     return result.length > 0 ? result : undefined;
   }, [hasEnvironments, availableEnvironments, environments, slots, envSelections]);
 
+  const saveEnvironments = useCallback(
+    async (workspaceId: string) => {
+      const envs = buildEnvironments();
+      if (envs && envs.length > 0) {
+        await replaceEnvironments.mutateAsync({ workspaceId, environments: envs });
+      }
+    },
+    [buildEnvironments, replaceEnvironments],
+  );
+
   const handleUpdate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -122,11 +135,11 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
         workspaceUpdateDto: {
           title: name,
           isFavourite,
-          environments: buildEnvironments(),
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: async (updatedWorkspace) => {
+          await saveEnvironments(updatedWorkspace.id);
           onSuccess();
         },
       },
@@ -146,26 +159,26 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
       {
         workspaceCreateDto: {
           title: name || undefined,
-          className: workspaceType,
+          appName: workspaceType,
           isFavourite: isFavourite || undefined,
-          environments: buildEnvironments(),
         },
       },
       {
-        onSuccess: () => {
-          console.log('closing');
+        onSuccess: async (createdWorkspace) => {
+          await saveEnvironments(createdWorkspace.id);
           onSuccess();
         },
       },
     );
   };
 
-  const isLoading = createWorkspace.isPending || updateWorkspace.isPending;
+  const isLoading = createWorkspace.isPending || updateWorkspace.isPending || replaceEnvironments.isPending;
 
   return (
     <div>
       <ErrorSnackbar error={createWorkspace.error} />
       <ErrorSnackbar error={updateWorkspace.error} />
+      <ErrorSnackbar error={replaceEnvironments.error} />
 
       <div className="mb-4">
         <DialogHeader className="space-y-1">
@@ -200,15 +213,15 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
 
           {!workspace && types.length > 1 && (
             <div className="space-y-2">
-              <Label htmlFor="className">Type</Label>
-              <Select name="className" value={workspaceType} onValueChange={handleWorkspaceTypeChange}>
-                <SelectTrigger id="className" className="w-full">
+              <Label htmlFor="appName">Type</Label>
+              <Select name="appName" value={workspaceType} onValueChange={handleWorkspaceTypeChange}>
+                <SelectTrigger id="appName" className="w-full">
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
                   {types.map((item: AppConfigInterface) => (
-                    <SelectItem key={item.className} value={item.className}>
-                      {item.title ?? item.className}
+                    <SelectItem key={item.appName} value={item.appName}>
+                      {item.title ?? item.appName}
                     </SelectItem>
                   ))}
                 </SelectContent>

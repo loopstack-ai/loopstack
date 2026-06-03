@@ -11,7 +11,7 @@ Demonstrates a scripted multi-tool orchestration using [`@loopstack/git-module`]
 ## Installation
 
 ```sh
-loopstack add @loopstack/git-commit-flow-example-workflow
+npm install @loopstack/git-commit-flow-example-workflow
 ```
 
 `@loopstack/git-module` requires `@loopstack/remote-client` to be configured (sandbox environment with a git workspace).
@@ -30,5 +30,5 @@ loopstack add @loopstack/git-commit-flow-example-workflow
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/git-module`

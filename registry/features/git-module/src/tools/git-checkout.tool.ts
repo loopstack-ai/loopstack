@@ -1,31 +1,36 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitCheckoutArgs = {
   branch: string;
   create?: boolean;
 };
 
+export type GitCheckoutResult = { branch: string };
+
 @Tool({
+  name: 'git_checkout',
+  description: 'Switches to a different git branch, optionally creating it.',
   schema: z
     .object({
       branch: z.string().describe('Branch name to switch to'),
       create: z.boolean().optional().describe('Create the branch if it does not exist'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Switches to a different git branch, optionally creating it.',
-  },
 })
-export class GitCheckoutTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitCheckoutTool extends BaseTool<GitCheckoutArgs, object, GitCheckoutResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitCheckoutArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitCheckout(agentUrl, args.branch, args.create);
+  protected async handle(args: GitCheckoutArgs, _ctx: LoopstackContext): Promise<ToolResult<GitCheckoutResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitCheckout(agentUrl, args.branch, args.create);
     return { data: result };
   }
 }

@@ -70,7 +70,6 @@ const WorkflowItem: React.FC<{
           documents={documents}
           scrollTo={scrollTo}
           settings={settings}
-          isLoading={isLoading}
         />
       )}
 
@@ -95,7 +94,12 @@ const WorkflowItem: React.FC<{
 
       {!!childWorkflow && (
         <div className="mt-6">
-          <WorkflowForms workflow={childWorkflow} parentWorkflow={workflow} onSubmit={handleRun} />
+          <WorkflowForms
+            workflow={childWorkflow}
+            parentWorkflow={workflow}
+            isLoading={isLoading}
+            onSubmit={handleRun}
+          />
         </div>
       )}
     </div>

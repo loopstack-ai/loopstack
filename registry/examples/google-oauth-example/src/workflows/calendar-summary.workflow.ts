@@ -1,65 +1,71 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  Final,
   Guard,
-  Initial,
-  InjectTool,
-  InjectWorkflow,
   LinkDocument,
   MarkdownDocument,
-  ToolResult,
+  TEMPLATE_RENDERER,
   Transition,
   Workflow,
 } from '@loopstack/common';
+import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
-interface CalendarFetchResult {
-  error?: string;
+interface CalendarSummaryState {
   events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
+  requiresAuthentication?: boolean;
 }
 
 @Workflow({
-  uiConfig: __dirname + '/calendar-summary.ui.yaml',
+  title: 'Google Calendar Summary',
+  description:
+    'Fetches upcoming events from Google Calendar and displays a summary.\nIf not authenticated, launches the OAuth workflow as a sub-workflow\nand retries automatically after authentication completes.',
+  name: 'google_calendar_summary',
   schema: z
     .object({
       calendarId: z.string().default('primary'),
     })
     .strict(),
 })
-export class CalendarSummaryWorkflow extends BaseWorkflow {
-  // Custom tool (demonstrates building an OAuth-aware tool from scratch)
-  @InjectTool() private googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
+export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }, CalendarSummaryState> {
+  constructor(
+    private readonly googleCalendarFetchEvents: GoogleCalendarFetchEventsTool,
+    private readonly oAuthWorkflow: OAuthWorkflow,
+    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
+  ) {
+    super();
+  }
 
-  @InjectWorkflow() private oAuth: OAuthWorkflow;
-
-  events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
-  requiresAuthentication?: boolean;
   // --- Fetch events from Google Calendar ---
 
-  @Initial({ to: 'calendar_fetched' })
-  async fetchEvents(args: { calendarId: string }) {
-    const result: ToolResult<CalendarFetchResult> = await this.googleCalendarFetchEvents.call({
+  @Transition({ to: 'calendar_fetched' })
+  async fetchEvents(state: CalendarSummaryState, ctx: LoopstackContext): Promise<CalendarSummaryState> {
+    const args = ctx.args as { calendarId: string };
+    const result = await this.googleCalendarFetchEvents.call({
       calendarId: args.calendarId,
       timeMin: this.now(),
       timeMax: this.endOfWeek(),
     });
-    this.requiresAuthentication = result.data!.error === 'unauthorized';
-    this.events = result.data!.events;
+    return {
+      ...state,
+      requiresAuthentication: result.data!.error === 'unauthorized',
+      events: result.data!.events,
+    };
   }
 
   // If unauthorized -> launch OAuth as sub-workflow
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired() {
-    const result = await this.oAuth.run(
+  async authRequired(state: CalendarSummaryState): Promise<CalendarSummaryState> {
+    const result = await this.oAuthWorkflow.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-      { alias: 'oAuth', callback: { transition: 'authCompleted' } },
+      { callback: { transition: 'authCompleted' } },
     );
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Google authentication required',
@@ -69,10 +75,11 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
       },
       { id: `link_${result.workflowId}` },
     );
+    return state;
   }
 
-  needsAuth(): boolean {
-    return !!this.requiresAuthentication;
+  needsAuth(state: CalendarSummaryState): boolean {
+    return !!state.requiresAuthentication;
   }
 
   // Auth sub-workflow completed -> retry from start
@@ -82,8 +89,8 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
     wait: true,
     schema: CallbackSchema,
   })
-  async authCompleted(payload: { workflowId: string }) {
-    await this.repository.save(
+  async authCompleted(state: CalendarSummaryState, payload: { workflowId: string }): Promise<CalendarSummaryState> {
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'success',
@@ -94,14 +101,16 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
       },
       { id: `link_${payload.workflowId}` },
     );
+    return state;
   }
 
   // Success -> display summary
-  @Final({ from: 'calendar_fetched' })
-  async displayResults() {
-    await this.repository.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: this.events }),
+  @Transition({ from: 'calendar_fetched', to: 'end' })
+  async displayResults(state: CalendarSummaryState): Promise<unknown> {
+    await this.documentStore.save(MarkdownDocument, {
+      markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: state.events }),
     });
+    return {};
   }
 
   private now(): string {

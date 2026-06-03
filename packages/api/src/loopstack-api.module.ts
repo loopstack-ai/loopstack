@@ -3,14 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import cors from 'cors';
 import { AuthModule, JwtAuthGuard, RolesGuard } from '@loopstack/auth';
-import {
-  DocumentEntity,
-  Role,
-  User,
-  WorkflowEntity,
-  WorkspaceEntity,
-  WorkspaceEnvironmentEntity,
-} from '@loopstack/common';
+import { DocumentEntity, Role, User, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
 import { AdminRoleController } from './controllers/admin-role.controller.js';
 import { AdminSystemController } from './controllers/admin-system.controller.js';
 import { AdminUserController } from './controllers/admin-user.controller.js';
@@ -32,9 +25,8 @@ import { ProcessorApiService } from './services/processor-api.service.js';
 import { SseEventService } from './services/sse-event.service.js';
 import { WorkflowApiService } from './services/workflow-api.service.js';
 import { WorkspaceApiService } from './services/workspace-api.service.js';
-import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens.js';
 
-const ENTITIES = [WorkspaceEntity, WorkspaceEnvironmentEntity, WorkflowEntity, DocumentEntity, User, Role];
+const ENTITIES = [WorkspaceEntity, WorkflowEntity, DocumentEntity, User, Role];
 
 const CONTROLLERS = [
   AdminRoleController,
@@ -68,10 +60,6 @@ const PROVIDERS = [
   DocumentApiService,
   DashboardService,
   UserService,
-  {
-    provide: LOOPSTACK_AVAILABLE_ENVIRONMENTS,
-    useValue: [],
-  },
 ];
 
 const EXPORTS = [
@@ -81,7 +69,6 @@ const EXPORTS = [
   DashboardService,
   UserService,
   SseEventService,
-  LOOPSTACK_AVAILABLE_ENVIRONMENTS,
 ];
 
 @Module({})
@@ -99,19 +86,11 @@ export class LoopstackApiModule implements NestModule {
 
     LoopstackApiModule.corsOptions = options.cors !== undefined ? options.cors : { origin: true, credentials: true };
 
-    const providers: DynamicModule['providers'] = [...PROVIDERS];
-    if (options.availableEnvironments) {
-      providers.push({
-        provide: LOOPSTACK_AVAILABLE_ENVIRONMENTS,
-        useValue: options.availableEnvironments,
-      });
-    }
-
     return {
       module: LoopstackApiModule,
       imports: [TypeOrmModule.forFeature(ENTITIES, connection), AuthModule.forRoot(connection)],
       controllers: CONTROLLERS,
-      providers,
+      providers: PROVIDERS,
       exports: EXPORTS,
     };
   }

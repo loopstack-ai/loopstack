@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
   RunContext,
@@ -7,15 +7,14 @@ import {
   WorkflowInterface,
   WorkflowMetadataInterface,
   WorkflowOrchestrator,
-  WorkspaceEnvironmentContextDto,
 } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { RunPayload } from '@loopstack/contracts/schemas';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { WorkflowService } from '../../persistence/services/workflow.service.js';
 import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
-import { BlockDiscoveryService } from './block-discovery.service.js';
 import { BlockProcessor } from './block-processor.service.js';
+import { WorkflowRegistryService } from './workflow-registry.service.js';
 
 @Injectable()
 export class RootProcessorService {
@@ -24,38 +23,19 @@ export class RootProcessorService {
   constructor(
     private readonly workflowService: WorkflowService,
     private readonly blockProcessor: BlockProcessor,
-    private readonly blockDiscoveryService: BlockDiscoveryService,
+    private readonly workflowRegistryService: WorkflowRegistryService,
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     private readonly taskSchedulerService: TaskSchedulerService,
   ) {}
 
   private resolveWorkflowConfig(workflow: WorkflowEntity): WorkflowInterface {
-    if (!workflow.className) {
-      throw new Error(`Workflow entity ${workflow.id} has no className. Cannot resolve.`);
-    }
-
-    const workflowConfig = this.blockDiscoveryService.getWorkflowByName(workflow.className);
-    if (!workflowConfig) {
-      throw new Error(`Workflow ${workflow.className} not found. Ensure it is registered as a provider in the module.`);
-    }
-
-    return workflowConfig;
-  }
-
-  private resolveWorkflowByNames(alias: string): WorkflowInterface {
-    const workflow = this.blockDiscoveryService.getWorkflowByName(alias);
-    if (!workflow) {
-      throw new BadRequestException(
-        `Workflow ${alias} not found. Ensure it is registered as a provider in the module.`,
-      );
-    }
-    return workflow;
+    return this.workflowRegistryService.resolve(workflow.workflowName).instance;
   }
 
   async runStateless(
+    workflow: WorkflowInterface,
     params: {
-      workspaceName: string;
-      alias: string;
+      workflowName: string;
       userId: string;
       workspaceId: string;
       correlationId?: string;
@@ -63,49 +43,38 @@ export class RootProcessorService {
     },
     payload: RunPayload,
   ): Promise<WorkflowMetadataInterface> {
-    const workflowConfig = this.resolveWorkflowByNames(params.alias);
-
-    const ctx = new RunContext({
-      root: params.alias,
+    const ctx: RunContext = {
+      root: params.workflowName,
       userId: params.userId,
       workspaceId: params.workspaceId,
       labels: [],
       payload,
       options: { stateless: true },
-    });
+    };
 
-    this.logger.debug(`Running stateless workflow: ${params.alias}`);
+    this.logger.debug(`Running stateless workflow: ${params.workflowName}`);
 
-    return this.blockProcessor.processBlock(workflowConfig, params.args, ctx);
+    return this.blockProcessor.processBlock(workflow, params.args, ctx);
   }
 
   async runWorkflow(workflow: WorkflowEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
     const workflowConfig = this.resolveWorkflowConfig(workflow);
 
-    // Resolve app NestJS singleton (has @InjectTool/@InjectWorkflow properties wired)
-    const appInstance = workflow.workspace?.className
-      ? this.blockDiscoveryService.getApp(workflow.workspace.className)
-      : undefined;
-
-    const ctx = new RunContext({
-      root: workflow.alias,
+    const ctx: RunContext = {
+      root: workflow.workflowName,
       userId: workflow.createdBy,
       workflowId: workflow.id,
       workspaceId: workflow.workspaceId,
       labels: [...workflow.labels],
       payload,
       workflowContext: workflow.context,
-      workspaceEnvironments: workflow.workspace?.environments
-        ? WorkspaceEnvironmentContextDto.fromEntities(workflow.workspace.environments)
-        : undefined,
       workflowEntity: workflow,
-      appInstance,
       options: { stateless: false },
-    });
+    };
 
     await this.workflowService.setWorkflowStatus(workflow, WorkflowState.Running);
 
-    this.logger.debug(`Running Root Workflow: ${workflow.alias}`);
+    this.logger.debug(`Running Root Workflow: ${workflow.workflowName}`);
 
     const executionMeta = await this.blockProcessor.processBlock(workflowConfig, workflow.args, ctx);
 
@@ -131,7 +100,6 @@ export class RootProcessorService {
     }
 
     // Status is already saved by WorkflowProcessorService.saveExecutionState().
-    // Use the metadata status directly for the completion check.
     const status = executionMeta.status;
 
     // Trigger parent callback if this is a sub-workflow that completed, failed, or was canceled

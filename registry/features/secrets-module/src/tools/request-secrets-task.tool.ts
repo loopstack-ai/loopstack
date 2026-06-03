@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow.js';
 
 const RequestSecretsTaskInputSchema = z
@@ -15,32 +16,35 @@ const RequestSecretsTaskInputSchema = z
 
 type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
 
-@Injectable()
+export type RequestSecretsTaskResult = { workflowId: string } | string;
+
 @Tool({
-  uiConfig: {
-    description:
-      'Requests secret values from the user. Shows a secure input form where the user can enter API keys and other secrets. ' +
-      'Values are stored securely and never exposed to the workflow or LLM. ' +
-      'Returns only the key names after the user has provided the values. ' +
-      'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
-  },
+  name: 'request_secrets_task',
+  description:
+    'Requests secret values from the user. Shows a secure input form where the user can enter API keys and other secrets. ' +
+    'Values are stored securely and never exposed to the workflow or LLM. ' +
+    'Returns only the key names after the user has provided the values. ' +
+    'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: RequestSecretsTaskInputSchema,
 })
-export class RequestSecretsTask extends BaseTool {
+export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object, RequestSecretsTaskResult> {
   private readonly logger = new Logger(RequestSecretsTask.name);
 
-  @InjectWorkflow() private secretsRequest: SecretsRequestWorkflow;
+  constructor(private readonly secretsRequestWorkflow: SecretsRequestWorkflow) {
+    super();
+  }
 
-  async call(args: RequestSecretsTaskInput, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.secretsRequest.run(
+  protected async handle(
+    args: RequestSecretsTaskInput,
+    ctx: LoopstackContext,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<RequestSecretsTaskResult>> {
+    const result = await this.secretsRequestWorkflow.run(
       { variables: args.variables },
-      {
-        alias: 'secretsRequest',
-        callback: options?.callback,
-      },
+      { callback: options?.callback },
     );
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'pending',
@@ -58,10 +62,10 @@ export class RequestSecretsTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<RequestSecretsTaskResult>> {
     const data = result as { workflowId?: string };
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'success',

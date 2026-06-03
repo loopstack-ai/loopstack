@@ -103,7 +103,7 @@ hasToolCalls() {
 }
 ```
 
-The `priority: 10` ensures this transition is evaluated before the `@Final` transition when both could match.
+The `priority: 10` ensures this transition is evaluated before the terminal `@Transition` when both could match.
 
 #### 5. Delegating Tool Execution
 
@@ -140,9 +140,9 @@ The workflow implements an agentic loop:
 4. **Final Response** (`prompt_executed` -> end) -- If no tool calls, save the final response
 
 ```typescript
-@Final({ from: 'prompt_executed' })
+@Transition({ from: 'prompt_executed', to: 'end' })
 async respond() {
-  await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+  await this.documentStore.save(LlmMessageDocument, this.llmResult!.message, {
     meta: { response: this.llmResult!.response, provider: 'claude' },
   });
 }
@@ -173,9 +173,9 @@ export class ToolCallWorkflow extends BaseWorkflow {
   llmResult?: LlmGenerateTextResult;
   delegateResult?: LlmDelegateResult;
 
-  @Initial({ to: 'ready' })
+  @Transition({ to: 'ready' })
   async setup() {
-    await this.repository.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
@@ -205,9 +205,9 @@ export class ToolCallWorkflow extends BaseWorkflow {
     return this.delegateResult?.allCompleted;
   }
 
-  @Final({ from: 'prompt_executed' })
+  @Transition({ from: 'prompt_executed', to: 'end' })
   async respond() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+    await this.documentStore.save(LlmMessageDocument, this.llmResult!.message, {
       meta: { response: this.llmResult!.response, provider: 'claude' },
     });
   }

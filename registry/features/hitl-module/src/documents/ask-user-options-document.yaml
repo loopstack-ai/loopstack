@@ -1,6 +1,3 @@
-type: document
-ui:
-  widgets:
-    - widget: choices
-      options:
-        transition: userAnswered
+widget: choices
+options:
+  transition: userAnswered

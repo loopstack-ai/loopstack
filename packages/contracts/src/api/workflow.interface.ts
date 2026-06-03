@@ -8,8 +8,7 @@ export interface WorkflowContextInterface {
 
 export interface WorkflowItemInterface {
   id: string;
-  alias: string;
-  className: string | null;
+  workflowName: string;
   title: string;
   run: number;
   labels: string[];
@@ -36,7 +35,7 @@ export interface WorkflowFullInterface extends WorkflowItemInterface {
 }
 
 export interface WorkflowCreateInterface {
-  alias: string;
+  workflowName: string;
   title: string | null;
   labels?: string[];
   workspaceId: string;

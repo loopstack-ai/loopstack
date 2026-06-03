@@ -45,7 +45,7 @@ The `message` property is a plain instance property that persists across transit
 Assign values to instance properties inside a transition method:
 
 ```typescript
-@Initial({ to: 'data_created' })
+@Transition({ to: 'data_created' })
 async createSomeData() {
   this.message = 'Hello :)';
 }
@@ -58,7 +58,7 @@ The value is stored in `this.message` for use in later transitions.
 Instance properties are available in any subsequent transition method:
 
 ```typescript
-@Final({ from: 'data_created' })
+@Transition({ from: 'data_created', to: 'end' })
 async showResults() {
   await this.createChatMessage.call({
     role: 'assistant',
@@ -96,19 +96,19 @@ import { MessageDocument } from '@loopstack/common';
 export class WorkflowStateWorkflow extends BaseWorkflow {
   message?: string;
 
-  @Initial({ to: 'data_created' })
+  @Transition({ to: 'data_created' })
   async createSomeData() {
     this.message = 'Hello :)';
   }
 
-  @Final({ from: 'data_created' })
+  @Transition({ from: 'data_created', to: 'end' })
   async showResults() {
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Data from state: ${this.message}`,
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Use workflow helper method: ${this.messageInUpperCase(this.message!)}`,
     });

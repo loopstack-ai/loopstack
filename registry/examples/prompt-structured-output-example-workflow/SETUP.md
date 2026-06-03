@@ -21,13 +21,13 @@ import { PromptStructuredOutputExampleModule } from '@loopstack/prompt-structure
 export class DefaultModule {}
 ```
 
-2. Inject the `PromptStructuredOutputWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `PromptStructuredOutputWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { PromptStructuredOutputWorkflow } from '@loopstack/prompt-structured-output-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() promptStructuredOutput: PromptStructuredOutputWorkflow;
+  constructor(public readonly promptStructuredOutput: PromptStructuredOutputWorkflow) {}
 }
 ```
 

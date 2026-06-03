@@ -1,6 +1,5 @@
 import { Loader2 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import MainLayout from '../components/layout/MainLayout.tsx';
 import { WorkbenchSidebarShell } from '../features/workbench/components/WorkbenchSidebarShell.tsx';
@@ -27,17 +26,8 @@ const WorkspaceRunsPage = () => {
     { label: 'Runs', current: true },
   ];
 
-  const workspaceConfig: Pick<WorkspaceInterface, 'volumes' | 'features'> | undefined = workspace
-    ? { volumes: workspace.volumes, features: workspace.features }
-    : undefined;
-
   return (
-    <WorkbenchLayoutProvider
-      workspaceId={workspaceId!}
-      environments={workspace?.environments}
-      workspaceConfig={workspaceConfig}
-      getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}
-    >
+    <WorkbenchLayoutProvider workspaceId={workspaceId!} getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}>
       <WorkbenchSidebarShell>
         <MainLayout breadcrumbsData={breadcrumbData}>
           <>

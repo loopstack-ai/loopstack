@@ -1,56 +1,39 @@
-import { useQueries } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import { DataTable } from '@/components/data-table/DataTable';
 import type { DataTableColumn } from '@/components/data-table/data-table';
 import MainLayout from '@/components/layout/MainLayout';
 import { Badge } from '@/components/ui/badge';
-import { useApiClient } from '@/hooks/useApi';
-import { useAppConfig } from '@/hooks/useConfig';
+import { useAppsConfig } from '@/hooks/useConfig';
 import { useStudio } from '@/providers/StudioProvider';
 
-interface WorkflowTypeRow extends WorkflowConfigInterface {
+interface WorkflowTypeRow {
   id: string;
+  workflowName: string;
+  title?: string;
+  description?: string;
   appBlockName: string;
 }
 
 export default function DebugWorkflowsPage() {
   const { router } = useStudio();
-  const { envKey, api } = useApiClient();
-  const { data: appTypes, isLoading: isLoadingApps } = useAppConfig();
-
-  const workflowQueries = useQueries({
-    queries: (appTypes ?? []).map((wt) => ({
-      queryKey: ['workflowTypes', wt.className, envKey],
-      queryFn: async () => {
-        const types = await api.config.getWorkflowTypesByApp({
-          appBlockName: wt.className,
-        });
-        return { appBlockName: wt.className, types };
-      },
-      enabled: !!appTypes?.length,
-    })),
-  });
-
-  const isLoadingWorkflows = workflowQueries.some((q) => q.isLoading);
-  const isLoading = isLoadingApps || isLoadingWorkflows;
+  const { data: appsConfig, isLoading } = useAppsConfig();
 
   const data: WorkflowTypeRow[] = useMemo(() => {
-    if (isLoading || !workflowQueries) return [];
+    if (!appsConfig) return [];
 
-    return workflowQueries.flatMap((q) => {
-      if (!q.data) return [];
-      const { appBlockName, types } = q.data;
-      return (types ?? []).map((wt) => ({
-        ...wt,
-        id: `${appBlockName}::${wt.alias}`,
-        appBlockName,
-      }));
-    });
-  }, [workflowQueries, isLoading]);
+    return appsConfig.flatMap((app) =>
+      app.workflows.map((wf) => ({
+        id: `${app.appName}::${wf.workflowName}`,
+        workflowName: wf.workflowName,
+        title: wf.title,
+        description: wf.description,
+        appBlockName: app.appName,
+      })),
+    );
+  }, [appsConfig]);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<string>('alias');
+  const [sortBy, setSortBy] = useState<string>('workflowName');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -62,7 +45,7 @@ export default function DebugWorkflowsPage() {
       const lowerTerm = searchTerm.toLowerCase();
       result = result.filter(
         (item) =>
-          item.alias?.toLowerCase().includes(lowerTerm) ||
+          item.workflowName?.toLowerCase().includes(lowerTerm) ||
           item.title?.toLowerCase().includes(lowerTerm) ||
           item.description?.toLowerCase().includes(lowerTerm) ||
           item.appBlockName.toLowerCase().includes(lowerTerm),
@@ -70,7 +53,7 @@ export default function DebugWorkflowsPage() {
     }
 
     result = [...result].sort((a, b) => {
-      const key = sortBy as keyof Pick<WorkflowTypeRow, 'alias' | 'title' | 'description' | 'appBlockName'>;
+      const key = sortBy as keyof Pick<WorkflowTypeRow, 'workflowName' | 'title' | 'description' | 'appBlockName'>;
       const valA = (a[key] || '').toLowerCase();
       const valB = (b[key] || '').toLowerCase();
 
@@ -89,7 +72,7 @@ export default function DebugWorkflowsPage() {
 
   const columns: DataTableColumn<WorkflowTypeRow>[] = [
     {
-      id: 'alias',
+      id: 'workflowName',
       label: 'Type ID (Alias)',
       sortable: true,
       minWidth: 200,
@@ -99,7 +82,7 @@ export default function DebugWorkflowsPage() {
       id: 'title',
       label: 'Title',
       sortable: true,
-      format: (value, row) => <span>{String(value || row.alias || 'N/A')}</span>,
+      format: (value, row) => <span>{String(value || row.workflowName || 'N/A')}</span>,
     },
     {
       id: 'appBlockName',

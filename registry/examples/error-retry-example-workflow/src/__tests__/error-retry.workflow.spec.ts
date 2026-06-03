@@ -65,7 +65,7 @@ describe('ErrorRetryWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'ErrorDocument',
+            documentName: 'error',
             content: expect.objectContaining({ error: 'Simulated error' }),
           }),
         ]),

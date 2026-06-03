@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -17,21 +18,41 @@ const inputSchema = z
 
 export type GitHubListIssuesArgs = z.input<typeof inputSchema>;
 
+export type GitHubListIssuesResult = {
+  issues?: Array<{
+    id: number;
+    number: number;
+    title: string;
+    state: string;
+    user: string;
+    labels: string[];
+    assignees: string[];
+    createdAt: string;
+    updatedAt: string;
+    htmlUrl: string;
+    isPullRequest: boolean;
+  }>;
+  error?: string;
+  message?: string;
+};
+
 @Tool({
-  uiConfig: {
-    description:
-      'Lists issues for a GitHub repository. Note: the GitHub API returns both issues and pull requests; pull requests have a pull_request key. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_list_issues',
+  description:
+    'Lists issues for a GitHub repository. Note: the GitHub API returns both issues and pull requests; pull requests have a pull_request key. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubListIssuesTool extends BaseTool {
+export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object, GitHubListIssuesResult> {
   private readonly logger = new Logger(GitHubListIssuesTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubListIssuesArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    args: GitHubListIssuesArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubListIssuesResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -61,7 +82,7 @@ export class GitHubListIssuesTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

@@ -55,12 +55,9 @@ describe('GitCommitFlowExampleWorkflow', () => {
     expect(result.place).toBe('end');
 
     expect(mockGitStatus.call).toHaveBeenCalledTimes(1);
-    expect(mockGitAdd.call).toHaveBeenCalledWith({ files: ['.'] }, undefined);
-    expect(mockGitCommit.call).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.any(String) }),
-      undefined,
-    );
-    expect(mockGitLog.call).toHaveBeenCalledWith({ limit: 1 }, undefined);
+    expect(mockGitAdd.call).toHaveBeenCalledWith({ files: ['.'] });
+    expect(mockGitCommit.call).toHaveBeenCalledWith(expect.objectContaining({ message: expect.any(String) }));
+    expect(mockGitLog.call).toHaveBeenCalledWith({ limit: 1 });
 
     expect(JSON.stringify(result.documents)).toContain('deadbeef');
   });

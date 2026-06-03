@@ -21,14 +21,16 @@ import { GoogleExampleModule } from '@loopstack/google-oauth-example';
 export class DefaultModule {}
 ```
 
-2. Inject the workflows into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the workflows into your workspace class via the constructor:
 
 ```typescript
 import { CalendarSummaryWorkflow, GoogleWorkspaceAgentWorkflow } from '@loopstack/google-oauth-example';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() calendarSummary: CalendarSummaryWorkflow;
-  @InjectWorkflow() googleWorkspaceAgent: GoogleWorkspaceAgentWorkflow;
+  constructor(
+    public readonly calendarSummary: CalendarSummaryWorkflow,
+    public readonly googleWorkspaceAgent: GoogleWorkspaceAgentWorkflow,
+  ) {}
 }
 ```
 
@@ -44,7 +46,7 @@ import { OAuthWorkflow } from '@loopstack/oauth-module';
   workflows: [],
 })
 export class DefaultWorkspace {
-  @InjectWorkflow() oAuth: OAuthWorkflow;
+  constructor(public readonly oAuth: OAuthWorkflow) {}
 }
 ```
 

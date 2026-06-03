@@ -5,7 +5,7 @@ import { SecretsAgentExampleWorkflow } from './secrets-agent-example.workflow';
 import { SecretsExampleWorkflow } from './secrets-example.workflow';
 
 @Module({
-  imports: [ClaudeModule, SecretsModule],
+  imports: [ClaudeModule, SecretsModule.forFeature()],
   providers: [SecretsExampleWorkflow, SecretsAgentExampleWorkflow, SecretsAgentExampleWorkflow],
   exports: [SecretsExampleWorkflow, SecretsAgentExampleWorkflow, SecretsAgentExampleWorkflow],
 })

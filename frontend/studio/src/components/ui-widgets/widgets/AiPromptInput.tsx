@@ -15,12 +15,12 @@ interface AiPromptInputUi {
 interface AiPromptInputProps {
   onSubmit: (text: string) => void;
   disabled?: boolean;
+  isLoading?: boolean;
   ui?: AiPromptInputUi;
 }
 
-function AiPromptInput({ onSubmit, disabled, ui }: AiPromptInputProps) {
+function AiPromptInput({ onSubmit, disabled, isLoading = false, ui }: AiPromptInputProps) {
   const [input, setInput] = useState('');
-  const isLoading = false;
 
   const buttonLabel = ui?.label ?? 'Submit';
 
@@ -49,7 +49,7 @@ function AiPromptInput({ onSubmit, disabled, ui }: AiPromptInputProps) {
           <Pill size="16" className="mr-2" />
           {buttonLabel}
         </div>
-        <PromptInputSubmit disabled={disabled || isLoading} />
+        <PromptInputSubmit disabled={disabled || isLoading} status={isLoading ? 'streaming' : 'ready'} />
       </PromptInputFooter>
     </PromptInput>
   );

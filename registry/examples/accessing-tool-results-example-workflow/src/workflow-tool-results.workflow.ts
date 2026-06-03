@@ -1,35 +1,28 @@
-import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+
+interface ToolResultsState {
+  storedMessage?: string;
+}
 
 @Workflow({
-  uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
+  title: 'Workflow Tool Result',
 })
-export class WorkflowToolResultsWorkflow extends BaseWorkflow {
-  storedMessage?: string;
-
-  @Initial({ to: 'data_created' })
-  async createSomeData() {
-    this.storedMessage = 'Hello World.';
-
-    await this.repository.save(MessageDocument, {
+export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {
+  @Transition({ to: 'data_created' })
+  async createSomeData(state: ToolResultsState): Promise<ToolResultsState> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Stored in initial transition: ${this.storedMessage}`,
+      content: `Stored in initial transition: Hello World.`,
     });
+    return { ...state, storedMessage: 'Hello World.' };
   }
 
-  @Final({ from: 'data_created' })
-  async accessData() {
-    await this.repository.save(MessageDocument, {
+  @Transition({ from: 'data_created', to: 'end' })
+  async accessData(state: ToolResultsState): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Accessed from previous transition: ${this.storedMessage}`,
+      content: `Accessed from previous transition: ${state.storedMessage}`,
     });
-
-    await this.repository.save(MessageDocument, {
-      role: 'assistant',
-      content: `Accessed via helper method: ${this.theMessage()}`,
-    });
-  }
-
-  private theMessage(): string {
-    return this.storedMessage!;
+    return {};
   }
 }

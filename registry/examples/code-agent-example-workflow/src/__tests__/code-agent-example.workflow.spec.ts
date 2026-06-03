@@ -6,21 +6,21 @@ import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { CodeAgentExampleWorkflow } from '../code-agent-example.workflow';
 
+const mockAgentWorkflow = {
+  run: vi.fn(),
+};
+
 describe('CodeAgentExampleWorkflow', () => {
   let module: TestingModule;
   let workflow: CodeAgentExampleWorkflow;
   let processor: WorkflowProcessorService;
-
-  const mockAgent = {
-    run: vi.fn(),
-  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     module = await createWorkflowTest()
       .forWorkflow(CodeAgentExampleWorkflow)
-      .withMock(AgentWorkflow, mockAgent)
+      .withMock(AgentWorkflow, mockAgentWorkflow)
       .compile();
 
     workflow = module.get(CodeAgentExampleWorkflow);
@@ -32,7 +32,7 @@ describe('CodeAgentExampleWorkflow', () => {
   });
 
   it('launches AgentWorkflow and stops at exploring', async () => {
-    mockAgent.run.mockResolvedValue({ workflowId: 'sub-id' });
+    mockAgentWorkflow.run.mockResolvedValue({ workflowId: 'sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
@@ -40,19 +40,19 @@ describe('CodeAgentExampleWorkflow', () => {
     expect(result.stop).toBe(true);
     expect(result.place).toBe('exploring');
 
-    expect(mockAgent.run).toHaveBeenCalledWith(
+    expect(mockAgentWorkflow.run).toHaveBeenCalledWith(
       expect.objectContaining({
         system: expect.any(String),
         tools: ['glob', 'grep', 'read'],
         userMessage: expect.any(String),
       }),
-      expect.objectContaining({ alias: 'agent', callback: { transition: 'exploreComplete' } }),
+      { callback: { transition: 'exploreComplete' } },
     );
 
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'LinkDocument',
+          documentName: 'link',
           content: expect.objectContaining({ workflowId: 'sub-id' }),
         }),
       ]),
@@ -86,7 +86,7 @@ describe('CodeAgentExampleWorkflow', () => {
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          className: 'MessageDocument',
+          documentName: 'message',
           content: expect.objectContaining({ content: expect.stringContaining('AppModule') }),
         }),
       ]),

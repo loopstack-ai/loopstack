@@ -21,13 +21,13 @@ import { ToolResultsExampleModule } from '@loopstack/accessing-tool-results-exam
 export class DefaultModule {}
 ```
 
-2. Inject the `WorkflowToolResultsWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `WorkflowToolResultsWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { WorkflowToolResultsWorkflow } from '@loopstack/accessing-tool-results-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() workflowToolResults: WorkflowToolResultsWorkflow;
+  constructor(public readonly workflowToolResults: WorkflowToolResultsWorkflow) {}
 }
 ```
 

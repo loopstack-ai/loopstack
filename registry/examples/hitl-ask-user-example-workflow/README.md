@@ -11,10 +11,10 @@ Demonstrates how to prompt the user for free-text input from inside a workflow u
 ## Installation
 
 ```sh
-loopstack add @loopstack/hitl-ask-user-example-workflow
+npm install @loopstack/hitl-ask-user-example-workflow
 ```
 
-This installs `@loopstack/hitl` as a dependency automatically.
+The package depends on `@loopstack/hitl`.
 
 ## How It Works
 
@@ -30,5 +30,5 @@ This installs `@loopstack/hitl` as a dependency automatically.
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/hitl`

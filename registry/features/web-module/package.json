@@ -36,7 +36,6 @@
   "dependencies": {
     "@loopstack/claude-module": "^0.24.1",
     "@loopstack/common": "^0.31.0",
-    "@loopstack/core": "^0.31.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/core": "^11.1.19",
     "lru-cache": "^11.0.2",

@@ -4,7 +4,6 @@ export * from './main.schema.js';
 export * from './tool-config.schema.js';
 export * from './workflow-transition.schema.js';
 export * from './workflow.schema.js';
-export * from './app.schema.js';
 export * from './template-expression.schema.js';
 export * from './tool-call.schema.js';
 export * from './ui-form.schema.js';

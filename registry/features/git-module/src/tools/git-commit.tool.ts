@@ -1,29 +1,34 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitCommitArgs = {
   message: string;
 };
 
+export type GitCommitResult = { hash: string; message: string };
+
 @Tool({
+  name: 'git_commit',
+  description: 'Creates a git commit with the currently staged changes.',
   schema: z
     .object({
       message: z.string().describe('The commit message'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Creates a git commit with the currently staged changes.',
-  },
 })
-export class GitCommitTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitCommitTool extends BaseTool<GitCommitArgs, object, GitCommitResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitCommitArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitCommit(agentUrl, args.message);
+  protected async handle(args: GitCommitArgs, _ctx: LoopstackContext): Promise<ToolResult<GitCommitResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitCommit(agentUrl, args.message);
     return { data: result };
   }
 }

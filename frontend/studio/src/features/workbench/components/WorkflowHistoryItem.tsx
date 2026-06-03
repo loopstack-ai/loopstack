@@ -37,7 +37,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
         <CollapsibleTrigger asChild>
           <button className="hover:bg-accent hover:text-accent-foreground group/trigger flex w-full items-center gap-2 rounded-md p-2 text-left text-sm font-medium">
             <Play className="text-primary h-3.5 w-3.5 fill-current" />
-            <span className="truncate text-sm">{workflow.title ?? workflow.alias}</span>
+            <span className="truncate text-sm">{workflow.title ?? workflow.workflowName}</span>
             <ChevronRight className="text-muted-foreground ml-auto h-3.5 w-3.5 transition-transform group-data-[state=open]/collapsible:rotate-90" />
           </button>
         </CollapsibleTrigger>
@@ -45,18 +45,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
         <CollapsibleContent>
           <ul className="ml-2 flex min-w-0 flex-col gap-1 pl-0">
             <div className="relative py-2">
-              <div className="from-primary/60 via-primary/30 to-muted/20 absolute top-7 bottom-3 left-1.75 w-0.5 rounded-full bg-linear-to-b" />
-
-              <div className="group/entry relative flex gap-3 py-1 pl-0">
-                <div className="relative z-10 flex shrink-0 items-center justify-center">
-                  <div className="border-primary/60 bg-primary/20 flex h-4 w-4 items-center justify-center rounded-full border-2" />
-                </div>
-                <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                  <span className="bg-muted text-foreground w-fit truncate rounded px-1.5 py-0.5 font-mono text-xs font-medium">
-                    start
-                  </span>
-                </div>
-              </div>
+              <div className="from-primary/60 via-primary/30 to-muted/20 absolute top-3 bottom-3 left-1.75 w-0.5 rounded-full bg-linear-to-b" />
 
               {checkpoints.map((entry: WorkflowCheckpoint, index: number) => {
                 const isLast = index === checkpoints.length - 1;
@@ -64,7 +53,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
                 const transitionName = entry.transitionId;
 
                 return (
-                  <div key={entry.version} className="group/entry relative flex gap-3 py-1 pl-0">
+                  <div key={entry.id} className="group/entry relative flex gap-3 py-1 pl-0">
                     <div className="relative z-10 flex shrink-0 items-center justify-center">
                       <div
                         className={cn(

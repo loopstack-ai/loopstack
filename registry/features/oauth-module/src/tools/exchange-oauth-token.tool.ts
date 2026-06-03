@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthProviderRegistry } from '../services/index.js';
 import { OAuthTokenStore } from '../services/index.js';
 
@@ -15,14 +16,20 @@ const ExchangeOAuthTokenSchema = z
 
 type ExchangeOAuthTokenArgs = z.infer<typeof ExchangeOAuthTokenSchema>;
 
+export type ExchangeOAuthTokenResult = {
+  accessToken: string;
+  refreshToken: string | undefined;
+  expiresIn: number | undefined;
+  scope: string | undefined;
+};
+
 @Tool({
-  uiConfig: {
-    description:
-      'Exchanges an OAuth 2.0 authorization code for access and refresh tokens, and stores them globally for the user.',
-  },
+  name: 'exchange_oauth_token',
+  description:
+    'Exchanges an OAuth 2.0 authorization code for access and refresh tokens, and stores them globally for the user.',
   schema: ExchangeOAuthTokenSchema,
 })
-export class ExchangeOAuthTokenTool extends BaseTool {
+export class ExchangeOAuthTokenTool extends BaseTool<ExchangeOAuthTokenArgs, object, ExchangeOAuthTokenResult> {
   private readonly logger = new Logger(ExchangeOAuthTokenTool.name);
 
   @Inject()
@@ -31,7 +38,10 @@ export class ExchangeOAuthTokenTool extends BaseTool {
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: ExchangeOAuthTokenArgs): Promise<ToolResult> {
+  protected async handle(
+    args: ExchangeOAuthTokenArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<ExchangeOAuthTokenResult>> {
     if (args.state !== args.expectedState) {
       throw new Error('OAuth state mismatch. Possible CSRF attack.');
     }
@@ -39,7 +49,7 @@ export class ExchangeOAuthTokenTool extends BaseTool {
     const provider = this.providerRegistry.get(args.provider);
     const tokenSet = await provider.exchangeCode(args.code);
 
-    await this.tokenStore.storeFromTokenSet(this.ctx.app.userId, args.provider, tokenSet);
+    await this.tokenStore.storeFromTokenSet(ctx.userId, args.provider, tokenSet);
 
     return {
       data: {

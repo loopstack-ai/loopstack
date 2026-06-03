@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { CommandExecutionResult, DockerContainerManagerService } from '../services/docker-container-manager.service.js';
 
 const inputSchema = z
@@ -17,18 +18,20 @@ const inputSchema = z
 type SandboxCommandArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  uiConfig: {
-    description: 'Execute a command in the sandbox environment',
-  },
+  name: 'sandbox_command',
+  description: 'Execute a command in the sandbox environment',
   schema: inputSchema,
 })
-export class SandboxCommand extends BaseTool {
+export class SandboxCommand extends BaseTool<SandboxCommandArgs, object, CommandExecutionResult> {
   private readonly logger = new Logger(SandboxCommand.name);
 
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  async call(args: SandboxCommandArgs): Promise<ToolResult<CommandExecutionResult>> {
+  protected async handle(
+    args: SandboxCommandArgs,
+    _ctx: LoopstackContext,
+  ): Promise<ToolResult<CommandExecutionResult>> {
     const argsStr = args.args?.length ? ` ${args.args.join(' ')}` : '';
     this.logger.debug(
       `Executing command: ${args.executable}${argsStr} in container ${args.containerId} (workDir: ${args.workingDirectory})`,

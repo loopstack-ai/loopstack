@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -15,21 +16,40 @@ const inputSchema = z
 
 export type GoogleDriveListFilesArgs = z.infer<typeof inputSchema>;
 
+export type GoogleDriveListFilesResult =
+  | {
+      files: Array<{
+        id: string;
+        name: string;
+        mimeType: string;
+        size?: string;
+        modifiedTime: string;
+        createdTime: string;
+        owners?: Array<{ displayName: string; email: string }>;
+        webViewLink?: string;
+      }>;
+      nextPageToken?: string;
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Lists and searches files in Google Drive. Supports Drive query syntax and folder browsing. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'google_drive_list_files',
+  description:
+    'Lists and searches files in Google Drive. Supports Drive query syntax and folder browsing. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GoogleDriveListFilesTool extends BaseTool {
+export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs, object, GoogleDriveListFilesResult> {
   private readonly logger = new Logger(GoogleDriveListFilesTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GoogleDriveListFilesArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(
+    args: GoogleDriveListFilesArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GoogleDriveListFilesResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -58,7 +78,7 @@ export class GoogleDriveListFilesTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`Google Drive API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

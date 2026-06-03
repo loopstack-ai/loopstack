@@ -7,16 +7,11 @@ import {
   BlockType,
   GUARDS_METADATA_KEY,
   GuardMetadata,
-  INJECTED_DOCUMENTS_METADATA_KEY,
-  INJECTED_TOOLS_METADATA_KEY,
-  INJECTED_WORKFLOWS_METADATA_KEY,
-  INJECT_TOOL_DEFAULTS_KEY,
-  INJECT_WORKFLOW_DEFAULTS_KEY,
-  PASS_THROUGH_METADATA_KEY,
   TRANSITIONS_METADATA_KEY,
   TransitionMetadata,
 } from '../decorators/index.js';
 import { buildConfig } from './block-config.builder.js';
+import { deriveWorkflowIdentifier } from './identifier.utils.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 type Constructor = Function & {
@@ -31,16 +26,6 @@ function getConstructor(target: object | Constructor): Constructor {
     return target;
   }
   return target.constructor as Constructor;
-}
-
-/**
- * Gets the prototype from either an instance or a class
- */
-function getPrototype(target: object | Constructor): object {
-  if (typeof target === 'function') {
-    return target.prototype as object;
-  }
-  return Object.getPrototypeOf(target) as object;
 }
 
 /**
@@ -61,30 +46,22 @@ export function getBlockOptions(target: object | Constructor): BlockOptions | un
 }
 
 /**
- * Gets the list of tool property names from the decorator metadata
+ * Gets the explicit name from the decorator metadata (e.g., `@Tool({ name: 'git_status' })`).
+ * Falls back to the class/constructor name if no explicit name is set.
  */
-export function getBlockTools(target: object | Constructor): string[] {
-  const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(INJECTED_TOOLS_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
+export function getBlockName(target: object | Constructor): string {
+  const ctor = getConstructor(target);
+  const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
+  return options?.name ?? ctor.name;
 }
 
 /**
- * Gets the list of document property names from the decorator metadata
+ * Gets the workflow identifier: explicit `@Workflow({ name })` or auto-derived snake_case from class name.
  */
-export function getBlockDocuments(target: object | Constructor): string[] {
-  const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(INJECTED_DOCUMENTS_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-/**
- * Gets the list of workflow property names from the decorator metadata
- */
-export function getBlockWorkflows(target: object | Constructor): string[] {
-  const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(INJECTED_WORKFLOWS_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
+export function getWorkflowIdentifier(target: object | Constructor): string {
+  const ctor = getConstructor(target);
+  const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
+  return options?.name ?? deriveWorkflowIdentifier(ctor.name);
 }
 
 /**
@@ -103,30 +80,6 @@ export function getBlockConfigSchema(target: object | Constructor): z.ZodType | 
   const ctor = getConstructor(target);
   const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
   return options?.configSchema;
-}
-
-/**
- * Gets a workflow instance by name from a block
- */
-export function getBlockWorkflow<T = unknown>(target: object, name: string): T | undefined {
-  const workflows = getBlockWorkflows(target);
-  return workflows.includes(name) ? ((target as Record<string, unknown>)[name] as T) : undefined;
-}
-
-/**
- * Gets a tool instance by name from a block
- */
-export function getBlockTool<T = unknown>(target: object, name: string): T | undefined {
-  const tools = getBlockTools(target);
-  return tools.includes(name) ? ((target as Record<string, unknown>)[name] as T) : undefined;
-}
-
-/**
- * Gets a document instance by name from a block
- */
-export function getBlockDocument<T = unknown>(target: object, name: string): T | undefined {
-  const documents = getBlockDocuments(target);
-  return documents.includes(name) ? ((target as Record<string, unknown>)[name] as T) : undefined;
 }
 
 // --- Transition metadata getters ---
@@ -173,76 +126,4 @@ export function getBlockTypeFromMetadata(target: object | Constructor): BlockTyp
  */
 export function getDocumentSchema(target: object | Constructor): z.ZodType | undefined {
   return getBlockArgsSchema(target);
-}
-
-/**
- * Gets the list of @PassThrough() property names from the decorator metadata.
- */
-export function getPassThroughProperties(target: object | Constructor): string[] {
-  const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(PASS_THROUGH_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-/**
- * Gets the @InjectTool(config) defaults for a specific property on a target.
- * Returns undefined if no defaults were set.
- */
-export function getInjectToolDefaults(target: object, propertyName: string): Record<string, unknown> | undefined {
-  const proto = getPrototype(target);
-  const allDefaults = Reflect.getMetadata(INJECT_TOOL_DEFAULTS_KEY, proto) as
-    | Record<string, Record<string, unknown>>
-    | undefined;
-  return allDefaults?.[propertyName];
-}
-
-/**
- * Resolves a tool by name, checking the parent first, then the app as fallback.
- */
-export function resolveBlockTool<T = unknown>(parent: object, name: string, app?: object): T | undefined {
-  return getBlockTool<T>(parent, name) ?? (app ? getBlockTool<T>(app, name) : undefined);
-}
-
-/**
- * Validates that all named tools are resolvable from the parent or app.
- * Throws with a descriptive error if any tool is missing.
- *
- * @param caller — name of the calling class (for error messages)
- * @param parent — the parent workflow or block instance
- * @param toolNames — tool property names that must be available
- * @param app — optional app fallback
- */
-export function assertToolsAvailable(caller: string, parent: object, toolNames: string[], app?: object): void {
-  for (const name of toolNames) {
-    const tool = resolveBlockTool(parent, name, app);
-    if (!tool) {
-      throw new Error(
-        `${caller} requires tool "${name}" but it was not found. ` +
-          `Inject it on your app: @InjectTool() ${name}: <ToolClass>`,
-      );
-    }
-  }
-}
-
-/**
- * Resolves @InjectTool(config) defaults by name, checking the parent first, then the app as fallback.
- */
-export function resolveInjectToolDefaults(
-  parent: object,
-  propertyName: string,
-  app?: object,
-): Record<string, unknown> | undefined {
-  return getInjectToolDefaults(parent, propertyName) ?? (app ? getInjectToolDefaults(app, propertyName) : undefined);
-}
-
-/**
- * Gets the @InjectWorkflow(config) defaults for a specific property on a target.
- * Returns undefined if no defaults were set.
- */
-export function getInjectWorkflowDefaults(target: object, propertyName: string): Record<string, unknown> | undefined {
-  const proto = getPrototype(target);
-  const allDefaults = Reflect.getMetadata(INJECT_WORKFLOW_DEFAULTS_KEY, proto) as
-    | Record<string, Record<string, unknown>>
-    | undefined;
-  return allDefaults?.[propertyName];
 }

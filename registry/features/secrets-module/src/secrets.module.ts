@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { type DynamicModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { registerFeature } from '@loopstack/common';
 import { SecretController } from './controllers/index.js';
 import { SecretRequestDocument } from './documents/index.js';
 import { SecretEntity } from './entities/index.js';
@@ -26,4 +27,11 @@ import { GetSecretKeysTool, RequestSecretsTask, RequestSecretsTool, SecretsReque
     SecretRequestDocument,
   ],
 })
-export class SecretsModule {}
+export class SecretsModule {
+  static forFeature(config?: { enabled?: boolean }): DynamicModule {
+    return {
+      module: SecretsModule,
+      providers: [registerFeature('secrets', config)],
+    };
+  }
+}

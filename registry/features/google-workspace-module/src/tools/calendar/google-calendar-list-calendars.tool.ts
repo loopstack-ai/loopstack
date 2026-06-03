@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -11,21 +12,40 @@ const inputSchema = z
 
 export type GoogleCalendarListCalendarsArgs = z.infer<typeof inputSchema>;
 
+export type GoogleCalendarListCalendarsResult =
+  | {
+      calendars: Array<{
+        id: string;
+        summary: string;
+        description?: string;
+        primary: boolean;
+        timeZone?: string;
+      }>;
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Lists all calendars the authenticated user has access to. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'google_calendar_list_calendars',
+  description:
+    'Lists all calendars the authenticated user has access to. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GoogleCalendarListCalendarsTool extends BaseTool {
+export class GoogleCalendarListCalendarsTool extends BaseTool<
+  GoogleCalendarListCalendarsArgs,
+  object,
+  GoogleCalendarListCalendarsResult
+> {
   private readonly logger = new Logger(GoogleCalendarListCalendarsTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GoogleCalendarListCalendarsArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(
+    args: GoogleCalendarListCalendarsArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GoogleCalendarListCalendarsResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -47,7 +67,7 @@ export class GoogleCalendarListCalendarsTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

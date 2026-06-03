@@ -1,8 +1,7 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { DocumentEntity } from '@loopstack/common';
-import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
+import type { DynamicDocumentMeta } from '@loopstack/contracts/types';
 import { DocumentContentDto } from './document-content.dto.js';
-import { DocumentMetaDto } from './document-meta.dto.js';
 
 /**
  * Data Transfer Object for Document entities
@@ -15,16 +14,10 @@ export class DocumentDto {
   id: string;
 
   /**
-   * Name of the document
+   * Snake_case identifier of the document type
    */
   @Expose()
-  name: string;
-
-  /**
-   * Config Key of the document
-   */
-  @Expose()
-  alias: string;
+  documentName: string;
 
   /**
    * Contents of the document.
@@ -33,37 +26,16 @@ export class DocumentDto {
   content: DocumentContentDto | null;
 
   @Expose()
-  schema: JSONSchemaConfigType;
-
-  @Expose()
   validationError: any;
 
   @Expose()
-  ui: UiFormType;
-
-  /**
-   * Document metadata
-   */
-  @Expose()
-  meta: DocumentMetaDto | null;
+  meta: DynamicDocumentMeta | null;
 
   /**
    * Indicates if the document is invalidated
    */
   @Expose()
   isInvalidated: boolean;
-
-  /**
-   * Indicates if the document is pending removal
-   */
-  @Expose()
-  isPendingRemoval: boolean;
-
-  /**
-   * Version of the document
-   */
-  @Expose()
-  version: number;
 
   /**
    * Index of the document
@@ -81,7 +53,7 @@ export class DocumentDto {
    * Place when this document was created
    */
   @Expose()
-  place?: string | null;
+  place: string | null;
 
   @Expose()
   labels: string[];

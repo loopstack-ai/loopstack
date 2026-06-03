@@ -1,23 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { toJSONSchema } from 'zod';
-import {
-  ServerTool,
-  ToolInterface,
-  WorkflowInterface,
-  getBlockArgsSchema,
-  getBlockConfig,
-  getBlockConfigSchema,
-  resolveBlockTool,
-  resolveInjectToolDefaults,
-} from '@loopstack/common';
+import { BaseTool, ServerTool, getBlockArgsSchema, getBlockConfig, getBlockName } from '@loopstack/common';
 import type { WorkflowType } from '@loopstack/contracts/types';
 import type { LlmResolvedTool } from '../types/index.js';
 
 /**
  * Resolves tool definitions in a provider-agnostic format.
  *
- * Extracts tool names, descriptions, and JSON Schema input schemas from the
- * parent workflow and workspace. Each LLM provider converts these to its
+ * Accepts BaseTool[] instances and reads @Tool() decorator metadata to build
+ * tool definitions for the LLM API. Each LLM provider converts these to its
  * native tool format (Anthropic.Tool, OpenAI function definitions, etc.).
  *
  * Server-side tools (extending {@link ServerTool}) are resolved separately —
@@ -26,40 +17,49 @@ import type { LlmResolvedTool } from '../types/index.js';
  */
 @Injectable()
 export class LlmToolsHelperService {
-  getTools(tools: string[], parent: WorkflowInterface, workspace?: object): LlmResolvedTool[] {
+  /**
+   * Build provider-agnostic tool definitions from BaseTool instances.
+   *
+   * @param tools — Tool instances (injected via constructor in the workflow)
+   */
+  getToolDefinitions(tools: BaseTool[]): LlmResolvedTool[] {
     const resolved: LlmResolvedTool[] = [];
 
-    for (const toolName of tools) {
-      const tool = resolveBlockTool<ToolInterface | ServerTool>(parent, toolName, workspace);
-      if (!tool) {
-        throw new Error(`Tool with name ${toolName} not available in Workflow or Workspace context.`);
-      }
-
+    for (const tool of tools) {
       if (tool instanceof ServerTool) {
-        const defaults = resolveInjectToolDefaults(parent, toolName, workspace);
-        const configSchema = getBlockConfigSchema(tool);
-        const validConfig =
-          configSchema && defaults ? (configSchema.parse(defaults) as Record<string, unknown>) : defaults;
-        resolved.push({ type: 'server_tool', name: toolName, config: tool.toServerToolConfig(validConfig) });
+        // ServerTool: call toServerToolConfig() — config comes from module-level defaults
+        const name = getBlockName(tool);
+        resolved.push({ type: 'server_tool', name, config: tool.toServerToolConfig() });
         continue;
       }
 
       const inputSchema = getBlockArgsSchema(tool);
       const config = getBlockConfig<WorkflowType>(tool);
       if (!config) {
-        throw new Error(`Block ${tool.constructor.name} is missing @BlockConfig decorator`);
+        throw new Error(`Block ${tool.constructor.name} is missing @Tool() decorator`);
       }
 
       const jsonSchema = inputSchema ? (toJSONSchema(inputSchema) as Record<string, unknown>) : { type: 'object' };
+      const name = getBlockName(tool);
 
       resolved.push({
         type: 'tool',
-        name: toolName,
+        name,
         description: config.description ?? '',
         inputSchema: jsonSchema,
       });
     }
 
     return resolved;
+  }
+
+  /**
+   * @deprecated Use getToolDefinitions() with BaseTool[] instead
+   */
+  getTools(_tools: string[], _parent: object, _workspace?: object): LlmResolvedTool[] {
+    // Legacy fallback — kept for backwards compat during migration
+    throw new Error(
+      'getTools() with string[] is no longer supported. Use getToolDefinitions() with BaseTool[] instances.',
+    );
   }
 }
