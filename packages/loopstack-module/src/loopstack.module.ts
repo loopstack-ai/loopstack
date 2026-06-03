@@ -48,7 +48,6 @@ export class LoopstackModule {
 
     imports.push(
       LoopstackApiModule.register({
-        availableEnvironments: options.availableEnvironments,
         connection,
         cors: options.cors,
       }),

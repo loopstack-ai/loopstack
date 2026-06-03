@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -13,21 +14,51 @@ const inputSchema = z
 
 export type GitHubGetPullRequestArgs = z.infer<typeof inputSchema>;
 
+export type GitHubGetPullRequestResult =
+  | {
+      pullRequest: {
+        id: number;
+        number: number;
+        title: string;
+        body: string | null;
+        state: string;
+        user: string;
+        head: string;
+        headSha: string;
+        base: string;
+        merged: boolean;
+        mergeable: boolean | null;
+        draft: boolean;
+        additions: number;
+        deletions: number;
+        changedFiles: number;
+        createdAt: string;
+        updatedAt: string;
+        mergedAt: string | null;
+        htmlUrl: string;
+        comments: number;
+        reviewComments: number;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Gets detailed information about a specific GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_get_pull_request',
+  description:
+    'Gets detailed information about a specific GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubGetPullRequestTool extends BaseTool {
+export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs, object, GitHubGetPullRequestResult> {
   private readonly logger = new Logger(GitHubGetPullRequestTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubGetPullRequestArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    args: GitHubGetPullRequestArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubGetPullRequestResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -48,7 +79,7 @@ export class GitHubGetPullRequestTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

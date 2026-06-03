@@ -1,20 +1,28 @@
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { FailingWorkflow } from '../workflows/failing.workflow';
 
+export type FailingSubWorkflowToolResult = { workflowId: string };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Launch an async sub-workflow that always fails. ' +
-      'Used to test that failed sub-workflow errors propagate back to the parent.',
-  },
+  name: 'failing_sub_workflow',
+  description:
+    'Launch an async sub-workflow that always fails. ' +
+    'Used to test that failed sub-workflow errors propagate back to the parent.',
   schema: z.object({}),
 })
-export class FailingSubWorkflowTool extends BaseTool {
-  @InjectWorkflow() private failingWorkflow: FailingWorkflow;
+export class FailingSubWorkflowTool extends BaseTool<object, object, FailingSubWorkflowToolResult> {
+  constructor(private readonly failingWorkflow: FailingWorkflow) {
+    super();
+  }
 
-  async call(_args: object, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.failingWorkflow.run({}, { alias: 'failingWorkflow', callback: options?.callback });
+  protected async handle(
+    _args: object,
+    _ctx: LoopstackContext,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<FailingSubWorkflowToolResult>> {
+    const result = await this.failingWorkflow.run({}, { callback: options?.callback });
 
     return {
       data: { workflowId: result.workflowId },

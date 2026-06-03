@@ -109,7 +109,7 @@ GITHUB_OAUTH_REDIRECT_URI=/oauth/callback
 Once registered, any workflow can trigger GitHub authentication by launching the OAuth workflow with `provider: 'github'`:
 
 ```typescript
-@InjectWorkflow() oAuth: OAuthWorkflow;
+constructor(public readonly oAuth: OAuthWorkflow) { super(); }
 
 // In a transition method:
 const result = await this.oAuth.run(

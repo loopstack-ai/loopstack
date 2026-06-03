@@ -17,19 +17,21 @@ describe('McpListToolsTool', () => {
   it('throws when config is missing allowedHosts', async () => {
     const tool = makeTool({ listTools: vi.fn() });
     await expect(
-      tool.call(
+      (tool as any).handle(
         { serverUrl: 'https://mcp.linear.app/sse', transport: 'streamableHttp' },
+        {},
         { config: { allowedHosts: [] } as unknown as McpToolConfig },
       ),
-    ).rejects.toThrow(/requires @InjectTool/);
+    ).rejects.toThrow(/requires config with allowedHosts/);
   });
 
   it('forwards args to McpClientService.listTools', async () => {
     const listTools = vi.fn().mockResolvedValue({ tools: [{ name: 'createIssue' }] });
     const tool = makeTool({ listTools });
 
-    const result = await tool.call(
+    const result = await (tool as any).handle(
       { serverUrl: 'https://mcp.linear.app/sse', transport: 'sse', timeoutMs: 1234 },
+      {},
       { config: cfg(['mcp.linear.app']) },
     );
 

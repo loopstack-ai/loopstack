@@ -1,3 +1,1 @@
-ui:
-  widgets:
-    - widget: plain
+widget: plain

@@ -1,77 +1,56 @@
-import { Controller, Delete, Get, NotFoundException, Param, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
-import { RemoteClient } from '@loopstack/remote-client';
+import { Controller, Delete, Get, Param, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces/:workspaceId/git')
 export class GitController {
   constructor(
-    private readonly remoteAgentClient: RemoteClient,
-    @InjectRepository(WorkspaceEntity)
-    private readonly workspaceRepository: Repository<WorkspaceEntity>,
+    private readonly remote: RemoteClient,
+    private readonly env: EnvironmentService,
   ) {}
-
-  private async getAgentUrl(workspaceId: string, userId: string): Promise<string> {
-    const workspace = await this.workspaceRepository.findOne({
-      where: { id: workspaceId, createdBy: userId },
-      relations: ['environments'],
-    });
-
-    if (!workspace) {
-      throw new NotFoundException(`Workspace with ID ${workspaceId} not found`);
-    }
-
-    const environment = workspace.environments?.find((e) => !!e.agentUrl);
-    if (!environment?.agentUrl) {
-      throw new NotFoundException(`No remote environment configured for workspace ${workspaceId}`);
-    }
-
-    return environment.agentUrl;
-  }
 
   @Get('status')
   async getStatus(
     @Param('workspaceId') workspaceId: string,
-    @CurrentUser() user: CurrentUserInterface,
+    @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
-    return this.remoteAgentClient.gitStatus(agentUrl);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    return this.remote.gitStatus(agentUrl);
   }
 
   @Get('log')
   async getLog(
     @Param('workspaceId') workspaceId: string,
     @Query('limit') limit: string | undefined,
-    @CurrentUser() user: CurrentUserInterface,
+    @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
-    return this.remoteAgentClient.gitLog(agentUrl, parsedLimit);
+    return this.remote.gitLog(agentUrl, parsedLimit);
   }
 
   @Get('remote')
   async getRemote(
     @Param('workspaceId') workspaceId: string,
-    @CurrentUser() user: CurrentUserInterface,
+    @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
-    return this.remoteAgentClient.gitRemote(agentUrl);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    return this.remote.gitRemote(agentUrl);
   }
 
   @Get('branches')
   async getBranches(
     @Param('workspaceId') workspaceId: string,
-    @CurrentUser() user: CurrentUserInterface,
+    @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
-    return this.remoteAgentClient.gitBranches(agentUrl);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    return this.remote.gitBranches(agentUrl);
   }
 
   @Delete('remote')
-  async removeRemote(@Param('workspaceId') workspaceId: string, @CurrentUser() user: CurrentUserInterface) {
-    const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
-    return this.remoteAgentClient.gitRemoveRemote(agentUrl);
+  async removeRemote(@Param('workspaceId') workspaceId: string, @CurrentUser() _user: CurrentUserInterface) {
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    return this.remote.gitRemoveRemote(agentUrl);
   }
 }

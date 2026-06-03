@@ -1,42 +1,50 @@
-import { BaseWorkflow, Final, Initial, InjectTool, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack/git-module';
 
 const COMMIT_MESSAGE = 'chore: example commit from git-commit-flow workflow';
 
 @Workflow({
-  uiConfig: __dirname + '/git-commit-flow-example.ui.yaml',
+  title: 'Git Commit Flow Example',
 })
 export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
-  @InjectTool() gitStatus: GitStatusTool;
-  @InjectTool() gitAdd: GitAddTool;
-  @InjectTool() gitCommit: GitCommitTool;
-  @InjectTool() gitLog: GitLogTool;
+  constructor(
+    private readonly gitStatus: GitStatusTool,
+    private readonly gitAdd: GitAddTool,
+    private readonly gitCommit: GitCommitTool,
+    private readonly gitLog: GitLogTool,
+  ) {
+    super();
+  }
 
-  @Initial({ to: 'status_checked' })
-  async checkStatus() {
+  @Transition({ to: 'status_checked' })
+  async checkStatus(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const status = await this.gitStatus.call();
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Status before commit:\n\`\`\`json\n${JSON.stringify(status.data, null, 2)}\n\`\`\``,
     });
+    return state;
   }
 
   @Transition({ from: 'status_checked', to: 'staged' })
-  async stageAll() {
+  async stageAll(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     await this.gitAdd.call({ files: ['.'] });
+    return state;
   }
 
   @Transition({ from: 'staged', to: 'committed' })
-  async commit() {
+  async commit(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     await this.gitCommit.call({ message: COMMIT_MESSAGE });
+    return state;
   }
 
-  @Final({ from: 'committed' })
-  async readBack() {
+  @Transition({ from: 'committed', to: 'end' })
+  async readBack(_state: Record<string, unknown>): Promise<unknown> {
     const log = await this.gitLog.call({ limit: 1 });
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Latest commit:\n\`\`\`json\n${JSON.stringify(log.data, null, 2)}\n\`\`\``,
     });
+    return {};
   }
 }

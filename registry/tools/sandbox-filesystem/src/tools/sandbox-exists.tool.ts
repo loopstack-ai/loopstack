@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -19,18 +20,18 @@ interface SandboxExistsResult {
 }
 
 @Tool({
-  uiConfig: {
-    description: 'Check if a file or directory exists in a sandbox container',
-  },
+  name: 'sandbox_exists',
+  description: 'Check if a file or directory exists in a sandbox container',
   schema: inputSchema,
 })
-export class SandboxExists extends BaseTool {
+export class SandboxExists extends BaseTool<SandboxExistsArgs, object, SandboxExistsResult> {
   private readonly logger = new Logger(SandboxExists.name);
 
-  @InjectTool()
-  private sandboxCommand: SandboxCommand;
+  constructor(private readonly sandboxCommand: SandboxCommand) {
+    super();
+  }
 
-  async call(args: SandboxExistsArgs): Promise<ToolResult<SandboxExistsResult>> {
+  protected async handle(args: SandboxExistsArgs, _ctx: LoopstackContext): Promise<ToolResult<SandboxExistsResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Checking existence of ${targetPath} in container ${containerId}`);

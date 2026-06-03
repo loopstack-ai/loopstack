@@ -17,7 +17,8 @@ export type LlmMessageDocumentContentType = z.infer<typeof LlmMessageDocumentCon
 
 @Document({
   schema: LlmMessageDocumentContentSchema,
-  uiConfig: import.meta.dirname + '/llm-message.document.yaml',
+  widget: import.meta.dirname + '/llm-message.document.yaml',
+  tags: ['message'],
 })
 export class LlmMessageDocument {
   id?: string;

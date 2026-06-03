@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.31.0",
-    "@loopstack/core": "^0.31.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
@@ -42,6 +41,7 @@
   ],
   "type": "module",
   "devDependencies": {
+    "@loopstack/core": "^0.31.0",
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",
     "unplugin-swc": "^1.5.9"

@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -14,21 +15,36 @@ const inputSchema = z
 
 export type GitHubListDirectoryArgs = z.input<typeof inputSchema>;
 
+export type GitHubListDirectoryResult = {
+  entries?: Array<{
+    name: string;
+    path: string;
+    sha: string;
+    size: number;
+    type: string;
+    htmlUrl: string;
+  }>;
+  error?: string;
+  message?: string;
+};
+
 @Tool({
-  uiConfig: {
-    description:
-      'Lists the contents of a directory in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_list_directory',
+  description:
+    'Lists the contents of a directory in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubListDirectoryTool extends BaseTool {
+export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, object, GitHubListDirectoryResult> {
   private readonly logger = new Logger(GitHubListDirectoryTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubListDirectoryArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    args: GitHubListDirectoryArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubListDirectoryResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -53,7 +69,7 @@ export class GitHubListDirectoryTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

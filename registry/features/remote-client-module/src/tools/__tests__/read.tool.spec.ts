@@ -2,8 +2,8 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBlockArgsSchema } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
+import { EnvironmentService } from '../../services/environment.service.js';
 import { RemoteClient } from '../../services/remote-client.service.js';
-import { SandboxEnvironmentService } from '../../services/sandbox-environment.service.js';
 import { ReadTool } from '../read.tool.js';
 
 describe('ReadTool', () => {
@@ -13,8 +13,8 @@ describe('ReadTool', () => {
   const mockRemoteClient = {
     readFile: vi.fn(),
   };
-  const mockSandbox = {
-    getAgentUrl: vi.fn().mockReturnValue('https://agent.example'),
+  const mockEnv = {
+    getAgentUrl: vi.fn().mockResolvedValue('https://agent.example'),
   };
 
   beforeEach(async () => {
@@ -23,7 +23,7 @@ describe('ReadTool', () => {
     module = await createToolTest()
       .forTool(ReadTool)
       .withMock(RemoteClient, mockRemoteClient)
-      .withMock(SandboxEnvironmentService, mockSandbox)
+      .withMock(EnvironmentService, mockEnv)
       .compile();
 
     tool = module.get(ReadTool);

@@ -5,6 +5,7 @@ import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { useFeatureRegistry } from '@/features/feature-registry';
 import { OAuthPromptRenderer } from '@/features/oauth';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import AiMessage from './renderers/AiMessage.tsx';
 import ChoicesRenderer from './renderers/ChoicesRenderer.tsx';
 import ConfirmPromptRenderer from './renderers/ConfirmPromptRenderer.tsx';
@@ -99,14 +100,12 @@ const coreRendererRegistry = new Map<string, WidgetRenderer>([
   ],
 ]);
 
-/** Extract the primary widget name from document UI config. */
-function resolveDocumentWidget(ui: unknown): string {
+/** Extract the primary widget name from a UI config object. */
+function resolveWidgetName(ui: unknown): string {
   const typed = ui as { widgets?: { widget?: string }[]; form?: { widget?: string } } | undefined;
-  // New format: ui.widgets[0].widget
   if (typed?.widgets?.[0]?.widget) {
     return typed.widgets[0].widget;
   }
-  // Legacy fallback: ui.form.widget
   if (typed?.form?.widget) {
     return typed.form.widget;
   }
@@ -115,8 +114,10 @@ function resolveDocumentWidget(ui: unknown): string {
 
 const DocumentRenderer: React.FC<DocumentRendererProps> = (props) => {
   const features = useFeatureRegistry();
+  const documentConfigs = useDocumentConfigs();
   const doc = props.document as unknown as DocumentItemInterface;
-  const widget = resolveDocumentWidget(doc.ui);
+  const docConfig = documentConfigs.get(doc.documentName);
+  const widget = resolveWidgetName(docConfig?.ui);
 
   const featureRenderers = useMemo(() => {
     const map = new Map<string, WidgetRenderer>();

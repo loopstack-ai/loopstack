@@ -2,12 +2,10 @@ import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  Final,
-  Initial,
-  InjectWorkflow,
   LinkDocument,
   MessageDocument,
   QueueResult,
+  Transition,
   Workflow,
 } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
@@ -19,24 +17,26 @@ const AskUserCallbackSchema = CallbackSchema.extend({
 type AskUserCallback = z.infer<typeof AskUserCallbackSchema>;
 
 @Workflow({
-  uiConfig: __dirname + '/hitl-ask-user-example.ui.yaml',
+  title: 'HITL Ask User Example',
 })
 export class HitlAskUserExampleWorkflow extends BaseWorkflow {
-  @InjectWorkflow() private askUser: AskUserWorkflow;
+  constructor(private readonly askUserWorkflow: AskUserWorkflow) {
+    super();
+  }
 
-  @Initial({ to: 'waiting_for_answer' })
-  async askQuestion() {
-    const result: QueueResult = await this.askUser.run(
+  @Transition({ to: 'waiting_for_answer' })
+  async askQuestion(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const result: QueueResult = await this.askUserWorkflow.run(
       { question: 'What is your name?' },
-      { alias: 'askUser', callback: { transition: 'answerReceived' } },
+      { callback: { transition: 'answerReceived' } },
     );
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Asking user a question (sub-workflow ${result.workflowId})...`,
     });
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'pending',
@@ -47,15 +47,17 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
       },
       { id: `link_${result.workflowId}` },
     );
+    return state;
   }
 
-  @Final({
+  @Transition({
     from: 'waiting_for_answer',
+    to: 'end',
     wait: true,
     schema: AskUserCallbackSchema,
   })
-  async answerReceived(payload: AskUserCallback) {
-    await this.repository.save(
+  async answerReceived(state: Record<string, unknown>, payload: AskUserCallback): Promise<unknown> {
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'success',
@@ -67,9 +69,10 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Thanks! You answered: ${payload.data.answer}`,
     });
+    return {};
   }
 }

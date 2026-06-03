@@ -32,7 +32,6 @@
   "dependencies": {
     "@loopstack/agent": "^0.4.1",
     "@loopstack/common": "^0.31.0",
-    "@loopstack/core": "^0.31.0",
     "@loopstack/mcp-module": "^0.2.1",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"

@@ -40,7 +40,7 @@ async authRequired() {
     { alias: 'oAuth', callback: { transition: 'authCompleted' } },
   );
 
-  await this.repository.save(
+  await this.documentStore.save(
     LinkDocument,
     {
       label: 'GitHub authentication required',
@@ -67,7 +67,7 @@ The auth callback uses `wait: true` with `CallbackSchema` to receive the OAuth c
   schema: CallbackSchema,
 })
 async authCompleted(payload: { workflowId: string }) {
-  await this.repository.save(
+  await this.documentStore.save(
     LinkDocument,
     {
       status: 'success',
@@ -193,8 +193,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 
 ## Dependencies
 
-- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@Guard`, `@InjectTool`, `@InjectWorkflow`, `CallbackSchema`, `ToolResult`)
-- `@loopstack/core` - Provides `LinkDocument`, `MarkdownDocument`, and `MessageDocument`
+- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `CallbackSchema`, `ToolResult`, `LinkDocument`, `MarkdownDocument`, `MessageDocument`)
 - `@loopstack/llm-provider-module` - LLM adapter tools (`LlmGenerateTextTool`, `LlmMessageDocument`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`)
 - `@loopstack/github-module` - All 25 GitHub tools

@@ -1,6 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { MathService } from '../services/math.service';
 
 const MathSumSchema = z
@@ -12,17 +12,19 @@ const MathSumSchema = z
 
 type MathSumArgs = z.infer<typeof MathSumSchema>;
 
+export type MathSumToolResult = number;
+
 @Tool({
-  uiConfig: {
-    description: 'Math tool calculating the sum of two arguments by using an injected service.',
-  },
+  name: 'math_sum',
+  description: 'Math tool calculating the sum of two arguments by using an injected service.',
   schema: MathSumSchema,
 })
-export class MathSumTool extends BaseTool {
-  @Inject()
-  private mathService: MathService;
+export class MathSumTool extends BaseTool<MathSumArgs, object, MathSumToolResult> {
+  constructor(private readonly mathService: MathService) {
+    super();
+  }
 
-  call(args: MathSumArgs): Promise<ToolResult<number>> {
+  protected async handle(args: MathSumArgs, _ctx: LoopstackContext): Promise<ToolResult<MathSumToolResult>> {
     const sum = this.mathService.sum(args.a, args.b);
     return Promise.resolve({ data: sum });
   }

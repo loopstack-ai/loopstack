@@ -1,27 +1,52 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z.object({}).strict();
 
 export type GitHubGetAuthenticatedUserArgs = z.infer<typeof inputSchema>;
 
+export type GitHubGetAuthenticatedUserResult = {
+  user?: {
+    id: number;
+    login: string;
+    name: string | null;
+    email: string | null;
+    avatarUrl: string;
+    htmlUrl: string;
+    bio: string | null;
+    publicRepos: number;
+    followers: number;
+    following: number;
+    createdAt: string;
+  };
+  error?: string;
+  message?: string;
+};
+
 @Tool({
-  uiConfig: {
-    description:
-      'Gets the profile of the currently authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_get_authenticated_user',
+  description:
+    'Gets the profile of the currently authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubGetAuthenticatedUserTool extends BaseTool {
+export class GitHubGetAuthenticatedUserTool extends BaseTool<
+  GitHubGetAuthenticatedUserArgs,
+  object,
+  GitHubGetAuthenticatedUserResult
+> {
   private readonly logger = new Logger(GitHubGetAuthenticatedUserTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(_args?: GitHubGetAuthenticatedUserArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    _args: GitHubGetAuthenticatedUserArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubGetAuthenticatedUserResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -41,7 +66,7 @@ export class GitHubGetAuthenticatedUserTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

@@ -26,9 +26,6 @@ export class WorkflowCheckpointEntity {
   @Column('jsonb', { default: {} })
   state!: Record<string, unknown>;
 
-  @Column('jsonb', { default: {} })
-  tools!: Record<string, unknown>;
-
   @Column('uuid', { name: 'document_ids', array: true, default: '{}' })
   documentIds!: string[];
 

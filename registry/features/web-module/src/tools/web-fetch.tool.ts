@@ -1,6 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { MAX_MARKDOWN_LENGTH, MAX_RESULT_SIZE_CHARS } from '../constants.js';
 import { WebFetchFetcherService, WebFetchSummarizerService } from '../services/index.js';
 import { WebFetchResult } from '../types/index.js';
@@ -24,18 +25,17 @@ export const WebFetchSchema = z
 type WebFetchArgs = z.infer<typeof WebFetchSchema>;
 
 @Tool({
-  uiConfig: {
-    description:
-      'Fetches content from a URL, converts HTML to Markdown, and optionally summarizes it with a small Claude model against a user-provided prompt. ' +
-      'Supports HTTPS upgrade, same-origin redirect following with cross-host report, a 15-minute in-memory cache, size and redirect caps, and a preapproved-host allowlist.',
-  },
+  name: 'web_fetch',
+  description:
+    'Fetches content from a URL, converts HTML to Markdown, and optionally summarizes it with a small Claude model against a user-provided prompt. ' +
+    'Supports HTTPS upgrade, same-origin redirect following with cross-host report, a 15-minute in-memory cache, size and redirect caps, and a preapproved-host allowlist.',
   schema: WebFetchSchema,
 })
-export class WebFetchTool extends BaseTool {
+export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult> {
   @Inject() private readonly fetcher: WebFetchFetcherService;
   @Inject() private readonly summarizer: WebFetchSummarizerService;
 
-  async call(args: WebFetchArgs): Promise<ToolResult<WebFetchResult>> {
+  protected async handle(args: WebFetchArgs, _ctx: LoopstackContext): Promise<ToolResult<WebFetchResult>> {
     const start = performance.now();
     const outcome = await this.fetcher.fetch(args.url);
 

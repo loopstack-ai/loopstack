@@ -56,10 +56,10 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
     }));
   }, [fetchWorkspaces.data]);
 
-  const aliasFilterOptions: FilterOption[] = useMemo(() => {
+  const workflowNameFilterOptions: FilterOption[] = useMemo(() => {
     const names = new Set<string>();
     for (const p of fetchWorkflows.data?.data ?? []) {
-      if (p.alias) names.add(p.alias);
+      if (p.workflowName) names.add(p.workflowName);
     }
     return Array.from(names).sort();
   }, [fetchWorkflows.data]);
@@ -131,7 +131,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
             },
           },
           {
-            id: 'alias',
+            id: 'workflowName',
             label: 'Type',
             minWidth: 100,
             format: (value: unknown) => {
@@ -142,7 +142,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
                   className="hover:bg-primary/10 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setFilters((curr) => ({ ...curr, alias: name }));
+                    setFilters((curr) => ({ ...curr, workflowName: name }));
                   }}
                 >
                   {name}
@@ -196,7 +196,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
       filterConfig={{
         status: ['pending', 'running', 'paused', 'completed', 'failed', 'canceled'],
         workspaceId: workspaceFilterOptions,
-        alias: aliasFilterOptions,
+        workflowName: workflowNameFilterOptions,
       }}
     />
   );

@@ -12,6 +12,11 @@ const WorkflowHistoryList: React.FC<WorkflowHistoryListProps> = ({ workflow }) =
   const fetchChildWorkflows = useChildWorkflows(workflow?.id);
   const childWorkflows = useMemo(() => fetchChildWorkflows.data ?? [], [fetchChildWorkflows.data]);
 
+  const items = useMemo<WorkflowItemInterface[]>(
+    () => (workflow ? [workflow, ...childWorkflows] : childWorkflows),
+    [workflow, childWorkflows],
+  );
+
   if (!workflow) {
     return (
       <div className="text-muted-foreground flex items-center justify-center py-8 text-sm">No workflow selected</div>
@@ -30,7 +35,7 @@ const WorkflowHistoryList: React.FC<WorkflowHistoryListProps> = ({ workflow }) =
     return <div className="text-destructive px-2 py-4 text-sm">Failed to load history</div>;
   }
 
-  if (childWorkflows.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="text-muted-foreground flex flex-col items-center justify-center gap-2 py-8">
         <Clock className="h-6 w-6" />
@@ -41,8 +46,8 @@ const WorkflowHistoryList: React.FC<WorkflowHistoryListProps> = ({ workflow }) =
 
   return (
     <div className="flex flex-col gap-1 py-2">
-      {childWorkflows.map((childWorkflow: WorkflowItemInterface) => (
-        <WorkflowHistoryItem key={childWorkflow.id} workflowId={childWorkflow.id} workflow={childWorkflow} />
+      {items.map((item: WorkflowItemInterface) => (
+        <WorkflowHistoryItem key={item.id} workflowId={item.id} workflow={item} />
       ))}
     </div>
   );

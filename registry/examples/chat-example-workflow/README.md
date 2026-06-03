@@ -29,12 +29,12 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 #### 1. System Prompt Setup
 
-The workflow begins with an `@Initial` method that saves a hidden system message. The message content is rendered from a Handlebars template file:
+The workflow begins with an start `@Transition` method that saves a hidden system message. The message content is rendered from a Handlebars template file:
 
 ```typescript
-@Initial({ to: 'waiting_for_user' })
+@Transition({ to: 'waiting_for_user' })
 async setup() {
-  await this.repository.save(
+  await this.documentStore.save(
     LlmMessageDocument,
     { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
     { meta: { hidden: true } },
@@ -51,7 +51,7 @@ The `userMessage` transition uses `wait: true` to pause the workflow and wait fo
 ```typescript
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
 async userMessage(payload: string) {
-  await this.repository.save(LlmMessageDocument, { role: 'user', content: payload });
+  await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
 }
 ```
 
@@ -66,7 +66,7 @@ When the workflow reaches the `ready` state, it calls the LLM to generate a resp
 async llmTurn() {
   const result = await this.llmGenerateText.call();
 
-  await this.repository.save(LlmMessageDocument, result.data!.message, {
+  await this.documentStore.save(LlmMessageDocument, result.data!.message, {
     meta: { response: result.data!.response, provider: 'claude' },
   });
 }
@@ -107,9 +107,9 @@ export class ChatWorkflow extends BaseWorkflow {
   @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
   llmGenerateText: LlmGenerateTextTool;
 
-  @Initial({ to: 'waiting_for_user' })
+  @Transition({ to: 'waiting_for_user' })
   async setup() {
-    await this.repository.save(
+    await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
@@ -118,14 +118,14 @@ export class ChatWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(payload: string) {
-    await this.repository.save(LlmMessageDocument, { role: 'user', content: payload });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
   }
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
   async llmTurn() {
     const result = await this.llmGenerateText.call();
 
-    await this.repository.save(LlmMessageDocument, result.data!.message, {
+    await this.documentStore.save(LlmMessageDocument, result.data!.message, {
       meta: { response: result.data!.response, provider: 'claude' },
     });
   }

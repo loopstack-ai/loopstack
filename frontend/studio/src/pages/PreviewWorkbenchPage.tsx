@@ -68,7 +68,7 @@ function PreviewWorkbenchContent({
   const fetchWorkflow = useWorkflow(workflowId);
   const notifiedRef = useRef(false);
 
-  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.className ?? undefined);
+  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.workflowName);
 
   // Notify parent when workflow has completed
   useEffect(() => {
@@ -295,7 +295,7 @@ function RecentRunItem({ workflow, onClick }: { workflow: WorkflowItemInterface;
       <div className="flex items-center gap-2">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`} />
         <span className="truncate text-sm font-medium">
-          Run #{workflow.run} &middot; {workflow.alias}
+          Run #{workflow.run} &middot; {workflow.workflowName}
         </span>
       </div>
       <p className="text-muted-foreground mt-0.5 pl-3.5 text-xs">

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { Label } from '@/components/ui/label.tsx';
 import { useWorkbenchLayout } from '@/features/workbench';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useUpsertSecret } from '@/hooks/useSecrets.ts';
 
@@ -30,10 +31,10 @@ const SecretInputRenderer: React.FC<SecretInputRendererProps> = ({ parentWorkflo
   const content = document.content as SecretInputContent;
   const variables = content.variables ?? [];
 
-  // Resolve transition from ui.widgets[0].options.transition
-  const widgets = (document.ui as Record<string, unknown> | undefined)?.widgets as
-    | { options?: { transition?: string; label?: string } }[]
-    | undefined;
+  // Resolve transition from document config ui.widgets[0].options.transition
+  const documentConfigs = useDocumentConfigs();
+  const docConfig = documentConfigs.get(document.documentName);
+  const widgets = docConfig?.ui?.widgets as { options?: { transition?: string; label?: string } }[] | undefined;
   const widgetOptions = widgets?.[0]?.options;
   const transitionId = widgetOptions?.transition;
   const buttonLabel = widgetOptions?.label ?? 'Save & Continue';

@@ -37,7 +37,7 @@ describe('AskUserWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'AskUserDocument',
+            documentName: 'ask_user',
             content: expect.objectContaining({ question: 'What is your name?' }),
           }),
         ]),
@@ -60,7 +60,7 @@ describe('AskUserWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'AskUserOptionsDocument',
+            documentName: 'ask_user_options',
             content: expect.objectContaining({
               question: 'Environment?',
               options: ['staging', 'production'],
@@ -83,7 +83,7 @@ describe('AskUserWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'AskUserConfirmDocument',
+            documentName: 'ask_user_confirm',
             content: expect.objectContaining({ question: 'Proceed?' }),
           }),
         ]),

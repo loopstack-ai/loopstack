@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -16,21 +17,46 @@ const inputSchema = z
 
 export type GitHubListPullRequestsArgs = z.input<typeof inputSchema>;
 
+export type GitHubListPullRequestsResult = {
+  pullRequests?: Array<{
+    id: number;
+    number: number;
+    title: string;
+    state: string;
+    user: string;
+    head: string;
+    headSha: string;
+    base: string;
+    createdAt: string;
+    updatedAt: string;
+    htmlUrl: string;
+    draft: boolean;
+  }>;
+  error?: string;
+  message?: string;
+};
+
 @Tool({
-  uiConfig: {
-    description:
-      'Lists pull requests for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_list_pull_requests',
+  description:
+    'Lists pull requests for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubListPullRequestsTool extends BaseTool {
+export class GitHubListPullRequestsTool extends BaseTool<
+  GitHubListPullRequestsArgs,
+  object,
+  GitHubListPullRequestsResult
+> {
   private readonly logger = new Logger(GitHubListPullRequestsTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubListPullRequestsArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    args: GitHubListPullRequestsArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubListPullRequestsResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -59,7 +85,7 @@ export class GitHubListPullRequestsTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

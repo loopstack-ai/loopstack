@@ -1,86 +1,99 @@
 import { z } from 'zod';
-import { BaseWorkflow, Final, Guard, Initial, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document.js';
 import { AskUserDocument } from '../../documents/ask-user-document.js';
 import { AskUserOptionsDocument } from '../../documents/ask-user-options-document.js';
+
+const AskUserArgsSchema = z.object({
+  question: z.string(),
+  mode: z.enum(['text', 'options', 'confirm']).optional(),
+  options: z.array(z.string()).optional(),
+  allowCustomAnswer: z.boolean().optional(),
+});
+
+type AskUserArgs = z.infer<typeof AskUserArgsSchema>;
 
 const AskUserAnswerSchema = z.object({
   answer: z.string(),
 });
 
+type AskUserState = AskUserArgs;
+
 @Workflow({
-  uiConfig: import.meta.dirname + '/ask-user.ui.yaml',
-  schema: z.object({
-    question: z.string(),
-    mode: z.enum(['text', 'options', 'confirm']).optional(),
-    options: z.array(z.string()).optional(),
-    allowCustomAnswer: z.boolean().optional(),
-  }),
+  title: 'Ask User',
+  description:
+    'Generic sub-workflow that presents a question to the user and waits for their answer.\nUsed by async tool calls (e.g. askClarification) to interrupt an agent loop for user input.\nSupports three modes: text (default), options (pick from a list), and confirm (yes/no).',
+  schema: AskUserArgsSchema,
 })
-export class AskUserWorkflow extends BaseWorkflow {
-  @Initial({ to: 'show_question' })
-  start() {}
+export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
+  @Transition({ to: 'show_question' })
+  async start(state: AskUserState, ctx: LoopstackContext): Promise<AskUserState> {
+    const args = ctx.args as AskUserArgs;
+    return { ...state, ...args };
+  }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isOptionsMode')
-  async showQuestionOptions() {
-    const { question, options, allowCustomAnswer } = this.ctx.run.args as {
-      question: string;
-      options?: string[];
-      allowCustomAnswer?: boolean;
-    };
-    await this.repository.save(
+  async showQuestionOptions(state: AskUserState): Promise<AskUserState> {
+    await this.documentStore.save(
       AskUserOptionsDocument,
-      { question, options: options ?? [], allowCustomAnswer },
+      { question: state.question, options: state.options ?? [], allowCustomAnswer: state.allowCustomAnswer },
       { id: 'question' },
     );
+    return state;
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isConfirmMode')
-  async showQuestionConfirm() {
-    const { question } = this.ctx.run.args as { question: string };
-    await this.repository.save(AskUserConfirmDocument, { question }, { id: 'question' });
+  async showQuestionConfirm(state: AskUserState): Promise<AskUserState> {
+    await this.documentStore.save(AskUserConfirmDocument, { question: state.question }, { id: 'question' });
+    return state;
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user' })
-  async showQuestionText() {
-    const { question } = this.ctx.run.args as { question: string };
-    await this.repository.save(AskUserDocument, { question }, { id: 'question' });
+  async showQuestionText(state: AskUserState): Promise<AskUserState> {
+    await this.documentStore.save(AskUserDocument, { question: state.question }, { id: 'question' });
+    return state;
   }
 
-  @Final({ from: 'waiting_for_user', wait: true, schema: AskUserAnswerSchema })
-  async userAnswered(payload: { answer: string }): Promise<{ answer: string }> {
-    const { question, mode, options, allowCustomAnswer } = this.ctx.run.args as {
-      question: string;
-      mode?: string;
-      options?: string[];
-      allowCustomAnswer?: boolean;
-    };
-
-    if (mode === 'options') {
-      await this.repository.save(
+  @Transition({ from: 'waiting_for_user', to: 'end', wait: true, schema: AskUserAnswerSchema })
+  async userAnswered(state: AskUserState, payload: { answer: string }): Promise<{ answer: string }> {
+    if (state.mode === 'options') {
+      await this.documentStore.save(
         AskUserOptionsDocument,
-        { question, options: options ?? [], allowCustomAnswer, answer: payload.answer },
+        {
+          question: state.question,
+          options: state.options ?? [],
+          allowCustomAnswer: state.allowCustomAnswer,
+          answer: payload.answer,
+        },
         { id: 'question' },
       );
-    } else if (mode === 'confirm') {
-      await this.repository.save(AskUserConfirmDocument, { question, answer: payload.answer }, { id: 'question' });
+    } else if (state.mode === 'confirm') {
+      await this.documentStore.save(
+        AskUserConfirmDocument,
+        { question: state.question, answer: payload.answer },
+        { id: 'question' },
+      );
     } else {
-      await this.repository.save(AskUserDocument, { question, answer: payload.answer }, { id: 'question' });
+      await this.documentStore.save(
+        AskUserDocument,
+        { question: state.question, answer: payload.answer },
+        { id: 'question' },
+      );
     }
 
     return { answer: payload.answer };
   }
 
-  private isOptionsMode(): boolean {
-    const args = this.ctx.run.args as { mode?: string; options?: string[] };
+  private isOptionsMode(state: AskUserState): boolean {
     return (
-      args?.mode === 'options' || (args?.mode === undefined && Array.isArray(args?.options) && args.options.length > 0)
+      state.mode === 'options' || (state.mode === undefined && Array.isArray(state.options) && state.options.length > 0)
     );
   }
 
-  private isConfirmMode(): boolean {
-    return (this.ctx.run.args as { mode?: string })?.mode === 'confirm';
+  private isConfirmMode(state: AskUserState): boolean {
+    return state.mode === 'confirm';
   }
 }

@@ -16,7 +16,7 @@ export interface ToolCallOptions<TConfig = object> {
     transition: string;
     metadata?: Record<string, unknown>;
   };
-  /** Author-provided config from `@InjectTool(config)`. Validated against `configSchema`. */
+  /** Author-provided config. Validated against `configSchema`. */
   config?: TConfig;
 }
 

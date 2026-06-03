@@ -46,6 +46,7 @@ const WorkflowFlowViewer: React.FC<WorkflowFlowViewerProps> = ({
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
   const hasInitializedRef = useRef(false);
+  const prevWorkflowIdRef = useRef(workflowId);
 
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [showSameStateTransitions, setShowSameStateTransitions] = useState(true);
@@ -77,6 +78,8 @@ const WorkflowFlowViewer: React.FC<WorkflowFlowViewerProps> = ({
   );
 
   useLayoutEffect(() => {
+    if (prevWorkflowIdRef.current === workflowId) return;
+    prevWorkflowIdRef.current = workflowId;
     hasInitializedRef.current = false;
     setNodes([]);
     setEdges([]);

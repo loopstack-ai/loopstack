@@ -1,16 +1,7 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  DocumentEntity,
-  Final,
-  Guard,
-  Initial,
-  InjectTool,
-  InjectWorkflow,
-  ToolResult,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, DocumentEntity, Guard, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { TemplateRenderFn } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -20,25 +11,34 @@ import {
 } from '@loopstack/llm-provider-module';
 import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@loopstack/secrets-module';
 
-@Workflow({
-  uiConfig: __dirname + '/secrets-agent-example.ui.yaml',
-})
-export class SecretsAgentExampleWorkflow extends BaseWorkflow {
-  @InjectTool({ provider: 'claude', model: 'claude-haiku-4-5-20251001', tools: ['getSecretKeys', 'requestSecrets'] })
-  llmGenerateText: LlmGenerateTextTool;
-  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
-  @InjectTool({ provider: 'claude' }) llmUpdateToolResult: LlmUpdateToolResultTool;
-  @InjectTool() requestSecrets: RequestSecretsTask;
-  @InjectTool() getSecretKeys: GetSecretKeysTool;
-  @InjectWorkflow() secretsRequest: SecretsRequestWorkflow;
-
+interface SecretsAgentState {
   llmResult?: LlmGenerateTextResult;
   llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
+}
 
-  @Initial({ to: 'ready' })
-  async setup() {
-    await this.repository.save(
+@Workflow({
+  title: 'Secrets Agent Example',
+  description:
+    'An agent workflow where the LLM autonomously manages secrets by calling\ngetSecretKeys and requestSecrets tools. The user can send follow-up messages.',
+  widget: __dirname + '/secrets-agent-example.ui.yaml',
+})
+export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, SecretsAgentState> {
+  constructor(
+    private readonly llmGenerateText: LlmGenerateTextTool,
+    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
+    private readonly requestSecrets: RequestSecretsTask,
+    private readonly getSecretKeys: GetSecretKeysTool,
+    private readonly secretsRequest: SecretsRequestWorkflow,
+    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
+  ) {
+    super();
+  }
+
+  @Transition({ to: 'ready' })
+  async setup(state: SecretsAgentState): Promise<SecretsAgentState> {
+    await this.documentStore.save(
       LlmMessageDocument,
       {
         role: 'user',
@@ -46,78 +46,89 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
       },
       { meta: { hidden: true } },
     );
+    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn() {
-    const result: ToolResult<LlmGenerateTextResult, LlmResultMeta> = await this.llmGenerateText.call(
+  async llmTurn(state: SecretsAgentState): Promise<SecretsAgentState> {
+    const result = await this.llmGenerateText.call(
       {},
       {
         config: {
+          provider: 'claude',
+          model: 'claude-haiku-4-5-20251001',
+          tools: ['get_secret_keys', 'request_secrets_task'],
           system: this.render(__dirname + '/templates/system.md'),
         },
       },
     );
-    this.llmResult = result.data;
-    this.llmMeta = result.metadata;
+    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+  async executeToolCalls(state: SecretsAgentState): Promise<SecretsAgentState> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
-    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-      message: this.llmResult!.message,
-      callback: { transition: 'toolResultReceived' },
-    });
-    this.delegateResult = result.data;
+    const result = await this.llmDelegateToolCalls.call(
+      {
+        message: state.llmResult!.message,
+        callback: { transition: 'toolResultReceived' },
+      },
+      { config: { provider: 'claude' } },
+    );
+    return { ...state, delegateResult: result.data };
   }
 
-  hasToolCalls(): boolean {
-    return this.llmResult?.message.stopReason === 'tool_use';
+  hasToolCalls(state: SecretsAgentState): boolean {
+    return state.llmResult?.message.stopReason === 'tool_use';
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(payload: Record<string, unknown>) {
-    const result: ToolResult<LlmDelegateResult> = await this.llmUpdateToolResult.call({
-      delegateResult: this.delegateResult!,
-      completedTool: payload,
-    });
-    this.delegateResult = result.data;
+  async toolResultReceived(state: SecretsAgentState, payload: Record<string, unknown>): Promise<SecretsAgentState> {
+    const result = await this.llmUpdateToolResult.call(
+      {
+        delegateResult: state.delegateResult!,
+        completedTool: payload,
+      },
+      { config: { provider: 'claude' } },
+    );
+    return { ...state, delegateResult: result.data };
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async allToolsCompleteTransition() {
-    await this.repository.save(LlmMessageDocument, {
+  async allToolsCompleteTransition(state: SecretsAgentState): Promise<SecretsAgentState> {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: this.delegateResult!.toolResults.map((tr) => ({
+      content: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',
         isError: tr.isError ?? false,
       })),
     });
+    return state;
   }
 
-  allToolsComplete(): boolean {
-    return this.delegateResult?.allCompleted ?? false;
+  allToolsComplete(state: SecretsAgentState): boolean {
+    return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(payload: string) {
-    await this.repository.save(LlmMessageDocument, {
+  async userMessage(state: SecretsAgentState, payload: string): Promise<SecretsAgentState> {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: payload,
     });
+    return state;
   }
 
-  @Final({ from: 'prompt_executed' })
-  async respond(): Promise<DocumentEntity> {
-    return this.repository.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  async respond(state: SecretsAgentState): Promise<DocumentEntity> {
+    return this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
   }
 }

@@ -1,8 +1,8 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, CheckIcon, ChevronDown, Loader2, Plus } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
+import type { StudioEnvironmentSlot, StudioWorkflowConfig } from '@/api/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import { Button } from '@/components/ui/button.tsx';
@@ -10,9 +10,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreateWorkspace as DefaultCreateWorkspace } from '@/features/workspaces';
-import { useAppConfig, useWorkflowConfig } from '@/hooks/useConfig.ts';
-import { useRunWorkflow } from '@/hooks/useProcessor.ts';
-import { useCreateWorkflow } from '@/hooks/useWorkflows.ts';
+import { useAppsConfig } from '@/hooks/useConfig.ts';
+import { useStartWorkflow } from '@/hooks/useProcessor.ts';
 import { useFilterWorkspaces } from '@/hooks/useWorkspaces.ts';
 import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
 
@@ -39,34 +38,64 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
   const [activeSection, setActiveSection] = useState<Section | null>('workspace');
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
-  const [selectedBlockName, setSelectedBlockName] = useState<string>('');
+  const [selectedWorkflowName, setSelectedWorkflowName] = useState<string>('');
 
   const { CreateWorkspace: CreateWorkspaceOverride } = useComponentOverrides();
   const CreateWorkspace = CreateWorkspaceOverride ?? DefaultCreateWorkspace;
-  const fetchAppTypes = useAppConfig();
+  const fetchAppsConfig = useAppsConfig();
 
   const fetchWorkspaces = useFilterWorkspaces(undefined, {}, 'title', 'ASC', 0, 100);
   const workspaces = fetchWorkspaces.data?.data ?? [];
 
   const selectedWorkspace = workspaces.find((w) => w.id === selectedWorkspaceId);
-  const fetchWorkflowTypes = useWorkflowConfig(selectedWorkspace?.className);
-  const workflowTypes = fetchWorkflowTypes.data ?? [];
 
-  const createWorkflow = useCreateWorkflow();
-  const runWorkflow = useRunWorkflow();
-  const isLoading = createWorkflow.isPending || runWorkflow.isPending;
+  // Find the studio app matching this workspace's module
+  const studioApp = useMemo(() => {
+    if (!selectedWorkspace || !fetchAppsConfig.data) return undefined;
+    return fetchAppsConfig.data.find((a) => a.appName === selectedWorkspace.appName);
+  }, [selectedWorkspace, fetchAppsConfig.data]);
+
+  // Workflows scoped to this workspace's app
+  const appWorkflows: StudioWorkflowConfig[] = useMemo(() => {
+    if (!studioApp) return [];
+    return studioApp.workflows;
+  }, [studioApp]);
+
+  // Build app types for CreateWorkspace from apps config
+  const appTypes = useMemo(() => {
+    if (!fetchAppsConfig.data) return [];
+    return fetchAppsConfig.data.map((a) => ({
+      appName: a.appName,
+      title: a.title,
+      environments: (a.extensions?.['environments'] as StudioEnvironmentSlot[]) ?? [],
+    }));
+  }, [fetchAppsConfig.data]);
+
+  const startWorkflow = useStartWorkflow();
+  const isLoading = startWorkflow.isPending;
 
   const form = useForm<Record<string, any>>({
     defaultValues: {},
     mode: 'onChange',
   });
 
-  const selectedWorkflowConfig: WorkflowConfigInterface | undefined = useMemo(() => {
-    if (!selectedBlockName || !workflowTypes.length) return undefined;
-    return workflowTypes.find((p) => p.alias === selectedBlockName);
-  }, [selectedBlockName, workflowTypes]);
+  // Selected workflow config
+  const selectedWorkflow: StudioWorkflowConfig | undefined = useMemo(() => {
+    if (!selectedWorkflowName) return undefined;
+    return appWorkflows.find((wf) => wf.workflowName === selectedWorkflowName);
+  }, [selectedWorkflowName, appWorkflows]);
 
-  const hasArguments = !!selectedWorkflowConfig?.schema;
+  const selectedSchema = selectedWorkflow?.schema;
+  const hasArguments = !!selectedSchema;
+
+  // Workflow options
+  const workflowOptions = useMemo(() => {
+    return appWorkflows.map((wf) => ({
+      key: wf.workflowName,
+      title: wf.title ?? wf.workflowName,
+      description: wf.description,
+    }));
+  }, [appWorkflows]);
 
   // Auto-select first workspace
   useEffect(() => {
@@ -75,12 +104,12 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
     }
   }, [workspaces, selectedWorkspaceId]);
 
-  // Auto-select first workflow type when workspace changes
+  // Auto-select first workflow option
   useEffect(() => {
-    if (workflowTypes.length > 0 && !workflowTypes.find((p) => p.alias === selectedBlockName)) {
-      setSelectedBlockName(workflowTypes[0].alias);
+    if (workflowOptions.length > 0 && !workflowOptions.find((o) => o.key === selectedWorkflowName)) {
+      setSelectedWorkflowName(workflowOptions[0].key);
     }
-  }, [workflowTypes, selectedBlockName]);
+  }, [workflowOptions, selectedWorkflowName]);
 
   // Reset state when dialog closes
   useEffect(() => {
@@ -88,90 +117,68 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
       setActiveSection('workspace');
       setShowCreateWorkspace(false);
       setSelectedWorkspaceId('');
-      setSelectedBlockName('');
+      setSelectedWorkflowName('');
       form.reset({});
-      createWorkflow.reset();
-      runWorkflow.reset();
+      startWorkflow.reset();
     }
   }, [open]);
 
   // Auto-advance: workspace selected -> open automation
   const handleWorkspaceChange = (id: string) => {
     setSelectedWorkspaceId(id);
+    setSelectedWorkflowName('');
     setActiveSection('automation');
   };
 
-  // Auto-advance: automation selected -> open config if has args
   const handleBlockNameChange = (name: string) => {
-    setSelectedBlockName(name);
+    setSelectedWorkflowName(name);
     form.reset({});
   };
 
-  // When selectedWorkflowConfig changes and has arguments, open config section
+  // When selection changes and has arguments, open config section
   useEffect(() => {
-    if (selectedBlockName && selectedWorkflowConfig) {
-      if (hasArguments) {
-        setActiveSection('config');
-      }
+    if (selectedWorkflowName && hasArguments) {
+      setActiveSection('config');
     }
-  }, [selectedWorkflowConfig, selectedBlockName, hasArguments]);
+  }, [selectedWorkflowName, hasArguments]);
 
-  const createAndRun = useCallback(
-    (transition?: string, args?: Record<string, any>) => {
-      if (!selectedWorkspaceId || !selectedBlockName) return;
+  const handleRunNow = () => {
+    const run = (args?: Record<string, any>) => {
+      if (!selectedWorkspaceId || !selectedWorkflow) return;
 
-      createWorkflow.mutate(
+      startWorkflow.mutate(
         {
-          workflowCreateDto: {
-            alias: selectedBlockName,
-            title: null,
+          payload: {
+            workflowName: selectedWorkflow.workflowName,
             workspaceId: selectedWorkspaceId,
-            transition: transition ?? null,
             args: args ?? {},
           },
         },
-        {
-          onSuccess: (createdWorkflow) => {
-            runWorkflow.mutate(
-              {
-                workflowId: createdWorkflow.id,
-                runWorkflowPayloadDto: {},
-                force: true,
-              },
-              {
-                onSuccess: () => onSuccess(createdWorkflow.id),
-              },
-            );
-          },
-        },
+        { onSuccess: (result) => onSuccess(result.workflowId) },
       );
-    },
-    [selectedWorkspaceId, selectedBlockName, createWorkflow, runWorkflow, onSuccess],
-  );
+    };
 
-  const handleRunNow = () => {
     if (hasArguments) {
-      void form.handleSubmit((data) => createAndRun('', data))();
+      void form.handleSubmit((data) => run(data))();
     } else {
-      createAndRun();
+      run();
     }
   };
 
-  const canRun = !!selectedWorkspaceId && !!selectedBlockName;
+  const canRun = !!selectedWorkspaceId && !!selectedWorkflowName;
 
   const toggleSection = (section: Section) => {
     setActiveSection((prev) => (prev === section ? null : section));
   };
 
   const workspaceComplete = !!selectedWorkspaceId;
-  const automationComplete = !!selectedBlockName;
+  const automationComplete = !!selectedWorkflowName;
   const automationEnabled = workspaceComplete;
   const configEnabled = automationComplete && hasArguments;
 
   return (
     <div className="mt-2 overflow-y-auto">
-      <ErrorSnackbar error={createWorkflow.error} />
-      <ErrorSnackbar error={runWorkflow.error} />
+      <ErrorSnackbar error={startWorkflow.error} />
 
       <div className="space-y-2">
         {/* Workspace Section */}
@@ -188,7 +195,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
           {showCreateWorkspace ? (
             <div className="pt-2">
               <CreateWorkspace
-                types={fetchAppTypes.data ?? []}
+                types={appTypes}
                 onSuccess={() => {
                   setShowCreateWorkspace(false);
                 }}
@@ -226,25 +233,25 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
           title="Select Workflow"
           summary={
             automationComplete
-              ? (workflowTypes.find((p) => p.alias === selectedBlockName)?.title ?? selectedBlockName)
+              ? (workflowOptions.find((o) => o.key === selectedWorkflowName)?.title ?? selectedWorkflowName)
               : undefined
           }
           isActive={activeSection === 'automation'}
           isComplete={automationComplete && activeSection !== 'automation'}
           isEnabled={automationEnabled}
-          isLoading={fetchWorkflowTypes.isLoading}
+          isLoading={fetchAppsConfig.isLoading}
           onToggle={() => automationEnabled && toggleSection('automation')}
         >
           <div className="pt-2">
-            <Select value={selectedBlockName} onValueChange={handleBlockNameChange} disabled={isLoading}>
+            <Select value={selectedWorkflowName} onValueChange={handleBlockNameChange} disabled={isLoading}>
               <SelectTrigger id="automation" className="w-full">
                 <SelectValue placeholder="Select a workflow..." />
               </SelectTrigger>
               <SelectContent>
-                {workflowTypes.map((item) => (
+                {workflowOptions.map((item) => (
                   <SelectPrimitive.Item
-                    key={item.alias}
-                    value={item.alias}
+                    key={item.key}
+                    value={item.key}
                     className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer flex-col gap-0.5 rounded-sm py-2 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                   >
                     <span className="absolute right-2 top-2.5 flex size-3.5 items-center justify-center">
@@ -252,7 +259,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
                         <CheckIcon className="size-4" />
                       </SelectPrimitive.ItemIndicator>
                     </span>
-                    <SelectPrimitive.ItemText>{item.title ?? item.alias}</SelectPrimitive.ItemText>
+                    <SelectPrimitive.ItemText>{item.title}</SelectPrimitive.ItemText>
                     {item.description && (
                       <span className="text-muted-foreground text-xs leading-snug">{item.description}</span>
                     )}
@@ -274,15 +281,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
             onToggle={() => configEnabled && toggleSection('config')}
           >
             <div className="max-h-72 overflow-y-auto pt-2">
-              {selectedWorkflowConfig?.schema && (
-                <Form
-                  form={form}
-                  schema={selectedWorkflowConfig.schema}
-                  ui={selectedWorkflowConfig.ui}
-                  disabled={false}
-                  viewOnly={false}
-                />
-              )}
+              {selectedSchema && <Form form={form} schema={selectedSchema} disabled={false} viewOnly={false} />}
             </div>
           </StepSection>
         )}

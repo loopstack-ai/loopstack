@@ -1,58 +1,74 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
-import { BaseWorkflow, DocumentEntity, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, DocumentEntity, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
 
+interface PromptStructuredOutputState {
+  language?: string;
+  llmResult?: DocumentEntity<FileDocumentType>;
+}
+
 @Workflow({
-  uiConfig: __dirname + '/prompt-structured-output.ui.yaml',
+  title: 'Structured Output Example (Hello World Script)',
+  description:
+    'An example workflow that demonstrates how to generate a structured output in Loopstack on the example of creating a "Hello, World!" script in a specified programming language.',
   schema: z.object({
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),
 })
-export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }> {
-  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
-  llmGenerateObject: LlmGenerateObjectTool;
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }, PromptStructuredOutputState> {
+  constructor(
+    private readonly llmGenerateObject: LlmGenerateObjectTool,
+    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
+  ) {
+    super();
+  }
 
-  language!: string;
-  llmResult?: DocumentEntity<FileDocumentType>;
-
-  @Initial({ to: 'ready' })
-  async greeting(args: { language: string }) {
-    this.language = args.language;
-    await this.repository.save(
+  @Transition({ to: 'ready' })
+  async greeting(state: PromptStructuredOutputState, ctx: LoopstackContext): Promise<PromptStructuredOutputState> {
+    const args = ctx.args as { language: string };
+    await this.documentStore.save(
       LlmMessageDocument,
       {
         role: 'assistant',
-        content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${this.language}...` }],
+        content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${args.language}...` }],
       },
       { id: 'status' },
     );
+    return { ...state, language: args.language };
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async prompt() {
-    const result = await this.llmGenerateObject.call({
-      outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
-      prompt: this.render(__dirname + '/templates/prompt.md', { language: this.language }),
-    });
+  async prompt(state: PromptStructuredOutputState): Promise<PromptStructuredOutputState> {
+    const result = await this.llmGenerateObject.call(
+      {
+        outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
+        prompt: this.render(__dirname + '/templates/prompt.md', { language: state.language }),
+      },
+      { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
+    );
 
     const objectResult = result.data as LlmGenerateObjectResult;
-    this.llmResult = await this.repository.save(FileDocument, objectResult.data as FileDocumentType, {
+    const llmResult = await this.documentStore.save(FileDocument, objectResult.data as FileDocumentType, {
       validate: 'skip',
     });
+    return { ...state, llmResult };
   }
 
-  @Final({ from: 'prompt_executed' })
-  async respond() {
-    await this.repository.save(
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  async respond(state: PromptStructuredOutputState): Promise<unknown> {
+    await this.documentStore.save(
       LlmMessageDocument,
       {
         role: 'assistant',
-        content: [{ type: 'text', text: `Successfully generated: ${this.llmResult?.content?.description ?? ''}` }],
+        content: [{ type: 'text', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` }],
       },
       { id: 'status' },
     );
+    return {};
   }
 }

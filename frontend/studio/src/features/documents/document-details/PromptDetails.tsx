@@ -1,14 +1,14 @@
 import React from 'react';
-import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion.tsx';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
+import { Badge } from '@/components/ui/badge.tsx';
+import { formatNumber } from './document-debug-utils.ts';
 
 type MessageRole = 'system' | 'user' | 'assistant' | 'tool' | 'error' | 'document';
 
 interface PromptData {
-  cache: { hit?: boolean; hash?: string };
-  messages: { role: MessageRole; content: string }[];
-  response: {
+  cache?: { hit?: boolean; hash?: string };
+  messages?: { role: MessageRole; content: string }[];
+  response?: {
     data?: string;
     metadata?: {
       model?: string;
@@ -24,68 +24,75 @@ interface PromptDetailsProps {
   promptData: PromptData;
 }
 
+const DetailRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="grid min-w-0 grid-cols-[7.5rem_1fr] gap-x-3 gap-y-0.5 text-sm">
+    <span className="text-muted-foreground font-medium">{label}</span>
+    <span className="min-w-0 wrap-break-word">{children}</span>
+  </div>
+);
+
 const PromptDetails: React.FC<PromptDetailsProps> = ({ promptData }) => {
   if (!promptData) return null;
 
   const { messages, response, cache } = promptData;
+  const metadata = response?.metadata;
+  const totalTokens =
+    metadata?.prompt_token != null && metadata?.completion_token != null
+      ? metadata.prompt_token + metadata.completion_token
+      : undefined;
 
   return (
-    <div className="mt-4 space-y-4">
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Cache</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="ml-4 space-y-1">
-            <p className="text-sm">Hit: {cache?.hit ? 'Yes' : 'No'}</p>
-            <p className="text-sm">Hash: {cache?.hash}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Accordion type="single" collapsible defaultValue="messages">
-        <AccordionItem value="messages">
-          <AccordionTrigger className="text-lg font-semibold">Request Messages</AccordionTrigger>
+    <div className="min-w-0 space-y-3">
+      <Accordion type="multiple" defaultValue={['summary', 'messages']} className="min-w-0 space-y-1">
+        <AccordionItem value="summary">
+          <AccordionTrigger className="py-3 text-sm font-semibold">Request summary</AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-2">
-              {messages?.map((message, index) => (
-                <CompletionMessagePaper key={index} role={message.role}>
-                  {message.content}
-                </CompletionMessagePaper>
-              ))}
+            <div className="space-y-2 pb-1">
+              <DetailRow label="Messages">{messages?.length ?? 0}</DetailRow>
+              {cache && (
+                <>
+                  <DetailRow label="Cache hit">{cache.hit ? 'Yes' : 'No'}</DetailRow>
+                  {cache.hash && <DetailRow label="Cache hash">{cache.hash}</DetailRow>}
+                </>
+              )}
+              {metadata?.model && <DetailRow label="Model">{metadata.model}</DetailRow>}
+              {metadata?.prompt_id && <DetailRow label="Prompt ID">{metadata.prompt_id}</DetailRow>}
+              {metadata?.response_time != null && (
+                <DetailRow label="Response time">{metadata.response_time} ms</DetailRow>
+              )}
+              {metadata?.prompt_token != null && (
+                <DetailRow label="Prompt tokens">{formatNumber(metadata.prompt_token)}</DetailRow>
+              )}
+              {metadata?.completion_token != null && (
+                <DetailRow label="Completion tokens">{formatNumber(metadata.completion_token)}</DetailRow>
+              )}
+              {totalTokens != null && <DetailRow label="Total tokens">{formatNumber(totalTokens)}</DetailRow>}
             </div>
           </AccordionContent>
         </AccordionItem>
-      </Accordion>
 
-      <Accordion type="single" collapsible defaultValue="response">
-        <AccordionItem value="response">
-          <AccordionTrigger className="text-lg font-semibold">Response</AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-4">
-              <Card>
-                <CardContent className="p-4">
-                  <pre className="font-mono text-xs wrap-break-word whitespace-pre-wrap">{response?.data}</pre>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Metadata</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm">Model: {response?.metadata?.model}</p>
-                    <p className="text-sm">Prompt ID: {response?.metadata?.prompt_id}</p>
-                    <p className="text-sm">Response Time: {response?.metadata?.response_time} ms</p>
-                    <p className="text-sm">Prompt Tokens: {response?.metadata?.prompt_token}</p>
-                    <p className="text-sm">Completion Tokens: {response?.metadata?.completion_token}</p>
+        {messages && messages.length > 0 && (
+          <AccordionItem value="messages">
+            <AccordionTrigger className="py-3 text-sm font-semibold">Request messages</AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2">
+                {messages.map((message, index) => (
+                  <div key={index} className="min-w-0 rounded-md border p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {message.role}
+                      </Badge>
+                      <span className="text-muted-foreground text-xs">{message.content.length} chars</span>
+                    </div>
+                    <pre className="max-h-48 min-w-0 max-w-full overflow-x-auto overflow-y-auto font-mono text-xs whitespace-pre-wrap">
+                      {message.content}
+                    </pre>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
       </Accordion>
     </div>
   );

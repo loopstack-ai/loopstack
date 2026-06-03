@@ -59,6 +59,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /sandbox/*
 !/sandbox/.gitkeep
 !/sandbox/hello-world
+!/sandbox/smoke-tests
 
 __backup__
 .claude

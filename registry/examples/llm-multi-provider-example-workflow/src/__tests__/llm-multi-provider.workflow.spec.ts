@@ -1,9 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider-module';
 import { OpenAiModule } from '@loopstack/openai-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { LlmMultiProviderWorkflow } from '../llm-multi-provider.workflow';
@@ -27,7 +26,7 @@ describe('LlmMultiProviderWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(LlmMultiProviderWorkflow)
-      .withImports(ClaudeModule, OpenAiModule)
+      .withImports(LlmProviderModule.forRoot({}), ClaudeModule, OpenAiModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 
@@ -40,10 +39,8 @@ describe('LlmMultiProviderWorkflow', () => {
     await module.close();
   });
 
-  it('should be defined with two LLM tool injections', () => {
+  it('should be defined', () => {
     expect(workflow).toBeDefined();
-    expect(getBlockTools(workflow)).toContain('claudeLlm');
-    expect(getBlockTools(workflow)).toContain('openaiLlm');
   });
 
   it('should execute both providers and save response documents', async () => {
@@ -66,7 +63,7 @@ describe('LlmMultiProviderWorkflow', () => {
     // User message
     expect(result.documents[0]).toEqual(
       expect.objectContaining({
-        className: 'LlmMessageDocument',
+        documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'user',
           content: 'What is the meaning of life?',
@@ -77,7 +74,7 @@ describe('LlmMultiProviderWorkflow', () => {
     // Claude response
     expect(result.documents[1]).toEqual(
       expect.objectContaining({
-        className: 'LlmMessageDocument',
+        documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'assistant',
           content: expect.stringContaining('Claude'),
@@ -88,7 +85,7 @@ describe('LlmMultiProviderWorkflow', () => {
     // OpenAI response
     expect(result.documents[2]).toEqual(
       expect.objectContaining({
-        className: 'LlmMessageDocument',
+        documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'assistant',
           content: expect.stringContaining('OpenAI'),

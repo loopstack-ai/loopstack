@@ -1,11 +1,20 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents/index.js';
 
-@Injectable()
+interface SecretsRequestArgs {
+  variables: { key: string }[];
+}
+
+interface SecretsRequestState {
+  variables: { key: string }[];
+}
+
 @Workflow({
-  uiConfig: import.meta.dirname + '/secrets-request.ui.yaml',
+  title: 'Secrets Request',
+  description:
+    'Sub-workflow that presents a secrets request form to the user\nand waits for submission. Completes when the user submits the form.',
   schema: z.object({
     variables: z.array(
       z.object({
@@ -14,16 +23,19 @@ import { SecretRequestDocument } from '../documents/index.js';
     ),
   }),
 })
-export class SecretsRequestWorkflow extends BaseWorkflow<{ variables: { key: string }[] }> {
-  @Initial({ to: 'requesting_secrets' })
-  async showForm(args: { variables: { key: string }[] }) {
-    await this.repository.save(SecretRequestDocument, {
+export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs, SecretsRequestState> {
+  @Transition({ to: 'requesting_secrets' })
+  async showForm(state: SecretsRequestState, ctx: LoopstackContext): Promise<SecretsRequestState> {
+    const args = ctx.args as SecretsRequestArgs;
+    await this.documentStore.save(SecretRequestDocument, {
       variables: args.variables,
     });
+
+    return { ...state, variables: args.variables };
   }
 
-  @Final({ from: 'requesting_secrets', wait: true })
-  secretsSubmitted(): { success: boolean } {
-    return { success: true };
+  @Transition({ from: 'requesting_secrets', to: 'end', wait: true })
+  async secretsSubmitted(_state: SecretsRequestState): Promise<{ success: boolean }> {
+    return Promise.resolve({ success: true });
   }
 }

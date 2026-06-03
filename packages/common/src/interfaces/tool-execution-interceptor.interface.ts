@@ -1,15 +1,12 @@
 import { Injectable, SetMetadata } from '@nestjs/common';
-import type { BaseApp } from '../base/index.js';
-import type { WorkflowRunContext } from './execution-context.interface.js';
 import { ToolResult } from './handler.interface.js';
+import type { LoopstackContext } from './loopstack-context.interface.js';
 
 export interface ToolExecutionContext {
   tool: object;
   args: Record<string, unknown> | undefined;
-  /** Proxied app instance — provides userId, workspaceId, environments, and app composition */
-  app: BaseApp;
-  /** Per-run execution context */
-  run: WorkflowRunContext;
+  /** Read-only per-job framework context */
+  loopstackContext: LoopstackContext;
   /** Mutable metadata — interceptors can attach data here for downstream interceptors */
   metadata: Record<string, unknown>;
 }

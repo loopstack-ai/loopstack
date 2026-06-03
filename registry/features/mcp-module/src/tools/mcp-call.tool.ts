@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { McpToolConfigSchema } from '../config/mcp-tool-config.schema.js';
 import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
 import { McpConnectionArgsSchema } from './mcp-connection-args.schema.js';
@@ -13,15 +14,18 @@ export const McpCallToolArgsSchema = McpConnectionArgsSchema.extend({
 export type McpCallToolArgs = z.infer<typeof McpCallToolArgsSchema>;
 
 @Tool({
-  uiConfig: {
-    description:
-      'Calls a tool on a remote MCP server over HTTPS (Streamable HTTP or legacy SSE). Requires `allowedHosts` and optional `headerEnv`/`hostHeaderEnv` via `@InjectTool`.',
-  },
+  name: 'mcp_call',
+  description:
+    'Calls a tool on a remote MCP server over HTTPS (Streamable HTTP or legacy SSE). Requires `allowedHosts` and optional `headerEnv`/`hostHeaderEnv` via tool config.',
   schema: McpCallToolArgsSchema,
   configSchema: McpToolConfigSchema,
 })
 export class McpCallTool extends McpToolBase<McpCallToolArgs> {
-  async call(args: McpCallToolArgs, options?: ToolCallOptions<McpToolConfig>): Promise<ToolResult> {
+  protected async handle(
+    args: McpCallToolArgs,
+    ctx: LoopstackContext,
+    options?: ToolCallOptions<McpToolConfig>,
+  ): Promise<ToolResult> {
     const cfg = this.requireConfig(options?.config);
 
     const result = await this.mcp.callTool(args.serverUrl, cfg, args.toolName, args.arguments, {

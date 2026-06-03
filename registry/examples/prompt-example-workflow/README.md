@@ -14,7 +14,7 @@ By using this workflow as a reference, you'll learn how to:
 - Use the `prompt` parameter for simple LLM calls
 - Render Handlebars template files with dynamic variables
 - Store instance state on the workflow class
-- Save LLM responses as documents using `this.repository.save`
+- Save LLM responses as documents using `this.documentStore.save`
 
 This example is the ideal starting point for developers new to LLM integration in Loopstack.
 
@@ -40,10 +40,10 @@ Define input parameters with default values using a Zod schema in the `@Workflow
 export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
 ```
 
-The `@Initial` method receives the validated arguments:
+The start `@Transition` method receives the validated arguments:
 
 ```typescript
-@Initial({ to: 'prompt_executed' })
+@Transition({ to: 'prompt_executed' })
 async prompt(args: { subject: string }) {
 ```
 
@@ -52,7 +52,7 @@ async prompt(args: { subject: string }) {
 Use the `prompt` parameter for straightforward LLM calls without conversation history. The prompt content is rendered from a Handlebars template file with variables:
 
 ```typescript
-@Initial({ to: 'prompt_executed' })
+@Transition({ to: 'prompt_executed' })
 async prompt(args: { subject: string }) {
   const result = await this.llmGenerateText.call({
     prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
@@ -73,12 +73,12 @@ llmResult?: LlmGenerateTextResult;
 
 #### 4. Saving Documents in a Final Transition
 
-The `@Final` decorator marks the last transition. Here the stored LLM result is saved as a `LlmMessageDocument`:
+The terminal `@Transition` decorator marks the last transition. Here the stored LLM result is saved as a `LlmMessageDocument`:
 
 ```typescript
-@Final({ from: 'prompt_executed' })
+@Transition({ from: 'prompt_executed', to: 'end' })
 async respond() {
-  await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+  await this.documentStore.save(LlmMessageDocument, this.llmResult!.message, {
     meta: { response: this.llmResult!.response, provider: 'claude' },
   });
 }
@@ -106,7 +106,7 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
 
   llmResult?: LlmGenerateTextResult;
 
-  @Initial({ to: 'prompt_executed' })
+  @Transition({ to: 'prompt_executed' })
   async prompt(args: { subject: string }) {
     const result = await this.llmGenerateText.call({
       prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
@@ -114,9 +114,9 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
     this.llmResult = result.data;
   }
 
-  @Final({ from: 'prompt_executed' })
+  @Transition({ from: 'prompt_executed', to: 'end' })
   async respond() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+    await this.documentStore.save(LlmMessageDocument, this.llmResult!.message, {
       meta: { response: this.llmResult!.response, provider: 'claude' },
     });
   }

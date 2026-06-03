@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -16,20 +17,36 @@ const inputSchema = z
 
 export type GitHubMergePullRequestArgs = z.input<typeof inputSchema>;
 
+export type GitHubMergePullRequestResult =
+  | {
+      merge: {
+        sha: string;
+        merged: boolean;
+        message: string;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
-  uiConfig: {
-    description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_merge_pull_request',
+  description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubMergePullRequestTool extends BaseTool {
+export class GitHubMergePullRequestTool extends BaseTool<
+  GitHubMergePullRequestArgs,
+  object,
+  GitHubMergePullRequestResult
+> {
   private readonly logger = new Logger(GitHubMergePullRequestTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubMergePullRequestArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    args: GitHubMergePullRequestArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubMergePullRequestResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -60,7 +77,7 @@ export class GitHubMergePullRequestTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

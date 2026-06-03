@@ -3,6 +3,7 @@ import type { RunWorkflowTask } from '@loopstack/contracts/types';
 import { WorkflowService, WorkspaceService } from '../../../persistence/index.js';
 import { RootProcessorService } from '../../../workflow-processor/services/root-processor.service.js';
 import { WorkflowMemoryMonitorService } from '../../../workflow-processor/services/workflow-memory-monitor.service.js';
+import { WorkflowRegistryService } from '../../../workflow-processor/services/workflow-registry.service.js';
 
 @Injectable()
 export class RunWorkflowTaskProcessorService {
@@ -13,6 +14,7 @@ export class RunWorkflowTaskProcessorService {
     private readonly workflowService: WorkflowService,
     private readonly rootProcessorService: RootProcessorService,
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
+    private readonly workflowRegistryService: WorkflowRegistryService,
   ) {}
 
   public async process(task: RunWorkflowTask) {
@@ -21,7 +23,6 @@ export class RunWorkflowTaskProcessorService {
 
       const workflow = await this.workflowService.getWorkflow(task.workflowId, task.user, [
         'workspace',
-        'workspace.environments',
         'parent',
         'parent.workspace',
         'documents',
@@ -31,13 +32,13 @@ export class RunWorkflowTaskProcessorService {
         throw new Error(`Workflow with id ${task.workflowId} not found.`);
       }
 
-      this.memoryMonitor.logHeap(`task:${task.type}:after-workflow-load:${workflow.alias}`);
+      this.memoryMonitor.logHeap(`task:${task.type}:after-workflow-load:${workflow.workflowName}`);
       this.logger.debug(`Workflow for schedule task created with id ${workflow.id}`);
 
       await this.rootProcessorService.runWorkflow(workflow, task.payload);
     } else {
-      if (!task.alias || !task.workspaceId) {
-        throw new Error('Stateless execution requires alias and workspaceId in payload.');
+      if (!task.workflowName || !task.workspaceId) {
+        throw new Error('Stateless execution requires workflowName and workspaceId in payload.');
       }
 
       const workspace = await this.workspaceService.getWorkspace(
@@ -51,14 +52,15 @@ export class RunWorkflowTaskProcessorService {
         throw new Error(`Workspace with id ${task.workspaceId} not found.`);
       }
 
-      this.logger.debug(`Running stateless workflow for block ${task.alias}`);
+      this.logger.debug(`Running stateless workflow: ${task.workflowName}`);
+      const { instance } = this.workflowRegistryService.resolve(task.workflowName);
 
       await this.rootProcessorService.runStateless(
+        instance,
         {
           workspaceId: task.workspaceId,
-          workspaceName: workspace.className,
           correlationId: task.correlationId,
-          alias: task.alias,
+          workflowName: task.workflowName,
           userId: task.user,
           args: task.args,
         },

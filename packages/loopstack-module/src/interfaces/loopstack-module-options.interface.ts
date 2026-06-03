@@ -1,5 +1,4 @@
 import type { CorsOptions } from 'cors';
-import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
 
 export interface LoopstackDatabaseOptions {
   /**
@@ -41,7 +40,6 @@ export interface LoopstackModuleOptions {
   auth?: LoopstackAuthOptions;
   redis?: LoopstackRedisOptions;
   enableAuth?: boolean;
-  availableEnvironments?: AvailableEnvironmentInterface[];
   /**
    * CORS configuration. Defaults to `{ origin: true, credentials: true }`.
    * Set to `false` to disable CORS entirely.

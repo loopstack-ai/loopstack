@@ -1,31 +1,33 @@
 import type { AxiosInstance } from 'axios';
 import type {
-  AppConfigInterface,
   AvailableEnvironmentInterface,
+  ToolConfigInterface,
   WorkflowConfigInterface,
   WorkflowSourceInterface,
 } from '@loopstack/contracts/api';
+import type { StudioAppConfig } from './types';
 
 export function createConfigApi(http: AxiosInstance) {
   return {
-    getAppTypes: (): Promise<AppConfigInterface[]> =>
-      http.get<AppConfigInterface[]>('/api/v1/config/workspaces').then((res) => res.data),
+    getApps: (): Promise<StudioAppConfig[]> =>
+      http.get<StudioAppConfig[]>('/api/v1/config/apps').then((res) => res.data),
 
-    getWorkflowTypesByApp: (params: { appBlockName: string }): Promise<WorkflowConfigInterface[]> =>
+    getWorkflowConfig: (params: { workflowName: string }): Promise<WorkflowConfigInterface> =>
       http
-        .get<
-          WorkflowConfigInterface[]
-        >(`/api/v1/config/workspaces/${encodeURIComponent(params.appBlockName)}/workflows`)
+        .get<WorkflowConfigInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.workflowName)}`)
         .then((res) => res.data),
 
-    getWorkflowConfig: (params: { alias: string }): Promise<WorkflowConfigInterface> =>
+    getWorkflowSource: (params: { workflowName: string }): Promise<WorkflowSourceInterface> =>
       http
-        .get<WorkflowConfigInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.alias)}`)
+        .get<WorkflowSourceInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.workflowName)}/source`)
         .then((res) => res.data),
 
-    getWorkflowSource: (params: { alias: string }): Promise<WorkflowSourceInterface> =>
+    getToolConfigs: (): Promise<ToolConfigInterface[]> =>
+      http.get<ToolConfigInterface[]>('/api/v1/config/tools').then((res) => res.data),
+
+    getToolConfig: (params: { toolName: string }): Promise<ToolConfigInterface> =>
       http
-        .get<WorkflowSourceInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.alias)}/source`)
+        .get<ToolConfigInterface>(`/api/v1/config/tools/${encodeURIComponent(params.toolName)}`)
         .then((res) => res.data),
 
     getAvailableEnvironments: (): Promise<AvailableEnvironmentInterface[]> =>

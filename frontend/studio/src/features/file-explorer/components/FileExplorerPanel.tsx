@@ -1,5 +1,6 @@
 import { Files } from 'lucide-react';
 import { FileContentViewer } from '@/features/code-explorer';
+import { useFeatureConfig } from '@/features/feature-registry';
 import { useWorkbenchLayout } from '@/features/workbench';
 import { SidebarPanel } from '@/features/workbench/components/SidebarPanel';
 import { FileExplorerProvider, useOptionalFileExplorer } from '../providers/FileExplorerProvider';
@@ -42,12 +43,12 @@ interface FileExplorerPanelProps {
 }
 
 export function FileExplorerPanel({ workspaceId }: FileExplorerPanelProps) {
-  const { closePanel, panelSize, setPanelSize, workspaceConfig, environments } = useWorkbenchLayout();
+  const { closePanel, panelSize, setPanelSize, environments } = useWorkbenchLayout();
+  const featureConfig = useFeatureConfig('fileExplorer');
 
-  const fileExplorerEnabled =
-    (workspaceConfig?.features?.fileExplorer?.enabled &&
-      workspaceConfig?.features?.fileExplorer?.environments?.includes(environments?.[0]?.slotId ?? '')) ??
-    false;
+  const allowedEnvironments = (featureConfig?.config?.environments as string[] | undefined) ?? [];
+  const currentSlotId = environments?.[0]?.slotId ?? '';
+  const fileExplorerEnabled = allowedEnvironments.length === 0 || allowedEnvironments.includes(currentSlotId);
 
   if (!fileExplorerEnabled) {
     return (

@@ -1,9 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { LlmDelegateToolCallsTool, LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ToolCallWorkflow } from '../tool-call.workflow';
 import { GetWeather } from '../tools/get-weather.tool';
@@ -18,7 +17,7 @@ describe('ToolCallWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ToolCallWorkflow)
-      .withImports(ClaudeModule)
+      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       .withToolOverride(LlmDelegateToolCallsTool)
       .withProviders(GetWeather)
@@ -36,9 +35,6 @@ describe('ToolCallWorkflow', () => {
 
   it('should be defined', () => {
     expect(workflow).toBeDefined();
-    expect(getBlockTools(workflow)).toContain('llmGenerateText');
-    expect(getBlockTools(workflow)).toContain('llmDelegateToolCalls');
-    expect(getBlockTools(workflow)).toContain('getWeather');
   });
 
   it('should execute workflow with tool call and loop back to ready state', async () => {

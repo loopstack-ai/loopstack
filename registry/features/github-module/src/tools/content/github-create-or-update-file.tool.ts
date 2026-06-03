@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -17,21 +18,42 @@ const inputSchema = z
 
 export type GitHubCreateOrUpdateFileArgs = z.infer<typeof inputSchema>;
 
+export type GitHubCreateOrUpdateFileResult =
+  | {
+      file: {
+        name: string;
+        path: string;
+        sha: string;
+        htmlUrl: string;
+      };
+      commit: {
+        sha: string;
+        message: string;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Creates or updates a file in a GitHub repository. Content is provided as plain text and encoded to base64 before sending. To update an existing file, provide the sha of the file being replaced. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_create_or_update_file',
+  description:
+    'Creates or updates a file in a GitHub repository. Content is provided as plain text and encoded to base64 before sending. To update an existing file, provide the sha of the file being replaced. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubCreateOrUpdateFileTool extends BaseTool {
+export class GitHubCreateOrUpdateFileTool extends BaseTool<
+  GitHubCreateOrUpdateFileArgs,
+  object,
+  GitHubCreateOrUpdateFileResult
+> {
   private readonly logger = new Logger(GitHubCreateOrUpdateFileTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubCreateOrUpdateFileArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    args: GitHubCreateOrUpdateFileArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubCreateOrUpdateFileResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -63,7 +85,7 @@ export class GitHubCreateOrUpdateFileTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

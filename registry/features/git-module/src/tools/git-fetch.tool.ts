@@ -1,31 +1,39 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitFetchArgs = {
   remote?: string;
   token?: string;
 };
 
+export type GitFetchResult = {
+  success: boolean;
+  output?: string;
+};
+
 @Tool({
+  name: 'git_fetch',
+  description: 'Fetches refs and objects from a remote repository without merging.',
   schema: z
     .object({
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
       token: z.string().optional().describe('Access token for authentication'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Fetches refs and objects from a remote repository without merging.',
-  },
 })
-export class GitFetchTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitFetchTool extends BaseTool<GitFetchArgs, object, GitFetchResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitFetchArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitFetch(agentUrl, args.remote, args.token);
+  protected async handle(args: GitFetchArgs, _ctx: LoopstackContext): Promise<ToolResult<GitFetchResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitFetch(agentUrl, args.remote, args.token);
     return { data: result };
   }
 }

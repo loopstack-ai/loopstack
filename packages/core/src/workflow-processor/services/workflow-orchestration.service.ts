@@ -1,11 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Type } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
   QueueResult,
   ResumeOptions,
   RunOptions,
   WorkflowEntity,
-  WorkflowInterface,
   WorkflowOrchestrator,
   WorkflowState,
 } from '@loopstack/common';
@@ -14,6 +13,7 @@ import { WorkflowService } from '../../persistence/services/workflow.service.js'
 import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
 import { ExecutionScope } from '../utils/index.js';
 import { CreateWorkflowService } from './create-workflow.service.js';
+import { WorkflowRegistryService } from './workflow-registry.service.js';
 
 /**
  * Handles sub-workflow orchestration for the TypeScript-first workflow model.
@@ -32,50 +32,42 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     private readonly createWorkflowService: CreateWorkflowService,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly workflowService: WorkflowService,
+    private readonly workflowRegistryService: WorkflowRegistryService,
   ) {}
 
-  async queue(args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
-    const ctx = this.executionScope.get();
-    const context = ctx.getContext();
+  async queue(workflowClass: Type, args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
+    const scope = this.executionScope.get();
 
-    if (!options?.alias) {
-      throw new Error('RunOptions.alias is required to queue a sub-workflow.');
-    }
-
-    if (context.options?.stateless) {
+    if (scope.options?.stateless) {
       throw new Error('Sub-workflow launching requires stateful workflow execution.');
     }
 
-    const alias = options.alias;
-    const workflowInstance = options._workflowInstance as WorkflowInterface | undefined;
-
-    const config = options?._config as Record<string, unknown> | undefined;
+    const { instance: workflow, workflowName } = this.workflowRegistryService.resolve(workflowClass);
 
     const workflowEntity = await this.createWorkflowService.create(
-      { id: context.workspaceId },
+      workflow,
+      { id: scope.workspaceId },
       {
-        alias,
-        workspaceId: context.workspaceId,
+        workflowName,
+        workspaceId: scope.workspaceId,
         args: { ...args },
-        config: config ? { ...config } : null,
         callbackTransition: options?.callback?.transition ?? null,
         callbackMetadata: options?.callback?.metadata ?? null,
       },
-      context.userId,
-      context.workflowId,
-      workflowInstance,
+      scope.userId,
+      scope.workflowId,
     );
 
     await this.taskSchedulerService.addTask({
       id: 'sub_workflow_execution-' + randomUUID(),
-      workspaceId: context.workspaceId,
+      workspaceId: scope.workspaceId,
       task: {
         name: 'sub_workflow_execution',
         type: 'run_workflow',
-        user: context.userId,
-        workspaceId: context.workspaceId,
+        user: scope.userId,
+        workspaceId: scope.workspaceId,
         workflowId: workflowEntity.id,
-        alias,
+        workflowName,
         args: { ...args },
         payload: {},
       },

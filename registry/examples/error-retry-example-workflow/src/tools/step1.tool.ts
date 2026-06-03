@@ -1,12 +1,14 @@
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
+
+export type Step1ToolResult = string;
 
 @Tool({
-  uiConfig: {
-    description: 'A tool that always succeeds.',
-  },
+  name: 'step1',
+  description: 'A tool that always succeeds.',
 })
-export class Step1Tool extends BaseTool {
-  async call(): Promise<ToolResult> {
+export class Step1Tool extends BaseTool<object, object, Step1ToolResult> {
+  protected async handle(_args: object, _ctx: LoopstackContext): Promise<ToolResult<Step1ToolResult>> {
     return {
       type: 'text',
       data: 'Step completed successfully.',

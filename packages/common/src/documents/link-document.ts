@@ -15,7 +15,7 @@ export type LinkDocumentContent = z.infer<typeof LinkDocumentSchema>;
 
 @Document({
   schema: LinkDocumentSchema,
-  uiConfig: import.meta.dirname + '/link-document.yaml',
+  widget: import.meta.dirname + '/link-document.yaml',
 })
 export class LinkDocument {
   status?: 'pending' | 'success' | 'failure';

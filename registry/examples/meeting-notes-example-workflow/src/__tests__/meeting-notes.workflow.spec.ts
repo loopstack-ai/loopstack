@@ -1,9 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
+import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateObjectTool, LlmProviderModule } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
 import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
@@ -18,7 +18,7 @@ describe('MeetingNotesWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(MeetingNotesWorkflow)
-      .withImports(ClaudeModule)
+      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
       .withProvider(MeetingNotesDocument)
       .withProvider(OptimizedNotesDocument)
       .withToolOverride(LlmGenerateObjectTool)
@@ -34,9 +34,8 @@ describe('MeetingNotesWorkflow', () => {
   });
 
   describe('initialization', () => {
-    it('should be defined with correct tools', () => {
+    it('should be defined', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('llmGenerateObject');
     });
   });
 
@@ -52,7 +51,7 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          className: 'MeetingNotesDocument',
+          documentName: 'meeting_notes',
           content: expect.objectContaining({
             text: expect.stringContaining('1.1.2025'),
           }),
@@ -108,7 +107,7 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MeetingNotesDocument',
+            documentName: 'meeting_notes',
           }),
         ]),
       );
@@ -160,7 +159,7 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'OptimizedNotesDocument',
+            documentName: 'optimized_notes',
           }),
         ]),
       );

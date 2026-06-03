@@ -1,12 +1,14 @@
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
+
+export type Step2ToolResult = string;
 
 @Tool({
-  uiConfig: {
-    description: 'A tool that fails when shouldFail is true.',
-  },
+  name: 'step2',
+  description: 'A tool that fails when shouldFail is true.',
 })
-export class Step2Tool extends BaseTool {
-  async call(args: { shouldFail: boolean }): Promise<ToolResult> {
+export class Step2Tool extends BaseTool<{ shouldFail: boolean }, object, Step2ToolResult> {
+  protected async handle(args: { shouldFail: boolean }, _ctx: LoopstackContext): Promise<ToolResult<Step2ToolResult>> {
     if (args.shouldFail) {
       throw new Error('Simulated external service error');
     }

@@ -12,10 +12,7 @@ export class WorkflowItemDto {
    * Config Key of the workflow
    */
   @Expose()
-  alias: string;
-
-  @Expose()
-  className: string | null;
+  workflowName: string;
 
   @Expose()
   title: string;

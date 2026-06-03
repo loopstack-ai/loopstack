@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -16,21 +17,35 @@ const inputSchema = z
 
 export type GitHubCreateIssueArgs = z.infer<typeof inputSchema>;
 
+export type GitHubCreateIssueResult =
+  | {
+      issue: {
+        id: number;
+        number: number;
+        title: string;
+        htmlUrl: string;
+        state: string;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
-  uiConfig: {
-    description:
-      'Creates a new issue in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'github_create_issue',
+  description:
+    'Creates a new issue in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GitHubCreateIssueTool extends BaseTool {
+export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, object, GitHubCreateIssueResult> {
   private readonly logger = new Logger(GitHubCreateIssueTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubCreateIssueArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(
+    args: GitHubCreateIssueArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubCreateIssueResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -62,7 +77,7 @@ export class GitHubCreateIssueTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

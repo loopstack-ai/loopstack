@@ -21,13 +21,13 @@ import { PromptExampleModule } from '@loopstack/prompt-example-workflow';
 export class DefaultModule {}
 ```
 
-2. Inject the `PromptWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `PromptWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { PromptWorkflow } from '@loopstack/prompt-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() prompt: PromptWorkflow;
+  constructor(public readonly prompt: PromptWorkflow) {}
 }
 ```
 

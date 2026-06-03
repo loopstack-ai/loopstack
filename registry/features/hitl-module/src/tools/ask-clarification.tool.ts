@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow.js';
 
 const AskClarificationInputSchema = z
@@ -31,32 +32,39 @@ const AskClarificationInputSchema = z
 
 type AskClarificationInput = z.infer<typeof AskClarificationInputSchema>;
 
+export type AskClarificationResult = { workflowId: string } | string | Record<string, unknown>;
+
 @Tool({
-  uiConfig: {
-    description:
-      'Ask the user a clarification question and wait for their answer. ' +
-      'Use this when you need more information from the user before you can proceed. ' +
-      'IMPORTANT: This must be the only tool call in your response.',
-  },
+  name: 'ask_clarification',
+  description:
+    'Ask the user a clarification question and wait for their answer. ' +
+    'Use this when you need more information from the user before you can proceed. ' +
+    'IMPORTANT: This must be the only tool call in your response.',
   schema: AskClarificationInputSchema,
 })
-export class AskClarificationTool extends BaseTool {
-  @InjectWorkflow() private askUser: AskUserWorkflow;
+export class AskClarificationTool extends BaseTool<AskClarificationInput, object, AskClarificationResult> {
+  constructor(private readonly askUserWorkflow: AskUserWorkflow) {
+    super();
+  }
 
-  async call(args: AskClarificationInput, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.askUser.run(
+  protected async handle(
+    args: AskClarificationInput,
+    ctx: LoopstackContext,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<AskClarificationResult>> {
+    const result = await this.askUserWorkflow.run(
       {
         question: args.question,
         mode: args.mode,
         options: args.options,
         allowCustomAnswer: args.allowCustomAnswer,
       },
-      { alias: 'askUser', callback: options?.callback },
+      { callback: options?.callback },
     );
 
     const workflowId = result.workflowId;
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'pending', label: 'Waiting for user answer...', workflowId, embed: true, expanded: true },
       { id: `ask_clarification_link_${workflowId}` },
@@ -68,10 +76,10 @@ export class AskClarificationTool extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<AskClarificationResult>> {
     const data = result as { workflowId?: string; data?: { answer?: string } };
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'success', label: 'User answered', workflowId: data.workflowId!, embed: true, expanded: false },
       { id: `ask_clarification_link_${data.workflowId}` },

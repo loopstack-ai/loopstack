@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service.js';
 
 const inputSchema = z
@@ -21,18 +22,17 @@ interface SandboxDestroyResult {
 }
 
 @Tool({
-  uiConfig: {
-    description: 'Stop and destroy a sandbox container',
-  },
+  name: 'sandbox_destroy',
+  description: 'Stop and destroy a sandbox container',
   schema: inputSchema,
 })
-export class SandboxDestroy extends BaseTool {
+export class SandboxDestroy extends BaseTool<SandboxDestroyArgs, object, SandboxDestroyResult> {
   private readonly logger = new Logger(SandboxDestroy.name);
 
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  async call(args: SandboxDestroyArgs): Promise<ToolResult<SandboxDestroyResult>> {
+  protected async handle(args: SandboxDestroyArgs, _ctx: LoopstackContext): Promise<ToolResult<SandboxDestroyResult>> {
     const { containerId, removeContainer } = args;
 
     this.logger.debug(`Destroying sandbox ${containerId} (removeContainer: ${removeContainer})`);

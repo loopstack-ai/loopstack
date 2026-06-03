@@ -13,7 +13,8 @@ export const OAuthPromptDocumentSchema = z
 
 @Document({
   schema: OAuthPromptDocumentSchema,
-  uiConfig: import.meta.dirname + '/oauth-prompt.ui.yaml',
+  widget: import.meta.dirname + '/oauth-prompt.ui.yaml',
+  tags: ['oauth'],
 })
 export class OAuthPromptDocument {
   provider: string;

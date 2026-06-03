@@ -35,7 +35,6 @@
     "@loopstack/claude-module": "^0.24.1",
     "@loopstack/llm-provider-module": "^0.3.1",
     "@loopstack/common": "^0.31.0",
-    "@loopstack/core": "^0.31.0",
     "@loopstack/google-workspace-module": "^0.4.1",
     "@loopstack/oauth-module": "^0.3.1",
     "@nestjs/common": "^11.1.19",

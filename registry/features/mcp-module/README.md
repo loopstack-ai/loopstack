@@ -39,16 +39,18 @@ flow through headers.
 
 ## Authentication
 
-Configure auth headers via `@InjectTool(...)`:
+Configure auth headers via constructor injection config:
 
 ```ts
-@InjectTool({
-  allowedHosts: ['mcp.linear.app'],
-  hostHeaderEnv: {
-    'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' },
+constructor(private readonly mcpCallTool: McpCallTool) {}
+
+// Configure allowedHosts and hostHeaderEnv via call config:
+await this.mcpCallTool.call(args, {
+  config: {
+    allowedHosts: ['mcp.linear.app'],
+    hostHeaderEnv: { 'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' } },
   },
-})
-private readonly mcpCallTool: McpCallTool;
+});
 ```
 
 Three knobs, in increasing specificity:
@@ -76,10 +78,10 @@ LINEAR_MCP_TOKEN="Bearer lin_oauth_..."
 ## Registering the tools (workspace vs workflow)
 
 Import `McpModule` in your Nest module so the tool classes are available. Then
-register **instances** with `@InjectTool()` — where you put that decorator
+register **instances** via the constructor — where you inject them
 depends on how you run the LLM loop.
 
-| How you run the agent                                                                                                                              | Where to `@InjectTool` MCP tools                                                                                                                                             |
+| How you run the agent                                                                                                                              | Where to injection MCP tools                                                                                                                                                 |
 | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`ChatAgentWorkflow` / `AgentWorkflow` as a sub-workflow** (`this.agent.run({ tools: [...] })`)                                                   | **Workspace** — the child agent resolves tools from the executing workflow first, then the workspace. Tools on the parent workflow are not visible while the sub-agent runs. |
 | **Inline agent loop in one workflow** (your transitions call `this.llmGenerateText.call()` / `this.llmDelegateToolCalls.call()` on the same class) | **That workflow** — same pattern as other registry agents (e.g. Google Workspace).                                                                                           |
@@ -110,19 +112,17 @@ const mcpToolConfig = {
 @Injectable()
 @Workspace({ uiConfig: { title: 'My Workspace' } })
 export class MyWorkspace {
-  @InjectWorkflow() mcpAgent: MyMcpWorkflow;
-
-  @InjectTool(mcpToolConfig)
-  mcpListTools: McpListToolsTool;
-
-  @InjectTool(mcpToolConfig)
-  mcpCallTool: McpCallTool;
+  constructor(
+    public readonly mcpAgent: MyMcpWorkflow,
+    public readonly mcpListTools: McpListToolsTool,
+    public readonly mcpCallTool: McpCallTool,
+  ) {}
 }
 ```
 
 ```ts
 // my-mcp.workflow.ts — parent only starts the sub-agent
-@InjectWorkflow({ model: 'claude-sonnet-4-6' }) private agent: ChatAgentWorkflow;
+constructor(private readonly agent: ChatAgentWorkflow) { super(); }
 
 await this.agent.run({
   system: '...',
@@ -145,7 +145,7 @@ allowlisted hosts within the same chat.
 `serverUrl` is a per-call argument. **An agent can reach any host listed in
 `allowedHosts`** — there is no "primary" server. To add a new server:
 
-1. Add its hostname to `allowedHosts` on both `@InjectTool` configs.
+1. Add its hostname to `allowedHosts` on both injection configs.
 2. Add its auth mapping to `hostHeaderEnv`.
 3. Set the corresponding env var.
 

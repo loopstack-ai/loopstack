@@ -2,12 +2,12 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
+import type { StudioWorkflowConfig } from '@/api/types';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import ArgumentsView from '@/features/workspaces/components/workflow-form/ArgumentsView.tsx';
 import SelectionView from '@/features/workspaces/components/workflow-form/SelectionView.tsx';
-import { useWorkflowConfig } from '@/hooks/useConfig.ts';
-import { useRunWorkflow } from '@/hooks/useProcessor.ts';
-import { useCreateWorkflow } from '@/hooks/useWorkflows.ts';
+import { useAppsConfig } from '@/hooks/useConfig.ts';
+import { useStartWorkflow } from '@/hooks/useProcessor.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 interface WorkflowFormProps {
@@ -20,76 +20,81 @@ type Step = 'selection' | 'arguments';
 
 const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
   const { router } = useStudio();
-
-  const createWorkflow = useCreateWorkflow();
-  const pingWorkflow = useRunWorkflow();
-
-  const fetchWorkflowTypes = useWorkflowConfig(workspace.className);
+  const fetchAppsConfig = useAppsConfig();
+  const startWorkflow = useStartWorkflow();
 
   const [currentStep, setCurrentStep] = useState<Step>('selection');
   const [formData, setFormData] = useState({
     name: '',
-    alias: '',
+    workflowName: '',
     properties: {},
   });
 
   const [errors, setErrors] = useState({
     name: '',
-    alias: '',
+    workflowName: '',
   });
 
+  // Find workflows for this workspace's app
+  const studioApp = useMemo(() => {
+    if (!fetchAppsConfig.data) return undefined;
+    return fetchAppsConfig.data.find((a) => a.appName === workspace.appName);
+  }, [fetchAppsConfig.data, workspace.appName]);
+
+  const appWorkflows: StudioWorkflowConfig[] = useMemo(() => {
+    if (!studioApp) return [];
+    return studioApp.workflows;
+  }, [studioApp]);
+
+  // Map workflows to WorkflowConfigInterface for SelectionView compatibility
+  const workflowTypes: WorkflowConfigInterface[] = useMemo(() => {
+    return appWorkflows.map((wf) => ({
+      workflowName: wf.workflowName,
+      title: wf.title,
+      description: wf.description,
+      schema: wf.schema,
+    }));
+  }, [appWorkflows]);
+
+  const selectedWorkflow: StudioWorkflowConfig | undefined = useMemo(() => {
+    if (!formData.workflowName) return undefined;
+    return appWorkflows.find((wf) => wf.workflowName === formData.workflowName);
+  }, [formData.workflowName, appWorkflows]);
+
   const selectedWorkflowConfig: WorkflowConfigInterface | undefined = useMemo(() => {
-    if (!formData.alias || !fetchWorkflowTypes.data) return undefined;
-    return fetchWorkflowTypes.data.find((p) => p.alias === formData.alias);
-  }, [formData.alias, fetchWorkflowTypes.data]);
+    if (!formData.workflowName || !workflowTypes.length) return undefined;
+    return workflowTypes.find((p) => p.workflowName === formData.workflowName);
+  }, [formData.workflowName, workflowTypes]);
 
   const hasArguments = !!selectedWorkflowConfig?.schema;
-  const isLoading = createWorkflow.isPending || pingWorkflow.isPending;
+  const isLoading = startWorkflow.isPending;
 
+  // Auto-select first workflow
   useEffect(() => {
-    if (!formData.alias && fetchWorkflowTypes.data?.[0]?.alias) {
-      setFormData((prev) => ({
-        ...prev,
-        alias: fetchWorkflowTypes.data[0].alias,
-      }));
+    if (!formData.workflowName && workflowTypes[0]?.workflowName) {
+      setFormData((prev) => ({ ...prev, workflowName: workflowTypes[0].workflowName }));
     }
-  }, [fetchWorkflowTypes.data, formData.alias]);
+  }, [workflowTypes, formData.workflowName]);
 
   const validateForm = (): boolean => {
-    if (formData.alias) return true;
-
-    setErrors({ name: '', alias: 'Please select an automation type' });
+    if (formData.workflowName) return true;
+    setErrors({ name: '', workflowName: 'Please select an automation type' });
     return false;
   };
 
-  const navigateToWorkflow = (workflowId: string) => {
-    void router.navigateToWorkflow(workflowId);
-  };
+  const runWorkflow = (_transition?: string, data?: Record<string, any>) => {
+    if (!selectedWorkflow) return;
 
-  const createAndRunWorkflow = (transition?: string, data?: Record<string, any>) => {
-    createWorkflow.mutate(
+    startWorkflow.mutate(
       {
-        workflowCreateDto: {
-          alias: formData.alias,
-          title: formData.name || null,
+        payload: {
+          workflowName: selectedWorkflow.workflowName,
           workspaceId: workspace.id,
-          transition: transition ?? null,
-          args: data,
+          args: data ?? {},
         },
       },
       {
-        onSuccess: (createdWorkflow) => {
-          pingWorkflow.mutate(
-            {
-              workflowId: createdWorkflow.id,
-              runWorkflowPayloadDto: {},
-              force: true,
-            },
-            {
-              onSuccess: () => navigateToWorkflow(createdWorkflow.id),
-            },
-          );
-        },
+        onSuccess: (result) => void router.navigateToWorkflow(result.workflowId),
       },
     );
   };
@@ -100,7 +105,7 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
     if (hasArguments) {
       setCurrentStep('arguments');
     } else {
-      createAndRunWorkflow();
+      runWorkflow();
     }
   };
 
@@ -109,18 +114,17 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
   };
 
   const handleSubmit = (transition?: string, data?: Record<string, any>) => {
-    createAndRunWorkflow(transition, data);
+    runWorkflow(transition, data);
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-
     if (errors[field as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
-  if (fetchWorkflowTypes.isLoading) {
+  if (fetchAppsConfig.isLoading) {
     return (
       <div className="flex min-h-50 items-center justify-center">
         <Loader2 className="text-primary h-8 w-8 animate-spin" />
@@ -128,24 +132,21 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
     );
   }
 
-  if (!fetchWorkflowTypes.data) return null;
+  if (!workflowTypes.length) return null;
 
   return (
     <div className="relative">
-      <ErrorSnackbar error={createWorkflow.error} />
-      <ErrorSnackbar error={pingWorkflow.error} />
-      <ErrorSnackbar error={fetchWorkflowTypes.error} />
+      <ErrorSnackbar error={startWorkflow.error} />
 
       <div className="relative overflow-hidden">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentStep === 'arguments' ? 100 : 0}%)` }}
         >
-          {/* Selection View */}
           <div className="w-full shrink-0 px-1">
             <SelectionView
               title={title}
-              workflowTypes={fetchWorkflowTypes.data}
+              workflowTypes={workflowTypes}
               formData={formData}
               errors={errors}
               isLoading={isLoading}
@@ -154,10 +155,9 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
             />
           </div>
 
-          {/* Arguments View */}
           <div className="w-full shrink-0 px-1">
             <ArgumentsView
-              key={formData.alias} // forces remount of the component / form when selection is changed
+              key={formData.workflowName}
               config={selectedWorkflowConfig}
               hasArguments={hasArguments}
               isLoading={isLoading}

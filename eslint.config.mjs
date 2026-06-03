@@ -12,6 +12,7 @@ export default tseslint.config(
       '.changeset',
       '.turbo',
       'node_modules',
+      'templates',
       '**/.turbo/**',
       '**/dist/**',
       '**/node_modules/**',
@@ -55,7 +56,7 @@ export default tseslint.config(
 
   // Backend (NestJS) - Node globals
   {
-    files: ['packages/**/*.ts', 'registry/**/*.ts'],
+    files: ['packages/**/*.ts', 'registry/**/*.ts', 'sandbox/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -109,17 +110,6 @@ export default tseslint.config(
     rules: {
       // ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': 'off',
-    },
-  },
-
-  {
-    files: ['cli/**/*.js'],
-    languageOptions: {
-      globals: globals.node,
-      sourceType: 'commonjs',
-    },
-    rules: {
-      // Disable TS-specific rules for plain JS
     },
   },
 );

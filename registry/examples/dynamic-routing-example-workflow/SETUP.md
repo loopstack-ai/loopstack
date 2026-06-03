@@ -21,13 +21,13 @@ import { DynamicRoutingExampleModule } from '@loopstack/dynamic-routing-example-
 export class DefaultModule {}
 ```
 
-2. Inject the `DynamicRoutingExampleWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `DynamicRoutingExampleWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { DynamicRoutingExampleWorkflow } from '@loopstack/dynamic-routing-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() dynamicRoutingExample: DynamicRoutingExampleWorkflow;
+  constructor(public readonly dynamicRoutingExample: DynamicRoutingExampleWorkflow) {}
 }
 ```
 

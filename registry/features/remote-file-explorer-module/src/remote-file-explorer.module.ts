@@ -1,11 +1,15 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { WorkspaceEntity } from '@loopstack/common';
-import { RemoteClientModule } from '@loopstack/remote-client';
+import { type DynamicModule, Module } from '@nestjs/common';
+import { registerFeature } from '@loopstack/common';
 import { RemoteFileExplorerController } from './controllers/index.js';
 
 @Module({
-  imports: [RemoteClientModule, TypeOrmModule.forFeature([WorkspaceEntity])],
   controllers: [RemoteFileExplorerController],
 })
-export class RemoteFileExplorerModule {}
+export class RemoteFileExplorerModule {
+  static forFeature(config?: { enabled?: boolean; environments?: string[] }): DynamicModule {
+    return {
+      module: RemoteFileExplorerModule,
+      providers: [registerFeature('fileExplorer', config)],
+    };
+  }
+}

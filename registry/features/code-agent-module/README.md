@@ -36,7 +36,7 @@ export class AppModule {}
 
 ### Using `ExploreTask` from a parent workflow
 
-Inject the tool with `@InjectTool()` and call it with a natural-language instruction. The tool returns the `workflowId` of the launched sub-agent and resolves with the synthesised text response when the sub-agent completes:
+Inject the tool via the constructor and call it with a natural-language instruction. The tool returns the `workflowId` of the launched sub-agent and resolves with the synthesised text response when the sub-agent completes:
 
 ```ts
 import { ExploreTask } from '@loopstack/code-agent';
@@ -44,7 +44,9 @@ import { BaseWorkflow, InjectTool, Transition, Workflow } from '@loopstack/commo
 
 @Workflow({ uiConfig: __dirname + '/my.ui.yaml' })
 export class MyWorkflow extends BaseWorkflow {
-  @InjectTool() explore: ExploreTask;
+  constructor(private readonly explore: ExploreTask) {
+    super();
+  }
 
   @Transition({ from: 'ready', to: 'done' })
   async investigate() {

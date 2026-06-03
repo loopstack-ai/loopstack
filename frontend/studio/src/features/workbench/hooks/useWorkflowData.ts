@@ -1,26 +1,39 @@
 import { useCallback, useMemo } from 'react';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import { useFilterDocuments } from '@/hooks/useDocuments.ts';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
+import { useLlmStreamingDocuments } from './useLlmStreamingDocuments.ts';
 
 interface UseWorkflowDataOptions {
   workflowId: string;
   showFullMessageHistory: boolean;
 }
 
+function getLlmMessageId(item: DocumentItemInterface): string | undefined {
+  const content = item.content as { id?: unknown } | undefined;
+  return item.documentName === 'llm_message' && typeof content?.id === 'string' ? content.id : undefined;
+}
+
+function isStreamReadyForFinal(item: DocumentItemInterface): boolean {
+  return !!(item.meta as { streamReadyForFinal?: boolean } | undefined)?.streamReadyForFinal;
+}
+
 export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkflowDataOptions) {
   const fetchWorkflow = useWorkflow(workflowId);
   const fetchDocuments = useFilterDocuments(workflowId);
   const runWorkflow = useRunWorkflow();
+  const streamingDocuments = useLlmStreamingDocuments(workflowId, fetchWorkflow.data?.place);
+  const documentConfigs = useDocumentConfigs();
 
   const filterDocuments = useCallback(
     (item: DocumentItemInterface) => {
-      const meta = item.meta as { hidden?: boolean; hideAtPlaces?: string[] } | undefined;
-      const ui = item.ui as { hidden?: boolean } | undefined;
+      const docConfig = documentConfigs.get(item.documentName);
+      const staticMeta = docConfig?.meta;
 
-      let hidden = meta?.hidden || ui?.hidden || !!meta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');
+      let hidden = staticMeta?.hidden || !!staticMeta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');
 
       const isInternalMessage = false; //['tool'].includes(document.content.role);
 
@@ -30,16 +43,35 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
 
       return !hidden;
     },
-    [fetchWorkflow.data, showFullMessageHistory],
+    [fetchWorkflow.data, showFullMessageHistory, documentConfigs],
   );
 
   const documents: DocumentItemInterface[] = useMemo(() => {
     if (!fetchDocuments.data) {
-      return [];
+      return streamingDocuments;
     }
 
-    return fetchDocuments.data.filter(filterDocuments);
-  }, [fetchDocuments.data, filterDocuments]);
+    const filteredFetchedDocuments = fetchDocuments.data.filter(filterDocuments);
+    const streamingByMessageId = new Map(
+      streamingDocuments
+        .map((item) => [getLlmMessageId(item), item] as const)
+        .filter((entry): entry is [string, DocumentItemInterface] => !!entry[0]),
+    );
+
+    const fetchedDocuments = filteredFetchedDocuments.filter((item) => {
+      const messageId = getLlmMessageId(item);
+      const streamingDocument = messageId ? streamingByMessageId.get(messageId) : undefined;
+      return !streamingDocument || isStreamReadyForFinal(streamingDocument);
+    });
+
+    const fetchedMessageIds = new Set(fetchedDocuments.map(getLlmMessageId).filter((id): id is string => !!id));
+    const activeStreamingDocuments = streamingDocuments.filter((item) => {
+      const messageId = getLlmMessageId(item);
+      return !messageId || !fetchedMessageIds.has(messageId);
+    });
+
+    return [...fetchedDocuments, ...activeStreamingDocuments];
+  }, [fetchDocuments.data, filterDocuments, streamingDocuments]);
 
   const handleRun = useCallback(
     (transition: string, data: Record<string, unknown> | string | undefined) => {

@@ -35,7 +35,7 @@ const WorkflowButtons: React.FC<{
     createWorkflow.mutate(
       {
         workflowCreateDto: {
-          alias: workflow.alias,
+          workflowName: workflow.workflowName,
           title: null,
           workspaceId: workflow.workspaceId,
           transition: null,

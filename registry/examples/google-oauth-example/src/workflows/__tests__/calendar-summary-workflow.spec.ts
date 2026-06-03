@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
+import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GmailGetMessageTool,
@@ -22,7 +22,7 @@ import { GoogleCalendarFetchEventsTool } from '../../tools';
 import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
 
 const mockOAuthWorkflow = {
-  run: vi.fn(),
+  run: vi.fn().mockResolvedValue({ workflowId: 'sub-1' }),
 };
 
 function buildCalendarSummaryTest() {
@@ -41,7 +41,7 @@ function buildCalendarSummaryTest() {
     .withToolMock(GoogleDriveGetFileMetadataTool)
     .withToolMock(GoogleDriveDownloadFileTool)
     .withToolMock(GoogleDriveUploadFileTool)
-    .withMock(OAuthWorkflow, mockOAuthWorkflow);
+    .withOverride(OAuthWorkflow, mockOAuthWorkflow);
 }
 
 describe('CalendarSummaryWorkflow', () => {
@@ -82,10 +82,8 @@ describe('CalendarSummaryWorkflow', () => {
       expect(getBlockConfig(workflow)).toBeDefined();
     });
 
-    it('should have custom tool available', () => {
-      const tools = getBlockTools(workflow);
-      expect(tools).toBeDefined();
-      expect(tools).toContain('googleCalendarFetchEvents');
+    it('should have custom tool available via constructor injection', () => {
+      expect(mockGoogleCalendarFetchEventsTool).toBeDefined();
     });
   });
 
@@ -130,9 +128,7 @@ describe('CalendarSummaryWorkflow', () => {
       expect(mockGoogleCalendarFetchEventsTool.call).toHaveBeenCalledTimes(1);
 
       // Verify markdown summary document was created
-      expect(result.documents).toEqual(
-        expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
-      );
+      expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ documentName: 'markdown' })]));
     });
 
     it('should execute fetch_events and auth_required when unauthorized', async () => {
@@ -143,10 +139,6 @@ describe('CalendarSummaryWorkflow', () => {
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
-      });
-
-      mockOAuthWorkflow.run.mockResolvedValue({
-        workflowId: 'test-workflow-id',
       });
 
       const result = await processor.process(workflow, {}, context);
@@ -160,17 +152,14 @@ describe('CalendarSummaryWorkflow', () => {
       expect(mockOAuthWorkflow.run).toHaveBeenCalledTimes(1);
       expect(mockOAuthWorkflow.run).toHaveBeenCalledWith(
         { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-        expect.objectContaining({
-          alias: 'oAuth',
-          callback: { transition: 'authCompleted' },
-        }),
+        { callback: { transition: 'authCompleted' } },
       );
 
       // Link document should have been created for auth flow
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'LinkDocument',
+            documentName: 'link',
             content: expect.objectContaining({
               label: 'Google authentication required',
             }),
@@ -192,7 +181,6 @@ describe('CalendarSummaryWorkflow', () => {
         expect.objectContaining({
           calendarId: 'work@group.calendar.google.com',
         }),
-        undefined,
       );
     });
   });
@@ -252,8 +240,6 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
     expect(mockGoogleCalendarFetchEvents.call).toHaveBeenCalledTimes(1);
 
     // Verify markdown summary was created after auth resume
-    expect(result.documents).toEqual(
-      expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
-    );
+    expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ documentName: 'markdown' })]));
   });
 });

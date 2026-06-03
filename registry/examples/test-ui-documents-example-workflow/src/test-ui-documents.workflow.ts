@@ -1,42 +1,45 @@
 import {
   BaseWorkflow,
   ErrorDocument,
-  Final,
-  Initial,
   MarkdownDocument,
   MessageDocument,
   PlainDocument,
+  Transition,
   Workflow,
 } from '@loopstack/common';
 
 @Workflow({
-  uiConfig: __dirname + '/test-ui-documents.ui.yaml',
+  title: 'Core Ui Documents',
+  description: 'Test the displaying of core ui documents',
 })
 export class TestUiDocumentsWorkflow extends BaseWorkflow {
-  @Initial({ to: 'rendered' })
-  async renderAll() {
+  @Transition({ to: 'rendered' })
+  async renderAll(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     // Message
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'This is the default message',
     });
 
     // Error
-    await this.repository.save(ErrorDocument, {
+    await this.documentStore.save(ErrorDocument, {
       error: 'This is an error message',
     });
 
     // Markdown
-    await this.repository.save(MarkdownDocument, {
+    await this.documentStore.save(MarkdownDocument, {
       markdown: '# Markdown\n\nThis is `markdown`\n',
     });
 
     // Plain Text
-    await this.repository.save(PlainDocument, {
+    await this.documentStore.save(PlainDocument, {
       text: 'This is plain text',
     });
+    return state;
   }
 
-  @Final({ from: 'rendered' })
-  done() {}
+  @Transition({ from: 'rendered', to: 'end' })
+  async done(_state: Record<string, unknown>): Promise<unknown> {
+    return {};
+  }
 }

@@ -1,21 +1,29 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+
+export type GitWorktreePruneResult = {
+  success: boolean;
+  output?: string;
+};
 
 @Tool({
+  name: 'git_worktree_prune',
+  description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',
   schema: z.object({}).strict(),
-  uiConfig: {
-    description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',
-  },
 })
-export class GitWorktreePruneTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitWorktreePruneTool extends BaseTool<object, object, GitWorktreePruneResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitWorktreePrune(agentUrl);
+  protected async handle(_args: object, _ctx: LoopstackContext): Promise<ToolResult<GitWorktreePruneResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitWorktreePrune(agentUrl);
     return { data: result };
   }
 }

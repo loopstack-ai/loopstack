@@ -24,7 +24,7 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## Usage
 
-Inject the tools in your workflow class using the `@InjectTool()` decorator:
+Inject the tools in your workflow class via the constructor:
 
 ```typescript
 import { z } from 'zod';
@@ -38,9 +38,13 @@ import { SandboxCommand, SandboxDestroy, SandboxInit } from '@loopstack/sandbox-
   }),
 })
 export class MySandboxWorkflow extends BaseWorkflow<{ outputDir: string }> {
-  @InjectTool() sandboxInit: SandboxInit;
-  @InjectTool() sandboxCommand: SandboxCommand;
-  @InjectTool() sandboxDestroy: SandboxDestroy;
+  constructor(
+    private readonly sandboxInit: SandboxInit,
+    private readonly sandboxCommand: SandboxCommand,
+    private readonly sandboxDestroy: SandboxDestroy,
+  ) {
+    super();
+  }
 
   containerId?: string;
 

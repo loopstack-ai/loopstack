@@ -1,69 +1,96 @@
-import { Inject, Injectable, InjectionToken } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import type {
-  AppType,
-  BlockConfigType,
-  DocumentConfigType,
-  ToolConfigType,
-  WorkflowType,
-} from '@loopstack/contracts/types';
+import type { StaticDocumentMeta, UiWidgetType } from '@loopstack/contracts/types';
+
+/** A widget reference: either a YAML file path or an inline widget object. */
+export type WidgetRef = string | UiWidgetType;
 
 export const BLOCK_CONFIG_METADATA_KEY = Symbol('blockConfig');
 export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
-export const INJECTED_TOOLS_METADATA_KEY = Symbol('injectedTools');
-export const INJECTED_DOCUMENTS_METADATA_KEY = Symbol('injectedDocuments');
-export const INJECTED_WORKFLOWS_METADATA_KEY = Symbol('injectedWorkflows');
 export const TRANSITIONS_METADATA_KEY = Symbol('transitions');
 export const GUARDS_METADATA_KEY = Symbol('guards');
-export const PASS_THROUGH_METADATA_KEY = Symbol('passThrough');
-export const INJECT_TOOL_DEFAULTS_KEY = Symbol('injectToolDefaults');
-export const INJECT_WORKFLOW_DEFAULTS_KEY = Symbol('injectWorkflowDefaults');
+
+/** Global registry of all @Document()-decorated classes (populated at decorator time). */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export const globalDocumentRegistry = new Set<Function>();
+
+/** Returns all classes that have been decorated with @Document(). */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export function getRegisteredDocuments(): Set<Function> {
+  return globalDocumentRegistry;
+}
 
 // Block Type Class Decorators
-export type BlockType = 'workflow' | 'tool' | 'document' | 'app';
+export type BlockType = 'workflow' | 'tool' | 'document';
 
 /** Base block options — used by the internal `Block()` decorator */
 export interface BlockOptions {
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<BlockConfigType>;
+  /** Explicit name for this block (used as tool identifier in LLM wire format). Falls back to class name if omitted. */
+  name?: string;
+  /** Human-readable display title (shown in Studio UI). */
+  title?: string;
+  /** Human-readable description (shown in Studio UI). */
+  description?: string;
+  /** Widget definition(s): YAML file path(s) or inline widget object(s). */
+  widget?: WidgetRef | WidgetRef[];
   /** Zod schema for input/content validation */
   schema?: z.ZodType;
-  /** Zod schema for tool config validation (author-provided via @InjectTool) */
+  /** Zod schema for config validation (provided via options.config) */
   configSchema?: z.ZodType;
+  /** Default tags assigned to every instance of this document. */
+  tags?: string[];
+  /** Static document meta — served via config endpoint, not persisted per instance. */
+  meta?: StaticDocumentMeta;
 }
 
 /** Options for @Tool() decorator */
 export interface ToolOptions {
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<ToolConfigType>;
+  /** Explicit name for this tool (used as identifier in LLM wire format, e.g. 'git_status'). Falls back to class name if omitted. */
+  name?: string;
+  /** Human-readable description (shown to LLM for tool-use). */
+  description?: string;
+  /** Widget definition(s) for custom tool call/result rendering in Studio. */
+  widget?: WidgetRef | WidgetRef[];
   /** Zod schema for input validation */
   schema?: z.ZodType;
-  /** Zod schema for tool config validation (author-provided via @InjectTool) */
+  /** Zod schema for tool config validation (provided via options.config) */
   configSchema?: z.ZodType;
 }
 
 /** Options for @Workflow() decorator */
 export interface WorkflowOptions {
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<WorkflowType>;
+  /** Explicit snake_case name for this workflow (e.g. 'agent_example'). Falls back to auto-derived name from class. */
+  name?: string;
+  /** Human-readable display title (shown in Studio UI). */
+  title?: string;
+  /** Human-readable description (shown in Studio UI). */
+  description?: string;
+  /** Widget definition(s): YAML file path(s) or inline widget object(s). */
+  widget?: WidgetRef | WidgetRef[];
   /** Zod schema for input validation */
   schema?: z.ZodType;
-  /** Zod schema for workflow config validation (author-provided via @InjectWorkflow) */
+  /** Zod schema for workflow config validation (provided via options.config) */
   configSchema?: z.ZodType;
+  /** Zod schema for state validation (optional — validates state on save/load) */
+  stateSchema?: z.ZodType;
 }
 
 /** Options for @Document() decorator */
 export interface DocumentOptions {
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<DocumentConfigType>;
+  /** Explicit snake_case name (e.g. 'ask_user'). Falls back to auto-derived from class name. */
+  name?: string;
+  /** Human-readable display title (shown in Studio UI). */
+  title?: string;
+  /** Human-readable description (shown in Studio UI). */
+  description?: string;
+  /** Widget definition(s): YAML file path(s) or inline widget object(s). */
+  widget?: WidgetRef | WidgetRef[];
   /** Zod schema for content validation */
   schema?: z.ZodType;
-}
-
-/** Options for @App() decorator */
-export interface AppOptions {
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<AppType>;
+  /** Default tags assigned to every instance of this document. */
+  tags?: string[];
+  /** Static document meta — served via config endpoint, not persisted per instance. */
+  meta?: StaticDocumentMeta;
 }
 
 export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
@@ -94,125 +121,12 @@ export function Document(options?: DocumentOptions): ClassDecorator {
     if (options) {
       Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options as BlockOptions, target);
     }
+    globalDocumentRegistry.add(target);
   };
-}
-
-export function App(options?: AppOptions): ClassDecorator {
-  return Block('app', options as BlockOptions);
 }
 
 export function getBlockType(target: object): BlockType | undefined {
   return Reflect.getMetadata(BLOCK_TYPE_METADATA_KEY, target.constructor) as BlockType | undefined;
-}
-
-// Injection Property Decorators
-
-/**
- * Injects a tool and optionally sets default args that are deep-merged into every `call()`.
- *
- * Overloads:
- * - `@InjectTool()` — resolve by type, no defaults
- * - `@InjectTool({ model: 'opus' })` — resolve by type, with defaults
- * - `@InjectTool('token')` — resolve by named token, no defaults
- * - `@InjectTool('token', { model: 'opus' })` — resolve by named token, with defaults
- */
-export function InjectTool(
-  tokenOrConfig?: InjectionToken | Record<string, unknown>,
-  config?: Record<string, unknown>,
-): PropertyDecorator & MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    let token: InjectionToken | undefined;
-    let defaults: Record<string, unknown> | undefined;
-
-    if (typeof tokenOrConfig === 'string' || typeof tokenOrConfig === 'symbol') {
-      token = tokenOrConfig;
-      defaults = config;
-    } else if (tokenOrConfig !== null && typeof tokenOrConfig === 'object') {
-      defaults = tokenOrConfig as Record<string, unknown>;
-    } else if (typeof tokenOrConfig === 'function') {
-      // Class reference passed as token (e.g. @InjectTool(SomeToolClass))
-      token = tokenOrConfig;
-    }
-
-    const resolvedToken =
-      token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
-    if (resolvedToken) {
-      Inject(resolvedToken)(target, propertyKey);
-    }
-
-    const existingTools =
-      (Reflect.getMetadata(INJECTED_TOOLS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(INJECTED_TOOLS_METADATA_KEY, [...existingTools, propertyKey], target);
-
-    if (defaults) {
-      const existing =
-        (Reflect.getMetadata(INJECT_TOOL_DEFAULTS_KEY, target) as
-          | Record<string, Record<string, unknown>>
-          | undefined) ?? {};
-      Reflect.defineMetadata(INJECT_TOOL_DEFAULTS_KEY, { ...existing, [propertyKey as string]: defaults }, target);
-    }
-  };
-}
-
-/**
- * @deprecated Documents are now plain DTOs. Use `this.repository.save(DocumentClass, data)` instead of injecting documents.
- */
-export function InjectDocument(_token?: InjectionToken): PropertyDecorator & MethodDecorator {
-  return (_target: object, _propertyKey: string | symbol) => {
-    // No-op: documents are no longer injectable
-  };
-}
-
-/**
- * Injects a workflow and optionally sets config that is validated against `configSchema`.
- *
- * Config values are available on the sub-workflow via `this.ctx.run.config`.
- * They are NOT merged into args — args and config are separate namespaces.
- *
- * Overloads:
- * - `@InjectWorkflow()` — resolve by type, no config
- * - `@InjectWorkflow({ provider: 'claude' })` — resolve by type, with config
- * - `@InjectWorkflow('token')` — resolve by named token, no config
- * - `@InjectWorkflow('token', { provider: 'claude' })` — resolve by named token, with config
- */
-export function InjectWorkflow(
-  tokenOrConfig?: InjectionToken | Record<string, unknown>,
-  config?: Record<string, unknown>,
-): PropertyDecorator & MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    let token: InjectionToken | undefined;
-    let defaults: Record<string, unknown> | undefined;
-
-    if (typeof tokenOrConfig === 'string' || typeof tokenOrConfig === 'symbol') {
-      // @InjectWorkflow('token') or @InjectWorkflow('token', config)
-      token = tokenOrConfig;
-      defaults = config;
-    } else if (typeof tokenOrConfig === 'function') {
-      // @InjectWorkflow(SomeClass)
-      token = tokenOrConfig;
-    } else if (tokenOrConfig !== null && typeof tokenOrConfig === 'object') {
-      // @InjectWorkflow({ provider: 'claude', model: 'opus' })
-      defaults = tokenOrConfig as Record<string, unknown>;
-    }
-
-    const resolvedToken =
-      token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
-    if (resolvedToken) {
-      Inject(resolvedToken)(target, propertyKey);
-    }
-
-    const existingWorkflows =
-      (Reflect.getMetadata(INJECTED_WORKFLOWS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(INJECTED_WORKFLOWS_METADATA_KEY, [...existingWorkflows, propertyKey], target);
-
-    if (defaults) {
-      const existing =
-        (Reflect.getMetadata(INJECT_WORKFLOW_DEFAULTS_KEY, target) as
-          | Record<string, Record<string, unknown>>
-          | undefined) ?? {};
-      Reflect.defineMetadata(INJECT_WORKFLOW_DEFAULTS_KEY, { ...existing, [propertyKey as string]: defaults }, target);
-    }
-  };
 }
 
 // Retry Configuration
@@ -285,36 +199,14 @@ export interface GuardMetadata {
   guardMethodName: string;
 }
 
-export interface InitialOptions {
-  to: string;
-  wait?: boolean;
-  priority?: number;
-  /** Zod schema to validate the transition payload (for wait transitions) or args (for @Initial) */
-  schema?: z.ZodType;
-  /** Retry configuration for error handling. Default: unlimited manual retry. */
-  retry?: RetryConfig;
-  /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
-  timeout?: number;
-}
-
 export interface TransitionOptions {
-  from: string;
+  /** Source state. Defaults to 'start' (initial transition) when omitted. */
+  from?: string;
+  /** Target state. Use 'end' for final transitions. */
   to: string;
   wait?: boolean;
   priority?: number;
-  /** Zod schema to validate the transition payload */
-  schema?: z.ZodType;
-  /** Retry configuration for error handling. Default: unlimited manual retry. */
-  retry?: RetryConfig;
-  /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
-  timeout?: number;
-}
-
-export interface FinalOptions {
-  from: string;
-  wait?: boolean;
-  priority?: number;
-  /** Zod schema to validate the transition payload */
+  /** Zod schema to validate the transition payload (for wait transitions) or args (for initial transitions) */
   schema?: z.ZodType;
   /** Retry configuration for error handling. Default: unlimited manual retry. */
   retry?: RetryConfig;
@@ -327,42 +219,12 @@ function addTransitionMetadata(target: object, metadata: TransitionMetadata): vo
   Reflect.defineMetadata(TRANSITIONS_METADATA_KEY, [...existing, metadata], target.constructor);
 }
 
-export function Initial(options: InitialOptions): MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    addTransitionMetadata(target, {
-      methodName: String(propertyKey),
-      from: 'start',
-      to: options.to,
-      wait: options.wait,
-      priority: options.priority,
-      schema: options.schema,
-      retry: normalizeRetryConfig(options.retry),
-      timeout: options.timeout,
-    });
-  };
-}
-
 export function Transition(options: TransitionOptions): MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     addTransitionMetadata(target, {
       methodName: String(propertyKey),
-      from: options.from,
+      from: options.from ?? 'start',
       to: options.to,
-      wait: options.wait,
-      priority: options.priority,
-      schema: options.schema,
-      retry: normalizeRetryConfig(options.retry),
-      timeout: options.timeout,
-    });
-  };
-}
-
-export function Final(options: FinalOptions): MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    addTransitionMetadata(target, {
-      methodName: String(propertyKey),
-      from: options.from,
-      to: 'end',
       wait: options.wait,
       priority: options.priority,
       schema: options.schema,
@@ -380,19 +242,5 @@ export function Guard(guardMethodName: string): MethodDecorator {
       [...existing, { transitionMethodName: String(propertyKey), guardMethodName }],
       target.constructor,
     );
-  };
-}
-
-/**
- * Marks a property as pass-through — the proxy will NOT intercept it
- * for state management. The property value is read directly from the
- * instance, bypassing the StateManager.
- *
- * Use this for properties wired by the framework at runtime (e.g. `ctx`).
- */
-export function PassThrough(): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    const existing = (Reflect.getMetadata(PASS_THROUGH_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(PASS_THROUGH_METADATA_KEY, [...existing, propertyKey], target);
   };
 }

@@ -1,7 +1,5 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { WorkspaceEntity } from '@loopstack/common';
-import { RemoteClientModule } from '@loopstack/remote-client';
+import { type DynamicModule, Module } from '@nestjs/common';
+import { registerFeature } from '@loopstack/common';
 import { GitController } from './controllers/index.js';
 import {
   GitAddTool,
@@ -42,9 +40,15 @@ const tools = [
 ];
 
 @Module({
-  imports: [RemoteClientModule, TypeOrmModule.forFeature([WorkspaceEntity])],
   controllers: [GitController],
   providers: [...tools],
   exports: [...tools],
 })
-export class GitModule {}
+export class GitModule {
+  static forFeature(config?: { enabled?: boolean; environments?: string[] }): DynamicModule {
+    return {
+      module: GitModule,
+      providers: [registerFeature('git', config)],
+    };
+  }
+}

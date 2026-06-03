@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
+import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GitHubCreateIssueCommentTool,
@@ -35,7 +35,7 @@ import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack
 import { GitHubReposOverviewWorkflow } from '../github-repos-overview.workflow';
 
 const mockOAuthWorkflow = {
-  run: vi.fn(),
+  run: vi.fn().mockResolvedValue({ workflowId: 'sub-1' }),
 };
 
 function applyAllGitHubToolMocks(builder: ReturnType<typeof createWorkflowTest>) {
@@ -72,7 +72,7 @@ function buildWorkflowTest() {
     createWorkflowTest()
       .forWorkflow(GitHubReposOverviewWorkflow)
       .withImports(OAuthModule)
-      .withMock(OAuthWorkflow, mockOAuthWorkflow),
+      .withOverride(OAuthWorkflow, mockOAuthWorkflow),
   );
 }
 
@@ -130,20 +130,16 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(getBlockConfig(workflow)).toBeDefined();
     });
 
-    it('should have GitHub tools available', () => {
-      const tools = getBlockTools(workflow);
-      expect(tools).toBeDefined();
-
-      expect(tools).toContain('gitHubGetAuthenticatedUser');
-      expect(tools).toContain('gitHubListUserOrgs');
-      expect(tools).toContain('gitHubGetRepo');
-
-      expect(tools).toContain('gitHubListBranches');
-      expect(tools).toContain('gitHubListIssues');
-      expect(tools).toContain('gitHubListPullRequests');
-      expect(tools).toContain('gitHubListDirectory');
-      expect(tools).toContain('gitHubListWorkflowRuns');
-      expect(tools).toContain('gitHubSearchCode');
+    it('should have GitHub tools available via constructor injection', () => {
+      expect(mockGetAuthenticatedUser).toBeDefined();
+      expect(mockListUserOrgs).toBeDefined();
+      expect(mockGetRepo).toBeDefined();
+      expect(mockListBranches).toBeDefined();
+      expect(mockListIssues).toBeDefined();
+      expect(mockListPullRequests).toBeDefined();
+      expect(mockListDirectory).toBeDefined();
+      expect(mockListWorkflowRuns).toBeDefined();
+      expect(mockSearchCode).toBeDefined();
     });
   });
 
@@ -330,9 +326,7 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(result.place).toBe('end');
 
       // Verify markdown document was created
-      expect(result.documents).toEqual(
-        expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
-      );
+      expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ documentName: 'markdown' })]));
 
       // Verify all read tools were called
       expect(mockGetAuthenticatedUser.call).toHaveBeenCalledTimes(1);
@@ -352,10 +346,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockGetRepo.call).toHaveBeenCalledWith(
-        expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-        undefined,
-      );
+      expect(mockGetRepo.call).toHaveBeenCalledWith(expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }));
     });
 
     it('should pass owner and repo to gitHubListBranches', async () => {
@@ -366,7 +357,6 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListBranches.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-        undefined,
       );
     });
 
@@ -378,7 +368,6 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListIssues.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World', state: 'open' }),
-        undefined,
       );
     });
 
@@ -390,7 +379,6 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListPullRequests.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World', state: 'open' }),
-        undefined,
       );
     });
 
@@ -402,7 +390,6 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListDirectory.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-        undefined,
       );
     });
 
@@ -414,7 +401,6 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListWorkflowRuns.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-        undefined,
       );
     });
 
@@ -424,10 +410,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockSearchCode.call).toHaveBeenCalledWith(
-        expect.objectContaining({ query: 'repo:octocat/Hello-World' }),
-        undefined,
-      );
+      expect(mockSearchCode.call).toHaveBeenCalledWith(expect.objectContaining({ query: 'repo:octocat/Hello-World' }));
     });
   });
 
@@ -442,10 +425,6 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockOAuthWorkflow.run.mockResolvedValue({
-        workflowId: 'test-workflow-id',
-      });
-
       const result = await processor.process(workflow, { owner: 'octocat', repo: 'Hello-World' }, context);
 
       expect(result).toBeDefined();
@@ -457,10 +436,7 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(mockOAuthWorkflow.run).toHaveBeenCalledTimes(1);
       expect(mockOAuthWorkflow.run).toHaveBeenCalledWith(
         { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-        expect.objectContaining({
-          alias: 'oAuth',
-          callback: { transition: 'authCompleted' },
-        }),
+        { callback: { transition: 'authCompleted' } },
       );
 
       // Subsequent tools should NOT be called
@@ -570,9 +546,7 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     expect(result.place).toBe('end');
 
     // Verify markdown document was created after auth resume
-    expect(result.documents).toEqual(
-      expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
-    );
+    expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ documentName: 'markdown' })]));
 
     expect(mockGetAuthenticatedUser.call).toHaveBeenCalledTimes(1);
     expect(mockGetRepo.call).toHaveBeenCalledTimes(1);

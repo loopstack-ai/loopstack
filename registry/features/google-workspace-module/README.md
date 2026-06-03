@@ -80,7 +80,7 @@ After registration, the generic `OAuthWorkflow` from `@loopstack/oauth-module` c
 Once registered, any workflow can trigger Google authentication by launching the OAuth workflow with `provider: 'google'`:
 
 ```typescript
-@InjectWorkflow() oAuth: OAuthWorkflow;
+constructor(public readonly oAuth: OAuthWorkflow) { super(); }
 
 // In a transition method:
 const result = await this.oAuth.run(

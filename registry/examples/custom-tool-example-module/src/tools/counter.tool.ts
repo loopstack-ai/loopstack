@@ -1,14 +1,16 @@
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
+
+export type CounterToolResult = number;
 
 @Tool({
-  uiConfig: {
-    description: 'Counter tool.',
-  },
+  name: 'counter',
+  description: 'Counter tool.',
 })
-export class CounterTool extends BaseTool {
+export class CounterTool extends BaseTool<object, object, CounterToolResult> {
   count: number = 0;
 
-  call(_args?: object): Promise<ToolResult<number>> {
+  protected async handle(_args: object | undefined, _ctx: LoopstackContext): Promise<ToolResult<CounterToolResult>> {
     this.count++;
     return Promise.resolve({ data: this.count });
   }

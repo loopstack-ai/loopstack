@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
-import { WorkspaceEntity, WorkspaceEnvironmentEntity } from '@loopstack/common';
+import { WorkspaceEntity } from '@loopstack/common';
+import { StudioDiscoveryService } from '@loopstack/core';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto.js';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto.js';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto.js';
@@ -14,9 +15,8 @@ export class WorkspaceApiService {
   constructor(
     @InjectRepository(WorkspaceEntity)
     private workspaceRepository: Repository<WorkspaceEntity>,
-    @InjectRepository(WorkspaceEnvironmentEntity)
-    private workspaceEnvironmentRepository: Repository<WorkspaceEnvironmentEntity>,
     private configService: ConfigService,
+    private studioDiscoveryService: StudioDiscoveryService,
   ) {}
 
   /**
@@ -40,9 +40,7 @@ export class WorkspaceApiService {
     const defaultLimit = this.configService.get<number>('WORKSPACE_DEFAULT_LIMIT', 100);
     const defaultSortBy = this.configService.get<WorkspaceSortByDto[]>('WORKSPACE_DEFAULT_SORT_BY', []);
 
-    const queryBuilder = this.workspaceRepository
-      .createQueryBuilder('workspace')
-      .leftJoinAndSelect('workspace.environments', 'environments');
+    const queryBuilder = this.workspaceRepository.createQueryBuilder('workspace');
 
     const transformedFilter = Object.fromEntries(
       Object.entries(filter ?? {})
@@ -57,7 +55,7 @@ export class WorkspaceApiService {
 
     if (search) {
       const allowedColumns = getEntityColumns(WorkspaceEntity);
-      const searchColumns = ['title', 'className'].filter((col) => allowedColumns.includes(col));
+      const searchColumns = ['title', 'appName'].filter((col) => allowedColumns.includes(col));
       if (searchColumns.length > 0) {
         const searchConditions = searchColumns.map((column) => `workspace.${column} ILIKE :searchQuery`);
         queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
@@ -100,7 +98,6 @@ export class WorkspaceApiService {
         id,
         createdBy: user,
       },
-      relations: ['environments'],
     });
 
     if (!workspace) {
@@ -113,18 +110,19 @@ export class WorkspaceApiService {
    * Creates a new workspace.
    */
   async create(workspaceData: WorkspaceCreateDto, user: string): Promise<WorkspaceEntity> {
-    const title = workspaceData.title || `${workspaceData.className}`;
-    const { environments: envDtos, ...rest } = workspaceData;
+    const knownApps = this.studioDiscoveryService.getAppNames();
+    if (!knownApps.includes(workspaceData.appName)) {
+      throw new BadRequestException(`Unknown app "${workspaceData.appName}". Available apps: ${knownApps.join(', ')}`);
+    }
+
+    const app = this.studioDiscoveryService.getApp(workspaceData.appName)!;
+    const title = workspaceData.title || app.title;
 
     const workspace = this.workspaceRepository.create({
-      ...rest,
+      ...workspaceData,
       title,
       createdBy: user,
     });
-
-    if (envDtos && envDtos.length > 0) {
-      workspace.environments = envDtos.map((dto) => this.workspaceEnvironmentRepository.create(dto));
-    }
 
     return await this.workspaceRepository.save(workspace);
   }
@@ -138,21 +136,11 @@ export class WorkspaceApiService {
         id,
         createdBy: user,
       },
-      relations: ['environments'],
     });
 
     if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
 
-    const { environments: envDtos, ...rest } = workspaceData;
-    Object.assign(workspace, rest);
-
-    if (envDtos !== undefined) {
-      // Remove existing environments and replace with new ones
-      await this.workspaceEnvironmentRepository.delete({ workspaceId: id });
-      workspace.environments = envDtos.map((dto) =>
-        this.workspaceEnvironmentRepository.create({ ...dto, workspaceId: id }),
-      );
-    }
+    Object.assign(workspace, workspaceData);
 
     return await this.workspaceRepository.save(workspace);
   }

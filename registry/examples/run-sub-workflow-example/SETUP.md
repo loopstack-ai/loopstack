@@ -21,7 +21,7 @@ import { RunSubWorkflowExampleModule } from '@loopstack/run-sub-workflow-example
 export class DefaultModule {}
 ```
 
-2. Inject the workflows into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the workflows into your workspace class via the constructor:
 
 ```typescript
 import {
@@ -30,8 +30,10 @@ import {
 } from '@loopstack/run-sub-workflow-example';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() runSubWorkflowExampleParent: RunSubWorkflowExampleParentWorkflow;
-  @InjectWorkflow({ options: { visible: false } }) runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
+  constructor(
+    public readonly runSubWorkflowExampleParent: RunSubWorkflowExampleParentWorkflow,
+    public readonly runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow,
+  ) {}
 }
 ```
 

@@ -7,7 +7,7 @@ export const MeetingNotesDocumentSchema = z.object({
 
 @Document({
   schema: MeetingNotesDocumentSchema,
-  uiConfig: __dirname + '/meeting-notes-document.yaml',
+  widget: __dirname + '/meeting-notes-document.yaml',
 })
 export class MeetingNotesDocument {
   text: string;

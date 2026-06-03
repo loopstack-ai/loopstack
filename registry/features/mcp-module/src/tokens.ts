@@ -1,0 +1,1 @@
+export const MCP_DEFAULT_CONFIG = Symbol('MCP_DEFAULT_CONFIG');

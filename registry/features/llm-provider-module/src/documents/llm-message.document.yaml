@@ -1,5 +1,1 @@
-tags:
-  - message
-ui:
-  widgets:
-    - widget: llm-message
+widget: llm-message

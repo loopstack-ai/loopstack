@@ -1,7 +1,7 @@
 import { JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '../types/index.js';
 
 export interface WorkflowConfigInterface {
-  alias: string;
+  workflowName: string;
   title?: string;
   description?: string;
   schema?: JSONSchemaConfigType;

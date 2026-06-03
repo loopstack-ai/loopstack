@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBlockArgsSchema } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { createToolTest } from '@loopstack/testing';
 import { GitCommitTool } from '../git-commit.tool.js';
 
@@ -12,8 +12,8 @@ describe('GitCommitTool', () => {
   const mockRemoteClient = {
     gitCommit: vi.fn(),
   };
-  const mockSandbox = {
-    getAgentUrl: vi.fn().mockReturnValue('https://agent.example'),
+  const mockEnv = {
+    getAgentUrl: vi.fn().mockResolvedValue('https://agent.example'),
   };
 
   beforeEach(async () => {
@@ -22,7 +22,7 @@ describe('GitCommitTool', () => {
     module = await createToolTest()
       .forTool(GitCommitTool)
       .withMock(RemoteClient, mockRemoteClient)
-      .withMock(SandboxEnvironmentService, mockSandbox)
+      .withMock(EnvironmentService, mockEnv)
       .compile();
 
     tool = module.get(GitCommitTool);
@@ -57,7 +57,7 @@ describe('GitCommitTool', () => {
 
       const result = await tool.call({ message: 'update from workflow' });
 
-      expect(mockSandbox.getAgentUrl).toHaveBeenCalled();
+      expect(mockEnv.getAgentUrl).toHaveBeenCalled();
       expect(mockRemoteClient.gitCommit).toHaveBeenCalledWith('https://agent.example', 'update from workflow');
       expect(result.data).toEqual({ hash: 'abc123' });
     });

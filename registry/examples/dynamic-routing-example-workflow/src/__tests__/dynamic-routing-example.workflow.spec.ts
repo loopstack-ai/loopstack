@@ -37,11 +37,11 @@ describe('DynamicRoutingExampleWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({ role: 'assistant', content: 'Analysing value = 50' }),
           }),
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({ role: 'assistant', content: 'Value is less or equal 100' }),
           }),
         ]),
@@ -56,11 +56,11 @@ describe('DynamicRoutingExampleWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({ role: 'assistant', content: 'Analysing value = 250' }),
           }),
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({ role: 'assistant', content: 'Value is greater than 200' }),
           }),
         ]),
@@ -75,11 +75,11 @@ describe('DynamicRoutingExampleWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({ role: 'assistant', content: 'Analysing value = 150' }),
           }),
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
               content: 'Value is less or equal 200, but greater than 100',

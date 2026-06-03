@@ -1,9 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateObjectTool, LlmProviderModule } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { FileDocument } from '../documents/file-document';
 import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
@@ -23,7 +22,7 @@ describe('PromptStructuredOutputWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptStructuredOutputWorkflow)
-      .withImports(ClaudeModule)
+      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
       .withProvider(FileDocument)
       .withToolOverride(LlmGenerateObjectTool)
       .compile();
@@ -38,9 +37,8 @@ describe('PromptStructuredOutputWorkflow', () => {
   });
 
   describe('initialization', () => {
-    it('should be defined with correct tools', () => {
+    it('should be defined', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('llmGenerateObject');
     });
   });
 
@@ -70,7 +68,7 @@ describe('PromptStructuredOutputWorkflow', () => {
       );
 
       expect(result.documents.length).toBeGreaterThanOrEqual(1);
-      const statusDoc = result.documents.find((d) => d.className === 'LlmMessageDocument');
+      const statusDoc = result.documents.find((d) => d.documentName === 'llm_message');
       expect(statusDoc).toBeDefined();
       expect(statusDoc!.content).toEqual(
         expect.objectContaining({

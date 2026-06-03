@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -12,6 +13,12 @@ const inputSchema = z
 
 export type GoogleDriveDownloadFileArgs = z.infer<typeof inputSchema>;
 
+export type GoogleDriveDownloadFileResult =
+  | { content: string; mimeType: string }
+  | { content: string; mimeType: string; encoding: 'base64' }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
 const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
   'application/vnd.google-apps.document': 'text/plain',
   'application/vnd.google-apps.spreadsheet': 'text/csv',
@@ -19,20 +26,26 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
 };
 
 @Tool({
-  uiConfig: {
-    description:
-      'Downloads or exports a file from Google Drive. Automatically handles Google Docs/Sheets/Slides export. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  name: 'google_drive_download_file',
+  description:
+    'Downloads or exports a file from Google Drive. Automatically handles Google Docs/Sheets/Slides export. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
-export class GoogleDriveDownloadFileTool extends BaseTool {
+export class GoogleDriveDownloadFileTool extends BaseTool<
+  GoogleDriveDownloadFileArgs,
+  object,
+  GoogleDriveDownloadFileResult
+> {
   private readonly logger = new Logger(GoogleDriveDownloadFileTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GoogleDriveDownloadFileArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(
+    args: GoogleDriveDownloadFileArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GoogleDriveDownloadFileResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {

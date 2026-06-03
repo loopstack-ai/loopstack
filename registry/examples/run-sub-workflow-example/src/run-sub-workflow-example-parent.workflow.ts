@@ -2,9 +2,6 @@ import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  Final,
-  Initial,
-  InjectWorkflow,
   LinkDocument,
   MessageDocument,
   QueueResult,
@@ -20,19 +17,18 @@ const SubWorkflowCallbackSchema = CallbackSchema.extend({
 type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
 
 @Workflow({
-  uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml',
+  title: 'Run Sub Workflow Example',
 })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
-  @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
+  constructor(private readonly subWorkflow: RunSubWorkflowExampleSubWorkflow) {
+    super();
+  }
 
-  @Initial({ to: 'sub_workflow_started' })
-  async runWorkflow() {
-    const result: QueueResult = await this.runSubWorkflowExampleSub.run(
-      {},
-      { alias: 'runSubWorkflowExampleSub', callback: { transition: 'subWorkflowCallback' } },
-    );
+  @Transition({ to: 'sub_workflow_started' })
+  async runWorkflow(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const result: QueueResult = await this.subWorkflow.run({}, { callback: { transition: 'subWorkflowCallback' } });
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Executing Sub-Workflow...',
@@ -40,6 +36,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       },
       { id: `link_${result.workflowId}` },
     );
+    return state;
   }
 
   @Transition({
@@ -48,8 +45,11 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     wait: true,
     schema: SubWorkflowCallbackSchema,
   })
-  async subWorkflowCallback(payload: SubWorkflowCallback) {
-    await this.repository.save(
+  async subWorkflowCallback(
+    state: Record<string, unknown>,
+    payload: SubWorkflowCallback,
+  ): Promise<Record<string, unknown>> {
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Sub-Workflow',
@@ -59,20 +59,18 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `A message from sub workflow 1: ${payload.data.message}`,
     });
+    return state;
   }
 
   @Transition({ from: 'sub_workflow_ended', to: 'sub_workflow2_started' })
-  async runWorkflow2() {
-    const result: QueueResult = await this.runSubWorkflowExampleSub.run(
-      {},
-      { alias: 'runSubWorkflowExampleSub', callback: { transition: 'subWorkflow2Callback' } },
-    );
+  async runWorkflow2(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const result: QueueResult = await this.subWorkflow.run({}, { callback: { transition: 'subWorkflow2Callback' } });
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Executing Sub-Workflow 2...',
@@ -80,15 +78,17 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       },
       { id: `link_${result.workflowId}` },
     );
+    return state;
   }
 
-  @Final({
+  @Transition({
     from: 'sub_workflow2_started',
+    to: 'end',
     wait: true,
     schema: SubWorkflowCallbackSchema,
   })
-  async subWorkflow2Callback(payload: SubWorkflowCallback) {
-    await this.repository.save(
+  async subWorkflow2Callback(state: Record<string, unknown>, payload: SubWorkflowCallback): Promise<unknown> {
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Sub-Workflow 2',
@@ -98,9 +98,10 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `A message from sub workflow 2: ${payload.data.message}`,
     });
+    return {};
   }
 }

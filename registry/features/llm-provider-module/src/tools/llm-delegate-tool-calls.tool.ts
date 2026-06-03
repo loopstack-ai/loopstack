@@ -1,6 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { LlmDelegateService } from '../services/llm-delegate.service.js';
 import { LlmNormalizedMessageSchema } from '../types/index.js';
 import type { LlmContentBlock, LlmDelegateResult, LlmNormalizedMessage } from '../types/index.js';
@@ -17,23 +18,20 @@ export const LlmDelegateToolCallsToolSchema = z.object({
 type LlmDelegateToolCallsToolArgs = z.infer<typeof LlmDelegateToolCallsToolSchema>;
 
 @Tool({
-  uiConfig: {
-    description: 'Delegates tool calls from an LLM response. Resolves tools from the workflow and workspace.',
-  },
+  name: 'llm_delegate_tool_calls',
+  description: 'Delegates tool calls from an LLM response. Resolves tools via ToolRegistry.',
   schema: LlmDelegateToolCallsToolSchema,
 })
-export class LlmDelegateToolCallsTool extends BaseTool {
+export class LlmDelegateToolCallsTool extends BaseTool<LlmDelegateToolCallsToolArgs, object, LlmDelegateResult> {
   @Inject() private readonly delegateService: LlmDelegateService;
 
-  async call(args: LlmDelegateToolCallsToolArgs): Promise<ToolResult<LlmDelegateResult>> {
+  protected async handle(
+    args: LlmDelegateToolCallsToolArgs,
+    _ctx: LoopstackContext,
+  ): Promise<ToolResult<LlmDelegateResult>> {
     const message = args.message as LlmNormalizedMessage;
     const toolCalls = this.extractToolCalls(message);
-    const result = await this.delegateService.delegateToolCalls(
-      toolCalls,
-      this.ctx.workflow,
-      this.ctx.app,
-      args.callback,
-    );
+    const result = await this.delegateService.delegateToolCalls(toolCalls, args.callback);
 
     return { data: result };
   }

@@ -7,8 +7,12 @@ describe('AiGenerateTextQuotaCalculator', () => {
   const context: ToolExecutionContext = {
     tool: {},
     args: undefined,
-    app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
-    run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
+    loopstackContext: {
+      userId: 'user-1',
+      workspaceId: 'ws-1',
+      workflowId: '',
+      args: undefined,
+    },
     metadata: {},
   };
 

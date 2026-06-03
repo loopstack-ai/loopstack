@@ -1,7 +1,7 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export const GitWorktreeAddSchema = z
   .object({
@@ -17,20 +17,29 @@ export const GitWorktreeAddSchema = z
 
 export type GitWorktreeAddArgs = z.infer<typeof GitWorktreeAddSchema>;
 
-@Tool({
-  schema: GitWorktreeAddSchema,
-  uiConfig: {
-    description:
-      'Creates a new git worktree at the given path. Optionally checks out an existing branch or creates a new one with "newBranch: true".',
-  },
-})
-export class GitWorktreeAddTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export type GitWorktreeAddResult = {
+  success: boolean;
+  path: string;
+  output?: string;
+};
 
-  async call(args: GitWorktreeAddArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitWorktreeAdd(agentUrl, args);
+@Tool({
+  name: 'git_worktree_add',
+  description:
+    'Creates a new git worktree at the given path. Optionally checks out an existing branch or creates a new one with "newBranch: true".',
+  schema: GitWorktreeAddSchema,
+})
+export class GitWorktreeAddTool extends BaseTool<GitWorktreeAddArgs, object, GitWorktreeAddResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
+
+  protected async handle(args: GitWorktreeAddArgs, _ctx: LoopstackContext): Promise<ToolResult<GitWorktreeAddResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitWorktreeAdd(agentUrl, args);
     return { data: result };
   }
 }

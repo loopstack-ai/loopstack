@@ -1,72 +1,84 @@
-import { BaseWorkflow, Final, Guard, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { GetWeather } from './tools/get-weather.tool';
 
-@Workflow({
-  uiConfig: __dirname + '/tool-call.ui.yaml',
-})
-export class ToolCallWorkflow extends BaseWorkflow {
-  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6', tools: ['getWeather'] })
-  llmGenerateText: LlmGenerateTextTool;
-
-  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
-  @InjectTool() getWeather: GetWeather;
-
+interface ToolCallState {
   llmResult?: LlmGenerateTextResult;
   llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
+}
 
-  @Initial({ to: 'ready' })
-  async setup() {
-    await this.repository.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
+@Workflow({
+  title: 'LLM Tool Calling Example (Berlin Weather)',
+  description:
+    'An example workflow that demonstrates how to use an LLM to call external tools and handle their responses.',
+})
+export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
+  constructor(
+    private readonly llmGenerateText: LlmGenerateTextTool,
+    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly getWeather: GetWeather,
+  ) {
+    super();
+  }
+
+  @Transition({ to: 'ready' })
+  async setup(state: ToolCallState): Promise<ToolCallState> {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
+    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn() {
-    const result: ToolResult<LlmGenerateTextResult, LlmResultMeta> = await this.llmGenerateText.call();
-    this.llmResult = result.data;
-    this.llmMeta = result.metadata;
+  async llmTurn(state: ToolCallState): Promise<ToolCallState> {
+    const result = await this.llmGenerateText.call(
+      {},
+      { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
+    );
+    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+  async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
-    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-      message: this.llmResult!.message,
-    });
-    this.delegateResult = result.data;
+    const result = await this.llmDelegateToolCalls.call(
+      { message: state.llmResult!.message },
+      { config: { provider: 'claude' } },
+    );
+    return { ...state, delegateResult: result.data };
   }
 
-  hasToolCalls() {
-    return this.llmResult?.message.stopReason === 'tool_use';
+  hasToolCalls(state: ToolCallState): boolean {
+    return state.llmResult?.message.stopReason === 'tool_use';
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async toolsComplete() {
-    await this.repository.save(LlmMessageDocument, {
+  async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: this.delegateResult!.toolResults.map((tr) => ({
+      content: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',
         isError: tr.isError ?? false,
       })),
     });
+    return state;
   }
 
-  allToolsComplete() {
-    return this.delegateResult?.allCompleted;
+  allToolsComplete(state: ToolCallState): boolean {
+    return state.delegateResult?.allCompleted ?? false;
   }
 
-  @Final({ from: 'prompt_executed' })
-  async respond() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  async respond(state: ToolCallState): Promise<unknown> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
+    return {};
   }
 }

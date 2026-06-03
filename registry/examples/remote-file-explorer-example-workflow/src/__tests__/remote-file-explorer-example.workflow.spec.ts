@@ -38,8 +38,8 @@ describe('RemoteFileExplorerExampleWorkflow', () => {
     expect(result.hasError).toBe(false);
     expect(result.place).toBe('end');
 
-    expect(mockGlob.call).toHaveBeenCalledWith({ pattern: '**/*.md' }, undefined);
-    expect(mockRead.call).toHaveBeenCalledWith({ file_path: 'README.md' }, undefined);
+    expect(mockGlob.call).toHaveBeenCalledWith({ pattern: '**/*.md' });
+    expect(mockRead.call).toHaveBeenCalledWith({ file_path: 'README.md' });
 
     const text = JSON.stringify(result.documents);
     expect(text).toContain('README.md');

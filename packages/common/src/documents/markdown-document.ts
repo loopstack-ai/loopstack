@@ -9,7 +9,7 @@ export const MarkdownDocumentSchema = z
 
 @Document({
   schema: MarkdownDocumentSchema,
-  uiConfig: import.meta.dirname + '/markdown-document.yaml',
+  widget: import.meta.dirname + '/markdown-document.yaml',
 })
 export class MarkdownDocument {
   markdown: string;

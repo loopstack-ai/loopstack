@@ -13,12 +13,12 @@ export class LocalFileExplorerController {
     private readonly workspaceService: WorkspaceService,
   ) {}
 
-  private async getWorkspaceClassName(workspaceId: string, userId: string): Promise<string> {
+  private async getWorkspaceAppName(workspaceId: string, userId: string): Promise<string> {
     const workspace = await this.workspaceService.getWorkspace({ id: workspaceId }, userId);
     if (!workspace) {
       throw new NotFoundException(`Workspace with ID ${workspaceId} not found`);
     }
-    return workspace.className;
+    return workspace.appName;
   }
 
   @Get('tree')
@@ -26,8 +26,8 @@ export class LocalFileExplorerController {
     @Param('workspaceId') workspaceId: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<FileExplorerNodeDto[]> {
-    const className = await this.getWorkspaceClassName(workspaceId, user.userId);
-    return this.fileApiService.getFileTree(className);
+    const appName = await this.getWorkspaceAppName(workspaceId, user.userId);
+    return this.fileApiService.getFileTree(appName);
   }
 
   @Get('read')
@@ -36,7 +36,7 @@ export class LocalFileExplorerController {
     @Query('path') filePath: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<FileContentDto> {
-    const className = await this.getWorkspaceClassName(workspaceId, user.userId);
-    return this.fileApiService.getFileContent(className, filePath);
+    const appName = await this.getWorkspaceAppName(workspaceId, user.userId);
+    return this.fileApiService.getFileContent(appName, filePath);
   }
 }

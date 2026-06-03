@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service.js';
 
 const inputSchema = z
@@ -21,18 +22,17 @@ interface SandboxInitResult {
 }
 
 @Tool({
-  uiConfig: {
-    description: 'Initialize a new sandbox container',
-  },
+  name: 'sandbox_init',
+  description: 'Initialize a new sandbox container',
   schema: inputSchema,
 })
-export class SandboxInit extends BaseTool {
+export class SandboxInit extends BaseTool<SandboxInitArgs, object, SandboxInitResult> {
   private readonly logger = new Logger(SandboxInit.name);
 
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  async call(args: SandboxInitArgs): Promise<ToolResult<SandboxInitResult>> {
+  protected async handle(args: SandboxInitArgs, _ctx: LoopstackContext): Promise<ToolResult<SandboxInitResult>> {
     const { containerId, imageName, containerName, projectOutPath, rootPath } = args;
 
     this.logger.debug(

@@ -1,20 +1,19 @@
 import { Inject } from '@nestjs/common';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { ExecutionScope } from '@loopstack/core';
+import type { LoopstackContext } from '@loopstack/common';
 import { SecretService } from '../services/index.js';
 
-@Tool({
-  uiConfig: {
-    description: 'Returns the list of secret keys for the current workspace. Does not return secret values.',
-  },
-})
-export class GetSecretKeysTool extends BaseTool {
-  @Inject() private secretService: SecretService;
-  @Inject() private executionScope: ExecutionScope;
+export type GetSecretKeysResult = { key: string; hasValue: boolean }[];
 
-  async call(_args?: object): Promise<ToolResult> {
-    const ctx = this.executionScope.get();
-    const secrets = await this.secretService.findAllByWorkspace(ctx.getContext().workspaceId);
+@Tool({
+  name: 'get_secret_keys',
+  description: 'Returns the list of secret keys for the current workspace. Does not return secret values.',
+})
+export class GetSecretKeysTool extends BaseTool<object, object, GetSecretKeysResult> {
+  @Inject() private secretService: SecretService;
+
+  protected async handle(_args: object | undefined, ctx: LoopstackContext): Promise<ToolResult<GetSecretKeysResult>> {
+    const secrets = await this.secretService.findAllByWorkspace(ctx.workspaceId as string);
     return {
       data: secrets.map((s) => ({
         key: s.key,

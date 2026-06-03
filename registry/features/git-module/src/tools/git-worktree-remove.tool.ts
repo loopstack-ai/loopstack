@@ -1,7 +1,7 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import type { LoopstackContext } from '@loopstack/common';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export const GitWorktreeRemoveSchema = z
   .object({
@@ -15,19 +15,27 @@ export const GitWorktreeRemoveSchema = z
 
 export type GitWorktreeRemoveArgs = z.infer<typeof GitWorktreeRemoveSchema>;
 
-@Tool({
-  schema: GitWorktreeRemoveSchema,
-  uiConfig: {
-    description: 'Removes a git worktree at the given path. Use force=true to remove dirty or locked worktrees.',
-  },
-})
-export class GitWorktreeRemoveTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export type GitWorktreeRemoveResult = { success: boolean };
 
-  async call(args: GitWorktreeRemoveArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitWorktreeRemove(agentUrl, args);
+@Tool({
+  name: 'git_worktree_remove',
+  description: 'Removes a git worktree at the given path. Use force=true to remove dirty or locked worktrees.',
+  schema: GitWorktreeRemoveSchema,
+})
+export class GitWorktreeRemoveTool extends BaseTool<GitWorktreeRemoveArgs, object, GitWorktreeRemoveResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
+
+  protected async handle(
+    args: GitWorktreeRemoveArgs,
+    _ctx: LoopstackContext,
+  ): Promise<ToolResult<GitWorktreeRemoveResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitWorktreeRemove(agentUrl, args);
     return { data: result };
   }
 }

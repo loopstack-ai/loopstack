@@ -9,7 +9,6 @@ export interface CreateCheckpointData {
   transitionId: string | null;
   transitionFrom: string | null;
   state: Record<string, unknown>;
-  tools: Record<string, unknown>;
   documentIds: string[];
   invalidatedDocumentIds: string[];
   version: number;

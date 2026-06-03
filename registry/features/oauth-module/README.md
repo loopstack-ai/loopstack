@@ -176,7 +176,7 @@ interface OAuthTokenSet {
 
 ## Using the OAuth Workflow in a Custom Use Case
 
-The typical pattern is "try, then authenticate on failure" using `@InjectWorkflow()` to launch the OAuth workflow as a sub-workflow:
+The typical pattern is "try, then authenticate on failure" — inject the OAuth workflow via the constructor and launch it as a sub-workflow:
 
 1. Your tool attempts an API call using a token from `OAuthTokenStore`
 2. If no token exists (or it's rejected), your workflow launches the OAuth workflow as a sub-workflow
@@ -205,10 +205,10 @@ const inputSchema = z
 export class MyApiTool extends BaseTool {
   private readonly logger = new Logger(MyApiTool.name);
 
-  @Inject() private tokenStore: OAuthTokenStore;
+  constructor(private readonly tokenStore: OAuthTokenStore) {}
 
-  async call(args: z.infer<typeof inputSchema>): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.workspace.userId, 'github');
+  protected async handle(args: z.infer<typeof inputSchema>, ctx: LoopstackContext): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return { data: { error: 'unauthorized' } };
@@ -233,18 +233,17 @@ import {
   Final,
   Guard,
   Initial,
-  InjectTool,
-  InjectWorkflow,
   ToolResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { LinkDocument, MessageDocument } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { MyApiTool } from './my-api.tool';
 
 @Workflow({
-  uiConfig: __dirname + '/my.ui.yaml',
+  widget: __dirname + '/my.ui.yaml',
   schema: z
     .object({
       query: z.string().default('example'),
@@ -252,8 +251,12 @@ import { MyApiTool } from './my-api.tool';
     .strict(),
 })
 export class MyWorkflow extends BaseWorkflow<{ query: string }> {
-  @InjectTool() private myApiTool: MyApiTool;
-  @InjectWorkflow() private oAuth: OAuthWorkflow;
+  constructor(
+    private readonly myApiTool: MyApiTool,
+    private readonly oAuth: OAuthWorkflow,
+  ) {
+    super();
+  }
 
   requiresAuth?: boolean;
   items?: any;

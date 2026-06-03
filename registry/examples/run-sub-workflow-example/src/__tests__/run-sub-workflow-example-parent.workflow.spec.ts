@@ -6,14 +6,14 @@ import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow';
 import { RunSubWorkflowExampleSubWorkflow } from '../run-sub-workflow-example-sub.workflow';
 
+const mockSubWorkflow = {
+  run: vi.fn(),
+};
+
 describe('RunSubWorkflowExampleParentWorkflow', () => {
   let module: TestingModule;
   let workflow: RunSubWorkflowExampleParentWorkflow;
   let processor: WorkflowProcessorService;
-
-  const mockSubWorkflow = {
-    run: vi.fn(),
-  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -59,19 +59,13 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.place).toBe('sub_workflow_started');
 
       expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
-      expect(mockSubWorkflow.run).toHaveBeenCalledWith(
-        {},
-        expect.objectContaining({
-          alias: 'runSubWorkflowExampleSub',
-          callback: { transition: 'subWorkflowCallback' },
-        }),
-      );
+      expect(mockSubWorkflow.run).toHaveBeenCalledWith({}, { callback: { transition: 'subWorkflowCallback' } });
 
       // Link document should have been created
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'LinkDocument',
+            documentName: 'link',
             content: expect.objectContaining({
               label: 'Executing Sub-Workflow...',
               workflowId: 'test-workflow-id',
@@ -114,7 +108,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
               content: 'A message from sub workflow 1: Hi mom!',
@@ -125,13 +119,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
 
       // runWorkflow2 fires automatically and calls sub workflow again
       expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
-      expect(mockSubWorkflow.run).toHaveBeenCalledWith(
-        {},
-        expect.objectContaining({
-          alias: 'runSubWorkflowExampleSub',
-          callback: { transition: 'subWorkflow2Callback' },
-        }),
-      );
+      expect(mockSubWorkflow.run).toHaveBeenCalledWith({}, { callback: { transition: 'subWorkflow2Callback' } });
     });
 
     it('should execute sub_workflow2_callback when resumed from sub_workflow2_started', async () => {
@@ -161,7 +149,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'MessageDocument',
+            documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
               content: 'A message from sub workflow 2: Hello from sub workflow 2!',

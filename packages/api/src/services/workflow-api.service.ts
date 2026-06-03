@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { WorkflowCheckpointEntity, WorkflowEntity, WorkflowState } from '@loopstack/common';
-import { CreateWorkflowService, WorkflowCheckpointService } from '@loopstack/core';
+import { CreateWorkflowService, WorkflowCheckpointService, WorkflowRegistryService } from '@loopstack/core';
 import { WorkflowCreateDto } from '../dtos/workflow-create.dto.js';
 import { WorkflowFilterDto } from '../dtos/workflow-filter.dto.js';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto.js';
@@ -18,6 +18,7 @@ export class WorkflowApiService {
     private configService: ConfigService,
     private workflowCheckpointService: WorkflowCheckpointService,
     private readonly createWorkflowService: CreateWorkflowService,
+    private readonly workflowRegistryService: WorkflowRegistryService,
   ) {}
 
   /**
@@ -58,7 +59,7 @@ export class WorkflowApiService {
 
     if (search) {
       const allowedColumns = getEntityColumns(WorkflowEntity);
-      const searchColumns = ['title', 'alias'].filter((col) => allowedColumns.includes(col));
+      const searchColumns = ['title', 'workflowName'].filter((col) => allowedColumns.includes(col));
       if (searchColumns.length > 0) {
         const searchConditions = searchColumns.map((column) => `workflow.${column} ILIKE :searchQuery`);
         queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
@@ -113,7 +114,9 @@ export class WorkflowApiService {
    */
   async create(workflowData: WorkflowCreateDto, user: string): Promise<WorkflowEntity> {
     try {
+      const { instance } = this.workflowRegistryService.resolve(workflowData.workflowName);
       return this.createWorkflowService.create(
+        instance,
         {
           id: workflowData.workspaceId,
         },
