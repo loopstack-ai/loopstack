@@ -23,6 +23,12 @@ app.listen(AGENT_PORT, '::', () => {
   console.log(`Remote server listening on port ${AGENT_PORT}`);
   console.log(`  WORKSPACE_ROOT: ${WORKSPACE_ROOT}`);
 
+  // Slim sandbox images run only the agent, without the scaffolded Loopstack app.
+  if (process.env.SKIP_APP_START === 'true') {
+    console.log('SKIP_APP_START=true — running agent only, not starting custom-app.');
+    return;
+  }
+
   try {
     startApp();
   } catch (err) {

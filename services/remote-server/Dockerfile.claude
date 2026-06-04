@@ -1,0 +1,48 @@
+# Slim sandbox image: the Loopstack remote agent + Claude Code CLI, no Loopstack app.
+# Build (from services/remote-server):
+#   docker build -f Dockerfile.claude -t loopstack-remote-claude:latest .
+
+FROM node:20-slim AS build
+
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install
+COPY tsconfig.json ./
+COPY src/ ./src/
+RUN npm run build
+
+FROM node:20-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+RUN npm i -g @anthropic-ai/claude-code
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev && npm cache clean --force
+COPY --from=build /app/dist ./dist
+
+# Claude Code refuses --dangerously-skip-permissions as root, so run as `node`.
+RUN mkdir -p /workspace && chown -R node:node /workspace
+# The agent's git route writes Node's CA bundle next to the node binary on startup.
+RUN touch /usr/local/bin/node-ca-bundle.pem && chown node:node /usr/local/bin/node-ca-bundle.pem
+
+USER node
+
+RUN git config --global user.name "loopstack" && \
+    git config --global user.email "noreply@loopstack.ai" && \
+    git config --global init.defaultBranch main && \
+    cd /workspace && git init
+
+ENV AGENT_PORT=3001
+ENV WORKSPACE_ROOT=/workspace
+ENV SKIP_APP_START=true
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=5 \
+  CMD node -e "fetch('http://localhost:3001/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+
+CMD ["node", "dist/index.js"]
