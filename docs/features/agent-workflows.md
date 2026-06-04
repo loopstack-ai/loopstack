@@ -1,0 +1,287 @@
+# Agent Workflows
+
+Build LLM agents that call tools, handle errors, and run as sub-workflows. Use the built-in `AgentWorkflow` for the common case, or build your own loop from scratch with the same decorators.
+
+## Using the Built-In Agent
+
+Install the agent module:
+
+```bash
+npm install @loopstack/agent
+```
+
+Register tools in your module so the agent can use them:
+
+```typescript
+@Module({
+  imports: [LoopCoreModule, ClaudeModule, AgentModule],
+  providers: [GlobTool, GrepTool, ReadTool, MyWorkflow],
+  exports: [MyWorkflow],
+})
+export class MyModule {}
+```
+
+Launch the agent from any workflow:
+
+```typescript
+@Transition({ from: 'planning', to: 'implementing' })
+async runAgent(state: MyState): Promise<MyState> {
+  await this.agent.run({
+    system: 'You are a code exploration agent. Summarize your findings.',
+    tools: ['glob', 'grep', 'read'],
+    userMessage: 'Find all API endpoints in the codebase.',
+  }, { alias: 'agent', callback: { transition: 'agentDone' } });
+  return state;
+}
+```
+
+The agent runs a full tool-calling loop automatically: LLM turn → tool execution → loop back → until the LLM responds without tool calls.
+
+### Agent Args
+
+| Arg           | Type       | Required | Description                                   |
+| ------------- | ---------- | -------- | --------------------------------------------- |
+| `system`      | `string`   | yes      | System prompt                                 |
+| `tools`       | `string[]` | yes      | Tool names available to the LLM               |
+| `userMessage` | `string`   | yes      | Initial user message                          |
+| `context`     | `string`   | no       | Hidden context message (e.g. pre-loaded docs) |
+| `model`       | `string`   | no       | Claude model (default: `claude-sonnet-4-6`)   |
+| `cache`       | `boolean`  | no       | Enable prompt caching (default: `true`)       |
+
+### Pre-Loading Context
+
+Pass documentation or environment data as a hidden context message. The LLM sees it but it's not shown in the UI:
+
+```typescript
+const docs = await this.loadFiles.call({
+  files: ['docs/api-reference.md', 'docs/architecture.md'],
+  basePath: './src/assets',
+});
+
+const context = this.render(__dirname + '/templates/context.md', {
+  docs: docs.data,
+  projectName: args.projectName,
+});
+
+await this.agent.run({
+  system: 'You are a documentation agent.',
+  tools: ['read', 'write', 'glob', 'grep'],
+  userMessage: 'Generate API documentation.',
+  context,
+});
+```
+
+## Tool Resolution
+
+When the LLM calls a tool, it's resolved from the NestJS dependency injection container by its `@Tool({ name })` value.
+
+The agent workflow only injects the three tools it always needs (`LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`). Domain-specific tools like `glob` or `read` are resolved from the module at runtime.
+
+This means you register tools once in the module and they're available to the agent and all other workflows.
+
+## Error Handling
+
+Tool errors are handled automatically. When a tool call fails (schema validation or runtime error), the error is returned to the LLM as an `is_error` tool result. The LLM sees the error message and can self-correct on the next turn.
+
+The `LlmDelegateResult` includes error metadata:
+
+```typescript
+interface LlmDelegateResult {
+  allCompleted: boolean;
+  pendingCount: number;
+  hasErrors: boolean;
+  errorCount: number;
+  errors: { toolName: string; toolUseId: string; message: string }[];
+}
+```
+
+## Canceling Pending Tools
+
+If the agent is stuck at `awaiting_tools` (e.g. a sub-workflow hasn't returned), a "Cancel pending tools" button appears in the UI. This cancels all pending child workflows recursively and returns the agent to the LLM loop.
+
+## Building a Custom Agent
+
+The built-in `AgentWorkflow` is a regular workflow. When you need custom behavior, copy it and modify directly. Here's the full loop:
+
+```typescript
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import {
+  LlmDelegateToolCallsTool,
+  LlmGenerateTextTool,
+  LlmMessageDocument,
+  LlmUpdateToolResultTool,
+} from '@loopstack/llm-provider-module';
+
+interface AgentState {
+  llmResult?: LlmGenerateTextResult;
+  llmMeta?: LlmResultMeta;
+  delegateResult?: LlmDelegateResult;
+}
+
+@Workflow({
+  widget: __dirname + '/my-agent.ui.yaml',
+  schema: z.object({ instructions: z.string() }),
+})
+export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, AgentState> {
+  constructor(
+    private readonly llmGenerateText: LlmGenerateTextTool,
+    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
+    private readonly myCustomTool: MyCustomTool,
+  ) {
+    super();
+  }
+
+  @Transition({ to: 'ready' })
+  async setup(state: AgentState, ctx: LoopstackContext): Promise<AgentState> {
+    const args = ctx.args as { instructions: string };
+    await this.documentStore.save(LlmMessageDocument, {
+      role: 'user',
+      content: args.instructions,
+    });
+    return state;
+  }
+
+  @Transition({ from: 'ready', to: 'prompt_executed' })
+  async llmTurn(state: AgentState): Promise<AgentState> {
+    const result = await this.llmGenerateText.call(
+      {},
+      {
+        config: {
+          provider: 'claude',
+          model: 'claude-sonnet-4-6',
+          system: 'You are a custom agent.',
+          tools: ['my_custom_tool'],
+        },
+      },
+    );
+    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+  }
+
+  @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
+  @Guard('hasToolCalls')
+  async executeToolCalls(state: AgentState): Promise<AgentState> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
+    });
+
+    const result = await this.llmDelegateToolCalls.call(
+      { message: state.llmResult!.message },
+      { config: { provider: 'claude' } },
+    );
+    return { ...state, delegateResult: result.data };
+  }
+
+  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
+  async toolResultReceived(state: AgentState, payload: unknown): Promise<AgentState> {
+    const result = await this.llmUpdateToolResult.call({
+      delegateResult: state.delegateResult!,
+      completedTool: payload,
+    });
+    return { ...state, delegateResult: result.data };
+  }
+
+  @Transition({ from: 'awaiting_tools', to: 'ready' })
+  @Guard('allToolsComplete')
+  async toolsComplete(state: AgentState): Promise<AgentState> {
+    return state;
+  }
+
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  @Guard('isEndTurn')
+  async respond(state: AgentState): Promise<unknown> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
+    });
+    return {};
+  }
+
+  hasToolCalls(state: AgentState): boolean {
+    return state.llmResult?.message.stopReason === 'tool_use';
+  }
+
+  allToolsComplete(state: AgentState): boolean {
+    return state.delegateResult?.allCompleted ?? false;
+  }
+
+  isEndTurn(state: AgentState): boolean {
+    return state.llmResult?.message.stopReason === 'end_turn';
+  }
+}
+```
+
+### Adding User Interaction
+
+Pause for user input between LLM turns:
+
+```typescript
+// Instead of final transition, go to waiting_for_user
+@Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
+@Guard('isEndTurn')
+async respondToUser(state: AgentState): Promise<AgentState> {
+  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
+  });
+  return state;
+}
+
+@Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
+async userMessage(state: AgentState, payload: string): Promise<AgentState> {
+  await this.documentStore.save(LlmMessageDocument, {
+    role: 'user',
+    content: payload,
+  });
+  return state;
+}
+```
+
+### Wrapping an Agent as a Tool
+
+Make an agent callable by other agents via a task tool:
+
+```typescript
+@Tool({
+  name: 'explore_codebase',
+  description: 'Launch a sub-agent to explore the codebase.',
+  schema: z.object({ instructions: z.string() }),
+})
+export class ExploreTask extends BaseTool {
+  constructor(private readonly agent: AgentWorkflow) {
+    super();
+  }
+
+  protected async handle(
+    args: { instructions: string },
+    ctx: LoopstackContext,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult> {
+    const result = await this.agent.run(
+      {
+        system: 'You are a codebase exploration agent.',
+        tools: ['glob', 'grep', 'read'],
+        userMessage: args.instructions,
+      },
+      { alias: 'exploreAgent', callback: options?.callback },
+    );
+
+    return {
+      data: { workflowId: result.workflowId },
+      pending: { workflowId: result.workflowId },
+    };
+  }
+
+  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+    const data = result as { data?: { response?: string } };
+    return { data: data.data?.response ?? result };
+  }
+}
+```
+
+This enables multi-agent architectures where an orchestrator agent delegates tasks to specialized sub-agents.
+
+## Registry References
+
+- [@loopstack/agent](https://loopstack.ai/registry/loopstack-agent) — Built-in agent workflow module
+- [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — Code exploration agent (ExploreTask) built on @loopstack/agent
+- [delegate-error-example-workflow](https://loopstack.ai/registry/loopstack-delegate-error-example-workflow) — Example demonstrating tool error handling and recovery
