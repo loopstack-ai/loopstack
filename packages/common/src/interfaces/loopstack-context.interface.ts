@@ -7,10 +7,10 @@
  * - `args` — validated workflow input args (frozen at job start)
  * - `execution` — present in workflow transitions, absent in tools
  */
-export interface LoopstackContext {
+export interface LoopstackContext<TArgs = unknown> {
   userId: string;
   workspaceId: string;
   workflowId: string;
-  args: unknown;
+  args: TArgs;
   execution?: { place: string; retryCount: number };
 }

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { StudioApp } from '@loopstack/common';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { LlmProviderModule } from '@loopstack/llm-provider-module';
-import { HelloController } from './hello.controller';
 import { HelloWorkflow } from './hello.workflow';
 
 @StudioApp({
@@ -14,7 +13,6 @@ import { HelloWorkflow } from './hello.workflow';
     ClaudeModule,
     LlmProviderModule.forFeature({ model: 'claude-sonnet-4-5' }),
   ],
-  controllers: [HelloController],
   providers: [HelloWorkflow],
 })
 export class HelloModule {}
