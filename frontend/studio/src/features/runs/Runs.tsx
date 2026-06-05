@@ -3,7 +3,6 @@ import type { FilterOption } from '../../components/data-table/data-table.ts';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column } from '../../components/lists/ListView.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import { useBatchDeleteWorkflows, useDeleteWorkflow, useFilterWorkflows } from '../../hooks/useWorkflows.ts';
 import { useFilterWorkspaces } from '../../hooks/useWorkspaces.ts';
@@ -42,9 +41,9 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
   const batchDeleteWorkflows = useBatchDeleteWorkflows();
 
   const workspaceMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, { title: string; appName: string }>();
     for (const ws of fetchWorkspaces.data?.data ?? []) {
-      map.set(ws.id, ws.title);
+      map.set(ws.id, { title: ws.title, appName: ws.appName });
     }
     return map;
   }, [fetchWorkspaces.data]);
@@ -115,7 +114,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
             minWidth: 120,
             format: (value: unknown) => {
               const wsId = value as string;
-              const title = workspaceMap.get(wsId);
+              const ws = workspaceMap.get(wsId);
               return (
                 <Badge
                   variant="outline"
@@ -125,14 +124,25 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
                     setFilters((curr) => ({ ...curr, workspaceId: wsId }));
                   }}
                 >
-                  {title ?? wsId.slice(0, 8)}
+                  {ws?.title ?? wsId.slice(0, 8)}
                 </Badge>
               );
             },
           },
           {
+            id: 'appName',
+            label: 'App',
+            minWidth: 100,
+            format: (_value: unknown, item: unknown) => {
+              const wsId = (item as Record<string, unknown>).workspaceId as string;
+              const ws = workspaceMap.get(wsId);
+              if (!ws) return '—';
+              return ws.appName;
+            },
+          },
+          {
             id: 'workflowName',
-            label: 'Type',
+            label: 'Workflow',
             minWidth: 100,
             format: (value: unknown) => {
               const name = value as string;
@@ -147,29 +157,6 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
                 >
                   {name}
                 </Badge>
-              );
-            },
-          },
-          {
-            id: 'title',
-            label: 'Title',
-            minWidth: 150,
-            format: (value: unknown) => {
-              const title = value as string | undefined;
-              if (!title) return '—';
-              return (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>{title.length > 40 ? title.slice(0, 40) + '...' : title}</span>
-                    </TooltipTrigger>
-                    {title.length > 40 && (
-                      <TooltipContent>
-                        <p>{title}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
               );
             },
           },
