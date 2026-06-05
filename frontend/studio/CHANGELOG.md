@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.31.0
+
+### Minor Changes
+
+- [#174](https://github.com/loopstack-ai/loopstack/pull/174) [`bdeeeeb`](https://github.com/loopstack-ai/loopstack/commit/bdeeeeb9dc0d64c3eadaf47848d8cd2eb406f7dc) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Redesign dashboard as applications page with app launcher, add app columns to workspaces and runs
+
 ## 0.30.0
 
 ### Minor Changes
