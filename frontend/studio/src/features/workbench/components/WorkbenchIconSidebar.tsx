@@ -1,9 +1,7 @@
-import { Home, MonitorPlay, Play, Server } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { MonitorPlay, Play, Server } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { useFeatureRegistry } from '@/features/feature-registry';
 import { cn } from '@/lib/utils';
-import { useStudio } from '@/providers/StudioProvider';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
 
 interface IconButtonProps {
@@ -38,35 +36,11 @@ function IconButton({ icon, label, active, disabled, onClick }: IconButtonProps)
   );
 }
 
-function IconLink({ icon, label, to, active }: { icon: React.ReactNode; label: string; to: string; active?: boolean }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link
-          to={to}
-          className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-md transition-colors',
-            active
-              ? 'bg-foreground text-background'
-              : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground',
-          )}
-        >
-          {icon}
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent side="left">{label}</TooltipContent>
-    </Tooltip>
-  );
-}
-
 export function WorkbenchIconSidebar() {
-  const { previewPanelEnabled, activePanel, togglePanel, environments, workspaceId } = useWorkbenchLayout();
-  const { router } = useStudio();
-  const location = useLocation();
+  const { previewPanelEnabled, activePanel, togglePanel, environments } = useWorkbenchLayout();
   const features = useFeatureRegistry();
 
   const hasRemoteEnvironment = environments?.some((e) => !!e.agentUrl) ?? false;
-  const workspacePath = router.getWorkspace(workspaceId);
 
   const featurePanels = features.filter((f) => f.sidebarPanel).map((f) => f.sidebarPanel!);
 
@@ -77,13 +51,6 @@ export function WorkbenchIconSidebar() {
 
       {/* Navigation */}
       <div className="flex flex-col items-center gap-1 py-2">
-        <IconLink
-          icon={<Home className="h-5 w-5" />}
-          label="Workspace"
-          to={workspacePath}
-          active={location.pathname === workspacePath}
-        />
-
         <IconButton
           icon={<Play className="h-5 w-5" />}
           label="Runs"

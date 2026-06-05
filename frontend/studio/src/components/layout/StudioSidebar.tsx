@@ -1,9 +1,8 @@
-import { CircleAlert, LayoutGrid, MoreHorizontal, PanelLeftIcon, Play, Star } from 'lucide-react';
+import { Boxes, LayoutGrid, MoreHorizontal, PanelLeftIcon, Play, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useFilterWorkflows } from '@/hooks/useWorkflows.ts';
 import { useFilterWorkspaces } from '@/hooks/useWorkspaces.ts';
 import { cn } from '@/lib/utils';
 import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
@@ -17,7 +16,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -90,62 +88,42 @@ const DefaultSidebarHeader = () => {
   );
 };
 
-const RunsNav = () => {
+const MainNav = () => {
   const location = useLocation();
   const { router } = useStudio();
-  const runsPath = router.getRuns();
-  const actionRequiredPath = router.getRunsActionRequired();
-
-  const fetchPaused = useFilterWorkflows(undefined, { parentId: null, status: 'paused' }, 'createdAt', 'DESC', 0, 1);
-  const pausedCount = fetchPaused.data?.total ?? 0;
-
-  return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Runs</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={location.pathname === runsPath || location.pathname === runsPath + '/'}
-              tooltip="Overview"
-            >
-              <Link to={runsPath}>
-                <Play />
-                <span>Overview</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={location.pathname === actionRequiredPath} tooltip="Action Required">
-              <Link to={actionRequiredPath}>
-                <CircleAlert />
-                <span>Action Required</span>
-              </Link>
-            </SidebarMenuButton>
-            {pausedCount > 0 && <SidebarMenuBadge>{pausedCount}</SidebarMenuBadge>}
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
-};
-
-const WorkspacesNav = () => {
-  const location = useLocation();
-  const { router } = useStudio();
+  const dashboardPath = router.getDashboard();
   const workspacesPath = router.getWorkspaces();
+  const runsPath = router.getRuns();
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Workspaces</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={location.pathname === dashboardPath} tooltip="Applications">
+              <Link to={dashboardPath}>
+                <Boxes />
+                <span>Applications</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={location.pathname === workspacesPath} tooltip="Workspaces">
               <Link to={workspacesPath}>
                 <LayoutGrid />
                 <span>Workspaces</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={location.pathname === runsPath || location.pathname === runsPath + '/'}
+              tooltip="Runs"
+            >
+              <Link to={runsPath}>
+                <Play />
+                <span>Runs</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -251,8 +229,7 @@ export const StudioSidebar = () => {
       <SidebarContent>
         {studio && (
           <>
-            <RunsNav />
-            <WorkspacesNav />
+            <MainNav />
             <FavouritesNav />
           </>
         )}

@@ -33,7 +33,7 @@ export class LocalRouter implements StudioRouter {
   }
 
   getDashboard() {
-    return '/dashboard';
+    return '/applications';
   }
 
   async navigateToDashboard() {

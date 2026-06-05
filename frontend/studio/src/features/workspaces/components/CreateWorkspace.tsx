@@ -22,7 +22,7 @@ import { EnvironmentSlotSelector } from './EnvironmentSlotSelector.tsx';
 export interface CreateWorkspaceProps {
   types: AppConfigInterface[];
   workspace?: WorkspaceItemInterface;
-  onSuccess: () => void;
+  onSuccess: (workspace?: WorkspaceItemInterface) => void;
 }
 
 const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) => {
@@ -140,7 +140,7 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
       {
         onSuccess: async (updatedWorkspace) => {
           await saveEnvironments(updatedWorkspace.id);
-          onSuccess();
+          onSuccess(updatedWorkspace);
         },
       },
     );
@@ -166,7 +166,7 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
       {
         onSuccess: async (createdWorkspace) => {
           await saveEnvironments(createdWorkspace.id);
-          onSuccess();
+          onSuccess(createdWorkspace);
         },
       },
     );

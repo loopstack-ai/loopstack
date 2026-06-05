@@ -108,14 +108,14 @@ const router: DataRouter = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
+        element: <Navigate to="/applications" replace />,
       },
       {
         path: 'info',
         element: <DebugPage />,
       },
       {
-        path: 'dashboard',
+        path: 'applications',
         element: <DashboardPage />,
       },
       {

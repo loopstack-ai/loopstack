@@ -43,6 +43,10 @@ const Workspaces = () => {
     if (searchParams.get('create') === 'true') {
       setOpen(true);
     }
+    const appName = searchParams.get('appName');
+    if (appName) {
+      setFilters((prev) => ({ ...prev, appName }));
+    }
   }, [searchParams]);
 
   const fetchAppsConfig = useAppsConfig();
@@ -140,6 +144,20 @@ const Workspaces = () => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+              ),
+            },
+            {
+              id: 'appName',
+              label: 'App',
+              minWidth: 100,
+              format: (value: string) => (
+                <Badge
+                  variant="outline"
+                  className="hover:bg-primary/10 cursor-pointer"
+                  onClick={() => setFilters((curr) => ({ ...curr, appName: value }))}
+                >
+                  {value}
+                </Badge>
               ),
             },
             // {

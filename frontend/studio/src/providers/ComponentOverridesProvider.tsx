@@ -6,7 +6,7 @@ import type { CreateWorkspaceProps } from '../features/workspaces/components/Cre
 export interface EditWorkspaceProps {
   types: AppConfigInterface[];
   workspace: WorkspaceItemInterface;
-  onSuccess: () => void;
+  onSuccess: (workspace?: WorkspaceItemInterface) => void;
 }
 
 export interface ComponentOverrides {
