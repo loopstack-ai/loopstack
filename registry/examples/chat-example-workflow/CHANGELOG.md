@@ -1,5 +1,14 @@
 # @loopstack/chat-example-workflow
 
+## 0.23.1
+
+### Patch Changes
+
+- [#172](https://github.com/loopstack-ai/loopstack/pull/172) [`c6d2247`](https://github.com/loopstack-ai/loopstack/commit/c6d2247cfc481e6e703f2ecb1b31001fa02ea7c6) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Inject template renderer in BaseWorkflow and remove manual injection from examples
+
+- Updated dependencies [[`c6d2247`](https://github.com/loopstack-ai/loopstack/commit/c6d2247cfc481e6e703f2ecb1b31001fa02ea7c6)]:
+  - @loopstack/common@0.32.1
+
 ## 0.23.0
 
 ### Minor Changes
