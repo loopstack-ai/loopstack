@@ -1,41 +1,41 @@
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  MessageDocument,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
+import {
+  LlmGenerateTextTool,
+  LlmMessageDocument,
+} from '@loopstack/llm-provider-module';
 
-interface HelloState {
-  name?: string;
-}
+const InputSchema = z.object({
+  name: z.string().default('World'),
+});
+
+type InputArgs = z.infer<typeof InputSchema>;
 
 @Workflow({
   title: 'Hello World',
-  description: 'A simple workflow that greets you by name.',
-  schema: z.object({
-    name: z.string().default('World'),
-  }),
+  description: 'A simple workflow that greets you by name using an LLM.',
+  schema: InputSchema,
 })
-export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
-  @Transition({ to: 'ready' })
-  start(state: HelloState, ctx: LoopstackContext): HelloState {
-    const args = ctx.args as { name: string };
-    return { name: args.name };
+export class HelloWorkflow extends BaseWorkflow<InputArgs> {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
+    super();
   }
 
-  @Transition({ from: 'ready', to: 'done' })
-  async greet(state: HelloState): Promise<HelloState> {
-    await this.documentStore.save(MessageDocument, {
-      role: 'assistant',
-      content: `Hello, ${state.name}!`,
+  @Transition({ from: 'start', to: 'message_received' })
+  async greet(_state: unknown, ctx: LoopstackContext<InputArgs>) {
+    const result = await this.llmGenerateText.call({
+      prompt: `Say hello to ${ctx.args.name} in a fun way in one sentence.`,
     });
-    return state;
+
+    await this.documentStore.save(LlmMessageDocument, result.data!.message);
   }
 
-  @Transition({ from: 'done', to: 'end' })
-  finish(): unknown {
-    return {};
+  @Transition({ from: 'message_received', to: 'end' })
+  async saveMessage() {
+    await this.documentStore.save(LlmMessageDocument, {
+      role: 'assistant',
+      content: 'Bye.',
+    });
   }
 }

@@ -68,43 +68,51 @@ Your backend is now running at [http://localhost:3000](http://localhost:3000) an
 
 ## 5. Hello World
 
-Create a simple workflow to verify your setup. Create `src/hello/hello.workflow.ts`:
+Create a simple workflow that calls an LLM to greet you by name. First install the Claude and LLM provider modules:
+
+```shell
+npm install @loopstack/claude-module @loopstack/llm-provider-module
+```
+
+Create `src/hello/hello.workflow.ts`:
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
+import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
-interface HelloState {
-  name?: string;
-}
+const InputSchema = z.object({
+  name: z.string().default('World'),
+});
+
+type InputArgs = z.infer<typeof InputSchema>;
 
 @Workflow({
   title: 'Hello World',
-  description: 'A simple workflow that greets you by name.',
-  schema: z.object({
-    name: z.string().default('World'),
-  }),
+  description: 'A simple workflow that greets you by name using an LLM.',
+  schema: InputSchema,
 })
-export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
-  @Transition({ to: 'ready' })
-  async start(state: HelloState, ctx: LoopstackContext): Promise<HelloState> {
-    const args = ctx.args as { name: string };
-    return { name: args.name };
+export class HelloWorkflow extends BaseWorkflow<InputArgs> {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
+    super();
   }
 
-  @Transition({ from: 'ready', to: 'done' })
-  async greet(state: HelloState): Promise<HelloState> {
-    await this.documentStore.save(MessageDocument, {
-      role: 'assistant',
-      content: `Hello, ${state.name}!`,
+  @Transition({ from: 'start', to: 'message_received' })
+  async greet(_state: unknown, ctx: LoopstackContext<InputArgs>) {
+    const result = await this.llmGenerateText.call({
+      prompt: `Say hello to ${ctx.args.name} in a fun way in one sentence.`,
     });
-    return state;
+
+    await this.documentStore.save(LlmMessageDocument, result.data!.message);
   }
 
-  @Transition({ from: 'done', to: 'end' })
-  async finish(): Promise<unknown> {
-    return {};
+  @Transition({ from: 'message_received', to: 'end' })
+  async saveMessage() {
+    await this.documentStore.save(LlmMessageDocument, {
+      role: 'assistant',
+      content: 'Bye.',
+    });
   }
 }
 ```
@@ -113,7 +121,9 @@ Create `src/hello/hello.module.ts`:
 
 ```typescript
 import { Module } from '@nestjs/common';
+import { ClaudeModule } from '@loopstack/claude-module';
 import { StudioApp } from '@loopstack/common';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
 import { HelloWorkflow } from './hello.workflow';
 
 @StudioApp({
@@ -121,6 +131,7 @@ import { HelloWorkflow } from './hello.workflow';
   workflows: [HelloWorkflow],
 })
 @Module({
+  imports: [ClaudeModule, LlmProviderModule.forFeature({ model: 'claude-sonnet-4-5' })],
   providers: [HelloWorkflow],
 })
 export class HelloModule {}
@@ -139,7 +150,13 @@ import { HelloModule } from './hello/hello.module';
 export class AppModule {}
 ```
 
-Restart the dev server. Open Studio at [http://localhost:5173](http://localhost:5173) — you'll see the **Hello World App**. Start a new run, enter your name, and the workflow will greet you.
+Set your Anthropic API key in `.env`:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Restart the dev server. Open Studio at [http://localhost:5173](http://localhost:5173) — you'll see the **Hello World App**. Start a new run, enter your name, and the LLM will greet you.
 
 ## Next steps
 
