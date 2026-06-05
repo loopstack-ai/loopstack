@@ -67,7 +67,8 @@ ui:
 | `type`       | `string` | Action type (e.g., `button`)                              |
 | `transition` | `string` | **Method name** of the `wait: true` transition to trigger |
 | `label`      | `string` | Button label text                                         |
-| `position`   | `number` | Button position order (optional)                          |
+| `variant`    | `string` | Button variant (optional)                                 |
+| `props`      | `object` | Additional properties (optional)                          |
 
 ### Prompt-Input Widget
 
@@ -90,7 +91,11 @@ ui:
 
 ### `enabledWhen`
 
-Controls when a widget is visible based on the current workflow place:
+Controls when a widget is interactive based on the current workflow place:
+
+### `showWhen`
+
+Controls when a widget is visible based on the current workflow place. Unlike `enabledWhen` (which controls interactivity), `showWhen` hides the widget entirely when the workflow is not at one of the listed places:
 
 ```yaml
 - widget: form

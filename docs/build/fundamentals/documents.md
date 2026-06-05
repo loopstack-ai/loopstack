@@ -73,14 +73,14 @@ await this.documentStore.save(NotesDocument, { text: 'Hidden note' }, { id: 'hid
 
 These are available without creating custom documents:
 
-| Document             | Source                           | Key Fields                              |
-| -------------------- | -------------------------------- | --------------------------------------- |
-| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `content`                       |
-| `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `href`, `status` |
-| `MessageDocument`    | `@loopstack/common`              | `role`, `content`                       |
-| `MarkdownDocument`   | `@loopstack/common`              | `markdown`                              |
-| `PlainDocument`      | `@loopstack/common`              | `text`                                  |
-| `ErrorDocument`      | `@loopstack/common`              | `error`                                 |
+| Document             | Source                           | Key Fields                                           |
+| -------------------- | -------------------------------- | ---------------------------------------------------- |
+| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `content`                                    |
+| `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `status`, `embed`, `expanded` |
+| `MessageDocument`    | `@loopstack/common`              | `role`, `content`                                    |
+| `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                           |
+| `PlainDocument`      | `@loopstack/common`              | `text`                                               |
+| `ErrorDocument`      | `@loopstack/common`              | `error`                                              |
 
 ```typescript
 import { LinkDocument, MarkdownDocument } from '@loopstack/common';

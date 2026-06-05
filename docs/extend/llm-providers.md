@@ -151,6 +151,7 @@ The args your `generateText` method receives:
 | `model`             | `string?`            | Model name                                                |
 | `providerConfig`    | `TProviderConfig?`   | Provider-specific config (temperature, maxTokens, etc.)   |
 | `onStream`          | `LlmStreamHandler?`  | Optional streaming callback                               |
+| `streamMessageId`   | `string?`            | Message ID for correlating stream events                  |
 
 ## Normalized message format
 
@@ -168,19 +169,17 @@ interface LlmNormalizedMessage {
 Content blocks are a union of:
 
 - `{ type: 'text', text: string }` — text output
-- `{ type: 'thinking', thinking: string }` — reasoning/thinking output
-- `{ type: 'tool_use', id: string, name: string, input: Record<string, unknown> }` — tool call
+- `{ type: 'thinking', text: string }` — reasoning/thinking output
+- `{ type: 'tool_call', id: string, name: string, args: Record<string, unknown> }` — tool call
 
 ## Create the module
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
 import { OllamaLlmProvider } from './ollama-llm-provider';
 import { OllamaClientService } from './services/ollama-client.service';
 
 @Module({
-  imports: [LlmProviderModule],
   providers: [OllamaClientService, OllamaLlmProvider],
   exports: [OllamaClientService, OllamaLlmProvider],
 })
@@ -193,7 +192,7 @@ Users import your module — no other changes needed:
 
 ```typescript
 @Module({
-  imports: [LoopCoreModule, OllamaModule],
+  imports: [LoopstackModule.forRoot(), OllamaModule],
 })
 export class AppModule {}
 ```
@@ -234,21 +233,21 @@ async generateText(args: LlmGenerateTextArgs, ctx: LlmContext): Promise<LlmGener
 
 ## Key types reference
 
-| Type                      | Description                                                                               |
-| ------------------------- | ----------------------------------------------------------------------------------------- |
-| `LlmProviderInterface`    | Contract for provider implementations                                                     |
-| `LlmProviderRegistry`     | Runtime registry — `register()`, `get()`, `has()`                                         |
-| `LlmGenerateTextArgs`     | Input for text generation                                                                 |
-| `LlmGenerateTextResult`   | Response: `{ message, response }`                                                         |
-| `LlmGenerateObjectArgs`   | Input for structured output (includes `outputSchema`)                                     |
-| `LlmGenerateObjectResult` | Response: `{ data, response }`                                                            |
-| `LlmNormalizedMessage`    | Normalized message: `role`, `content`, `stopReason`                                       |
-| `LlmContentBlock`         | Content block union: `text`, `thinking`, `tool_use`                                       |
-| `LlmStopReason`           | `'end_turn'` \| `'tool_use'` \| `'max_tokens'` \| `'stop_sequence'`                       |
-| `LlmToolCall`             | Normalized tool call: `id`, `name`, `args`                                                |
-| `LlmContext`              | Execution context with `documents`                                                        |
-| `LlmUsage`                | Token usage: `inputTokens`, `outputTokens`, optional cache/reasoning                      |
-| `LlmResultMeta`           | Metadata from adapter tools: `provider`, `model`, `usage`                                 |
-| `LlmConfigSchema`         | Shared Zod schema for model config passthrough                                            |
-| `LlmStreamEvent`          | Stream event union: `start`, `text_delta`, `thinking_delta`, `tool_call`, `done`, `error` |
-| `LlmDelegateResult`       | Tool execution results: `allCompleted`, `toolResults`, `pendingCount`, `errors`           |
+| Type                      | Description                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `LlmProviderInterface`    | Contract for provider implementations                                                                        |
+| `LlmProviderRegistry`     | Runtime registry — `register()`, `get()`, `has()`                                                            |
+| `LlmGenerateTextArgs`     | Input for text generation                                                                                    |
+| `LlmGenerateTextResult`   | Response: `{ message, response }`                                                                            |
+| `LlmGenerateObjectArgs`   | Input for structured output (includes `outputSchema`)                                                        |
+| `LlmGenerateObjectResult` | Response: `{ data, response }`                                                                               |
+| `LlmNormalizedMessage`    | Normalized message: `role`, `content`, `stopReason`                                                          |
+| `LlmContentBlock`         | Content block union: `text`, `thinking`, `tool_call`, `tool_result`, `server_tool_use`, `server_tool_result` |
+| `LlmStopReason`           | `'end_turn'` \| `'tool_use'` \| `'max_tokens'` \| `'stop_sequence'`                                          |
+| `LlmToolCall`             | Normalized tool call: `id`, `name`, `args`                                                                   |
+| `LlmContext`              | Execution context with `documents`                                                                           |
+| `LlmUsage`                | Token usage: `inputTokens`, `outputTokens`, optional cache/reasoning                                         |
+| `LlmResultMeta`           | Metadata from adapter tools: `provider`, `model`, `usage`                                                    |
+| `LlmConfigSchema`         | Shared Zod schema for model config passthrough                                                               |
+| `LlmStreamEvent`          | Stream event union: `start`, `text_delta`, `thinking_delta`, `tool_call`, `done`, `error`                    |
+| `LlmDelegateResult`       | Tool execution results: `allCompleted`, `toolResults`, `pendingCount`, `errorCount`, `hasErrors`, `errors`   |

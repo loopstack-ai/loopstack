@@ -1,4 +1,3 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
@@ -6,11 +5,10 @@ import {
   Guard,
   LinkDocument,
   MarkdownDocument,
-  TEMPLATE_RENDERER,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import {
   GitHubGetAuthenticatedUserTool,
   GitHubGetRepoTool,
@@ -88,7 +86,6 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
     private readonly gitHubListWorkflowRuns: GitHubListWorkflowRunsTool,
     private readonly gitHubSearchCode: GitHubSearchCodeTool,
     private readonly oAuthWorkflow: OAuthWorkflow,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();
   }

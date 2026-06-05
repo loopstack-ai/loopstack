@@ -1,4 +1,3 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
@@ -6,11 +5,10 @@ import {
   Guard,
   LinkDocument,
   MarkdownDocument,
-  TEMPLATE_RENDERER,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
@@ -34,7 +32,6 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   constructor(
     private readonly googleCalendarFetchEvents: GoogleCalendarFetchEventsTool,
     private readonly oAuthWorkflow: OAuthWorkflow,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();
   }

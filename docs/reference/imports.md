@@ -6,16 +6,8 @@ Quick-reference for all import paths.
 
 ```typescript
 // Workflows
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  Guard,
-  QueueResult,
-  TEMPLATE_RENDERER,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, Guard, QueueResult, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 // Tools
 import { BaseTool, ServerTool, Tool, ToolResult } from '@loopstack/common';
 import type { ToolCallOptions } from '@loopstack/common';
@@ -24,7 +16,7 @@ import { Document, DocumentEntity } from '@loopstack/common';
 // Built-in Documents
 import { ErrorDocument, LinkDocument, MarkdownDocument, MessageDocument, PlainDocument } from '@loopstack/common';
 // Apps
-import { App, BaseApp } from '@loopstack/common';
+import { StudioApp } from '@loopstack/common';
 ```
 
 ## `@loopstack/core`

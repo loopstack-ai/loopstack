@@ -8,18 +8,17 @@ Secrets are requested from the user via `RequestSecretsTool` and stored securely
 
 ## Available Tools
 
-| Tool                    | Source                      | Description                                    |
-| ----------------------- | --------------------------- | ---------------------------------------------- |
-| `RequestSecretsTool`    | `@loopstack/secrets-module` | Request secrets from the user via a UI prompt  |
-| `GetSecretKeysTool`     | `@loopstack/secrets-module` | List stored secret keys and their availability |
-| `SecretRequestDocument` | `@loopstack/secrets-module` | Document displaying the secret input form      |
+| Tool                    | Source                      | Description                                              |
+| ----------------------- | --------------------------- | -------------------------------------------------------- |
+| `RequestSecretsTool`    | `@loopstack/secrets-module` | Request secrets from the user via a UI prompt            |
+| `RequestSecretsTask`    | `@loopstack/secrets-module` | Agent-friendly task that launches a secrets sub-workflow |
+| `GetSecretKeysTool`     | `@loopstack/secrets-module` | List stored secret keys and their availability           |
+| `SecretRequestDocument` | `@loopstack/secrets-module` | Document displaying the secret input form                |
 
 ## Example Workflow
 
 ```typescript
-import { Inject } from '@nestjs/common';
-import { BaseWorkflow, TEMPLATE_RENDERER, ToolResult, Transition, Workflow } from '@loopstack/common';
-import type { TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
 import { MarkdownDocument } from '@loopstack/common';
 import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
@@ -32,7 +31,6 @@ export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>
   constructor(
     private readonly requestSecrets: RequestSecretsTool,
     private readonly getSecretKeys: GetSecretKeysTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();
   }

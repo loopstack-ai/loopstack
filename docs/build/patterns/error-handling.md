@@ -79,7 +79,7 @@ Retries twice automatically. If both fail, transitions to `deploy_failed` for ma
 ```typescript
 retry: number                    // Shorthand: number of auto-retry attempts
 retry: {
-  attempts?: number,             // Auto-retry count (-1 = manual only, 0 = go to error place immediately)
+  attempts?: number,             // Auto-retry count (0 = skip auto-retry, -1 = manual only)
   delay?: number,                // Base delay in ms (default: 1000)
   backoff?: 'fixed' | 'exponential',  // Backoff strategy (default: 'exponential')
   maxDelay?: number,             // Backoff cap in ms (default: 30000)

@@ -14,7 +14,7 @@ Register tools in your module so the agent can use them:
 
 ```typescript
 @Module({
-  imports: [LoopCoreModule, ClaudeModule, AgentModule],
+  imports: [ClaudeModule, AgentModule],
   providers: [GlobTool, GrepTool, ReadTool, MyWorkflow],
   exports: [MyWorkflow],
 })
@@ -30,7 +30,7 @@ async runAgent(state: MyState): Promise<MyState> {
     system: 'You are a code exploration agent. Summarize your findings.',
     tools: ['glob', 'grep', 'read'],
     userMessage: 'Find all API endpoints in the codebase.',
-  }, { alias: 'agent', callback: { transition: 'agentDone' } });
+  }, { callback: { transition: 'agentDone' } });
   return state;
 }
 ```
@@ -45,8 +45,6 @@ The agent runs a full tool-calling loop automatically: LLM turn → tool executi
 | `tools`       | `string[]` | yes      | Tool names available to the LLM               |
 | `userMessage` | `string`   | yes      | Initial user message                          |
 | `context`     | `string`   | no       | Hidden context message (e.g. pre-loaded docs) |
-| `model`       | `string`   | no       | Claude model (default: `claude-sonnet-4-6`)   |
-| `cache`       | `boolean`  | no       | Enable prompt caching (default: `true`)       |
 
 ### Pre-Loading Context
 
@@ -88,10 +86,11 @@ The `LlmDelegateResult` includes error metadata:
 ```typescript
 interface LlmDelegateResult {
   allCompleted: boolean;
+  toolResults: { type: 'tool_result'; toolCallId: string; content?: string; isError?: boolean }[];
   pendingCount: number;
   hasErrors: boolean;
   errorCount: number;
-  errors: { toolName: string; toolUseId: string; message: string }[];
+  errors: { toolName: string; toolCallId: string; message: string }[];
 }
 ```
 
@@ -105,6 +104,7 @@ The built-in `AgentWorkflow` is a regular workflow. When you need custom behavio
 
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -166,10 +166,10 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
 
-    const result = await this.llmDelegateToolCalls.call(
-      { message: state.llmResult!.message },
-      { config: { provider: 'claude' } },
-    );
+    const result = await this.llmDelegateToolCalls.call({
+      message: state.llmResult!.message,
+      callback: { transition: 'toolResultReceived' },
+    });
     return { ...state, delegateResult: result.data };
   }
 
@@ -185,6 +185,15 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
   async toolsComplete(state: AgentState): Promise<AgentState> {
+    await this.documentStore.save(LlmMessageDocument, {
+      role: 'user',
+      content: state.delegateResult!.toolResults.map((tr) => ({
+        type: 'tool_result' as const,
+        toolCallId: tr.toolCallId,
+        content: tr.content ?? '',
+        isError: tr.isError ?? false,
+      })),
+    });
     return state;
   }
 
@@ -197,15 +206,15 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
     return {};
   }
 
-  hasToolCalls(state: AgentState): boolean {
+  private hasToolCalls(state: AgentState): boolean {
     return state.llmResult?.message.stopReason === 'tool_use';
   }
 
-  allToolsComplete(state: AgentState): boolean {
+  private allToolsComplete(state: AgentState): boolean {
     return state.delegateResult?.allCompleted ?? false;
   }
 
-  isEndTurn(state: AgentState): boolean {
+  private isEndTurn(state: AgentState): boolean {
     return state.llmResult?.message.stopReason === 'end_turn';
   }
 }
@@ -236,6 +245,8 @@ async userMessage(state: AgentState, payload: string): Promise<AgentState> {
 }
 ```
 
+> **Tip:** The `@loopstack/agent` package ships `ChatAgentWorkflow` which implements this pattern out of the box. Use it when you need a multi-turn chat agent without customization.
+
 ### Wrapping an Agent as a Tool
 
 Make an agent callable by other agents via a task tool:
@@ -247,7 +258,7 @@ Make an agent callable by other agents via a task tool:
   schema: z.object({ instructions: z.string() }),
 })
 export class ExploreTask extends BaseTool {
-  constructor(private readonly agent: AgentWorkflow) {
+  constructor(private readonly agentWorkflow: AgentWorkflow) {
     super();
   }
 
@@ -256,13 +267,13 @@ export class ExploreTask extends BaseTool {
     ctx: LoopstackContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult> {
-    const result = await this.agent.run(
+    const result = await this.agentWorkflow.run(
       {
         system: 'You are a codebase exploration agent.',
         tools: ['glob', 'grep', 'read'],
         userMessage: args.instructions,
       },
-      { alias: 'exploreAgent', callback: options?.callback },
+      { callback: options?.callback },
     );
 
     return {

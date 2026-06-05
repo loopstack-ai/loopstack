@@ -6,16 +6,8 @@ Quick-reference for the correct import paths.
 
 ```typescript
 // Workflows
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  Guard,
-  QueueResult,
-  TEMPLATE_RENDERER,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, Guard, QueueResult, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 // Tools
 import { BaseTool, ServerTool, Tool, ToolResult } from '@loopstack/common';
 import type { ToolCallOptions } from '@loopstack/common';
@@ -25,7 +17,7 @@ import { Document, DocumentEntity } from '@loopstack/common';
 import { ErrorDocument, LinkDocument, MarkdownDocument, MessageDocument, PlainDocument } from '@loopstack/common';
 ```
 
-Available symbols: `@Tool`, `@Workflow`, `@Document`, `@Transition`, `@Guard`, `BaseTool`, `BaseWorkflow`, `ServerTool`, `ToolResult`, `DocumentEntity`, `CallbackSchema`, `QueueResult`, `TEMPLATE_RENDERER`, `LoopstackContext`, `TemplateRenderFn`.
+Available symbols: `@Tool`, `@Workflow`, `@Document`, `@Transition`, `@Guard`, `BaseTool`, `BaseWorkflow`, `ServerTool`, `ToolResult`, `DocumentEntity`, `CallbackSchema`, `QueueResult`, `LoopstackContext`.
 
 ## `@loopstack/core`
 

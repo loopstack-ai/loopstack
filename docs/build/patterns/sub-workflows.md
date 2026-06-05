@@ -18,11 +18,8 @@ constructor(private readonly subWorkflow: SubWorkflow) {
 @Transition({ to: 'sub_started' })
 async start(state: MyState): Promise<MyState> {
   const result: QueueResult = await this.subWorkflow.run(
-    { prompt: 'Hello' },                    // Args passed to the sub-workflow
-    {
-      alias: 'subWorkflow',                  // Identifier for this instance
-      callback: { transition: 'onSubComplete' },  // Method to call when done
-    },
+    { prompt: 'Hello' },                         // Args passed to the sub-workflow
+    { callback: { transition: 'onSubComplete' } }, // Method to call when done
   );
 
   // Track with a link document
@@ -49,7 +46,7 @@ const SubWorkflowCallbackSchema = CallbackSchema.extend({
   wait: true,
   schema: SubWorkflowCallbackSchema,
 })
-async onSubComplete(state: MyState, payload: { workflowId: string; data: { message: string } }): Promise<MyState> {
+async onSubComplete(state: MyState, payload: { workflowId: string; status: string; data: { message: string } }): Promise<MyState> {
   // Update the link document
   await this.documentStore.save(LinkDocument, {
     label: 'Sub-Workflow',
@@ -73,7 +70,7 @@ The sub-workflow defines its output as the return value of its final transition:
 @Workflow({ widget: __dirname + '/sub.ui.yaml' })
 export class SubWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  async run(): Promise<{ message: string }> {
+  async start(): Promise<{ message: string }> {
     return { message: 'Hi mom!' };
   }
 }
@@ -90,10 +87,7 @@ export class ParentWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'sub_started' })
   async runWorkflow(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.subWorkflow.run(
-      {},
-      { alias: 'subWorkflow', callback: { transition: 'subWorkflowCallback' } },
-    );
+    const result: QueueResult = await this.subWorkflow.run({}, { callback: { transition: 'subWorkflowCallback' } });
 
     await this.documentStore.save(
       LinkDocument,
@@ -114,7 +108,7 @@ export class ParentWorkflow extends BaseWorkflow {
   })
   async subWorkflowCallback(
     state: Record<string, unknown>,
-    payload: { workflowId: string; data: { message: string } },
+    payload: { workflowId: string; status: string; data: { message: string } },
   ): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
@@ -141,13 +135,74 @@ Both workflows must be registered in the module:
 
 ```typescript
 @Module({
-  imports: [LoopCoreModule],
   providers: [ParentWorkflow, SubWorkflow],
   exports: [ParentWorkflow, SubWorkflow],
 })
 export class MyModule {}
 ```
 
+## Wrapping as a Task Tool
+
+A task tool is a `BaseTool` that launches a sub-workflow and returns `pending`. The framework calls `complete()` when the sub-workflow finishes. This lets agents decide when to run sub-workflows.
+
+```typescript
+@Tool({
+  name: 'run_tests',
+  description: 'Run tests in the specified directory.',
+  schema: z.object({
+    testDirectory: z.string().describe('Directory containing the test files to run.'),
+  }),
+})
+export class RunTestsTask extends BaseTool {
+  constructor(private readonly testRunner: TestRunnerWorkflow) {
+    super();
+  }
+
+  protected async handle(
+    args: { testDirectory: string },
+    ctx: LoopstackContext,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult> {
+    const result = await this.testRunner.run({ testDirectory: args.testDirectory }, { callback: options?.callback });
+
+    await this.documentStore.save(
+      LinkDocument,
+      { status: 'pending', label: 'Running tests...', workflowId: result.workflowId, embed: true },
+      { id: `test_link_${result.workflowId}` },
+    );
+
+    return {
+      data: { workflowId: result.workflowId },
+      pending: { workflowId: result.workflowId },
+    };
+  }
+
+  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+    const data = result as { workflowId?: string; data?: { passed: boolean; output: string } };
+
+    await this.documentStore.save(
+      LinkDocument,
+      { status: data.data?.passed ? 'success' : 'failure', label: 'Tests complete', workflowId: data.workflowId! },
+      { id: `test_link_${data.workflowId}` },
+    );
+
+    return { data: data.data ?? result };
+  }
+}
+```
+
+Key parts:
+
+- **`pending: { workflowId }`** tells the framework this tool is async — the parent workflow waits for a callback
+- **`callback: options?.callback`** passes the parent's callback config to the sub-workflow
+- **`complete()`** is called when the sub-workflow finishes — transform results and update UI documents here
+- **`LinkDocument`** gives visual feedback while the sub-workflow runs
+
+## Nested Agents
+
+The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architectures. See [Agent Workflows](/docs/build/ai/agent-workflows) for the full pattern.
+
 ## Registry References
 
 - [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent workflow calling a sub-workflow with callbacks, LinkDocument tracking, and output passing
+- [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — ExploreTask wrapping AgentWorkflow as a task tool

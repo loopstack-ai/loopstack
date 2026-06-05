@@ -32,10 +32,9 @@ export class FileDocument {
 ## Workflow Example
 
 ```typescript
-import { Inject } from '@nestjs/common';
 import { toJSONSchema, z } from 'zod';
-import { BaseWorkflow, DocumentEntity, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
@@ -51,10 +50,7 @@ interface StructuredOutputState {
   }),
 })
 export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }, StructuredOutputState> {
-  constructor(
-    private readonly llmGenerateObject: LlmGenerateObjectTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 

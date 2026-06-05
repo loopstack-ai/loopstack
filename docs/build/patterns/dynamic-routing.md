@@ -33,6 +33,7 @@ isHigh(state: MyState): boolean {
 Chain routing decisions with cascading forks:
 
 ```typescript
+import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
 import { MessageDocument } from '@loopstack/common';

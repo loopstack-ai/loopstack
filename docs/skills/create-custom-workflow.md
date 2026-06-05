@@ -107,7 +107,6 @@ Tools and sub-workflows are injected via standard NestJS constructor injection:
 constructor(
   private readonly llmGenerateText: LlmGenerateTextTool,
   private readonly subWorkflow: SubWorkflow,
-  @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
 ) { super(); }
 
 // Usage:
@@ -220,17 +219,9 @@ await this.documentStore.save(
 
 ## Handlebars Templates
 
-Inject `TEMPLATE_RENDERER` and use `this.render()` to render Handlebars template files:
+`render` is available directly on `BaseWorkflow` (like `documentStore`), so workflows just use `this.render(...)` without any injection:
 
 ```typescript
-import { Inject } from '@nestjs/common';
-import { TEMPLATE_RENDERER } from '@loopstack/common';
-import type { TemplateRenderFn } from '@loopstack/common';
-
-constructor(
-  @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-) { super(); }
-
 const rendered = this.render(__dirname + '/templates/prompt.md', {
   subject: args.subject,
   items: state.items,
@@ -317,7 +308,7 @@ Use `wait: true` to pause the workflow until an external trigger (user input, su
 ```typescript
 @Transition({ from: 'responded', to: 'waiting_for_user' })
 async waitForUser(state: MyState): Promise<MyState> {
-  return state; // No-op — framework pauses here
+  return state; // Moves to waiting_for_user, where the wait transition pauses
 }
 
 @Transition({
@@ -348,7 +339,7 @@ constructor(private readonly subWorkflow: SubWorkflow) { super(); }
 async start(state: MyState): Promise<MyState> {
   const result: QueueResult = await this.subWorkflow.run(
     { prompt: 'Hello' },                                    // args
-    { alias: 'subWorkflow', callback: { transition: 'onSubComplete' } },  // options
+    { callback: { transition: 'onSubComplete' } },  // options
   );
 
   // Track the sub-workflow with a link document
@@ -365,7 +356,7 @@ async start(state: MyState): Promise<MyState> {
   wait: true,
   schema: CallbackSchema.extend({ data: z.object({ message: z.string() }) }),
 })
-async onSubComplete(state: MyState, payload: { workflowId: string; data: { message: string } }): Promise<MyState> {
+async onSubComplete(state: MyState, payload: { workflowId: string; status: string; data: { message: string } }): Promise<MyState> {
   // payload.data contains the sub-workflow's final transition return value
   return state;
 }
@@ -386,7 +377,7 @@ async finish(state: MyState): Promise<{ concept: string }> {
 
 ```typescript
 @Module({
-  imports: [LoopCoreModule, ClaudeModule],
+  imports: [ClaudeModule],
   providers: [
     MyWorkflow,
     MyTool,
@@ -402,10 +393,9 @@ export class MyFeatureModule {}
 ### Example 1: Simple prompt workflow
 
 ```typescript
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
@@ -421,10 +411,7 @@ interface PromptState {
   }),
 })
 export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
@@ -554,10 +541,9 @@ export class ChatWorkflow extends BaseWorkflow<{ prompt: string }, ChatState> {
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: ChatState): Promise<ChatState> {
-    const result = await this.llmDelegateToolCalls.call(
-      { message: state.llmResult!.message },
-      { config: { provider: 'claude' } },
-    );
+    const result = await this.llmDelegateToolCalls.call({
+      message: state.llmResult!.message,
+    });
     return { ...state, delegateResult: result.data };
   }
 

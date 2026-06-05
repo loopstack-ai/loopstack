@@ -1,14 +1,6 @@
 import { Inject } from '@nestjs/common';
-import {
-  BaseWorkflow,
-  Guard,
-  MessageDocument,
-  TEMPLATE_RENDERER,
-  Transition,
-  WORKFLOW_ORCHESTRATOR,
-  Workflow,
-} from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn, WorkflowOrchestrator } from '@loopstack/common';
+import { BaseWorkflow, Guard, MessageDocument, Transition, WORKFLOW_ORCHESTRATOR, Workflow } from '@loopstack/common';
+import type { LoopstackContext, WorkflowOrchestrator } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -49,7 +41,6 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
     private readonly strictSchema: StrictSchemaTool,
     private readonly runtimeError: RuntimeErrorTool,
     private readonly failingSubWorkflow: FailingSubWorkflowTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {
     super();

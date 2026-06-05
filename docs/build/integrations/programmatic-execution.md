@@ -19,7 +19,6 @@ Use the `WorkflowRunner` to execute workflows in response to:
 ```typescript
 import { Body, Controller, Post } from '@nestjs/common';
 import { WorkflowRunner } from '@loopstack/core';
-import { DefaultApp } from './default.app';
 import { MyWorkflow } from './workflows/my.workflow';
 
 @Controller()
@@ -28,13 +27,13 @@ export class AppController {
 
   @Post('run-my-workflow')
   async runMyWorkflow(@Body() payload: any) {
-    const userId = // define a user id to run the workflow
-      await this.workflowRunner.run(MyWorkflow, payload, {
-        app: DefaultApp,
-        userId,
-      });
+    const userId = '...'; // define a user id to run the workflow
+    const result = await this.workflowRunner.run(MyWorkflow, payload, {
+      appName: 'default',
+      userId,
+    });
 
-    return { message: 'Workflow run is queued.' };
+    return { message: 'Workflow run is queued.', workflowId: result.workflowId };
   }
 }
 ```
@@ -47,7 +46,7 @@ await this.workflowRunner.run(
   workflow, // Workflow class reference
   args, // Data passed as workflow args (type-safe)
   {
-    app, // App class reference
+    appName, // App name for workspace resolution
     userId, // User ID for execution context
   },
 );
@@ -57,7 +56,7 @@ await this.workflowRunner.runSync(
   workflow, // Workflow class reference
   args, // Data passed as workflow args (type-safe)
   {
-    app, // App class reference
+    appName, // App name for workspace resolution
     userId, // User ID for execution context
     stateless, // Optional: skip persistence (default: false)
   },
@@ -88,7 +87,7 @@ export class WebhookController {
         receivedAt: new Date().toISOString(),
       },
       {
-        app: MainApp,
+        appName: 'main',
         userId: webhookData.userId,
       },
     );
@@ -123,7 +122,7 @@ export class TaskScheduler {
           reportType: 'daily',
         },
         {
-          app: ReportsApp,
+          appName: 'reports',
           userId: user.id,
         },
       );
@@ -155,7 +154,7 @@ export class OrderProcessingService {
           orderData: order,
         },
         {
-          app: OrdersApp,
+          appName: 'orders',
           userId: order.userId,
         },
       ),

@@ -1,19 +1,15 @@
 # Template Expressions
 
-Loopstack uses Handlebars templates for rendering dynamic text content. Templates are rendered via `this.render()`, injected with `@Inject(TEMPLATE_RENDERER)`.
+Loopstack uses Handlebars templates for rendering dynamic text content. Templates are rendered via `this.render()`, available directly on `BaseWorkflow` (like `documentStore`).
 
 ## Setup
 
 ```typescript
-import { Inject } from '@nestjs/common';
-import { BaseWorkflow, TEMPLATE_RENDERER, Workflow } from '@loopstack/common';
-import type { TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({})
 export class MyWorkflow extends BaseWorkflow {
-  constructor(@Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn) {
-    super();
-  }
+  // this.render() is available from BaseWorkflow — no injection needed
 }
 ```
 

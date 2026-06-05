@@ -7,10 +7,9 @@ Use `LlmGenerateTextTool` from `@loopstack/llm-provider-module` to call an LLM f
 ```typescript
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { LoopCoreModule } from '@loopstack/core';
 
 @Module({
-  imports: [LoopCoreModule, ClaudeModule],
+  imports: [ClaudeModule],
   providers: [PromptWorkflow],
   exports: [PromptWorkflow],
 })
@@ -20,10 +19,9 @@ export class PromptModule {}
 ## Example Workflow
 
 ```typescript
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
@@ -38,10 +36,7 @@ interface PromptState {
   }),
 })
 export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
@@ -91,7 +86,7 @@ await this.llmGenerateText.call(
 
 ## Using Templates
 
-Render Handlebars templates for complex prompts (inject via `@Inject(TEMPLATE_RENDERER)`):
+Render Handlebars templates for complex prompts (`this.render()` is available from `BaseWorkflow`):
 
 ```typescript
 const rendered = this.render(__dirname + '/templates/prompt.md', {

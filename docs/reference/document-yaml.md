@@ -66,25 +66,25 @@ ui:
 
 ### Form Field Properties
 
-| Property      | Type       | Description                               |
-| ------------- | ---------- | ----------------------------------------- |
-| `widget`      | `string`   | Widget type (see below)                   |
-| `title`       | `string`   | Display label                             |
-| `placeholder` | `string`   | Placeholder text                          |
-| `help`        | `string`   | Help text below the field                 |
-| `rows`        | `number`   | Visible rows (for `textarea`)             |
-| `readonly`    | `boolean`  | Make field read-only                      |
-| `hidden`      | `boolean`  | Hide the field                            |
-| `disabled`    | `boolean`  | Disable interaction                       |
-| `collapsed`   | `boolean`  | Collapse arrays/objects by default        |
-| `order`       | `string[]` | Display order of nested fields            |
-| `enumOptions` | `array`    | Options for select/radio widgets          |
-| `items`       | `object`   | UI config for array items                 |
-| `properties`  | `object`   | UI config for nested object fields        |
-| `addable`     | `boolean`  | Allow adding items (arrays)               |
-| `removable`   | `boolean`  | Allow removing items (arrays)             |
-| `movable`     | `boolean`  | Allow reordering items (arrays)           |
-| `inputType`   | `string`   | HTML input type (e.g., `email`, `number`) |
+| Property      | Type       | Description                        |
+| ------------- | ---------- | ---------------------------------- |
+| `widget`      | `string`   | Widget type (see below)            |
+| `label`       | `string`   | Field label                        |
+| `title`       | `string`   | Section title                      |
+| `description` | `string`   | Field description                  |
+| `placeholder` | `string`   | Placeholder text                   |
+| `help`        | `string`   | Help text below the field          |
+| `rows`        | `number`   | Visible rows (for `textarea`)      |
+| `inline`      | `boolean`  | Display field inline               |
+| `readonly`    | `boolean`  | Make field read-only               |
+| `hidden`      | `boolean`  | Hide the field                     |
+| `disabled`    | `boolean`  | Disable interaction                |
+| `collapsed`   | `boolean`  | Collapse arrays/objects by default |
+| `fixed`       | `boolean`  | Fixed field                        |
+| `order`       | `string[]` | Display order of nested fields     |
+| `enumOptions` | `array`    | Options for select/radio widgets   |
+| `items`       | `object`   | UI config for array items          |
+| `properties`  | `object`   | UI config for nested object fields |
 
 ### Widget Types
 
@@ -150,16 +150,19 @@ await this.documentStore.save(MyDocument, content, {
 });
 ```
 
-| Property         | Type       | Description                           |
-| ---------------- | ---------- | ------------------------------------- |
-| `hidden`         | `boolean`  | Hide from the UI                      |
-| `mimeType`       | `string`   | Content MIME type                     |
-| `enableAtPlaces` | `string[]` | Places where the document is editable |
-| `hideAtPlaces`   | `string[]` | Places where the document is hidden   |
+| Property         | Type       | Description                                         |
+| ---------------- | ---------- | --------------------------------------------------- |
+| `hidden`         | `boolean`  | Hide from the UI                                    |
+| `mimeType`       | `string`   | Content MIME type                                   |
+| `enableAtPlaces` | `string[]` | Places where the document is editable               |
+| `hideAtPlaces`   | `string[]` | Places where the document is hidden                 |
+| `invalidate`     | `boolean`  | Mark document as invalidated                        |
+| `level`          | `string`   | Severity level: `debug`, `info`, `warning`, `error` |
+| `data`           | `any`      | Arbitrary metadata                                  |
 
 ### Supported MIME Types
 
-`text/plain`, `text/html`, `text/markdown`, `application/json`, `application/javascript`, `application/typescript`, `application/yaml`
+`text/plain`, `text/html`, `text/markdown`, `text/css`, `text/xml`, `application/json`, `application/javascript`, `application/typescript`, `application/yaml`, `application/xml`
 
 ## Complete Example
 

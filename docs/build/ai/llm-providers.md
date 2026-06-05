@@ -4,20 +4,42 @@ Loopstack supports multiple LLM providers through a runtime registry. Provider m
 
 ## Quick Start
 
-Import a provider module. That's it — the adapter tools are available globally.
+Import `LlmProviderModule` for the adapter tools and a provider module (e.g. `ClaudeModule`) to register the LLM backend:
 
 ```typescript
 import { ClaudeModule } from '@loopstack/claude-module';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
 
 @Module({
-  imports: [LoopCoreModule, ClaudeModule],
+  imports: [LoopstackModule.forRoot(), LlmProviderModule.forRoot({}), ClaudeModule],
 })
 export class AppModule {}
 ```
 
-## Configuring Provider and Model
+## Module-Level Defaults
 
-Configure provider and model at call sites via `options.config`:
+Use `LlmProviderModule.forRoot()` to set a default model for all LLM calls in your app. Use `forFeature()` to override per-module:
+
+```typescript
+// app.module.ts — global default model
+@Module({
+  imports: [LoopstackModule.forRoot(), LlmProviderModule.forRoot({ model: 'claude-sonnet-4-5' }), ClaudeModule],
+})
+export class AppModule {}
+```
+
+```typescript
+// premium-feature.module.ts — this module uses a stronger model
+@Module({
+  imports: [LlmProviderModule.forFeature({ model: 'claude-opus-4-6' })],
+  providers: [PremiumWorkflow],
+})
+export class PremiumFeatureModule {}
+```
+
+## Per-Call Configuration
+
+Override provider and model at individual call sites via `options.config`. Per-call config always takes priority over module defaults.
 
 ```typescript
 export class MyWorkflow extends BaseWorkflow {
@@ -31,13 +53,12 @@ export class MyWorkflow extends BaseWorkflow {
 ```
 
 ```typescript
-// Pass config at call sites
 const result = await this.llmGenerateText.call(
   { prompt: 'Hello!' },
   {
     config: {
       provider: 'claude',
-      model: 'claude-opus-4-7',
+      model: 'claude-opus-4-6',
       system: 'You are a helpful assistant.',
       messagesSearchTag: 'message',
       tools: ['get_weather'],
@@ -67,7 +88,7 @@ Import both modules and configure each call with its provider:
 
 ```typescript
 @Module({
-  imports: [LoopCoreModule, ClaudeModule, OpenAiModule],
+  imports: [LoopstackModule.forRoot(), ClaudeModule, OpenAiModule],
 })
 export class AppModule {}
 ```
@@ -76,7 +97,7 @@ export class AppModule {}
 // Use Claude for complex tasks
 const smartResult = await this.llmGenerateText.call(
   { prompt: 'Analyze this code...' },
-  { config: { provider: 'claude', model: 'claude-opus-4-7' } },
+  { config: { provider: 'claude', model: 'claude-opus-4-6' } },
 );
 
 // Use OpenAI for simple tasks

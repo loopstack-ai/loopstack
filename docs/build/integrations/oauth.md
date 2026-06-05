@@ -6,11 +6,10 @@
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { GoogleWorkspaceModule } from '@loopstack/google-workspace-module';
 
 @Module({
-  imports: [LoopCoreModule, GoogleWorkspaceModule],
+  imports: [GoogleWorkspaceModule],
   providers: [MyWorkflow],
   exports: [MyWorkflow],
 })
@@ -60,7 +59,7 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   async authRequired(state: CalendarState): Promise<CalendarState> {
     const result = await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-      { alias: 'oAuth', callback: { transition: 'authCompleted' } },
+      { callback: { transition: 'authCompleted' } },
     );
 
     await this.documentStore.save(
@@ -142,41 +141,7 @@ export class CalendarFetchEventsTool extends BaseTool {
 
 ## Creating a Custom OAuth Provider
 
-```typescript
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { OAuthProviderInterface, OAuthProviderRegistry, OAuthTokenSet } from '@loopstack/oauth-module';
-
-@Injectable()
-export class MyOAuthProvider implements OAuthProviderInterface, OnModuleInit {
-  readonly providerId = 'my-provider';
-  readonly defaultScopes = ['read', 'write'];
-
-  constructor(private registry: OAuthProviderRegistry) {}
-
-  onModuleInit() {
-    this.registry.register(this);
-  }
-
-  buildAuthUrl(scopes: string[], state: string): string {
-    const params = new URLSearchParams({
-      client_id: process.env.MY_CLIENT_ID!,
-      redirect_uri: process.env.MY_REDIRECT_URI!,
-      scope: scopes.join(' '),
-      state,
-      response_type: 'code',
-    });
-    return `https://my-provider.com/oauth/authorize?${params}`;
-  }
-
-  async exchangeCode(code: string): Promise<OAuthTokenSet> {
-    // POST to token endpoint
-  }
-
-  async refreshToken(refreshToken: string): Promise<OAuthTokenSet> {
-    // POST to refresh endpoint
-  }
-}
-```
+See [Creating OAuth Providers](/docs/extend/oauth-providers) for how to implement `OAuthProviderInterface` and register a custom provider.
 
 ## Environment Variables
 

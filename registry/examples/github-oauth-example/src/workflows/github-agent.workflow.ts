@@ -1,7 +1,5 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, Guard, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import {
   GitHubCreateIssueCommentTool,
   GitHubCreateIssueTool,
@@ -91,7 +89,6 @@ export class GitHubAgentWorkflow extends BaseWorkflow<Record<string, unknown>, G
     private readonly gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
     private readonly gitHubListUserOrgs: GitHubListUserOrgsTool,
     private readonly oAuth: OAuthWorkflow,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();
   }

@@ -5,18 +5,13 @@ Build multi-turn conversational workflows with an LLM using message documents an
 ## Example
 
 ```typescript
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({ widget: __dirname + '/chat.ui.yaml' })
 export class ChatWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
@@ -84,6 +79,8 @@ setup → waiting_for_user → [user sends message] → ready → llmTurn → wa
 Add tool calling to a chat flow by combining the patterns from [AI Tool Calling](/features/ai-tool-calling):
 
 ```typescript
+import type { LlmResultMeta } from '@loopstack/llm-provider-module';
+
 @Transition({ from: 'ready', to: 'prompt_executed' })
 async llmTurn(state: ChatState): Promise<ChatState> {
   const result = await this.llmGenerateText.call(

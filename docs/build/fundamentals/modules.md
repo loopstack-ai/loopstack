@@ -11,12 +11,11 @@ A module groups related workflows, tools, and services together.
 ```typescript
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { LoopCoreModule } from '@loopstack/core';
 import { MyTool } from './tools/my.tool';
 import { MyWorkflow } from './workflows/my.workflow';
 
 @Module({
-  imports: [LoopCoreModule, ClaudeModule],
+  imports: [ClaudeModule],
   providers: [MyWorkflow, MyTool],
   exports: [MyWorkflow, MyTool],
 })
@@ -25,7 +24,7 @@ export class MyFeatureModule {}
 
 ### Key Rules
 
-- **Always import `LoopCoreModule`** — provides core framework functionality
+- **`LoopCoreModule` is global** — registered once by `LoopstackModule.forRoot()`, do not import it in feature modules
 - **Import feature modules** like `ClaudeModule` for AI, `SandboxToolModule` for Docker sandboxes, etc.
 - **Documents are NOT providers** — they are plain DTOs and don't need registration
 - **Export workflows and tools** that other modules might need
@@ -52,7 +51,7 @@ For larger applications, split functionality across modules:
 ```typescript
 // analytics.module.ts
 @Module({
-  imports: [LoopCoreModule, ClaudeModule],
+  imports: [ClaudeModule],
   providers: [AnalyticsWorkflow, DataFetchTool],
   exports: [AnalyticsWorkflow],
 })
@@ -60,7 +59,6 @@ export class AnalyticsModule {}
 
 // notifications.module.ts
 @Module({
-  imports: [LoopCoreModule],
   providers: [NotificationWorkflow, EmailTool],
   exports: [NotificationWorkflow],
 })
@@ -72,6 +70,35 @@ export class NotificationsModule {}
 })
 export class AppModule {}
 ```
+
+## Module Configuration (`forRoot` / `forFeature`)
+
+Many Loopstack modules support `forRoot()` and `forFeature()` for configuring defaults. This follows the standard NestJS dynamic module pattern.
+
+- **`forRoot(config)`** — sets **global defaults** for the module. Call once in your root `AppModule`.
+- **`forFeature(config)`** — **overrides defaults** for a specific feature module. Tools in that module use the override instead of the global.
+
+```typescript
+// app.module.ts — global default: all LLM calls use claude-sonnet-4-6
+@Module({
+  imports: [
+    LoopstackModule.forRoot(),
+    LlmProviderModule.forRoot({ model: 'claude-sonnet-4-6' }),
+    ClaudeModule,
+    MyFeatureModule,
+  ],
+})
+export class AppModule {}
+
+// my-feature.module.ts — this module's LLM calls use claude-opus-4-6 instead
+@Module({
+  imports: [LlmProviderModule.forFeature({ model: 'claude-opus-4-6' })],
+  providers: [MyWorkflow],
+})
+export class MyFeatureModule {}
+```
+
+Modules that support this pattern include `LlmProviderModule`, `RemoteClientModule`, `SecretsModule`, and others. Per-call config (via `options.config`) always takes priority over module defaults.
 
 ## Dependency Injection
 
@@ -85,7 +112,6 @@ export class ChatWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly myTool: MyCustomTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();
   }
@@ -113,6 +139,6 @@ Once registered:
 
 ## Registry References
 
-- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Example module with LoopCoreModule and ClaudeModule imports
+- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Example module with ClaudeModule import
 - [custom-tool-example-module](https://loopstack.ai/registry/loopstack-custom-tool-example-module) — Module with custom tools, services, and workflow providers
 - [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Module registering both parent and sub-workflow providers

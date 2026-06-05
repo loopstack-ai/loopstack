@@ -44,10 +44,9 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
-    const result = await this.llmDelegateToolCalls.call(
-      { message: state.llmResult!.message },
-      { config: { provider: 'claude' } },
-    );
+    const result = await this.llmDelegateToolCalls.call({
+      message: state.llmResult!.message,
+    });
     return { ...state, delegateResult: result.data };
   }
 

@@ -7,20 +7,15 @@ A workflow is a **state machine** defined as a TypeScript class. It extends `Bas
 A simple chat workflow: wait for a user message, call LLM, display the response, and loop back.
 
 ```typescript
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
   widget: __dirname + '/chat.ui.yaml', // UI config
 })
 export class ChatWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
@@ -90,6 +85,7 @@ All workflows extend `BaseWorkflow`, which provides:
 | Property / Method    | Description                                                                         |
 | -------------------- | ----------------------------------------------------------------------------------- |
 | `this.documentStore` | Save and query documents via `this.documentStore.save(DocClass, content, options?)` |
+| `this.render`        | Render Handlebars templates via `this.render(templatePath, data?)`                  |
 
 Context is passed as a parameter to transition methods via `ctx: LoopstackContext`:
 
@@ -212,13 +208,9 @@ await this.documentStore.save(
 
 ## Templates
 
-Use `this.render()` to render Handlebars template files (inject via `@Inject(TEMPLATE_RENDERER)`):
+`render` is available directly on `BaseWorkflow` (like `documentStore`). Use `this.render()` to render Handlebars template files:
 
 ```typescript
-constructor(
-  @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-) { super(); }
-
 const rendered = this.render(__dirname + '/templates/prompt.md', {
   subject: args.subject,
 });
@@ -327,7 +319,7 @@ actions:
 
 ```typescript
 @Module({
-  imports: [LoopCoreModule, ClaudeModule],
+  imports: [ClaudeModule],
   providers: [ChatWorkflow],
   exports: [ChatWorkflow],
 })

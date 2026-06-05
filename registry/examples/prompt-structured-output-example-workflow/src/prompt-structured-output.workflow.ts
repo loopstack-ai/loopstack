@@ -1,8 +1,7 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
-import { BaseWorkflow, DocumentEntity, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
@@ -21,10 +20,7 @@ interface PromptStructuredOutputState {
   }),
 })
 export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }, PromptStructuredOutputState> {
-  constructor(
-    private readonly llmGenerateObject: LlmGenerateObjectTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 

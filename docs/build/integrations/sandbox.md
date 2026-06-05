@@ -6,12 +6,10 @@ Run untrusted code in isolated Docker containers using `@loopstack/sandbox-tool`
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { SandboxFilesystemModule } from '@loopstack/sandbox-filesystem';
-import { SandboxToolModule } from '@loopstack/sandbox-tool';
 
 @Module({
-  imports: [LoopCoreModule, SandboxToolModule, SandboxFilesystemModule],
+  imports: [SandboxFilesystemModule],
   providers: [SandboxWorkflow],
   exports: [SandboxWorkflow],
 })

@@ -24,6 +24,7 @@ type MyToolArgs = z.infer<typeof InputSchema>;
   schema: InputSchema,
 })
 export class MyTool extends BaseTool<MyToolArgs, object, string> {
+  // BaseTool<TArgs, TConfig, TResult, TMeta?>
   protected async handle(args: MyToolArgs, ctx: LoopstackContext): Promise<ToolResult<string>> {
     return { data: `Found results for: ${args.query}` };
   }

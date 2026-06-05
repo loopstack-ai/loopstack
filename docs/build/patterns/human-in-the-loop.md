@@ -80,11 +80,10 @@ async userMessage(state: Record<string, unknown>, payload: string): Promise<Reco
 Show AI-generated content for user review before proceeding:
 
 ```typescript
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
-import { BaseWorkflow, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 
 interface MeetingNotesState {
@@ -96,10 +95,7 @@ interface MeetingNotesState {
   schema: z.object({ inputText: z.string().default('...') }),
 })
 export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, MeetingNotesState> {
-  constructor(
-    private readonly llmGenerateObject: LlmGenerateObjectTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
@@ -123,12 +119,19 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
   // AI generates structured output
   @Transition({ from: 'response_received', to: 'notes_optimized' })
   async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
-    await this.llmGenerateObject.call(
+    const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
         prompt: `Structure these notes: ${state.meetingNotes?.text}`,
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
+    );
+
+    const objectResult = result.data as LlmGenerateObjectResult;
+    await this.documentStore.save(
+      OptimizedNotesDocument,
+      objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+      { id: 'final', validate: 'skip' },
     );
     return state;
   }
