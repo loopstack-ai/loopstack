@@ -1,5 +1,11 @@
 # @loopstack/common
 
+## 0.32.2
+
+### Patch Changes
+
+- [#174](https://github.com/loopstack-ai/loopstack/pull/174) [`699f90b`](https://github.com/loopstack-ai/loopstack/commit/699f90b03cc535af48d93e562c73766e4cc62d9a) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add generic `TArgs` type parameter to `LoopstackContext` interface for typed workflow args
+
 ## 0.32.1
 
 ### Patch Changes
