@@ -11,7 +11,7 @@ export interface Column {
   label: string;
   minWidth?: number;
   align?: 'right' | 'left' | 'center';
-  format?: (value: unknown) => React.ReactNode;
+  format?: (value: unknown, row?: unknown) => React.ReactNode;
 }
 
 export interface OriginalBatchAction {
@@ -103,8 +103,8 @@ const ListView = <T extends Item>({
     align: column.align,
     sortable: true,
     format: column.format
-      ? (value: unknown) => {
-          const formatted = column.format!(value);
+      ? (value: unknown, row: unknown) => {
+          const formatted = column.format!(value, row);
           if (typeof formatted === 'string' && formatted.includes('<')) {
             return <div dangerouslySetInnerHTML={{ __html: formatted }} />;
           }
