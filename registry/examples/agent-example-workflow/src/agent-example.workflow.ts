@@ -1,4 +1,3 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
 import {
@@ -7,11 +6,9 @@ import {
   LinkDocument,
   MessageDocument,
   QueueResult,
-  TEMPLATE_RENDERER,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { TemplateRenderFn } from '@loopstack/common';
 
 const AgentCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -24,10 +21,7 @@ type AgentCallback = z.infer<typeof AgentCallbackSchema>;
   description: 'Launches a generic agent sub-workflow with weather and calculator tools.',
 })
 export class AgentExampleWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly agentWorkflow: AgentWorkflow,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly agentWorkflow: AgentWorkflow) {
     super();
   }
 

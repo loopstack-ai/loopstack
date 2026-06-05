@@ -2,7 +2,8 @@ import { Inject, Injectable, Type } from '@nestjs/common';
 import { z } from 'zod';
 import type { DocumentStore } from '../interfaces/document-store.interface.js';
 import type { WorkflowOrchestrator } from '../interfaces/workflow-orchestrator.interface.js';
-import { DOCUMENT_STORE, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
+import { DOCUMENT_STORE, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
+import type { TemplateRenderFn } from './workflow-templates.js';
 
 export interface RunOptions {
   callback?: { transition: string; metadata?: Record<string, unknown> };
@@ -52,6 +53,9 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>, _TState = Re
 
   /** Document store for saving and retrieving workflow documents. */
   @Inject(DOCUMENT_STORE) protected readonly documentStore!: DocumentStore;
+
+  /** Render a Handlebars template file with optional data context. */
+  @Inject(TEMPLATE_RENDERER) protected readonly render!: TemplateRenderFn;
 
   /**
    * Launch this workflow as a sub-workflow.

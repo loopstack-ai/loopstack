@@ -1,3 +1,33 @@
+# AI Tool Calling
+
+Enable the LLM to call workflow tools (function calling). The LLM decides which tools to invoke, and `LlmDelegateToolCallsTool` executes them.
+
+## Create a Tool for the LLM
+
+Tools exposed to the LLM need a `description` so the LLM knows when to use them:
+
+```typescript
+import { z } from 'zod';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
+
+@Tool({
+  name: 'get_weather',
+  description: 'Retrieve weather information.',
+  schema: z.object({
+    location: z.string().describe('City or location name'),
+  }),
+})
+export class GetWeather extends BaseTool<{ location: string }, object, string> {
+  protected async handle(_args: { location: string }, _ctx: LoopstackContext): Promise<ToolResult<string>> {
+    return Promise.resolve({ type: 'text', data: 'Mostly sunny, 14C, rain in the afternoon.' });
+  }
+}
+```
+
+## Tool Calling Workflow
+
+```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
@@ -9,11 +39,7 @@ interface ToolCallState {
   delegateResult?: LlmDelegateResult;
 }
 
-@Workflow({
-  title: 'LLM Tool Calling Example (Berlin Weather)',
-  description:
-    'An example workflow that demonstrates how to use an LLM to call external tools and handle their responses.',
-})
+@Workflow({})
 export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
@@ -25,7 +51,10 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
 
   @Transition({ to: 'ready' })
   async setup(state: ToolCallState): Promise<ToolCallState> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
+    await this.documentStore.save(LlmMessageDocument, {
+      role: 'user',
+      content: 'How is the weather in Berlin?',
+    });
     return state;
   }
 
@@ -81,3 +110,30 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
     return {};
   }
 }
+```
+
+## How the Loop Works
+
+```
+setup → llmTurn → [hasToolCalls?]
+                     ├─ yes → executeToolCalls → toolsComplete → llmTurn (loop)
+                     └─ no  → respond (done)
+```
+
+1. `llmGenerateText` is called — the `tools` array in config lists available tools
+2. If the LLM returns `stopReason: 'tool_use'`, the guard routes to `executeToolCalls`
+3. `llmDelegateToolCalls` executes the requested tools and stores results
+4. The loop continues back to the LLM
+5. When no more tool calls are needed, the fallback transition to `end` fires
+
+## Key Concepts
+
+- **`tools` array in config** — Lists tool names the LLM can call (must match `@Tool({ name })` values)
+- **`llmDelegateToolCalls`** — Executes tool calls from the LLM response message
+- **`message.stopReason === 'tool_use'`** — The LLM wants to call a tool
+- **`allCompleted`** — All delegated tool calls have finished
+- **`@Guard` + `priority`** — Routes between tool calling and final response
+
+## Registry References
+
+- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — Complete tool calling loop with GetWeather tool, guard-based routing, and delegate pattern

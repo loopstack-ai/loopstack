@@ -1,7 +1,5 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
@@ -11,10 +9,7 @@ import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider
   widget: __dirname + '/chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 

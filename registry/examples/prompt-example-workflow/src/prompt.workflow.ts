@@ -1,7 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
@@ -19,10 +18,7 @@ interface PromptState {
   }),
 })
 export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
-  ) {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
