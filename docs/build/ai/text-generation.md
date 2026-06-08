@@ -1,6 +1,11 @@
+---
+title: AI Text Generation
+description: Calling LLMs for text generation using LlmGenerateTextTool. Covers setup, system prompts, message history, provider selection, prompt caching, and streaming.
+---
+
 # AI Text Generation
 
-Use `LlmGenerateTextTool` from `@loopstack/llm-provider-module` to call an LLM for text generation.
+Generate text from any configured LLM provider using `LlmGenerateTextTool`. Pass prompts, system instructions, and message history — the tool handles provider routing, token counting, and optional streaming.
 
 ## Setup
 

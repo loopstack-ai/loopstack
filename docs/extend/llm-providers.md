@@ -1,3 +1,8 @@
+---
+title: Creating Custom LLM Providers
+description: Implementing a new LLM provider by extending LlmProviderInterface and registering with LlmProviderRegistry. Covers the provider architecture, required methods, and module setup.
+---
+
 # Creating LLM Providers
 
 Add a new LLM provider to Loopstack by implementing `LlmProviderInterface` and registering it with the `LlmProviderRegistry`.

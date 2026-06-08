@@ -1,6 +1,11 @@
+---
+title: Sub-Workflows
+description: Running workflows inside other workflows via .run(), callback transitions, passing arguments to child workflows, and receiving sub-workflow results.
+---
+
 # Sub-Workflows
 
-Execute workflows within other workflows using constructor injection and `.run()`. The parent workflow pauses at a `wait: true` transition until the sub-workflow completes.
+Sub-workflows let you compose complex automations from smaller, reusable workflow building blocks. A parent workflow can launch one or more child workflows via `.run()`, pause until they complete, and receive results through a callback transition.
 
 ## Injecting a Sub-Workflow
 

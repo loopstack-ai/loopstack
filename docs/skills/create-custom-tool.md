@@ -1,4 +1,11 @@
+---
+title: 'Skill: Create a Custom Tool'
+description: Step-by-step instructions for AI agents to scaffold a new tool — BaseTool class, @Tool decorator, Zod argument schema, handle() method, and module registration.
+---
+
 # Skill: Create a Custom Tool
+
+> **For AI coding agents:** This page is a dense reference checklist optimized for tools like Claude Code scaffolding Loopstack code. For the human-readable guide, see [Creating Tools](/docs/build/fundamentals/tools).
 
 ## Tool Anatomy
 

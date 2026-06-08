@@ -1,3 +1,8 @@
+---
+title: Creating Documents
+description: How to define typed document classes with @Document() decorator, Zod validation schemas, and YAML widget configs for rendering in Loopstack Studio.
+---
+
 # Creating Documents
 
 Documents are typed data objects displayed in the Loopstack Studio UI. They have a Zod schema for validation and a YAML config for rendering.

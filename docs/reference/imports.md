@@ -1,3 +1,8 @@
+---
+title: Import Directory
+description: Quick-reference for all @loopstack/* import paths — workflows, tools, documents, LLM providers, OAuth, sandbox, secrets, and agent module exports.
+---
+
 # Import Directory
 
 Quick-reference for all import paths.

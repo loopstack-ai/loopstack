@@ -1,4 +1,11 @@
+---
+title: 'Skill: Create a Custom Workflow'
+description: Step-by-step instructions for AI agents to scaffold a new workflow — file structure, TypeScript class with @Workflow and @Transition decorators, YAML widget config, and module registration.
+---
+
 # Skill: Create a Custom Workflow
+
+> **For AI coding agents:** This page is a dense reference checklist optimized for tools like Claude Code scaffolding Loopstack code. For the human-readable guide, see [Creating Workflows](/docs/build/fundamentals/workflows).
 
 ## Workflow Anatomy
 

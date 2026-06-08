@@ -1,3 +1,8 @@
+---
+title: Creating Custom OAuth Providers
+description: Implementing a new OAuth provider by extending OAuthProviderInterface and registering with OAuthProviderRegistry. Covers required methods, token handling, and module setup.
+---
+
 # Creating OAuth Providers
 
 Add a new OAuth provider to Loopstack by implementing `OAuthProviderInterface` and registering it with the `OAuthProviderRegistry`.

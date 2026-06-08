@@ -1,3 +1,8 @@
+---
+title: AI Tool Calling
+description: Enabling LLMs to invoke workflow tools via function calling. Covers LlmDelegateToolCallsTool, tool descriptions, passing tools to LLM calls, and handling tool results.
+---
+
 # AI Tool Calling
 
 Enable the LLM to call workflow tools (function calling). The LLM decides which tools to invoke, and `LlmDelegateToolCallsTool` executes them.

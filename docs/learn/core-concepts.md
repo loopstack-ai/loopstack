@@ -1,3 +1,8 @@
+---
+title: Core Concepts
+description: The three building blocks — workflows (state machines with transitions and guards), tools (reusable action classes), and documents (typed data rendered in Studio) — plus modules and extensions.
+---
+
 # Core Concepts
 
 Loopstack has three core building blocks — workflows, tools, and documents — plus a modular system of extensions for LLM providers, OAuth, sandboxes, and more.
