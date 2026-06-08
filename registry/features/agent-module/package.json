@@ -9,7 +9,7 @@
     "llm",
     "workflow"
   ],
-  "version": "0.5.0",
+  "version": "0.5.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,16 +33,16 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@loopstack/common": "^0.32.0",
-    "@loopstack/core": "^0.32.0",
-    "@loopstack/llm-provider-module": "^0.4.0",
+    "@loopstack/common": "^0.32.3",
+    "@loopstack/core": "^0.32.3",
+    "@loopstack/llm-provider-module": "^0.4.1",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.32.0",
-    "@loopstack/core": "^0.32.0",
-    "@loopstack/llm-provider-module": "^0.4.0",
+    "@loopstack/common": "^0.32.3",
+    "@loopstack/core": "^0.32.3",
+    "@loopstack/llm-provider-module": "^0.4.1",
     "@nestjs/common": "^11.0.0",
     "zod": "^4.0.0"
   },

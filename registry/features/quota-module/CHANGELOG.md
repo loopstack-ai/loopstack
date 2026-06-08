@@ -1,5 +1,14 @@
 # @loopstack/quota
 
+## 0.25.1
+
+### Patch Changes
+
+- [#176](https://github.com/loopstack-ai/loopstack/pull/176) [`52cbb6f`](https://github.com/loopstack-ai/loopstack/commit/52cbb6fcb2c2ed9f15cd1a7498b208a54f8de3c8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Move framework dependencies to devDependencies + peerDependencies
+
+- Updated dependencies [[`52cbb6f`](https://github.com/loopstack-ai/loopstack/commit/52cbb6fcb2c2ed9f15cd1a7498b208a54f8de3c8)]:
+  - @loopstack/common@0.32.3
+
 ## 0.25.0
 
 ### Minor Changes
