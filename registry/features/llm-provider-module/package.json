@@ -8,7 +8,7 @@
     "module",
     "provider"
   ],
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,15 +32,15 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@loopstack/common": "^0.32.0",
-    "@loopstack/contracts": "^0.32.0",
-    "@loopstack/core": "^0.32.0",
+    "@loopstack/common": "^0.32.3",
+    "@loopstack/contracts": "^0.32.3",
+    "@loopstack/core": "^0.32.3",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.32.0",
-    "@loopstack/contracts": "^0.32.0",
-    "@loopstack/core": "^0.32.0",
+    "@loopstack/common": "^0.32.3",
+    "@loopstack/contracts": "^0.32.3",
+    "@loopstack/core": "^0.32.3",
     "zod": "^4.0.0"
   },
   "files": [

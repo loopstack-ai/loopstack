@@ -10,7 +10,7 @@
     "loopstack",
     "module"
   ],
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -36,13 +36,13 @@
     "openai": "^4.103.0"
   },
   "devDependencies": {
-    "@loopstack/common": "^0.32.0",
-    "@loopstack/llm-provider-module": "^0.4.0",
+    "@loopstack/common": "^0.32.3",
+    "@loopstack/llm-provider-module": "^0.4.1",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.32.0",
-    "@loopstack/llm-provider-module": "^0.4.0",
+    "@loopstack/common": "^0.32.3",
+    "@loopstack/llm-provider-module": "^0.4.1",
     "zod": "^4.0.0"
   },
   "files": [
