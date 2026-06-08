@@ -1,3 +1,8 @@
+---
+title: State Management
+description: Defining, reading, and updating typed workflow state. Covers state interfaces, BaseWorkflow generics, state persistence across transitions, and state access patterns.
+---
+
 # State Management
 
 Workflow state is managed through a typed state interface and passed as the first parameter to transition methods. State is returned from each transition and automatically persisted across transitions.

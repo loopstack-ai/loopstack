@@ -1,3 +1,8 @@
+---
+title: Document YAML Schema
+description: Complete reference for document .ui.yaml files — type, description, display components, and rendering configuration for Loopstack Studio.
+---
+
 # Document YAML Schema
 
 Document YAML files define how documents are rendered in the Loopstack Studio interface.

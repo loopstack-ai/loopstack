@@ -1,3 +1,8 @@
+---
+title: Agent Workflows
+description: Building autonomous LLM agents that call tools in a loop. Covers the built-in AgentWorkflow module, custom agent loops with @Guard routing, error recovery, and max-iterations limits.
+---
+
 # Agent Workflows
 
 Build LLM agents that call tools, handle errors, and run as sub-workflows. Use the built-in `AgentWorkflow` for the common case, or build your own loop from scratch with the same decorators.

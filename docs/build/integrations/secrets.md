@@ -1,3 +1,8 @@
+---
+title: Secrets Management
+description: Requesting, storing, and retrieving secrets (API keys, tokens) at runtime using RequestSecretsTool, RequestSecretsTask, and GetSecretKeysTool from @loopstack/secrets-module.
+---
+
 # Secrets Management
 
 Loopstack provides built-in tools for requesting and retrieving secrets (API keys, tokens, etc.) from users at runtime.

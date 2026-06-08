@@ -1,3 +1,8 @@
+---
+title: 'Skill: Use the Loopstack Registry'
+description: Instructions for AI agents to discover, install, and integrate @loopstack/* registry packages — feature modules, tools, and example workflows.
+---
+
 # Skill: Use the Loopstack Registry
 
 ## Overview

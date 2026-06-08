@@ -1,3 +1,8 @@
+---
+title: Modules & Workspaces
+description: How to organize workflows, tools, and services into NestJS modules. Covers module structure, workspace configuration, and provider registration.
+---
+
 # Modules & Workspaces
 
 Loopstack uses NestJS modules to organize your application. Workflows and tools are registered as standard NestJS providers.

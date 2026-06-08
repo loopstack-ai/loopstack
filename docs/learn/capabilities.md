@@ -1,3 +1,8 @@
+---
+title: Capabilities Overview
+description: Quick-reference table of all Loopstack capabilities — AI/LLM features, workflow patterns, integrations, and UI — with links to the corresponding build guides.
+---
+
 # Capabilities
 
 Quick reference for what Loopstack can do. Each entry links to the relevant build guide.

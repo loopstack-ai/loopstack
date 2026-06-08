@@ -1,3 +1,8 @@
+---
+title: Getting Started
+description: Step-by-step setup guide — install prerequisites, scaffold a NestJS app, add LoopstackModule, configure Docker Compose for PostgreSQL and Redis, and run your first workflow.
+---
+
 # Getting Started
 
 Get Loopstack running locally in a few minutes.
@@ -98,21 +103,13 @@ export class HelloWorkflow extends BaseWorkflow<InputArgs> {
     super();
   }
 
-  @Transition({ from: 'start', to: 'message_received' })
-  async greet(_state: unknown, ctx: LoopstackContext<InputArgs>) {
+  @Transition({ to: 'end' })
+  async greet(_state: unknown, ctx: LoopstackContext) {
+    const args = ctx.args as InputArgs;
     const result = await this.llmGenerateText.call({
-      prompt: `Say hello to ${ctx.args.name} in a fun way in one sentence.`,
+      prompt: `Say hello to ${args.name} in a fun way in one sentence.`,
     });
-
     await this.documentStore.save(LlmMessageDocument, result.data!.message);
-  }
-
-  @Transition({ from: 'message_received', to: 'end' })
-  async saveMessage() {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'assistant',
-      content: 'Bye.',
-    });
   }
 }
 ```

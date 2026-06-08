@@ -1,6 +1,11 @@
+---
+title: Creating Workflows
+description: How to define workflow state machines using BaseWorkflow, @Workflow() decorator, @Transition() decorator, state typing, wait transitions, and guards. Includes full chat workflow example.
+---
+
 # Creating Workflows
 
-A workflow is a **state machine** defined as a TypeScript class. It extends `BaseWorkflow` and uses decorators to define transitions between states.
+A workflow is a state machine defined as a TypeScript class. Define transitions between named states, add guards for conditional routing, and use wait transitions to pause for user input or external events.
 
 ## Chat Example
 
@@ -347,3 +352,7 @@ src/
 - [dynamic-routing-example-workflow](https://loopstack.ai/registry/loopstack-dynamic-routing-example-workflow) — Multi-level guard-based routing
 - [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-workflow-state-example-workflow) — State management with typed state interface
 - [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Sub-workflow execution with callbacks
+
+---
+
+> **Using an AI coding agent?** See [Skill: Create a Custom Workflow](/docs/skills/create-custom-workflow) for a dense checklist and syntax reference optimized for code generation.

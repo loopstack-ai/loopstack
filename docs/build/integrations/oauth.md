@@ -1,6 +1,11 @@
+---
+title: OAuth Authentication
+description: Integrating OAuth 2.0 authentication using @loopstack/oauth-module. Covers setup with Google Workspace provider, token management, and accessing OAuth-protected APIs from workflows.
+---
+
 # OAuth Authentication
 
-`@loopstack/oauth-module` provides a provider-agnostic OAuth 2.0 framework. `@loopstack/google-workspace-module` adds Google as a provider.
+Add OAuth 2.0 authentication to your workflows using the provider-agnostic `@loopstack/oauth-module`. Register providers like Google Workspace or GitHub, and access OAuth-protected APIs from any workflow or tool.
 
 ## Setup
 
