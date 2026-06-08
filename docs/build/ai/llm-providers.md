@@ -1,3 +1,8 @@
+---
+title: LLM Providers
+description: Using multiple LLM providers (Claude, OpenAI) through the runtime provider registry. Covers LlmProviderModule setup, provider selection per-call, and switching providers without code changes.
+---
+
 # LLM Providers
 
 Loopstack supports multiple LLM providers through a runtime registry. Provider modules self-register at startup. Workflows and tools resolve providers by name — swap or use multiple providers in parallel without changing workflow code.

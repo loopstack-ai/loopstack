@@ -1,3 +1,8 @@
+---
+title: Registry
+description: Overview of the Loopstack Registry — discovering, installing, and using pre-built @loopstack/* npm packages for tools, feature modules, and example workflows.
+---
+
 # Registry
 
 The Loopstack Registry is a collection of npm packages (`@loopstack/*`) providing pre-built tools, feature modules, and example workflows.

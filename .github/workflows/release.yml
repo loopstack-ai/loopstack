@@ -80,6 +80,12 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Auto-merge release PR
+        if: steps.changesets.outputs.pullRequestNumber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge ${{ steps.changesets.outputs.pullRequestNumber }} --squash --auto
+
       - name: Delete changeset-release branch
         if: steps.changesets.outputs.published == 'true'
         run: git push origin --delete changeset-release/main || true

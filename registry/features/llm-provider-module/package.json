@@ -30,17 +30,22 @@
     "test": "jest --passWithNoTests",
     "watch": "nest build --watch"
   },
-  "dependencies": {
-    "@loopstack/contracts": "^0.32.0",
+  "dependencies": {},
+  "devDependencies": {
     "@loopstack/common": "^0.32.0",
+    "@loopstack/contracts": "^0.32.0",
+    "@loopstack/core": "^0.32.0",
     "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "@loopstack/common": "^0.32.0",
+    "@loopstack/contracts": "^0.32.0",
+    "@loopstack/core": "^0.32.0",
+    "zod": "^4.0.0"
   },
   "files": [
     "dist"
   ],
-  "devDependencies": {
-    "@loopstack/core": "^0.32.0"
-  },
   "jest": {
     "moduleFileExtensions": [
       "js",

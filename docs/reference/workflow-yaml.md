@@ -1,3 +1,8 @@
+---
+title: Workflow YAML Schema
+description: Complete reference for workflow .ui.yaml files — title, description, widget layout, input forms, action buttons, and enabled-state configuration for Loopstack Studio.
+---
+
 # Workflow YAML Schema
 
 ## Top-Level Properties

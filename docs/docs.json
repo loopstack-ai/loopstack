@@ -1,0 +1,19 @@
+{
+  "learn": {
+    "title": "Learn",
+    "description": "Conceptual overviews of Loopstack — what it is, how the workflow engine works, core abstractions (workflows, tools, documents), and the Studio UI."
+  },
+  "build": {
+    "title": "Build",
+    "description": "Step-by-step guides for building with Loopstack — getting started, workflow fundamentals, AI/LLM integration, workflow patterns, and third-party integrations."
+  },
+  "extend": {
+    "title": "Extend",
+    "description": "How to add custom LLM providers and OAuth providers to the Loopstack registry."
+  },
+  "reference": {
+    "title": "Reference",
+    "description": "API and configuration reference — module options, environment variables, YAML schemas for workflows and documents, and import paths."
+  },
+  "skills": { "title": "Skills", "display": "hidden" }
+}

@@ -31,16 +31,20 @@
     "test": "vitest run",
     "watch": "nest build --watch"
   },
-  "dependencies": {
-    "@loopstack/common": "^0.32.0",
-    "@nestjs/common": "^11.1.19",
-    "ioredis": "^5.10.1"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@loopstack/common": "^0.32.0",
     "@nestjs/cli": "^11.0.19",
-    "vitest": "^4.1.6",
+    "@nestjs/common": "^11.1.19",
     "@swc/core": "^1.15.33",
-    "unplugin-swc": "^1.5.9"
+    "ioredis": "^5.10.1",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6"
+  },
+  "peerDependencies": {
+    "@loopstack/common": "^0.32.0",
+    "@nestjs/common": "^11.0.0",
+    "ioredis": "^5.0.0"
   },
   "files": [
     "dist"

@@ -1,6 +1,11 @@
+---
+title: Template Expressions
+description: Rendering dynamic text content with Handlebars templates via this.render(). Covers template syntax, variable interpolation, helpers, and use in prompts.
+---
+
 # Template Expressions
 
-Loopstack uses Handlebars templates for rendering dynamic text content. Templates are rendered via `this.render()`, available directly on `BaseWorkflow` (like `documentStore`).
+Use Handlebars templates to render dynamic text content in workflows. Call `this.render()` from any `BaseWorkflow` to interpolate state values, format prompts, and generate dynamic output.
 
 ## Setup
 

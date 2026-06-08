@@ -1,3 +1,8 @@
+---
+title: AI Structured Output
+description: Forcing LLMs to return structured JSON data using LlmGenerateObjectTool with Zod schemas. Provider-agnostic — works with Claude, OpenAI, and other providers.
+---
+
 # AI Structured Output
 
 Use `LlmGenerateObjectTool` from `@loopstack/llm-provider-module` to generate structured data conforming to a JSON Schema. Provider-agnostic — works with Claude, OpenAI, and other providers.

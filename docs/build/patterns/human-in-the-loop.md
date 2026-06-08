@@ -1,3 +1,8 @@
+---
+title: Human-in-the-Loop
+description: Pausing workflows for user input, review, or confirmation using wait:true transitions, document UI actions, payload schemas, and approval patterns.
+---
+
 # Human-in-the-Loop
 
 Pause workflows for user input, review, or confirmation using `wait: true` transitions and document UI actions.

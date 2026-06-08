@@ -1,6 +1,11 @@
+---
+title: Creating Tools
+description: How to define custom tools with BaseTool, Zod argument schemas, @Tool() decorator, handle() method signature, tool configuration, and dependency injection into workflows.
+---
+
 # Creating Tools
 
-A tool is a reusable unit of logic that extends `BaseTool`. Tools are injected into workflows via constructor injection and called directly in TypeScript.
+Tools are reusable TypeScript classes that encapsulate a single action — calling an API, querying a database, transforming data, or any other side effect. Define a tool once with a Zod schema for its arguments, then inject it into any workflow or expose it to LLMs for autonomous tool calling.
 
 ## Basic Tool
 
@@ -180,3 +185,7 @@ src/
 
 - [custom-tool-example-module](https://loopstack.ai/registry/loopstack-custom-tool-example-module) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
 - [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — GetWeather tool exposed to the LLM for function calling
+
+---
+
+> **Using an AI coding agent?** See [Skill: Create a Custom Tool](/docs/skills/create-custom-tool) for a dense checklist and syntax reference optimized for code generation.

@@ -1,3 +1,8 @@
+---
+title: Error Handling, Retry & Timeout
+description: Recovering from transition errors with auto-retry and exponential backoff, custom error state transitions, manual retry via Studio UI, and transition timeouts.
+---
+
 # Error Handling, Retry & Timeout
 
 When a transition throws an error, the framework rolls back all changes and gives you three ways to recover: auto-retry with backoff, transition to a custom error state, or manual retry via the UI.

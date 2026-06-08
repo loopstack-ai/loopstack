@@ -1,6 +1,11 @@
+---
+title: Chat Flows
+description: Building multi-turn conversational workflows with LLMs using LlmMessageDocument, messagesSearchTag pattern, and wait transitions for user input.
+---
+
 # Chat Flows
 
-Build multi-turn conversational workflows with an LLM using message documents and the `messagesSearchTag` pattern.
+Build multi-turn conversational workflows where users exchange messages with an LLM. Messages are persisted as documents and accumulated across turns using the `messagesSearchTag` pattern.
 
 ## Example
 
@@ -76,7 +81,7 @@ setup → waiting_for_user → [user sends message] → ready → llmTurn → wa
 
 ## Combining with Tool Calling
 
-Add tool calling to a chat flow by combining the patterns from [AI Tool Calling](/features/ai-tool-calling):
+Add tool calling to a chat flow by combining the patterns from [AI Tool Calling](/docs/build/ai/tool-calling):
 
 ```typescript
 import type { LlmResultMeta } from '@loopstack/llm-provider-module';

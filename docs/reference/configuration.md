@@ -1,3 +1,8 @@
+---
+title: Configuration Reference
+description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS, and default settings.
+---
+
 # Configuration
 
 Loopstack is configured via `LoopstackModule.forRoot()` options and environment variables. Environment variables are read from a `.env` file in your project root.

@@ -1,3 +1,8 @@
+---
+title: 'Skill: Use Core Tools'
+description: Reference for AI agents on using built-in tools and documents from @loopstack/core and @loopstack/common — sub-workflow execution, document store, render, HTTP client, and core document types.
+---
+
 # Skill: Use Core Tools
 
 ## Overview

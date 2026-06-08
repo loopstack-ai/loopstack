@@ -1,6 +1,11 @@
+---
+title: Sandbox Execution
+description: Executing untrusted code in Docker containers using @loopstack/sandbox-tool and @loopstack/sandbox-filesystem. Setup, file I/O inside sandboxes, and cleanup.
+---
+
 # Sandbox Execution
 
-Run untrusted code in isolated Docker containers using `@loopstack/sandbox-tool` and `@loopstack/sandbox-filesystem`.
+Run untrusted or AI-generated code safely in isolated Docker containers. The sandbox packages provide tools for creating disposable execution environments with filesystem access, letting workflows execute arbitrary code without risking the host system.
 
 ## Setup
 

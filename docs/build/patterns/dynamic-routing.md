@@ -1,3 +1,8 @@
+---
+title: Dynamic Routing
+description: Conditional workflow routing using @Guard decorators and priority-based transition selection when multiple transitions share the same source state.
+---
+
 # Dynamic Routing
 
 Route workflows conditionally using `@Guard` decorators and `priority` to control which transition fires when multiple transitions share the same source state.

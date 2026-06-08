@@ -1,6 +1,11 @@
+---
+title: Programmatic Workflow Execution
+description: Starting and managing workflows from code using WorkflowRunner. Covers triggering from API requests, webhooks, cron jobs, batch processing, and internal events.
+---
+
 # Running Workflows Programmatically
 
-While workflows can be triggered through the Loopstack Studio interface, you can also start them programmatically from within your NestJS application.
+Start and manage workflows programmatically from your NestJS application — in response to API requests, webhook events, cron jobs, or internal application logic — without going through the Studio UI.
 
 ## Overview
 

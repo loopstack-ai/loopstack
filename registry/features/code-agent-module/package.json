@@ -31,19 +31,26 @@
     "test": "jest --passWithNoTests",
     "watch": "nest build --watch"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@loopstack/agent": "^0.5.0",
     "@loopstack/common": "^0.32.0",
+    "@loopstack/core": "^0.32.0",
     "@loopstack/remote-client": "^0.25.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
+  "peerDependencies": {
+    "@loopstack/agent": "^0.5.0",
+    "@loopstack/common": "^0.32.0",
+    "@loopstack/core": "^0.32.0",
+    "@loopstack/remote-client": "^0.25.0",
+    "@nestjs/common": "^11.0.0",
+    "zod": "^4.0.0"
+  },
   "files": [
     "dist"
   ],
-  "devDependencies": {
-    "@loopstack/core": "^0.32.0"
-  },
   "jest": {
     "moduleFileExtensions": [
       "js",

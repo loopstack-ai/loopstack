@@ -20,10 +20,10 @@ export class DocumentPersistenceService {
   /**
    * Creates, persists, and caches a document entity.
    *
-   * When a queryRunner is available on the execution scope (stateful workflows),
-   * the document is written to the DB immediately within the transition's transaction.
-   * For stateless workflows (no queryRunner), the document is only added to the
-   * in-memory cache.
+   * - Stateless workflows: document is added to the in-memory cache only, no DB write.
+   * - Stateful workflows within a transition: document is written inside the active transaction.
+   * - Stateful workflows outside a transaction (e.g. error documents after rollback): document is
+   *   written via the plain repository outside any transaction.
    */
   async create(
     documentName: string,
@@ -32,7 +32,10 @@ export class DocumentPersistenceService {
     options?: DocumentSaveOptions,
   ): Promise<DocumentEntity> {
     const scope = this.executionScope.get();
-    const transition = scope.transition!;
+    const transition = scope.transition;
+    if (!transition) {
+      throw new Error('DocumentPersistenceService.create() called outside an active transition');
+    }
 
     // Read options and schema from the document class decorator
     const blockOptions = getBlockOptions(documentClass);
@@ -69,10 +72,15 @@ export class DocumentPersistenceService {
     // Set index and update in-memory cache first (handles invalidation of previous versions)
     await this.addToCache(scope, entity);
 
-    // Persist to DB with correct index via scoped transaction when available
-    const saved = scope.queryRunner ? await scope.queryRunner.manager.save(DocumentEntity, entity) : entity;
+    // Stateless workflows have no persistence
+    if (scope.options?.stateless) {
+      return entity;
+    }
 
-    return saved;
+    // Persist within the active transaction, or directly if called outside one (e.g. error documents after rollback)
+    return scope.queryRunner
+      ? scope.queryRunner.manager.save(DocumentEntity, entity)
+      : this.documentRepository.save(entity);
   }
 
   /**
@@ -80,7 +88,7 @@ export class DocumentPersistenceService {
    * versions (by messageId) and index inheritance. Persists invalidation
    * changes to DB when a queryRunner is available.
    */
-  async addToCache(scope: ExecutionScopeData, document: DocumentEntity): Promise<void> {
+  private async addToCache(scope: ExecutionScopeData, document: DocumentEntity): Promise<void> {
     const { documents, queryRunner } = scope;
 
     const existingIndex = document.messageId ? documents.findIndex((d) => d.messageId === document.messageId) : -1;
@@ -102,13 +110,20 @@ export class DocumentPersistenceService {
     }
 
     // Persist invalidation to DB
-    if (queryRunner && invalidated.length > 0) {
-      await queryRunner.manager
-        .createQueryBuilder()
-        .update(DocumentEntity)
-        .set({ isInvalidated: true })
-        .whereInIds(invalidated.map((d) => d.id))
-        .execute();
+    if (invalidated.length > 0 && !scope.options?.stateless) {
+      if (queryRunner) {
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(DocumentEntity)
+          .set({ isInvalidated: true })
+          .whereInIds(invalidated.map((d) => d.id))
+          .execute();
+      } else {
+        await this.documentRepository.update(
+          invalidated.map((d) => d.id),
+          { isInvalidated: true },
+        );
+      }
     }
 
     if (existingIndex !== -1) {
