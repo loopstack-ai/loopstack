@@ -30,12 +30,20 @@
     "test": "jest --passWithNoTests",
     "watch": "nest build --watch"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@loopstack/common": "^0.32.0",
     "@loopstack/remote-client": "^0.25.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/typeorm": "^11.0.1",
     "typeorm": "^0.3.28"
+  },
+  "peerDependencies": {
+    "@loopstack/common": "^0.32.0",
+    "@loopstack/remote-client": "^0.25.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/typeorm": "^11.0.0",
+    "typeorm": "^0.3.0"
   },
   "files": [
     "dist"

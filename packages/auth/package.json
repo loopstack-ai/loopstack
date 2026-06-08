@@ -33,6 +33,15 @@
     "@loopstack/common": "^0.32.0",
     "@loopstack/contracts": "^0.32.0",
     "@loopstack/core": "^0.32.0",
+    "axios": "^1.15.0",
+    "cookie-parser": "^1.4.7",
+    "jose": "^6.2.2",
+    "lodash": "^4.18.1",
+    "nest-commander": "^3.20.1",
+    "passport-custom": "^1.1.1",
+    "passport-jwt": "^4.0.1"
+  },
+  "devDependencies": {
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",
@@ -41,24 +50,29 @@
     "@nestjs/microservices": "^11.1.19",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.19",
-    "axios": "^1.15.0",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.15.1",
-    "cookie-parser": "^1.4.7",
-    "nest-commander": "^3.20.1",
-    "lodash": "^4.18.1",
-    "jose": "^6.2.2",
-    "passport-custom": "^1.1.1",
-    "passport-jwt": "^4.0.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
-  },
-  "devDependencies": {
+    "@swc/core": "^1.15.33",
     "@types/cookie-parser": "^1.4.10",
     "@types/passport-jwt": "^4.0.1",
-    "vitest": "^4.1.6",
-    "@swc/core": "^1.15.33",
-    "unplugin-swc": "^1.5.9"
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/event-emitter": "^3.0.0",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/microservices": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "class-transformer": "^0.5.0",
+    "class-validator": "^0.15.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.0.0"
   },
   "files": [
     "dist"
