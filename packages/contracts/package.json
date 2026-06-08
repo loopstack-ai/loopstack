@@ -36,8 +36,12 @@
     "lint": "eslint .",
     "watch": "tsc --watch"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
   },
   "files": [
     "dist"

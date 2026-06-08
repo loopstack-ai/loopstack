@@ -40,5 +40,6 @@ export default {
     'dependencies',
     'devDependencies',
     'peerDependencies',
+    'peerDependenciesMeta',
   ],
 };

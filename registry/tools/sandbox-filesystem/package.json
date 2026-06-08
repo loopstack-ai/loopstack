@@ -28,11 +28,18 @@
     "test": "jest --passWithNoTests",
     "watch": "nest build --watch"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@loopstack/common": "^0.32.0",
     "@loopstack/sandbox-tool": "^0.7.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "@loopstack/common": "^0.32.0",
+    "@loopstack/sandbox-tool": "^0.7.0",
+    "@nestjs/common": "^11.0.0",
+    "zod": "^4.0.0"
   },
   "files": [
     "dist"
