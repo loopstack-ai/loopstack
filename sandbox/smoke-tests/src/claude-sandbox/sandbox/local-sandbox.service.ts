@@ -10,6 +10,7 @@ export interface ProvisionedSandbox {
   agentUrl: string;
 }
 
+/** Provisions and tears down a local Docker sandbox running the Loopstack remote agent + Claude Code. */
 @Injectable()
 export class LocalSandboxService {
   private readonly logger = new Logger(LocalSandboxService.name);

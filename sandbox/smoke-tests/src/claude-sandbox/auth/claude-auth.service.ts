@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { LoginChallenge, StoredToken } from './auth.types';
+import { HostCredentialsReader } from './host-credentials.reader';
 
 // OAuth constants for the Claude subscription flow, read from the claude-code binary.
 const CLIENT_ID = process.env.CLAUDE_OAUTH_CLIENT_ID ?? '9d1c250a-e61b-44d9-88ed-5944d1962f5e';
@@ -10,40 +12,67 @@ const TOKEN_URL = process.env.CLAUDE_OAUTH_TOKEN_URL ?? 'https://platform.claude
 const REDIRECT_URI = process.env.CLAUDE_OAUTH_REDIRECT_URI ?? 'https://platform.claude.com/oauth/code/callback';
 const SCOPE = process.env.CLAUDE_OAUTH_SCOPE ?? 'user:inference';
 
-interface StoredToken {
-  accessToken: string;
-  refreshToken?: string;
-  expiresAt: number;
-}
+const TOKEN_SKEW_MS = 60_000;
 
-export interface LoginChallenge {
-  authUrl: string;
-  verifier: string;
-  state: string;
-}
-
+/**
+ * Resolves a Claude access token for the sandbox, in priority order:
+ *   1. `CLAUDE_CODE_OAUTH_TOKEN` env (explicit override)
+ *   2. a token previously obtained via the in-app OAuth flow ({@link begin} / {@link completeLogin})
+ *   3. the local Claude Code login (see {@link HostCredentialsReader}), if enabled
+ * Tokens are refreshed transparently when expired.
+ */
 @Injectable()
 export class ClaudeAuthService {
   private readonly logger = new Logger(ClaudeAuthService.name);
   private readonly storePath = process.env.CLAUDE_TOKEN_STORE ?? join(process.cwd(), '.claude-oauth.json');
 
+  constructor(private readonly hostCredentials: HostCredentialsReader) {}
+
   async getValidToken(userId: string): Promise<string | undefined> {
     if (process.env.CLAUDE_CODE_OAUTH_TOKEN) return process.env.CLAUDE_CODE_OAUTH_TOKEN;
 
     const stored = this.read()[userId];
-    if (!stored) return undefined;
-    if (Date.now() < stored.expiresAt - 60_000) return stored.accessToken;
-
-    if (stored.refreshToken) {
-      try {
-        const refreshed = await this.refresh(stored.refreshToken);
-        this.write(userId, refreshed);
-        return refreshed.accessToken;
-      } catch (error) {
-        this.logger.warn(`Claude token refresh failed for ${userId}: ${this.message(error)}`);
-      }
+    if (stored) {
+      const token = await this.resolveToken(stored, (refreshed) => this.write(userId, refreshed));
+      if (token) return token;
     }
-    return undefined;
+
+    return this.resolveHostLogin();
+  }
+
+  private async resolveHostLogin(): Promise<string | undefined> {
+    if (!this.hostCredentials.enabled) return undefined;
+
+    const creds = this.hostCredentials.read();
+    if (!creds) {
+      this.logger.warn(
+        'CLAUDE_SANDBOX_HOST_AUTH set but no local Claude login found — run `claude` to log in, ' +
+          'or set CLAUDE_CODE_OAUTH_TOKEN.',
+      );
+      return undefined;
+    }
+
+    // In-memory refresh only — we don't own the host credential store, so we never write back.
+    const token = await this.resolveToken(creds);
+    if (!token) this.logger.warn('Local Claude login is expired — run `claude` to refresh it.');
+    return token;
+  }
+
+  /** Returns a usable access token from a credential, refreshing (and optionally persisting) if expired. */
+  private async resolveToken(
+    token: StoredToken,
+    persist?: (refreshed: StoredToken) => void,
+  ): Promise<string | undefined> {
+    if (Date.now() < token.expiresAt - TOKEN_SKEW_MS) return token.accessToken;
+    if (!token.refreshToken) return undefined;
+    try {
+      const refreshed = await this.refresh(token.refreshToken);
+      persist?.(refreshed);
+      return refreshed.accessToken;
+    } catch (error) {
+      this.logger.warn(`Claude token refresh failed: ${this.message(error)}`);
+      return undefined;
+    }
   }
 
   begin(): LoginChallenge {

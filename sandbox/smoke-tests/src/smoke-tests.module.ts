@@ -61,8 +61,7 @@ import { ToolCallingExampleModule } from '@loopstack/tool-call-example-workflow'
 import { ToolCallWorkflow } from '@loopstack/tool-call-example-workflow';
 import { WorkflowStateExampleModule } from '@loopstack/workflow-state-example-workflow';
 import { WorkflowStateWorkflow } from '@loopstack/workflow-state-example-workflow';
-import { ClaudeCodeWorkflow } from './claude-sandbox/claude-code.workflow';
-import { ClaudeSandboxModule } from './claude-sandbox/claude-sandbox.module';
+import { ClaudeCodeWorkflow, ClaudeSandboxModule, LoopstackBenchmarkWorkflow } from './claude-sandbox';
 import { SmokeTestsController } from './smoke-tests.controller';
 
 @StudioApp({
@@ -111,6 +110,7 @@ import { SmokeTestsController } from './smoke-tests.controller';
     SecretsExampleWorkflow,
     SecretsAgentExampleWorkflow,
     ClaudeCodeWorkflow,
+    LoopstackBenchmarkWorkflow,
   ],
 })
 @Module({

@@ -12,13 +12,13 @@ import {
 import type { LoopstackContext } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 import { RemoteClient } from '@loopstack/remote-client';
-import { ClaudeAuthService } from './claude-auth.service';
-import { LocalSandboxService } from './local-sandbox.service';
+import { ClaudeAuthService } from '../auth/claude-auth.service';
+import { ClaudeCliRunner } from '../cli/claude-cli.runner';
+import { LocalSandboxService } from '../sandbox/local-sandbox.service';
 
 const CodeCallbackSchema = CallbackSchema.extend({
   data: z.object({ answer: z.string() }),
 });
-
 type CodeCallback = z.infer<typeof CodeCallbackSchema>;
 
 interface ClaudeSandboxState {
@@ -40,13 +40,10 @@ const ClaudeSandboxArgsSchema = z
 
 type ClaudeSandboxArgs = z.infer<typeof ClaudeSandboxArgsSchema>;
 
-const RUN_SCRIPT = `#!/bin/sh
-cd /workspace
-rm -f .claude-job.out .claude-job.err .claude-job.exit
-claude -p --output-format json --permission-mode bypassPermissions < .claude-prompt.txt > .claude-job.out 2> .claude-job.err
-echo $? > .claude-job.exit
-`;
-
+/**
+ * Spins up a blank, sandboxed Linux container running Claude Code, delegates a single task to it,
+ * polls for completion and returns the result. Authenticates with your Claude subscription on first use.
+ */
 @Workflow({
   title: 'Claude Code Sandbox',
   description:
@@ -61,6 +58,7 @@ export class ClaudeCodeWorkflow extends BaseWorkflow<ClaudeSandboxArgs, ClaudeSa
     private readonly remote: RemoteClient,
     private readonly auth: ClaudeAuthService,
     private readonly askUser: AskUserWorkflow,
+    private readonly cli: ClaudeCliRunner,
   ) {
     super();
   }
@@ -114,12 +112,7 @@ export class ClaudeCodeWorkflow extends BaseWorkflow<ClaudeSandboxArgs, ClaudeSa
     return { ...state, verifier, oauthState };
   }
 
-  @Transition({
-    from: 'awaiting_login',
-    to: 'ready',
-    wait: true,
-    schema: CodeCallbackSchema,
-  })
+  @Transition({ from: 'awaiting_login', to: 'ready', wait: true, schema: CodeCallbackSchema })
   async codeReceived(
     state: ClaudeSandboxState,
     payload: CodeCallback,
@@ -141,13 +134,7 @@ export class ClaudeCodeWorkflow extends BaseWorkflow<ClaudeSandboxArgs, ClaudeSa
     const { task } = ctx.args as ClaudeSandboxArgs;
 
     const { containerId, agentUrl } = await this.sandbox.provision(ctx.workspaceId, state.token);
-
-    await this.remote.writeFile(agentUrl, '.claude-prompt.txt', task);
-    await this.remote.writeFile(agentUrl, 'run-claude.sh', RUN_SCRIPT);
-    await this.remote.executeCommand(
-      agentUrl,
-      'chmod +x run-claude.sh && nohup ./run-claude.sh >/dev/null 2>&1 & echo launched',
-    );
+    await this.cli.launch(agentUrl, task);
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -158,18 +145,9 @@ export class ClaudeCodeWorkflow extends BaseWorkflow<ClaudeSandboxArgs, ClaudeSa
   }
 
   // retry acts as the poll loop: throw while running → re-checked after the delay.
-  @Transition({
-    from: 'running',
-    to: 'collecting',
-    retry: { attempts: 240, delay: 5000, backoff: 'fixed' },
-  })
+  @Transition({ from: 'running', to: 'collecting', retry: { attempts: 240, delay: 5000, backoff: 'fixed' } })
   async pollClaude(state: ClaudeSandboxState): Promise<ClaudeSandboxState> {
-    const result = await this.remote.executeCommand(
-      state.agentUrl!,
-      'cat .claude-job.exit 2>/dev/null || echo RUNNING',
-    );
-    const value = result.stdout.trim();
-    if (value === '' || value === 'RUNNING') {
+    if (!(await this.cli.isFinished(state.agentUrl!))) {
       throw new Error('Claude Code is still running');
     }
     return state;
@@ -178,25 +156,16 @@ export class ClaudeCodeWorkflow extends BaseWorkflow<ClaudeSandboxArgs, ClaudeSa
   @Transition({ from: 'collecting', to: 'cleanup' })
   async collectResult(state: ClaudeSandboxState): Promise<ClaudeSandboxState> {
     const agentUrl = state.agentUrl!;
+    const exitCode = await this.cli.readExitCode(agentUrl);
+    const stats = await this.cli.readStats(agentUrl);
 
-    const exitResult = await this.remote.executeCommand(agentUrl, 'cat .claude-job.exit 2>/dev/null || echo 1');
-    const exitCode = parseInt(exitResult.stdout.trim(), 10) || 0;
-
-    const out = await this.remote.readFile(agentUrl, '.claude-job.out').catch(() => ({ content: '' }));
-    const tree = await this.remote.executeCommand(agentUrl, 'ls -la');
-
-    let summary = out.content;
-    try {
-      const parsed = JSON.parse(out.content) as { result?: string };
-      if (parsed.result) summary = parsed.result;
-    } catch {
-      /* raw output */
-    }
-
+    let summary = stats.result;
     if (exitCode !== 0) {
-      const err = await this.remote.readFile(agentUrl, '.claude-job.err').catch(() => ({ content: '' }));
-      summary = `Claude Code exited with code ${exitCode}.\n\n${err.content || summary}`;
+      const err = await this.cli.readErrorLog(agentUrl);
+      summary = `Claude Code exited with code ${exitCode}.\n\n${err || summary}`;
     }
+
+    const tree = await this.remote.executeCommand(agentUrl, 'ls -la');
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
