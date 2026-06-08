@@ -73,7 +73,7 @@ export class DocumentPersistenceService {
     await this.addToCache(scope, entity);
 
     // Stateless workflows have no persistence
-    if (scope.options.stateless) {
+    if (scope.options?.stateless) {
       return entity;
     }
 
@@ -110,7 +110,7 @@ export class DocumentPersistenceService {
     }
 
     // Persist invalidation to DB
-    if (invalidated.length > 0 && !scope.options.stateless) {
+    if (invalidated.length > 0 && !scope.options?.stateless) {
       if (queryRunner) {
         await queryRunner.manager
           .createQueryBuilder()
