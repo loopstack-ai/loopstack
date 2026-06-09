@@ -89,6 +89,7 @@
     "registry/*/*",
     "services/*",
     "sandbox/hello-world",
-    "sandbox/smoke-tests"
+    "sandbox/smoke-tests",
+    "sandbox/acceptance-harness"
   ]
 }
