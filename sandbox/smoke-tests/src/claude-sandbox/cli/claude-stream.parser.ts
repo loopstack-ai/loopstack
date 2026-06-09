@@ -18,12 +18,20 @@ interface ClaudeResultEvent {
   };
 }
 
+interface ClaudeContentBlock {
+  type?: string;
+  text?: string;
+  name?: string;
+  input?: Record<string, unknown>;
+}
+
 interface ClaudeStreamEvent {
   type?: string;
-  message?: { content?: Array<{ type?: string; text?: string; name?: string }> };
+  message?: { content?: ClaudeContentBlock[] };
 }
 
 const MAX_TRANSCRIPT_STEPS = 60;
+const MAX_DETAIL_CHARS = 120;
 
 /**
  * Parses Claude Code's `--output-format stream-json` output (newline-delimited JSON events):
@@ -74,13 +82,60 @@ export class ClaudeStreamParser {
       if (ev.type !== 'assistant' || !ev.message?.content) continue;
       for (const block of ev.message.content) {
         if (block.type === 'text' && block.text?.trim()) parts.push(block.text.trim());
-        else if (block.type === 'tool_use' && block.name) parts.push(`\`🔧 ${block.name}\``);
+        else if (block.type === 'tool_use' && block.name) parts.push(this.summarizeToolUse(block.name, block.input));
       }
     }
     if (!parts.length) return '';
     const tail = parts.slice(-MAX_TRANSCRIPT_STEPS);
     const elided = parts.length > tail.length ? `_…${parts.length - tail.length} earlier steps elided…_\n\n` : '';
     return `### ${heading}\n\n${elided}${tail.join('\n\n')}`;
+  }
+
+  private summarizeToolUse(name: string, input?: Record<string, unknown>): string {
+    const detail = this.toolDetail(name, input);
+    return detail ? `\`🔧 ${name}\` \`${detail}\`` : `\`🔧 ${name}\``;
+  }
+
+  private toolDetail(name: string, input?: Record<string, unknown>): string {
+    if (!input) return '';
+    const str = (key: string): string | undefined => {
+      const v = input[key];
+      return typeof v === 'string' ? v : undefined;
+    };
+
+    let value: string | undefined;
+    switch (name) {
+      case 'Bash':
+        value = str('command');
+        break;
+      case 'Read':
+      case 'Write':
+      case 'Edit':
+      case 'MultiEdit':
+        value = str('file_path');
+        break;
+      case 'NotebookEdit':
+        value = str('notebook_path');
+        break;
+      case 'Glob':
+      case 'Grep':
+        value = str('pattern');
+        break;
+      case 'WebFetch':
+        value = str('url');
+        break;
+      case 'Task':
+        value = str('description');
+        break;
+      default:
+        // Unknown/MCP tools: fall back to whichever common field is present.
+        value =
+          str('command') ?? str('file_path') ?? str('path') ?? str('pattern') ?? str('query') ?? str('description');
+    }
+    if (!value) return '';
+
+    const oneLine = value.replace(/`/g, "'").replace(/\s+/g, ' ').trim();
+    return oneLine.length > MAX_DETAIL_CHARS ? `${oneLine.slice(0, MAX_DETAIL_CHARS - 1)}…` : oneLine;
   }
 
   // Find the final `result` event (NDJSON); also tolerate a single JSON object (`--output-format json`).

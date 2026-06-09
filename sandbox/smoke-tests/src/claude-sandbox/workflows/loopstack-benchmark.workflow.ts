@@ -16,13 +16,14 @@ import { BenchmarkJudgeService } from '../benchmark/benchmark-judge.service';
 import { BenchmarkReportService } from '../benchmark/benchmark-report.service';
 import { BenchmarkSandboxProbe } from '../benchmark/benchmark-sandbox-probe.service';
 import {
+  APP_DIR,
   DEFAULT_MODEL,
   DEFAULT_TASK,
   MAX_BUILD_TICKS,
   MAX_RETRO_TICKS,
   POLL_MS,
+  RETRO_FILE,
 } from '../benchmark/benchmark.constants';
-import { buildPrompt, retroPrompt } from '../benchmark/benchmark.prompts';
 import type { BenchmarkState } from '../benchmark/benchmark.types';
 import { ClaudeCliRunner } from '../cli/claude-cli.runner';
 import { BenchmarkScorecard, BenchmarkScorecardType } from '../documents/benchmark-scorecard.document';
@@ -138,7 +139,8 @@ export class LoopstackBenchmarkWorkflow extends BaseWorkflow<LoopstackBenchmarkA
     const { task } = ctx.args as LoopstackBenchmarkArgs;
     const { containerId, agentUrl } = await this.sandbox.provision(ctx.workspaceId, state.token);
 
-    await this.cli.launch(agentUrl, buildPrompt(task));
+    const prompt = this.render(__dirname + '/templates/benchmark-build.md', { task, appDir: APP_DIR });
+    await this.cli.launch(agentUrl, prompt);
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -190,7 +192,8 @@ export class LoopstackBenchmarkWorkflow extends BaseWorkflow<LoopstackBenchmarkA
     });
 
     // Kick off the retro run, resuming the build session so Claude keeps full context.
-    await this.cli.launch(agentUrl, retroPrompt(), { resumeSessionId: buildStats.sessionId });
+    const retroPrompt = this.render(__dirname + '/templates/benchmark-retro.md', { retroFile: RETRO_FILE });
+    await this.cli.launch(agentUrl, retroPrompt, { resumeSessionId: buildStats.sessionId });
 
     return {
       ...state,
