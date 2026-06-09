@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 import { Router } from 'express';
 import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
+import { createServer } from 'net';
 import { join } from 'path';
 import { APP_ROOT } from '../config.js';
 
@@ -25,19 +26,50 @@ export function startApp(): void {
   console.log('PM2 started custom-app');
 }
 
+async function waitForPortFree(port: number, attempts = 40, delayMs = 500): Promise<boolean> {
+  for (let i = 0; i < attempts; i++) {
+    const free = await new Promise<boolean>((resolve) => {
+      const server = createServer();
+      server.once('error', () => resolve(false));
+      server.once('listening', () => server.close(() => resolve(true)));
+      server.listen(port, '0.0.0.0');
+    });
+    if (free) return true;
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+  return false;
+}
+
+/**
+ * Restart custom-app without racing the port. A plain `pm2 restart` lets the new instance start
+ * while the old one (NestJS doesn't exit on SIGINT) is still bound to :3000 → EADDRINUSE and two
+ * instances, where the stale one may keep the port. Fully delete, wait for the port to free, then
+ * start, so exactly one instance serves the freshly built app.
+ */
+async function cleanRestart(): Promise<void> {
+  try {
+    pm2('delete custom-app');
+  } catch {
+    /* not running yet */
+  }
+  const freed = await waitForPortFree(3000);
+  if (!freed) console.warn('Port 3000 still busy after waiting; starting anyway');
+  pm2('start /app/ecosystem.config.cjs');
+}
+
 // POST /app/rebuild — build from source, then restart
-router.post('/rebuild', (_req, res) => {
+router.post('/rebuild', async (_req, res) => {
   try {
     console.log('Building custom-app...');
     const buildOutput = execSync('npm run build', {
       cwd: APP_ROOT,
-      timeout: 60_000,
+      timeout: 120_000,
       encoding: 'utf-8',
     });
     console.log('Build complete:', buildOutput);
 
-    console.log('Restarting via PM2...');
-    pm2('restart custom-app');
+    console.log('Restarting via PM2 (clean)...');
+    await cleanRestart();
     console.log('Restart complete');
 
     res.json({ success: true, message: 'Rebuild and restart complete' });
@@ -49,10 +81,10 @@ router.post('/rebuild', (_req, res) => {
 });
 
 // POST /app/restart — restart without rebuilding
-router.post('/restart', (_req, res) => {
+router.post('/restart', async (_req, res) => {
   try {
-    console.log('Restarting via PM2...');
-    pm2('restart custom-app');
+    console.log('Restarting via PM2 (clean)...');
+    await cleanRestart();
     console.log('Restart complete');
 
     res.json({ success: true, message: 'Restart complete' });
@@ -126,8 +158,8 @@ router.put('/env', async (req, res) => {
     await writeFile(envPath, envContent, 'utf-8');
     console.log(`Wrote ${variables.length} env vars to ${envPath}`);
 
-    console.log('Restarting via PM2...');
-    pm2('restart custom-app');
+    console.log('Restarting via PM2 (clean)...');
+    await cleanRestart();
     console.log('Restart complete');
 
     res.json({ success: true, count: variables.length, restarted: true });

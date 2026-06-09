@@ -1,4 +1,25 @@
+import { createHmac } from 'node:crypto';
+
 const APP_URL = process.env.APP_URL ?? 'http://localhost:3000';
+
+const LOCAL_DEV_USER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me';
+
+function base64url(input: string): string {
+  return Buffer.from(input).toString('base64url');
+}
+
+function localDevToken(): string {
+  const header = base64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const now = Math.floor(Date.now() / 1000);
+  const payload = base64url(
+    JSON.stringify({ sub: LOCAL_DEV_USER_ID, type: 'local', workerId: 'local', roles: [], iat: now, exp: now + 3600 }),
+  );
+  const signature = createHmac('sha256', JWT_SECRET).update(`${header}.${payload}`).digest('base64url');
+  return `${header}.${payload}.${signature}`;
+}
+
+const AUTH_TOKEN = localDevToken();
 
 interface StartWorkflowResult {
   workflowId: string;
@@ -32,7 +53,7 @@ interface DocumentResult {
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${APP_URL}${path}`;
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AUTH_TOKEN}`, ...options?.headers },
     ...options,
   });
   if (!res.ok) {
@@ -42,13 +63,32 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// A workflow can only be started inside a workspace bound to its @StudioApp. We create one lazily
+// (using the first registered app) and reuse it, so tests just call startWorkflow(name, args).
+let cachedWorkspaceId: string | undefined;
+
+async function ensureWorkspace(): Promise<string> {
+  if (cachedWorkspaceId) return cachedWorkspaceId;
+  const apps = await request<{ appName: string }[]>('/api/v1/config/apps');
+  if (!apps.length) {
+    throw new Error('No @StudioApp is registered in the app under test — a workflow must be declared in one.');
+  }
+  const workspace = await request<{ id: string }>('/api/v1/workspaces', {
+    method: 'POST',
+    body: JSON.stringify({ appName: apps[0].appName, title: 'acceptance-test' }),
+  });
+  cachedWorkspaceId = workspace.id;
+  return cachedWorkspaceId;
+}
+
 export async function startWorkflow(
   workflowName: string,
   args?: Record<string, unknown>,
 ): Promise<StartWorkflowResult> {
+  const workspaceId = await ensureWorkspace();
   return request<StartWorkflowResult>('/api/v1/processor/start', {
     method: 'POST',
-    body: JSON.stringify({ workflowName, args }),
+    body: JSON.stringify({ workflowName, workspaceId, args }),
   });
 }
 
