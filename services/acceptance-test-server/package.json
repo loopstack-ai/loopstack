@@ -1,0 +1,36 @@
+{
+  "name": "@loopstack/acceptance-test-server",
+  "displayName": "Loopstack Acceptance Test Server",
+  "description": "Remote server variant for acceptance testing — includes test project scaffold and Claude Code CLI",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "compile": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "start:dev": "tsx src/index.ts",
+    "test": "jest --passWithNoTests",
+    "docker:build": "docker buildx build --platform linux/amd64 --load -t registry.fly.io/acceptance-test-agent:latest .",
+    "docker:push": "docker push registry.fly.io/acceptance-test-agent:latest"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "glob": "^13.0.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "files": [
+    "dist"
+  ]
+}
