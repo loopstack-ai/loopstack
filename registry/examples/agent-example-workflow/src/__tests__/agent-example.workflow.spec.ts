@@ -1,9 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentWorkflow } from '@loopstack/agent';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { AgentExampleWorkflow } from '../agent-example.workflow';
 import { CalculatorTool } from '../tools/calculator.tool';
 import { WeatherLookupTool } from '../tools/weather-lookup.tool';
@@ -64,12 +63,12 @@ describe('AgentExampleWorkflow', () => {
 
   it('saves the agent response as a MessageDocument when resumed', async () => {
     const workflowId = '00000000-0000-0000-0000-000000000001';
-    const context = {
+    const context = createContext({
       workflowEntity: {
         id: workflowId,
         place: 'running',
         documents: [],
-      } as Partial<WorkflowEntity>,
+      },
       payload: {
         transition: {
           id: 'agentComplete',
@@ -81,7 +80,7 @@ describe('AgentExampleWorkflow', () => {
           },
         },
       },
-    } as unknown as RunContext;
+    });
 
     const result = await processor.process(workflow, {}, context);
 

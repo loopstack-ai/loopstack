@@ -1,7 +1,7 @@
 import { RunPayload } from '@loopstack/contracts/schemas';
 import type { WorkflowEntity } from '../entities/index.js';
 
-export interface RunContext {
+export interface InternalRunContext {
   root: string;
   userId: string;
   workspaceId: string;

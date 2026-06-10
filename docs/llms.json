@@ -1,0 +1,65 @@
+{
+  "sections": [
+    {
+      "key": "learn",
+      "title": "Learn",
+      "description": "Conceptual overviews of Loopstack — what it is, how the workflow engine works, core abstractions (workflows, tools, documents), and the Studio UI.",
+      "includeInLlmsTxt": false,
+      "includeInLlmsFullTxt": false
+    },
+    {
+      "key": "build",
+      "title": "Build",
+      "description": "Step-by-step guides for building with Loopstack — getting started, workflow fundamentals, AI/LLM integration, workflow patterns, and third-party integrations.",
+      "includeInLlmsTxt": true,
+      "includeInLlmsFullTxt": true
+    },
+    {
+      "key": "extend",
+      "title": "Extend",
+      "description": "How to add custom LLM providers and OAuth providers to the Loopstack registry.",
+      "includeInLlmsTxt": true,
+      "includeInLlmsFullTxt": true
+    },
+    {
+      "key": "reference",
+      "title": "Reference",
+      "description": "API and configuration reference — module options, environment variables, YAML schemas for workflows and documents, and import paths.",
+      "includeInLlmsTxt": true,
+      "includeInLlmsFullTxt": true
+    },
+    {
+      "key": "skills",
+      "title": "Skills",
+      "includeInLlmsTxt": true,
+      "includeInLlmsFullTxt": false
+    },
+    {
+      "key": "registry",
+      "title": "Registry",
+      "description": "The Loopstack Registry — a curated collection of npm packages providing feature modules, standalone tools, and example workflows.",
+      "includeInLlmsTxt": true,
+      "includeInLlmsFullTxt": true
+    },
+    {
+      "key": "registry-features",
+      "title": "Registry — Features",
+      "description": "Official Loopstack modules providing LLM integrations, OAuth, human-in-the-loop, Git/GitHub tools, secrets management, and more.",
+      "sourceDir": "registry/features",
+      "collect": "*/README.md",
+      "urlPrefix": "https://loopstack.ai/llms/registry/features",
+      "includeInLlmsTxt": true,
+      "includeInLlmsFullTxt": false
+    },
+    {
+      "key": "registry-examples",
+      "title": "Registry — Examples",
+      "description": "Example workflows demonstrating Loopstack patterns: chat, tool calling, agents, HITL, structured output, sub-workflows, and integrations.",
+      "sourceDir": "registry/examples",
+      "collect": "*/README.md",
+      "urlPrefix": "https://loopstack.ai/llms/registry/examples",
+      "includeInLlmsTxt": true,
+      "includeInLlmsFullTxt": false
+    }
+  ]
+}

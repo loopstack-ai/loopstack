@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { ToolMock, createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ErrorRetryWorkflow } from '../error-retry.workflow';
 import { SlowTool } from '../tools/slow.tool';
 import { Step1Tool } from '../tools/step1.tool';
@@ -91,16 +90,20 @@ describe('ErrorRetryWorkflow', () => {
       expect(result1.retryCount).toBe(1);
 
       // Run 2: simulate auto-retry (re-run with hasError from entity)
-      const result2 = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: '00000000-0000-0000-0000-000000000001',
-          place: 'step1_done',
-          hasError: true,
-          retryCount: 1,
-          retryTransitionId: 'autoRetryStep',
-          documents: result1.documents,
-        } as Partial<WorkflowEntity>,
-      } as RunContext);
+      const result2 = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: '00000000-0000-0000-0000-000000000001',
+            place: 'step1_done',
+            hasError: true,
+            retryCount: 1,
+            retryTransitionId: 'autoRetryStep',
+            documents: result1.documents,
+          },
+        }),
+      );
 
       expect(result2.hasError).toBe(true);
       expect(result2._retrySignal).toBeDefined();
@@ -108,16 +111,20 @@ describe('ErrorRetryWorkflow', () => {
       expect(result2.retryCount).toBe(2);
 
       // Run 3: simulate auto-retry #2 — succeeds, progresses through steps
-      const result3 = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: '00000000-0000-0000-0000-000000000001',
-          place: 'step1_done',
-          hasError: true,
-          retryCount: 2,
-          retryTransitionId: 'autoRetryStep',
-          documents: result2.documents,
-        } as Partial<WorkflowEntity>,
-      } as RunContext);
+      const result3 = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: '00000000-0000-0000-0000-000000000001',
+            place: 'step1_done',
+            hasError: true,
+            retryCount: 2,
+            retryTransitionId: 'autoRetryStep',
+            documents: result2.documents,
+          },
+        }),
+      );
 
       // Should succeed and progress past step1 into step2 instructions, then stop at step2_ready (manual)
       expect(result3.hasError).toBe(false);
@@ -145,16 +152,20 @@ describe('ErrorRetryWorkflow', () => {
       // Simulate resuming from failed manual step
       mockStep2Tool.call.mockResolvedValueOnce({ data: 'ok' }); // manualRetryStep succeeds
 
-      const result = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: '00000000-0000-0000-0000-000000000001',
-          place: 'step2_ready',
-          hasError: true,
-          retryCount: 0,
-          retryTransitionId: 'manualRetryStep',
-          documents: [],
-        } as Partial<WorkflowEntity>,
-      } as RunContext);
+      const result = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: '00000000-0000-0000-0000-000000000001',
+            place: 'step2_ready',
+            hasError: true,
+            retryCount: 0,
+            retryTransitionId: 'manualRetryStep',
+            documents: [],
+          },
+        }),
+      );
 
       // manualRetryStep succeeds → progresses to step3
       expect(result.hasError).toBe(false);
@@ -166,16 +177,20 @@ describe('ErrorRetryWorkflow', () => {
       // Start from step3_ready — set hasError: true so processor doesn't skip
       mockStep2Tool.call.mockRejectedValueOnce(new Error('Custom error'));
 
-      const result = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: '00000000-0000-0000-0000-000000000001',
-          place: 'step3_ready',
-          hasError: true,
-          retryCount: 0,
-          retryTransitionId: null,
-          documents: [],
-        } as Partial<WorkflowEntity>,
-      } as RunContext);
+      const result = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: '00000000-0000-0000-0000-000000000001',
+            place: 'step3_ready',
+            hasError: true,
+            retryCount: 0,
+            retryTransitionId: null,
+            documents: [],
+          },
+        }),
+      );
 
       expect(result.hasError).toBe(true);
       expect(result.place).toBe('error_custom');
@@ -190,23 +205,27 @@ describe('ErrorRetryWorkflow', () => {
     it('should recover via wait transition', async () => {
       const workflowId = '00000000-0000-0000-0000-000000000001';
 
-      const result = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: workflowId,
-          place: 'error_custom',
-          hasError: true,
-          retryCount: 0,
-          retryTransitionId: null,
-          documents: [],
-        } as Partial<WorkflowEntity>,
-        payload: {
-          transition: {
-            id: 'handleCustomError',
-            workflowId,
-            payload: {},
+      const result = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: workflowId,
+            place: 'error_custom',
+            hasError: true,
+            retryCount: 0,
+            retryTransitionId: null,
+            documents: [],
           },
-        },
-      } as RunContext);
+          payload: {
+            transition: {
+              id: 'handleCustomError',
+              workflowId,
+              payload: {},
+            },
+          },
+        }),
+      );
 
       // Should recover and continue past error_custom
       expect(result.hasError).toBe(false);
@@ -220,16 +239,20 @@ describe('ErrorRetryWorkflow', () => {
         () => new Promise((resolve) => setTimeout(() => resolve({ data: 'late' }), 5000)),
       );
 
-      const result = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: '00000000-0000-0000-0000-000000000001',
-          place: 'step4_ready',
-          hasError: true,
-          retryCount: 0,
-          retryTransitionId: null,
-          documents: [],
-        } as Partial<WorkflowEntity>,
-      } as RunContext);
+      const result = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: '00000000-0000-0000-0000-000000000001',
+            place: 'step4_ready',
+            hasError: true,
+            retryCount: 0,
+            retryTransitionId: null,
+            documents: [],
+          },
+        }),
+      );
 
       expect(result.hasError).toBe(true);
       expect(result.place).toBe('step4_ready'); // stays at from place (manual retry)
@@ -239,16 +262,20 @@ describe('ErrorRetryWorkflow', () => {
     it('should succeed on retry when operation is fast', async () => {
       mockSlowTool.call.mockResolvedValueOnce({ data: 'fast' });
 
-      const result = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: '00000000-0000-0000-0000-000000000001',
-          place: 'step4_ready',
-          hasError: true,
-          retryCount: 0,
-          retryTransitionId: 'timeoutStep',
-          documents: [],
-        } as Partial<WorkflowEntity>,
-      } as RunContext);
+      const result = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: '00000000-0000-0000-0000-000000000001',
+            place: 'step4_ready',
+            hasError: true,
+            retryCount: 0,
+            retryTransitionId: 'timeoutStep',
+            documents: [],
+          },
+        }),
+      );
 
       expect(result.hasError).toBe(false);
     });
@@ -259,16 +286,20 @@ describe('ErrorRetryWorkflow', () => {
       // First call: fails → auto-retry
       mockStep2Tool.call.mockRejectedValueOnce(new Error('Hybrid fail 1'));
 
-      const result1 = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: '00000000-0000-0000-0000-000000000001',
-          place: 'step5_ready',
-          hasError: true,
-          retryCount: 0,
-          retryTransitionId: null,
-          documents: [],
-        } as Partial<WorkflowEntity>,
-      } as RunContext);
+      const result1 = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: '00000000-0000-0000-0000-000000000001',
+            place: 'step5_ready',
+            hasError: true,
+            retryCount: 0,
+            retryTransitionId: null,
+            documents: [],
+          },
+        }),
+      );
 
       expect(result1.hasError).toBe(true);
       expect(result1._retrySignal).toBeDefined(); // auto-retry 1/1
@@ -278,16 +309,20 @@ describe('ErrorRetryWorkflow', () => {
       // Second call: fails again → retries exhausted → custom place
       mockStep2Tool.call.mockRejectedValueOnce(new Error('Hybrid fail 2'));
 
-      const result2 = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: '00000000-0000-0000-0000-000000000001',
-          place: 'step5_ready',
-          hasError: true,
-          retryCount: 1,
-          retryTransitionId: 'hybridStep',
-          documents: result1.documents,
-        } as Partial<WorkflowEntity>,
-      } as RunContext);
+      const result2 = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: '00000000-0000-0000-0000-000000000001',
+            place: 'step5_ready',
+            hasError: true,
+            retryCount: 1,
+            retryTransitionId: 'hybridStep',
+            documents: result1.documents,
+          },
+        }),
+      );
 
       expect(result2.hasError).toBe(true);
       expect(result2._retrySignal).toBeUndefined(); // no more auto-retries
@@ -302,23 +337,27 @@ describe('ErrorRetryWorkflow', () => {
     it('should recover via wait transition from hybrid error', async () => {
       const workflowId = '00000000-0000-0000-0000-000000000001';
 
-      const result = await processor.process(workflow, {}, {
-        workflowEntity: {
-          id: workflowId,
-          place: 'error_hybrid',
-          hasError: true,
-          retryCount: 0,
-          retryTransitionId: null,
-          documents: [],
-        } as Partial<WorkflowEntity>,
-        payload: {
-          transition: {
-            id: 'handleHybridError',
-            workflowId,
-            payload: {},
+      const result = await processor.process(
+        workflow,
+        {},
+        createContext({
+          workflowEntity: {
+            id: workflowId,
+            place: 'error_hybrid',
+            hasError: true,
+            retryCount: 0,
+            retryTransitionId: null,
+            documents: [],
           },
-        },
-      } as RunContext);
+          payload: {
+            transition: {
+              id: 'handleHybridError',
+              workflowId,
+              payload: {},
+            },
+          },
+        }),
+      );
 
       // Should recover and reach 'done' → 'end'
       expect(result.hasError).toBe(false);

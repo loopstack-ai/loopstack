@@ -5,7 +5,7 @@ description: Step-by-step instructions for AI agents to scaffold a new tool — 
 
 # Skill: Create a Custom Tool
 
-> **For AI coding agents:** This page is a dense reference checklist optimized for tools like Claude Code scaffolding Loopstack code. For the human-readable guide, see [Creating Tools](/docs/build/fundamentals/tools).
+> **For AI coding agents:** This page is a dense reference checklist optimized for tools like Claude Code scaffolding Loopstack code. For the human-readable guide, see [Creating Tools](../build/fundamentals/tools.md).
 
 ## Tool Anatomy
 
@@ -14,7 +14,7 @@ A tool is a class that extends `BaseTool`, decorated with `@Tool()`. Tools are t
 ```typescript
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 const InputSchema = z
   .object({
@@ -32,11 +32,22 @@ type MyToolArgs = z.infer<typeof InputSchema>;
 })
 export class MyTool extends BaseTool<MyToolArgs, object, string> {
   // BaseTool<TArgs, TConfig, TResult, TMeta?>
-  protected async handle(args: MyToolArgs, ctx: LoopstackContext): Promise<ToolResult<string>> {
+  protected async handle(args: MyToolArgs, ctx: RunContext): Promise<ToolResult<string>> {
     return { data: `Found results for: ${args.query}` };
   }
 }
 ```
+
+### `BaseTool` Generics
+
+| Parameter | Types                                | Validated against         | Default                   |
+| --------- | ------------------------------------ | ------------------------- | ------------------------- |
+| `TArgs`   | input arguments to `handle()`        | `@Tool({ schema })`       | `object`                  |
+| `TConfig` | per-call config via `options.config` | `@Tool({ configSchema })` | `object`                  |
+| `TResult` | `data` field of `ToolResult`         | —                         | `unknown`                 |
+| `TMeta`   | `metadata` field of `ToolResult`     | —                         | `Record<string, unknown>` |
+
+Pass `object` for `TConfig` when the tool has no configuration. Most tools only thread `TArgs` and `TResult`; `TConfig` and `TMeta` are reserved for tools that opt into config validation or typed result metadata (e.g. `LlmGenerateTextTool` types token usage on `metadata`).
 
 ## Decorators
 
@@ -55,8 +66,9 @@ Class decorator. Marks the class as a tool.
 
 - `name` — Unique identifier for the tool
 - `description` — Human-readable description (shown to LLMs for tool-use)
-- `schema` — Zod schema that validates tool arguments before `handle()` is invoked
-- `configSchema` — Optional Zod schema for config (provided via `options.config`)
+- `schema` — Zod schema that validates tool arguments before `handle()` is invoked. Validation is **strict**: if args fail validation, `tool.call()` throws a `ZodError` and `handle()` is never invoked. Tools have no `safe`/`skip` modes (unlike documents).
+- `configSchema` — Optional Zod schema for config (provided via `options.config`). Same strict throw-on-failure behavior.
+- `widget` — less common; see the [`@Tool` reference table](../build/fundamentals/tools.md#the-tool-decorator)
 
 ### Constructor Injection
 
@@ -68,12 +80,14 @@ constructor(private readonly otherTool: OtherTool) {
 }
 ```
 
+Tools are NestJS providers, so injecting another tool and calling `await this.otherTool.call(args)` is the standard pattern for composing tools. Each call goes through the full pipeline (args validation, config validation, interceptors).
+
 ## The `handle()` Method
 
 ```typescript
 protected async handle(
   args: TArgs,
-  ctx: LoopstackContext,
+  ctx: RunContext,
   options?: ToolCallOptions<TConfig>,
 ): Promise<ToolResult<TData>>;
 ```
@@ -83,8 +97,42 @@ The `handle()` method receives validated arguments, the execution context, and o
 The public `call()` method is the entry point — it routes through validation before calling `handle()`.
 
 - `args` — Validated input (against the `@Tool({ schema })` Zod schema)
-- `ctx` — Read-only execution context: `userId`, `workspaceId`, `workflowId`, `args`
+- `ctx` — Read-only [`RunContext`](../build/fundamentals/workflows.md#basewworkflow): `userId`, `workspaceId`, `workflowId`, `args`. `ctx.execution` is **undefined** in tools (it's only populated when `ctx` is passed to a workflow transition).
 - `options` — Options including validated config and optional callback
+
+### Args vs Config
+
+Tools have two independent validation surfaces:
+
+| Concept    | Decorator option          | Passed in via                | Typical source                           |
+| ---------- | ------------------------- | ---------------------------- | ---------------------------------------- |
+| **args**   | `@Tool({ schema })`       | first arg of `tool.call()`   | LLM (when tool-calling) or workflow code |
+| **config** | `@Tool({ configSchema })` | `options.config` of `call()` | the workflow author at the call site     |
+
+Use `args` for the **per-call input** (what the tool acts on) and `config` for **behaviour knobs** (which provider, which model, retry budget, etc.). Config is optional; most tools only need `schema`.
+
+```typescript
+@Tool({
+  name: 'summarize',
+  description: 'Summarize text using an LLM.',
+  schema: z.object({ text: z.string() }), // args — the input
+  configSchema: z.object({ model: z.string() }), // config — behaviour
+})
+export class Summarize extends BaseTool<{ text: string }, { model: string }, string> {
+  protected async handle(args, ctx, options): Promise<ToolResult<string>> {
+    const model = options?.config?.model ?? 'claude-sonnet-4-6';
+    // ...use `model` to drive the LLM call, `args.text` as the prompt
+    return { data: '...' };
+  }
+}
+
+// Call site:
+await this.summarize.call({ text: 'long article...' }, { config: { model: 'claude-opus-4-7' } });
+```
+
+### Async Tools: `complete()`
+
+`BaseTool` also has an optional `complete(result)` method, called when a tool launches a sub-workflow from `handle()` and finishes asynchronously. Override it to post-process the sub-workflow result before it's returned to the LLM. The default passes the result through. See [Async Tools](../build/fundamentals/tools.md#async-tools-sub-workflow-callbacks) for the full lifecycle.
 
 ## ToolResult
 
@@ -124,7 +172,7 @@ return {
 `this.documentStore` is auto-injected on `BaseTool` (and `BaseWorkflow`). Use it to save documents:
 
 ```typescript
-protected async handle(args: MyArgs, ctx: LoopstackContext): Promise<ToolResult> {
+protected async handle(args: MyArgs, ctx: RunContext): Promise<ToolResult> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: 'Processing complete.',
@@ -155,6 +203,8 @@ export class MyToolModule {}
 
 Then import `MyToolModule` in the app module or feature module that contains the workflow using the tool.
 
+> **Reminder:** The module that defines your launchable workflows must also have `@StudioApp({ title, workflows })` — see [Modules & Workspaces](../build/fundamentals/modules.md) for details.
+
 ## Example: Tool with Injected Service
 
 ```typescript
@@ -171,7 +221,7 @@ export class MathService {
 // tools/math-sum.tool.ts
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { MathService } from '../services/math.service';
 
 const MathSumSchema = z
@@ -193,7 +243,7 @@ export class MathSumTool extends BaseTool<MathSumArgs, object, number> {
     super();
   }
 
-  protected async handle(args: MathSumArgs, ctx: LoopstackContext): Promise<ToolResult<number>> {
+  protected async handle(args: MathSumArgs, ctx: RunContext): Promise<ToolResult<number>> {
     const sum = this.mathService.sum(args.a, args.b);
     return { data: sum };
   }
@@ -207,7 +257,7 @@ Tools exposed to the LLM need a `description` so the LLM knows when to use them.
 ```typescript
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 @Tool({
   name: 'get_weather',
@@ -217,7 +267,7 @@ import type { LoopstackContext } from '@loopstack/common';
   }),
 })
 export class GetWeather extends BaseTool<{ location: string }, object, string> {
-  protected async handle(args: { location: string }, ctx: LoopstackContext): Promise<ToolResult<string>> {
+  protected async handle(args: { location: string }, ctx: RunContext): Promise<ToolResult<string>> {
     return Promise.resolve({ type: 'text', data: 'Mostly sunny, 14C.' });
   }
 }

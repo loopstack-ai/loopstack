@@ -2,7 +2,7 @@ import { Inject } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { OAuthProviderRegistry } from '../services/index.js';
 
 const BuildOAuthUrlSchema = z
@@ -28,7 +28,7 @@ export class BuildOAuthUrlTool extends BaseTool<BuildOAuthUrlArgs, object, Build
   @Inject()
   private providerRegistry: OAuthProviderRegistry;
 
-  protected async handle(args: BuildOAuthUrlArgs, _ctx: LoopstackContext): Promise<ToolResult> {
+  protected async handle(args: BuildOAuthUrlArgs, _ctx: RunContext): Promise<ToolResult> {
     const provider = this.providerRegistry.get(args.provider);
     const state = randomBytes(32).toString('hex');
     const scopes = args.scopes?.length ? args.scopes : provider.defaultScopes;

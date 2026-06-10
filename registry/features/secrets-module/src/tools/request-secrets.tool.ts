@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 const RequestSecretsInputSchema = z
   .object({
@@ -26,7 +26,7 @@ export type RequestSecretsResult = { variables: { key: string }[] };
   schema: RequestSecretsInputSchema,
 })
 export class RequestSecretsTool extends BaseTool<RequestSecretsInput, object, RequestSecretsResult> {
-  protected async handle(args: RequestSecretsInput, _ctx: LoopstackContext): Promise<ToolResult<RequestSecretsResult>> {
+  protected async handle(args: RequestSecretsInput, _ctx: RunContext): Promise<ToolResult<RequestSecretsResult>> {
     return Promise.resolve({
       data: { variables: args.variables },
     });

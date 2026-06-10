@@ -1,17 +1,20 @@
+---
+title: Code Agent Module
+description: AI-powered codebase exploration for Loopstack — ExploreTask tool launches AgentWorkflow sub-agent with glob/grep/read tools, CodeAgentModule registration, forFeature() LLM config, LinkDocument embedding, CallbackSchema for sub-workflow completion
+---
+
 # @loopstack/code-agent
 
-> A module for the [Loopstack AI](https://loopstack.ai) automation framework.
+> Agent workflow module for the [Loopstack](https://loopstack.ai) automation framework.
 
-AI-powered code exploration for Loopstack workflows. Bundles a sub-agent workflow that searches, reads, and synthesises findings from a remote workspace, plus a tool that lets any parent workflow delegate exploration as a single call.
+AI-powered code exploration for Loopstack workflows. Provides a tool that launches a sub-agent workflow to search, read, and synthesize findings from a remote workspace using `glob`, `grep`, and `read` tools from `@loopstack/remote-client`.
 
-## Overview
+## When to Use
 
-The Code Agent module is the go-to primitive when a workflow needs to "figure something out" about a codebase before acting — for example, locating a function, summarising a feature, or answering a free-form question about existing code. The sub-agent runs its own plan-then-tool-call loop against `glob`, `grep`, and `read` from `@loopstack/remote-client`, and returns a plain-text response.
-
-By using this module you'll get:
-
-- `ExploreAgentWorkflow` — a self-contained Claude-powered agent that iteratively explores a remote workspace and returns a synthesised answer
-- `ExploreTask` — a tool that launches `ExploreAgentWorkflow` as a sub-workflow, so a parent workflow can delegate exploration with one call
+- You need a workflow to **answer questions about a codebase** before acting — locating functions, summarizing features, understanding architecture
+- You want to **delegate exploration as a single tool call** from a parent workflow or agent
+- You need a self-contained agent that **iteratively searches and reads files** on a remote workspace and returns a synthesized answer
+- Use `@loopstack/remote-client` directly if you only need individual file operations without the agent loop
 
 ## Installation
 
@@ -22,76 +25,234 @@ npm install @loopstack/code-agent
 Register the module in your application:
 
 ```ts
+import { Module } from '@nestjs/common';
 import { CodeAgentModule } from '@loopstack/code-agent';
 
 @Module({
-  imports: [CodeAgentModule /* ... */],
+  imports: [CodeAgentModule],
 })
 export class AppModule {}
 ```
 
-`CodeAgentModule` depends on `ClaudeModule`, `LoopCoreModule`, and `RemoteClientModule` — make sure those are configured in your app (typically done in the project scaffold).
+`CodeAgentModule` imports `AgentModule` from `@loopstack/agent`, which in turn requires `LlmProviderModule` and `RemoteClientModule` to be configured in your app.
 
-## How It Works
-
-### Using `ExploreTask` from a parent workflow
-
-Inject the tool via the constructor and call it with a natural-language instruction. The tool returns the `workflowId` of the launched sub-agent and resolves with the synthesised text response when the sub-agent completes:
+To override the LLM provider or model for this module specifically:
 
 ```ts
-import { ExploreTask } from '@loopstack/code-agent';
-import { BaseWorkflow, InjectTool, Transition, Workflow } from '@loopstack/common';
+@Module({
+  imports: [CodeAgentModule.forFeature({ llm: { provider: 'claude', model: 'claude-sonnet-4-20250514' } })],
+})
+export class AppModule {}
+```
 
-@Workflow({ uiConfig: __dirname + '/my.ui.yaml' })
+## Quick Start
+
+The most common pattern is launching the code agent from a parent workflow using `AgentWorkflow` directly:
+
+```ts
+import { Module } from '@nestjs/common';
+import { z } from 'zod';
+import { AgentWorkflow } from '@loopstack/agent';
+import { CodeAgentModule } from '@loopstack/code-agent';
+import {
+  BaseWorkflow,
+  CallbackSchema,
+  LinkDocument,
+  MessageDocument,
+  QueueResult,
+  Transition,
+  Workflow,
+} from '@loopstack/common';
+
+const ExploreCallbackSchema = CallbackSchema.extend({
+  data: z.object({ response: z.string() }),
+});
+
+type ExploreCallback = z.infer<typeof ExploreCallbackSchema>;
+
+@Workflow({ title: 'Code Agent Example' })
 export class MyWorkflow extends BaseWorkflow {
-  constructor(private readonly explore: ExploreTask) {
+  constructor(private readonly agentWorkflow: AgentWorkflow) {
     super();
   }
 
-  @Transition({ from: 'ready', to: 'done' })
-  async investigate() {
-    const result = await this.explore.call({
-      instructions: 'Find the NestJS module where user authentication is wired up.',
+  @Transition({ to: 'exploring' })
+  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const result: QueueResult = await this.agentWorkflow.run(
+      {
+        system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',
+        tools: ['glob', 'grep', 'read'],
+        userMessage: 'Find the entry-point module and list its top-level providers.',
+      },
+      { callback: { transition: 'onExploreComplete' } },
+    );
+
+    await this.documentStore.save(
+      LinkDocument,
+      { label: 'Exploring codebase...', workflowId: result.workflowId, embed: true, expanded: true },
+      { id: `link_${result.workflowId}` },
+    );
+
+    return state;
+  }
+
+  @Transition({ from: 'exploring', to: 'end', wait: true, schema: ExploreCallbackSchema })
+  async onExploreComplete(state: Record<string, unknown>, payload: ExploreCallback): Promise<unknown> {
+    await this.documentStore.save(
+      LinkDocument,
+      { label: 'Exploration complete', status: 'success', workflowId: payload.workflowId },
+      { id: `link_${payload.workflowId}` },
+    );
+
+    await this.documentStore.save(MessageDocument, {
+      role: 'assistant',
+      content: payload.data.response,
     });
-    // result.data.response contains the agent's summary
+
+    return {};
   }
 }
+
+@Module({
+  imports: [CodeAgentModule],
+  providers: [MyWorkflow],
+  exports: [MyWorkflow, CodeAgentModule],
+})
+export class MyModule {}
 ```
 
-### What the sub-agent does
+## How It Works
 
-`ExploreAgentWorkflow` runs a Claude model with three tools exposed: `glob`, `grep`, and `read`. On each turn it either calls a tool (and transitions to `awaiting_tools`) or produces a final answer (`@Final`). The agent's system prompt instructs it to prefer `grep` over reading whole files — see `src/workflows/explore-agent.workflow.ts` for the prompt.
+### State Machine
 
-### Running the workflow directly
+```
+start ──► exploring (wait) ──► end
+             │                   ▲
+             └── callback ───────┘
+```
 
-You can also run `ExploreAgentWorkflow` standalone without going through the tool:
+1. The parent workflow calls `agentWorkflow.run()` with a system prompt, tool list, and user message
+2. The `AgentWorkflow` sub-workflow starts its own agent loop: LLM generates text, calls tools (`glob`, `grep`, `read`), loops until it produces a final answer
+3. A `LinkDocument` is saved with `embed: true` and `expanded: true` to show the sub-workflow inline in the UI
+4. When the agent finishes, it calls back to the parent workflow's wait transition with `{ data: { response } }`
+5. The parent receives the synthesized answer and can display it or act on it
+
+### ExploreTask Tool
+
+The module also provides `ExploreTask`, a tool wrapper around `AgentWorkflow` that can be used by other agents. It handles the sub-workflow launch and `LinkDocument` lifecycle automatically:
+
+```
+Parent Agent ──► explore_task tool call ──► AgentWorkflow sub-agent
+                                                  │
+                                            glob/grep/read loop
+                                                  │
+                                            synthesized answer
+                                                  │
+                                           ◄── complete() callback
+```
+
+`ExploreTask` launches the sub-agent, saves a `LinkDocument`, and returns `{ workflowId }` with `pending` status. When the sub-agent completes, `ExploreTask.complete()` updates the link and returns the response text.
+
+## Args Reference
+
+### AgentWorkflow.run()
+
+| Arg           | Type       | Required | Description                                                    |
+| ------------- | ---------- | -------- | -------------------------------------------------------------- |
+| `system`      | `string`   | Yes      | System prompt for the agent                                    |
+| `tools`       | `string[]` | Yes      | Tool names to make available (e.g. `['glob', 'grep', 'read']`) |
+| `userMessage` | `string`   | Yes      | The question or instruction for the agent                      |
+| `context`     | `string`   | No       | Additional context to include in the conversation              |
+
+Second argument (options):
+
+| Arg                   | Type     | Required | Description                                     |
+| --------------------- | -------- | -------- | ----------------------------------------------- |
+| `callback.transition` | `string` | No       | Transition name to call when the agent finishes |
+
+**Returns:** `QueueResult` with `{ workflowId: string }`
+
+### Callback Payload
+
+Extend `CallbackSchema` to type the completion payload:
 
 ```ts
-import { ExploreAgentWorkflow } from '@loopstack/code-agent';
-
-// Inject and call .run({ instructions: '...' }) from any service or workflow.
+const ExploreCallbackSchema = CallbackSchema.extend({
+  data: z.object({ response: z.string() }),
+});
 ```
+
+| Field           | Type     | Description                         |
+| --------------- | -------- | ----------------------------------- |
+| `workflowId`    | `string` | ID of the completed sub-workflow    |
+| `data.response` | `string` | The agent's synthesized text answer |
+
+## Tools Reference
+
+### explore_task
+
+| Field           | Value                                                                                                                                                                        |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Name**        | `explore_task`                                                                                                                                                               |
+| **Description** | Launch a sub-agent to explore and analyze the codebase. The agent uses glob, grep, and read tools to search for files and code patterns, then returns a synthesized summary. |
+
+**Args (Zod schema):**
+
+| Arg            | Type     | Required | Description                                               |
+| -------------- | -------- | -------- | --------------------------------------------------------- |
+| `instructions` | `string` | Yes      | Detailed instructions for what to explore in the codebase |
+
+**Returns:** `ToolResult<ExploreTaskResult>`
+
+- On launch: `{ data: { workflowId }, pending: { workflowId } }`
+- On complete: `{ data: string }` — the agent's synthesized response text
+
+## Configuration
+
+### CodeAgentModule.forFeature()
+
+Override the LLM provider or model for the code agent specifically:
+
+```ts
+CodeAgentModule.forFeature({
+  llm: {
+    provider: 'claude', // LLM provider name
+    model: 'claude-sonnet-4-20250514', // Model identifier
+  },
+});
+```
+
+| Option         | Type     | Required | Description       |
+| -------------- | -------- | -------- | ----------------- |
+| `llm.provider` | `string` | No       | LLM provider name |
+| `llm.model`    | `string` | No       | Model identifier  |
 
 ## Public API
 
-- **Workflow:** `ExploreAgentWorkflow`
-- **Tool:** `ExploreTask`
 - **Module:** `CodeAgentModule`
+- **Tool:** `ExploreTask`
+- **Type:** `ExploreTaskResult`
 
 ## Dependencies
 
-- `@loopstack/common` — core decorators and `BaseTool` / `BaseWorkflow`
-- `@loopstack/core` — `LoopCoreModule`
-- `@loopstack/llm-provider-module` — `LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, `LlmMessageDocument`
-- `@loopstack/remote-client` — `GlobTool`, `GrepTool`, `ReadTool` (executed on the remote workspace)
+| Package                    | Role                                                          |
+| -------------------------- | ------------------------------------------------------------- |
+| `@loopstack/agent`         | `AgentWorkflow` — generic LLM agent loop with tool calling    |
+| `@loopstack/common`        | `BaseTool`, `BaseWorkflow`, decorators, document types        |
+| `@loopstack/core`          | Workflow engine, scheduling, state management                 |
+| `@loopstack/remote-client` | `glob`, `grep`, `read` tools executed on the remote workspace |
+| `@nestjs/common`           | NestJS dependency injection                                   |
+| `zod`                      | Schema validation                                             |
+
+## Related
+
+- [`code-agent-example-workflow`](https://loopstack.ai/docs/registry/examples/code-agent-example-workflow) — full working example showing `AgentWorkflow` with glob/grep/read and `LinkDocument` embedding
+- [Agent Workflows](https://loopstack.ai/docs/build/ai/agent-workflows) — how the agent loop, tool resolution, and callbacks work
+- [`@loopstack/agent`](https://loopstack.ai/docs/registry/features/agent-module) — the generic `AgentWorkflow` that powers the code agent
+- [`@loopstack/remote-client`](https://loopstack.ai/docs/registry/features/remote-client-module) — the `glob`, `grep`, and `read` tools used by the agent
 
 ## About
 
 Author: [Jakob Klippel](https://www.linkedin.com/in/jakob-klippel/)
 
 License: MIT
-
-### Additional Resources
-
-- [Loopstack Documentation](https://loopstack.ai/docs)
-- Find more Loopstack modules in the [Loopstack Registry](https://loopstack.ai/registry)

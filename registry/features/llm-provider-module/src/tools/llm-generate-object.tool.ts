@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import type { LlmContext } from '../contracts/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
@@ -54,7 +54,7 @@ export class LlmGenerateObjectTool extends BaseTool<
 
   protected async handle(
     args: LlmGenerateObjectArgs,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions<LlmGenerateObjectConfig>,
   ): Promise<ToolResult<LlmGenerateObjectResult, LlmResultMeta>> {
     const config = options?.config;

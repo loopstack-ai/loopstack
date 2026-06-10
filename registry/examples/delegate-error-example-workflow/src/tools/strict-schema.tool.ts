@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 export type StrictSchemaToolResult = string;
 
@@ -14,7 +14,7 @@ export type StrictSchemaToolResult = string;
     .strict(),
 })
 export class StrictSchemaTool extends BaseTool<{ name: string }, object, StrictSchemaToolResult> {
-  protected async handle(args: { name: string }, _ctx: LoopstackContext): Promise<ToolResult<StrictSchemaToolResult>> {
+  protected async handle(args: { name: string }, _ctx: RunContext): Promise<ToolResult<StrictSchemaToolResult>> {
     return Promise.resolve({
       data: `Hello, ${args.name}! Nice to meet you.`,
     });

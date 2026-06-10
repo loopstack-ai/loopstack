@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
@@ -29,7 +29,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async calculate(state: CustomToolExampleState, ctx: LoopstackContext): Promise<CustomToolExampleState> {
+  async calculate(state: CustomToolExampleState, ctx: RunContext): Promise<CustomToolExampleState> {
     const args = ctx.args as { a: number; b: number };
     // Use a custom tool
     const calcResult = await this.mathTool.call({ a: args.a, b: args.b });

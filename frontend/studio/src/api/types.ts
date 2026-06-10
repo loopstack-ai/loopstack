@@ -5,10 +5,6 @@ export interface StudioWidgetConfig {
 
 export interface StudioUiConfig {
   widgets?: StudioWidgetConfig[];
-  sidebar?: boolean;
-  workflowHistory?: boolean;
-  workflowNavigation?: boolean;
-  debugWorkflow?: boolean;
 }
 
 export interface StudioEnvironmentSlot {

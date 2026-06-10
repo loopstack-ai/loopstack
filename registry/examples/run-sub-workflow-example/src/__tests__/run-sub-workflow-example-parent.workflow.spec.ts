@@ -1,8 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RunContext, WorkflowEntity, getBlockConfig } from '@loopstack/common';
+import { getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow';
 import { RunSubWorkflowExampleSubWorkflow } from '../run-sub-workflow-example-sub.workflow';
 
@@ -82,12 +82,12 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
         workflowId: 'test-workflow-id-2',
       });
 
-      const context = {
+      const context = createContext({
         workflowEntity: {
           id: workflowId,
           place: 'sub_workflow_started',
           documents: [],
-        } as Partial<WorkflowEntity>,
+        },
         payload: {
           transition: {
             id: 'subWorkflowCallback',
@@ -95,7 +95,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
             payload: { workflowId, status: 'completed', data: { message: 'Hi mom!' } },
           },
         },
-      } as unknown as RunContext;
+      });
 
       const result = await processor.process(workflow, {}, context);
 
@@ -125,12 +125,12 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
     it('should execute sub_workflow2_callback when resumed from sub_workflow2_started', async () => {
       const workflowId = '00000000-0000-0000-0000-000000000001';
 
-      const context = {
+      const context = createContext({
         workflowEntity: {
           id: workflowId,
           place: 'sub_workflow2_started',
           documents: [],
-        } as Partial<WorkflowEntity>,
+        },
         payload: {
           transition: {
             id: 'subWorkflow2Callback',
@@ -138,7 +138,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
             payload: { workflowId, status: 'completed', data: { message: 'Hello from sub workflow 2!' } },
           },
         },
-      } as unknown as RunContext;
+      });
 
       const result = await processor.process(workflow, {}, context);
 

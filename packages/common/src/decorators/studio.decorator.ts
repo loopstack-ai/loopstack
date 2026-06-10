@@ -10,11 +10,11 @@ export interface StudioWidgetConfig {
 }
 
 export interface StudioUiConfig {
+  /**
+   * Widgets to render in the app's Studio surface. Each widget is identified
+   * by a name and may carry widget-specific options.
+   */
   widgets?: StudioWidgetConfig[];
-  sidebar?: boolean;
-  workflowHistory?: boolean;
-  workflowNavigation?: boolean;
-  debugWorkflow?: boolean;
 }
 
 export interface StudioAppOptions {

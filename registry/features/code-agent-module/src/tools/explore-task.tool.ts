@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
 import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
 source code to answer the user's question thoroughly.
@@ -45,7 +45,7 @@ export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskR
 
   protected async handle(
     args: ExploreTaskInput,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<ExploreTaskResult>> {
     const result = await this.agentWorkflow.run(

@@ -1,3 +1,8 @@
+---
+title: Custom Tool Example
+description: Example implementing custom tools in a Loopstack workflow — BaseTool subclass, @Tool decorator, Zod schema, tool registration and injection
+---
+
 # @loopstack/custom-tool-example-module
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -22,7 +27,25 @@ This is a great starting point before building your own custom tools.
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/custom-tool-example-module
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { CustomToolExampleWorkflow, CustomToolModule } from '@loopstack/custom-tool-example-module';
+
+@StudioApp({
+  title: 'Custom Tool Example',
+  workflows: [CustomToolExampleWorkflow],
+})
+@Module({
+  imports: [CustomToolModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

@@ -1,5 +1,5 @@
 import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { SlowTool } from './tools/slow.tool';
 import { Step1Tool } from './tools/step1.tool';
 import { Step2Tool } from './tools/step2.tool';
@@ -53,7 +53,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
 
   // -- Step 1: Auto-retry --
   @Transition({ from: 'step1_done', to: 'step2_done', retry: 2 })
-  async autoRetryStep(state: ErrorRetryState, ctx: LoopstackContext): Promise<ErrorRetryState> {
+  async autoRetryStep(state: ErrorRetryState, ctx: RunContext): Promise<ErrorRetryState> {
     const attempt = ctx.execution!.retryCount + 1;
     await this.step2Tool.call({ shouldFail: attempt <= 2 });
     await this.documentStore.save(MessageDocument, {
@@ -78,7 +78,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
 
   // -- Step 2: Manual retry --
   @Transition({ from: 'step2_ready', to: 'step3_done' })
-  async manualRetryStep(state: ErrorRetryState, ctx: LoopstackContext): Promise<ErrorRetryState> {
+  async manualRetryStep(state: ErrorRetryState, ctx: RunContext): Promise<ErrorRetryState> {
     const attempt = ctx.execution!.retryCount + 1;
     await this.step2Tool.call({ shouldFail: attempt <= 1 });
     await this.documentStore.save(MessageDocument, {
@@ -132,7 +132,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
 
   // -- Step 4: Timeout --
   @Transition({ from: 'step4_ready', to: 'step5_done', timeout: 2000 })
-  async timeoutStep(state: ErrorRetryState, ctx: LoopstackContext): Promise<ErrorRetryState> {
+  async timeoutStep(state: ErrorRetryState, ctx: RunContext): Promise<ErrorRetryState> {
     const attempt = ctx.execution!.retryCount + 1;
     // First attempt: 5s (exceeds 2s timeout). Second attempt: instant.
     await this.slowTool.call({ delayMs: attempt <= 1 ? 5000 : 0 });

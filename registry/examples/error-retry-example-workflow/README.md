@@ -1,3 +1,8 @@
+---
+title: Error Retry Example
+description: Example demonstrating Loopstack retry and recovery — auto-retry, manual retry, custom error places, timeout handling, retry.place, hybrid retry patterns
+---
+
 # @loopstack/error-retry-example-workflow
 
 Demonstrates Loopstack retry and recovery behaviors across auto-retry, manual retry, custom error places, timeout handling, and hybrid retry patterns.
@@ -12,6 +17,22 @@ Demonstrates Loopstack retry and recovery behaviors across auto-retry, manual re
 
 ```sh
 npm install @loopstack/error-retry-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { ErrorRetryExampleModule, ErrorRetryWorkflow } from '@loopstack/error-retry-example-workflow';
+
+@StudioApp({
+  title: 'Error Retry Example',
+  workflows: [ErrorRetryWorkflow],
+})
+@Module({
+  imports: [ErrorRetryExampleModule],
+})
+export class MyAppModule {}
 ```
 
 ## How It Works

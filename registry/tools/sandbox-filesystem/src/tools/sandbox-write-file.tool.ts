@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import * as path from 'node:path';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -34,10 +34,7 @@ export class SandboxWriteFile extends BaseTool<SandboxWriteFileArgs, object, San
     super();
   }
 
-  protected async handle(
-    args: SandboxWriteFileArgs,
-    _ctx: LoopstackContext,
-  ): Promise<ToolResult<SandboxWriteFileResult>> {
+  protected async handle(args: SandboxWriteFileArgs, _ctx: RunContext): Promise<ToolResult<SandboxWriteFileResult>> {
     const { containerId, path: filePath, content, encoding, createParentDirs } = args;
 
     this.logger.debug(`Writing file ${filePath} to container ${containerId} (encoding: ${encoding})`);

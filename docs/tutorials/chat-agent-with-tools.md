@@ -22,7 +22,7 @@ start → setup → [user sends message] → LLM turn → [if tool call: execute
 - How to build a multi-turn chat loop using `wait: true` + cycling transitions
 - How the document store acts as the LLM's conversation history
 
-**Prerequisites:** Complete the [Getting Started](/docs/build/getting-started) guide first. You should have a running NestJS app with `LoopstackModule.forRoot()` configured and Studio accessible at `http://localhost:5173`.
+**Prerequisites:** Complete the [Getting Started](../build/getting-started.md) guide first. You should have a running NestJS app with `LoopstackModule.forRoot()` configured and Studio accessible at `http://localhost:5173`.
 
 **Time:** ~30 minutes
 
@@ -87,7 +87,7 @@ Create `src/weather-chat/tools/get-weather.tool.ts`:
 ```typescript
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 const GetWeatherSchema = z.object({
   location: z.string().describe('City name or region to get weather for'),
@@ -101,7 +101,7 @@ type GetWeatherArgs = z.infer<typeof GetWeatherSchema>;
   schema: GetWeatherSchema,
 })
 export class GetWeatherTool extends BaseTool<GetWeatherArgs> {
-  protected async handle(args: GetWeatherArgs, _ctx: LoopstackContext): Promise<ToolResult<string>> {
+  protected async handle(args: GetWeatherArgs, _ctx: RunContext): Promise<ToolResult<string>> {
     // In a real implementation, call a weather API here
     return {
       type: 'text',
@@ -311,7 +311,7 @@ The tool loop continues as long as the LLM keeps requesting tools. Once it produ
 
 ## Next Steps
 
-- **[Custom Tools](/docs/build/fundamentals/tools)** — build tools that call real external APIs, inject NestJS services, or validate their own output
-- **[Dynamic Routing](/docs/build/patterns/dynamic-routing)** — extend the guard pattern to handle error states, retries, or multi-step branching
-- **[Sub-Workflows](/docs/build/patterns/sub-workflows)** — replace the inline tool loop with a dedicated agent sub-workflow
+- **[Custom Tools](../build/fundamentals/tools.md)** — build tools that call real external APIs, inject NestJS services, or validate their own output
+- **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — extend the guard pattern to handle error states, retries, or multi-step branching
+- **[Sub-Workflows](../build/patterns/sub-workflows.md)** — replace the inline tool loop with a dedicated agent sub-workflow
 - **[Registry example](https://loopstack.ai/registry/loopstack-tool-call-example-workflow)** — The complete source for the tool-calling pattern

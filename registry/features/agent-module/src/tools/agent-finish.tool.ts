@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 const AgentFinishInputSchema = z
   .object({
@@ -21,7 +21,7 @@ export type AgentFinishResult = { __agentFinish: true; result: unknown };
   schema: AgentFinishInputSchema,
 })
 export class AgentFinishTool extends BaseTool<AgentFinishInput, object, AgentFinishResult> {
-  protected async handle(args: AgentFinishInput, _ctx: LoopstackContext): Promise<ToolResult<AgentFinishResult>> {
+  protected async handle(args: AgentFinishInput, _ctx: RunContext): Promise<ToolResult<AgentFinishResult>> {
     return Promise.resolve({ data: { __agentFinish: true, result: args.result ?? null } });
   }
 }

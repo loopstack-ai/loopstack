@@ -14,7 +14,7 @@ Tools exposed to the LLM need a `description` so the LLM knows when to use them:
 ```typescript
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 @Tool({
   name: 'get_weather',
@@ -24,7 +24,7 @@ import type { LoopstackContext } from '@loopstack/common';
   }),
 })
 export class GetWeather extends BaseTool<{ location: string }, object, string> {
-  protected async handle(_args: { location: string }, _ctx: LoopstackContext): Promise<ToolResult<string>> {
+  protected async handle(_args: { location: string }, _ctx: RunContext): Promise<ToolResult<string>> {
     return Promise.resolve({ type: 'text', data: 'Mostly sunny, 14C, rain in the afternoon.' });
   }
 }
@@ -133,11 +133,24 @@ setup → llmTurn → [hasToolCalls?]
 
 ## Key Concepts
 
-- **`tools` array in config** — Lists tool names the LLM can call (must match `@Tool({ name })` values)
+- **`tools` array in config** — Lists tool names the LLM can call. Names must match `@Tool({ name })` values. At startup, Loopstack auto-discovers every `@Tool()`-decorated provider in the module graph and indexes them by name. If a name doesn't match, you'll get an error listing all registered tools — useful for catching typos and missing module imports.
 - **`llmDelegateToolCalls`** — Executes tool calls from the LLM response message
 - **`message.stopReason === 'tool_use'`** — The LLM wants to call a tool
 - **`allCompleted`** — All delegated tool calls have finished
 - **`@Guard` + `priority`** — Routes between tool calling and final response
+
+## Under the Hood: How `llmDelegateToolCalls` Works
+
+`LlmDelegateToolCallsTool` is what makes a tool-calling workflow actually do work. Without it, the LLM's `tool_call` blocks would just sit in the message — nothing would be executed. The tool reads the most recent assistant message, runs every tool the LLM requested, and stores the outputs back as `tool_result` entries that the next LLM turn can read.
+
+Internally it delegates to `LlmDelegateService`, which:
+
+1. **Resolves each tool by name** from the global tool registry (the same one built by `@Tool()` auto-discovery).
+2. **Executes all tool calls in parallel** with `Promise.all` — the LLM is free to request multiple tools in one turn, and they run concurrently.
+3. **Catches errors per tool** so one failing tool doesn't crash the others. Failures show up as `tool_result` entries with `isError: true` and are also collected on `result.errors` for inspection.
+4. **Tracks pending async tools** — tools that return `{ pending: true }` (typically [HITL](./agent-workflows.md#human-in-the-loop) or sub-workflow tools) don't produce a result immediately. The result includes a `pendingCount`, and `allCompleted` stays `false` until those tools fire their completion callbacks. `LlmUpdateToolResultTool` is the companion that processes those callbacks and updates the delegate result.
+
+This is why your tool-calling loop should always branch on `allCompleted` (continue when true, pause when false), not just on whether `tool_call` blocks exist — `allCompleted` is the signal that all parallel work, sync and async, is in.
 
 ## Registry References
 

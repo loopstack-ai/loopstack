@@ -101,18 +101,48 @@ export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
   };
 }
 
+/**
+ * Marks a class as a Loopstack workflow. The class must extend `BaseWorkflow`.
+ *
+ * Also applies `@Injectable()` so the workflow can be registered as a NestJS provider
+ * and constructor-injected (tools, sub-workflows, services).
+ *
+ * Identifier resolution: `options.name` ?? class name with `Workflow` suffix stripped,
+ * snake_cased (e.g. `ChatWorkflow` → `chat`).
+ *
+ * @see WorkflowOptions for available options.
+ */
 export function Workflow(options?: WorkflowOptions): ClassDecorator {
   return Block('workflow', options as BlockOptions);
 }
 
+/**
+ * Marks a class as a Loopstack tool. The class must extend `BaseTool`.
+ *
+ * Also applies `@Injectable()` so the tool can be registered as a NestJS provider
+ * and constructor-injected into workflows and other tools.
+ *
+ * Identifier resolution: `options.name` ?? class name (as-is). Always set
+ * `options.name` to a snake_case identifier — it appears in the LLM tool-calling
+ * wire format.
+ *
+ * @see ToolOptions for available options.
+ */
 export function Tool(options?: ToolOptions): ClassDecorator {
   return Block('tool', options as BlockOptions);
 }
 
 /**
  * Marks a class as a Document DTO.
- * Unlike @Tool and @Workflow, documents are NOT injectable NestJS providers.
- * They are plain data classes whose schema and config are read from decorator metadata.
+ *
+ * Unlike `@Tool` and `@Workflow`, documents are NOT injectable NestJS providers —
+ * they are plain data classes. Their schema, widget, and meta are read from
+ * decorator metadata when documents are saved via `documentStore.save(DocClass, …)`.
+ *
+ * Identifier resolution: `options.name` ?? class name with `Document` suffix
+ * stripped, snake_cased (e.g. `AskUserDocument` → `ask_user`).
+ *
+ * @see DocumentOptions for available options.
  */
 export function Document(options?: DocumentOptions): ClassDecorator {
   return (target) => {

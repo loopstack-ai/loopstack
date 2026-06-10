@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
 import { BaseWorkflow, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
 
 const LINEAR_MCP_URL = 'https://mcp.linear.app/mcp';
@@ -33,7 +33,7 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
   }
 
   @Transition({ to: 'chatting' })
-  async startChat(state: Record<string, unknown>, ctx: LoopstackContext): Promise<Record<string, unknown>> {
+  async startChat(state: Record<string, unknown>, ctx: RunContext): Promise<Record<string, unknown>> {
     const args = ctx.args as McpLinearExampleArgs;
     const systemPrompt = [
       `You are a Linear assistant connected via MCP at ${LINEAR_MCP_URL} (transport: streamableHttp).`,

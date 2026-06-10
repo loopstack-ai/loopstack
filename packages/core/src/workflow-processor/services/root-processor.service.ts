@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
-  RunContext,
+  InternalRunContext,
   WORKFLOW_ORCHESTRATOR,
   WorkflowEntity,
   WorkflowInterface,
@@ -43,7 +43,7 @@ export class RootProcessorService {
     },
     payload: RunPayload,
   ): Promise<WorkflowMetadataInterface> {
-    const ctx: RunContext = {
+    const ctx: InternalRunContext = {
       root: params.workflowName,
       userId: params.userId,
       workspaceId: params.workspaceId,
@@ -60,7 +60,7 @@ export class RootProcessorService {
   async runWorkflow(workflow: WorkflowEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
     const workflowConfig = this.resolveWorkflowConfig(workflow);
 
-    const ctx: RunContext = {
+    const ctx: InternalRunContext = {
       root: workflow.workflowName,
       userId: workflow.createdBy,
       workflowId: workflow.id,

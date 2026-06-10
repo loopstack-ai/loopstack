@@ -11,42 +11,42 @@ Quick reference for what Loopstack can do. Each entry links to the relevant buil
 
 | Capability        | Description                                                        | Guide                                                 |
 | ----------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
-| Text generation   | Call Claude, OpenAI, or other LLMs with prompts or message history | [Text Generation](/docs/build/ai/text-generation)     |
-| Structured output | Force LLM to return data matching a JSON Schema                    | [Structured Output](/docs/build/ai/structured-output) |
-| Tool calling      | LLM decides which tools to invoke (function calling)               | [Tool Calling](/docs/build/ai/tool-calling)           |
-| Multi-turn chat   | Conversation loops with message accumulation                       | [Chat Flows](/docs/build/ai/chat-flows)               |
-| AI agents         | Autonomous tool-calling loops with error recovery                  | [Agent Workflows](/docs/build/ai/agent-workflows)     |
-| Multi-provider    | Use Claude and OpenAI in the same app, switch per-call             | [LLM Providers](/docs/build/ai/llm-providers)         |
-| Streaming         | Real-time token streaming to the UI                                | [LLM Providers](/docs/build/ai/llm-providers)         |
-| Prompt templates  | Handlebars templates for dynamic prompts                           | [Templates](/docs/build/patterns/templates)           |
+| Text generation   | Call Claude, OpenAI, or other LLMs with prompts or message history | [Text Generation](../build/ai/text-generation.md)     |
+| Structured output | Force LLM to return data matching a JSON Schema                    | [Structured Output](../build/ai/structured-output.md) |
+| Tool calling      | LLM decides which tools to invoke (function calling)               | [Tool Calling](../build/ai/tool-calling.md)           |
+| Multi-turn chat   | Conversation loops with message accumulation                       | [Chat Flows](../build/ai/chat-flows.md)               |
+| AI agents         | Autonomous tool-calling loops with error recovery                  | [Agent Workflows](../build/ai/agent-workflows.md)     |
+| Multi-provider    | Use Claude and OpenAI in the same app, switch per-call             | [LLM Providers](../build/ai/llm-providers.md)         |
+| Streaming         | Real-time token streaming to the UI                                | [LLM Providers](../build/ai/llm-providers.md)         |
+| Prompt templates  | Handlebars templates for dynamic prompts                           | [Templates](../build/patterns/templates.md)           |
 
 ## Workflow Patterns
 
 | Capability        | Description                                                    | Guide                                                       |
 | ----------------- | -------------------------------------------------------------- | ----------------------------------------------------------- |
-| State machines    | Typed state, automatic persistence, transitions between places | [Workflows](/docs/build/fundamentals/workflows)             |
-| Human-in-the-loop | Pause for user input, forms, confirmations                     | [Human-in-the-Loop](/docs/build/patterns/human-in-the-loop) |
-| Sub-workflows     | Launch child workflows, receive results via callbacks          | [Sub-Workflows](/docs/build/patterns/sub-workflows)         |
-| Dynamic routing   | Guard-based conditional branching with priorities              | [Dynamic Routing](/docs/build/patterns/dynamic-routing)     |
-| Error handling    | Auto-retry with backoff, custom error places, manual retry     | [Error Handling](/docs/build/patterns/error-handling)       |
-| State management  | Typed state interface, persistence across pauses               | [State Management](/docs/build/patterns/state-management)   |
+| State machines    | Typed state, automatic persistence, transitions between places | [Workflows](../build/fundamentals/workflows.md)             |
+| Human-in-the-loop | Pause for user input, forms, confirmations                     | [Human-in-the-Loop](../build/patterns/human-in-the-loop.md) |
+| Sub-workflows     | Launch child workflows, receive results via callbacks          | [Sub-Workflows](../build/patterns/sub-workflows.md)         |
+| Dynamic routing   | Guard-based conditional branching with priorities              | [Dynamic Routing](../build/patterns/dynamic-routing.md)     |
+| Error handling    | Auto-retry with backoff, custom error places, manual retry     | [Error Handling](../build/patterns/error-handling.md)       |
+| State management  | Typed state interface, persistence across pauses               | [State Management](../build/patterns/state-management.md)   |
 
 ## Tools & Documents
 
 | Capability       | Description                                                | Guide                                               |
 | ---------------- | ---------------------------------------------------------- | --------------------------------------------------- |
-| Custom tools     | Reusable logic with Zod schemas, injectable into workflows | [Tools](/docs/build/fundamentals/tools)             |
-| Custom documents | Typed UI components with forms, code editors, buttons      | [Documents](/docs/build/fundamentals/documents)     |
-| Task tools       | Tools that launch sub-workflows (for agent delegation)     | [Sub-Workflows](/docs/build/patterns/sub-workflows) |
+| Custom tools     | Reusable logic with Zod schemas, injectable into workflows | [Tools](../build/fundamentals/tools.md)             |
+| Custom documents | Typed UI components with forms, code editors, buttons      | [Documents](../build/fundamentals/documents.md)     |
+| Task tools       | Tools that launch sub-workflows (for agent delegation)     | [Sub-Workflows](../build/patterns/sub-workflows.md) |
 
 ## Integrations
 
 | Capability             | Description                                             | Guide                                                                     |
 | ---------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------- |
-| OAuth 2.0              | Provider-agnostic OAuth with Google and GitHub built-in | [OAuth](/docs/build/integrations/oauth)                                   |
-| Docker sandboxes       | Run untrusted code in isolated containers               | [Sandbox](/docs/build/integrations/sandbox)                               |
-| Secrets management     | Request and store API keys/tokens from users at runtime | [Secrets](/docs/build/integrations/secrets)                               |
-| Programmatic execution | Trigger workflows from APIs, webhooks, cron jobs        | [Programmatic Execution](/docs/build/integrations/programmatic-execution) |
+| OAuth 2.0              | Provider-agnostic OAuth with Google and GitHub built-in | [OAuth](../build/integrations/oauth.md)                                   |
+| Docker sandboxes       | Run untrusted code in isolated containers               | [Sandbox](../build/integrations/sandbox.md)                               |
+| Secrets management     | Request and store API keys/tokens from users at runtime | [Secrets](../build/integrations/secrets.md)                               |
+| Programmatic execution | Trigger workflows from APIs, webhooks, cron jobs        | [Programmatic Execution](../build/integrations/programmatic-execution.md) |
 
 ## UI & Studio
 
@@ -63,9 +63,9 @@ Quick reference for what Loopstack can do. Each entry links to the relevant buil
 
 | Capability             | Description                                              | Guide                                                    |
 | ---------------------- | -------------------------------------------------------- | -------------------------------------------------------- |
-| Custom LLM providers   | Implement `LlmProviderInterface` for any LLM API         | [Creating LLM Providers](/docs/extend/llm-providers)     |
-| Custom OAuth providers | Implement `OAuthProviderInterface` for any OAuth service | [Creating OAuth Providers](/docs/extend/oauth-providers) |
-| Registry packages      | Browse and install pre-built tools and workflows         | [Registry](/docs/reference/registry)                     |
+| Custom LLM providers   | Implement `LlmProviderInterface` for any LLM API         | [Creating LLM Providers](../extend/llm-providers.md)     |
+| Custom OAuth providers | Implement `OAuthProviderInterface` for any OAuth service | [Creating OAuth Providers](../extend/oauth-providers.md) |
+| Registry packages      | Browse and install pre-built tools and workflows         | [Registry](../registry/index.md)                         |
 
 ## Tech Stack
 

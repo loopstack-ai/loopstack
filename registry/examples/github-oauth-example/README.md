@@ -1,3 +1,8 @@
+---
+title: GitHub OAuth Example
+description: Example workflows using GitHub API with OAuth — structured repo overview and interactive Claude chat agent with 25 GitHub tools
+---
+
 # @loopstack/github-oauth-example
 
 > An example module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -34,10 +39,10 @@ The workflow uses `@Guard` to check if authentication is needed and routes to th
 ```typescript
 @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
 @Guard('needsAuth')
-async authRequired() {
-  const result = await this.oAuth.run(
+async authRequired(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
+  const result = await this.oAuthWorkflow.run(
     { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-    { alias: 'oAuth', callback: { transition: 'authCompleted' } },
+    { callback: { transition: 'authCompleted' } },
   );
 
   await this.documentStore.save(
@@ -52,8 +57,8 @@ async authRequired() {
   );
 }
 
-needsAuth(): boolean {
-  return !!this.requiresAuthentication;
+needsAuth(state: GitHubReposOverviewState): boolean {
+  return !!state.requiresAuthentication;
 }
 ```
 
@@ -66,7 +71,7 @@ The auth callback uses `wait: true` with `CallbackSchema` to receive the OAuth c
   wait: true,
   schema: CallbackSchema,
 })
-async authCompleted(payload: { workflowId: string }) {
+async authCompleted(state: GitHubReposOverviewState, payload: { workflowId: string }): Promise<GitHubReposOverviewState> {
   await this.documentStore.save(
     LinkDocument,
     {
@@ -128,52 +133,88 @@ An interactive chat agent that gives Claude access to all 25 GitHub tools. The a
 
 **Agent loop pattern:**
 
+All tools are injected via the constructor. Provider, model, system prompt, and tool list are passed at call time via `{ config: { ... } }`:
+
 ```typescript
-@InjectTool({
-  provider: 'claude',
-  model: 'claude-sonnet-4-6',
-  system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
-and search tools. When a tool returns an unauthorized error, use authenticateGitHub
-to let the user sign in, then retry. Be concise and format results using markdown.`,
-  tools: [
-    'gitHubListRepos', 'gitHubGetRepo', 'gitHubCreateRepo', 'gitHubListBranches',
-    'gitHubListIssues', 'gitHubGetIssue', 'gitHubCreateIssue', 'gitHubCreateIssueComment',
-    'gitHubListPullRequests', 'gitHubGetPullRequest', 'gitHubCreatePullRequest',
-    'gitHubMergePullRequest', 'gitHubListPrReviews',
-    'gitHubGetFileContent', 'gitHubCreateOrUpdateFile', 'gitHubListDirectory', 'gitHubGetCommit',
-    'gitHubListWorkflowRuns', 'gitHubTriggerWorkflow', 'gitHubGetWorkflowRun',
-    'gitHubSearchCode', 'gitHubSearchRepos', 'gitHubSearchIssues',
-    'gitHubGetAuthenticatedUser', 'gitHubListUserOrgs',
-    'authenticateGitHub',
-  ],
-})
-llmGenerateText: LlmGenerateTextTool;
-@InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
+constructor(
+  private readonly llmGenerateText: LlmGenerateTextTool,
+  private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+  private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
+  private readonly authenticateGitHub: AuthenticateGitHubTask,
+  // ... all 25 GitHub tools ...
+  private readonly oAuth: OAuthWorkflow,
+) {
+  super();
+}
 
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn() {
-  const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call();
-  this.llmResult = result.data;
+async llmTurn(state: GitHubAgentState): Promise<GitHubAgentState> {
+  const result = await this.llmGenerateText.call(
+    {},
+    {
+      config: {
+        provider: 'claude',
+        model: 'claude-sonnet-4-6',
+        system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
+and search tools. When a tool returns an unauthorized error, use authenticateGitHub
+to let the user sign in, then retry. Be concise and format results using markdown.`,
+        tools: [
+          'github_list_repos', 'github_get_repo', 'github_create_repo', 'github_list_branches',
+          'github_list_issues', 'github_get_issue', 'github_create_issue', 'github_create_issue_comment',
+          'github_list_pull_requests', 'github_get_pull_request', 'github_create_pull_request',
+          'github_merge_pull_request', 'github_list_pr_reviews',
+          'github_get_file_content', 'github_create_or_update_file', 'github_list_directory', 'github_get_commit',
+          'github_list_workflow_runs', 'github_trigger_workflow', 'github_get_workflow_run',
+          'github_search_code', 'github_search_repos', 'github_search_issues',
+          'github_get_authenticated_user', 'github_list_user_orgs',
+          'authenticate_github',
+        ],
+      },
+    },
+  );
+  return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls() {
-  const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-    message: this.llmResult!.message,
-    callback: { transition: 'toolResultReceived' },
+async executeToolCalls(state: GitHubAgentState): Promise<GitHubAgentState> {
+  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
   });
-  this.delegateResult = result.data;
+  const result = await this.llmDelegateToolCalls.call(
+    {
+      message: state.llmResult!.message,
+      callback: { transition: 'toolResultReceived' },
+    },
+    { config: { provider: 'claude' } },
+  );
+  return { ...state, delegateResult: result.data };
 }
 
-hasToolCalls(): boolean {
-  return this.llmResult?.message.stopReason === 'tool_use';
+hasToolCalls(state: GitHubAgentState): boolean {
+  return state.llmResult?.message.stopReason === 'tool_use';
 }
 ```
 
 This is the easiest way to interactively test every GitHub tool -- just ask the agent to perform any GitHub operation.
 
 ## Setup
+
+Register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { GitHubAgentWorkflow, GitHubExampleModule, GitHubReposOverviewWorkflow } from '@loopstack/github-oauth-example';
+
+@StudioApp({
+  title: 'GitHub OAuth Example',
+  workflows: [GitHubReposOverviewWorkflow, GitHubAgentWorkflow],
+})
+@Module({
+  imports: [GitHubExampleModule],
+})
+export class MyAppModule {}
+```
 
 ### Environment Variables
 

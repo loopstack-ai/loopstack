@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const AuthenticateGoogleTaskInputSchema = z
@@ -44,7 +44,7 @@ export class AuthenticateGoogleTask extends BaseTool<
 
   protected async handle(
     args: AuthenticateGoogleTaskInput,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<AuthenticateGoogleTaskResult>> {
     const result = await this.oAuthWorkflow.run(

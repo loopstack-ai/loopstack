@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import {
   LlmGenerateTextTool,
   LlmMessageDocument,
@@ -23,7 +23,7 @@ export class HelloWorkflow extends BaseWorkflow<InputArgs> {
   }
 
   @Transition({ from: 'start', to: 'message_received' })
-  async greet(_state: unknown, ctx: LoopstackContext<InputArgs>) {
+  async greet(_state: unknown, ctx: RunContext<InputArgs>) {
     const result = await this.llmGenerateText.call({
       prompt: `Say hello to ${ctx.args.name} in a fun way in one sentence.`,
     });

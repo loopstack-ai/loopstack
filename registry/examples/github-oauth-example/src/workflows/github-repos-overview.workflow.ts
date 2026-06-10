@@ -8,7 +8,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import {
   GitHubGetAuthenticatedUserTool,
   GitHubGetRepoTool,
@@ -93,7 +93,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
   // --- Step 1: Fetch authenticated user ---
 
   @Transition({ to: 'user_fetched' })
-  async fetchUser(state: GitHubReposOverviewState, ctx: LoopstackContext): Promise<GitHubReposOverviewState> {
+  async fetchUser(state: GitHubReposOverviewState, ctx: RunContext): Promise<GitHubReposOverviewState> {
     const args = ctx.args as { owner: string; repo: string };
     const result = await this.gitHubGetAuthenticatedUser.call();
     return {

@@ -1,3 +1,8 @@
+---
+title: Sandbox Example
+description: Example workflow using Docker sandbox containers for secure filesystem operations — SandboxTool, SandboxFilesystemTool, isolated code execution
+---
+
 # @loopstack/sandbox-example-workflow
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -23,35 +28,55 @@ This example is useful for developers building workflows that need to execute co
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/sandbox-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { SandboxExampleModule, SandboxExampleWorkflow } from '@loopstack/sandbox-example-workflow';
+
+@StudioApp({
+  title: 'Sandbox Example',
+  workflows: [SandboxExampleWorkflow],
+})
+@Module({
+  imports: [SandboxExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 
 ### Workflow Class
 
-The workflow class declares inputs, state properties, tools, and a helper method:
+The workflow class declares inputs, state, and injects tools via the constructor:
 
 ```typescript
 @Workflow({
-  uiConfig: __dirname + '/sandbox-example.ui.yaml',
+  title: 'Sandbox Filesystem Example',
   schema: z.object({
     outputDir: z.string().default(process.cwd() + '/out'),
   }),
 })
-export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> {
-  containerId?: string;
-  fileContent?: string;
-  fileList?: FileEntry[];
-
-  @InjectTool() sandboxInit: SandboxInit;
-  @InjectTool() sandboxDestroy: SandboxDestroy;
-  @InjectTool() sandboxWriteFile: SandboxWriteFile;
-  @InjectTool() sandboxReadFile: SandboxReadFile;
-  @InjectTool() sandboxListDirectory: SandboxListDirectory;
-  @InjectTool() sandboxCreateDirectory: SandboxCreateDirectory;
-  @InjectTool() sandboxDelete: SandboxDelete;
-  @InjectTool() sandboxExists: SandboxExists;
-  @InjectTool() sandboxFileInfo: SandboxFileInfo;
+export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, SandboxExampleState> {
+  constructor(
+    // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
+    private readonly sandboxInit: SandboxInit,
+    private readonly sandboxDestroy: SandboxDestroy,
+    // Filesystem tools (from @loopstack/sandbox-filesystem)
+    private readonly sandboxWriteFile: SandboxWriteFile,
+    private readonly sandboxReadFile: SandboxReadFile,
+    private readonly sandboxListDirectory: SandboxListDirectory,
+    private readonly sandboxCreateDirectory: SandboxCreateDirectory,
+    private readonly sandboxDelete: SandboxDelete,
+    private readonly sandboxExists: SandboxExists,
+    private readonly sandboxFileInfo: SandboxFileInfo,
+  ) {
+    super();
+  }
 
   private formatEntries(entries: FileEntry[]): string {
     if (!entries || entries.length === 0) return '(empty)';
@@ -62,11 +87,12 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
 
 ### Sandbox Lifecycle
 
-Initialize a Docker container before performing filesystem operations. The container ID is saved to a class property for use in subsequent transitions:
+Initialize a Docker container before performing filesystem operations. The container ID is saved to the state object for use in subsequent transitions:
 
 ```typescript
 @Transition({ to: 'sandbox_ready' })
-async initSandbox(args: { outputDir: string }) {
+async initSandbox(state: SandboxExampleState, ctx: RunContext): Promise<SandboxExampleState> {
+  const args = ctx.args as { outputDir: string };
   const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
     containerId: 'my-sandbox',
     imageName: 'node:18',
@@ -75,12 +101,11 @@ async initSandbox(args: { outputDir: string }) {
     rootPath: 'workspace',
   });
 
-  this.containerId = initResult.data!.containerId;
-
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
   });
+  return { ...state, containerId: initResult.data!.containerId };
 }
 ```
 
@@ -88,9 +113,9 @@ Always destroy the sandbox when finished:
 
 ```typescript
 @Transition({ from: 'file_deleted', to: 'end' })
-async destroySandbox() {
+async destroySandbox(state: SandboxExampleState): Promise<unknown> {
   const destroyResult: ToolResult<SandboxDestroyResult> = await this.sandboxDestroy.call({
-    containerId: this.containerId!,
+    containerId: state.containerId!,
     removeContainer: true,
   });
 
@@ -98,18 +123,19 @@ async destroySandbox() {
     role: 'assistant',
     content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
   });
+  return {};
 }
 ```
 
 ### Filesystem Operations
 
-Perform various file operations within the sandbox, referencing `this.containerId` for the container ID and storing results on class properties:
+Perform various file operations within the sandbox, referencing `state.containerId` for the container ID and returning updated state:
 
 ```typescript
 @Transition({ from: 'dir_created', to: 'file_written' })
-async writeFile() {
+async writeFile(state: SandboxExampleState): Promise<SandboxExampleState> {
   const writeResult: ToolResult<SandboxWriteFileResult> = await this.sandboxWriteFile.call({
-    containerId: this.containerId!,
+    containerId: state.containerId!,
     path: '/workspace/result.txt',
     content: 'Hello from sandbox!',
     encoding: 'utf8',
@@ -120,38 +146,37 @@ async writeFile() {
     role: 'assistant',
     content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
   });
+  return state;
 }
 
 @Transition({ from: 'file_written', to: 'file_read' })
-async readFile() {
+async readFile(state: SandboxExampleState): Promise<SandboxExampleState> {
   const readResult: ToolResult<SandboxReadFileResult> = await this.sandboxReadFile.call({
-    containerId: this.containerId!,
+    containerId: state.containerId!,
     path: '/workspace/result.txt',
     encoding: 'utf8',
   });
-
-  this.fileContent = readResult.data!.content;
 
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
   });
+  return { ...state, fileContent: readResult.data!.content };
 }
 
 @Transition({ from: 'file_read', to: 'dir_listed' })
-async listDir() {
+async listDir(state: SandboxExampleState): Promise<SandboxExampleState> {
   const listResult: ToolResult<SandboxListDirectoryResult> = await this.sandboxListDirectory.call({
-    containerId: this.containerId!,
+    containerId: state.containerId!,
     path: '/workspace',
     recursive: false,
   });
-
-  this.fileList = listResult.data!.entries;
 
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
   });
+  return { ...state, fileList: listResult.data!.entries };
 }
 ```
 
@@ -173,7 +198,7 @@ This example workflow demonstrates the following sequence:
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@InjectTool`, `ToolResult`, `MessageDocument`)
+- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `ToolResult`, `MessageDocument`)
 - `@loopstack/sandbox-tool` - Provides `SandboxInit` and `SandboxDestroy` tools for container lifecycle
 - `@loopstack/sandbox-filesystem` - Provides filesystem tools (`SandboxWriteFile`, `SandboxReadFile`, `SandboxListDirectory`, `SandboxCreateDirectory`, `SandboxDelete`, `SandboxExists`, `SandboxFileInfo`)
 

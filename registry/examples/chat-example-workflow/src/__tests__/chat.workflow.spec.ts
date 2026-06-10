@@ -1,10 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider-module';
-import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { ToolMock, createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ChatWorkflow } from '../chat.workflow';
 
 describe('ChatWorkflow', () => {
@@ -82,12 +81,12 @@ describe('ChatWorkflow', () => {
         },
       });
 
-      const context = {
+      const context = createContext({
         workflowEntity: {
           id: workflowId,
           place: 'waiting_for_user',
           documents: [],
-        } as Partial<WorkflowEntity>,
+        },
         payload: {
           transition: {
             id: 'userMessage',
@@ -95,7 +94,7 @@ describe('ChatWorkflow', () => {
             payload: 'Hello, how are you?',
           },
         },
-      } as RunContext;
+      });
 
       const result = await processor.process(workflow, {}, context);
 

@@ -7,6 +7,21 @@ description: Executing untrusted code in Docker containers using @loopstack/sand
 
 Run untrusted or AI-generated code safely in isolated Docker containers. The sandbox packages provide tools for creating disposable execution environments with filesystem access, letting workflows execute arbitrary code without risking the host system.
 
+## Prerequisites
+
+Docker must be installed and running on the host system before any sandbox tool is invoked. The sandbox tools shell out to the local Docker daemon to create, start, exec into, and remove containers — `sandbox_init` will fail at runtime if Docker isn't available.
+
+Any Docker image works — `imageName` is passed straight through to Docker, so anything you'd put after `docker pull` (`node:18`, `python:3.11-slim`, your own private image) is valid. Images are pulled automatically on first use, so the first init for an unfamiliar image may be slow.
+
+## Host ↔ Container Filesystem
+
+`sandbox_init` takes two related paths:
+
+- `projectOutPath` — an absolute path on the **host** machine.
+- `rootPath` — a path **inside** the container (defaults to `workspace`).
+
+The host directory at `projectOutPath` is bind-mounted into the container at `/<rootPath>`. Anything the container writes under `/<rootPath>` shows up at `projectOutPath` on the host, and vice versa — it's the same set of files viewed from two sides. Use this to feed inputs into the sandbox, read outputs back out, and persist artifacts across container destroys.
+
 ## Setup
 
 ```typescript
@@ -26,7 +41,7 @@ export class SandboxModule {}
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -55,7 +70,7 @@ export class SandboxWorkflow extends BaseWorkflow<{ outputDir: string }, Sandbox
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async initSandbox(state: SandboxState, ctx: LoopstackContext): Promise<SandboxState> {
+  async initSandbox(state: SandboxState, ctx: RunContext): Promise<SandboxState> {
     const args = ctx.args as { outputDir: string };
     const result: ToolResult = await this.sandboxInit.call({
       containerId: 'my-sandbox',

@@ -1,7 +1,7 @@
 import { DynamicModule, ForwardReference, Provider, Type } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { type Mock, vi } from 'vitest';
-import { RunContext, User, WorkflowEntity, WorkflowState } from '@loopstack/common';
+import { InternalRunContext, User, WorkflowEntity, WorkflowState } from '@loopstack/common';
 import { LoopCoreModule, WorkflowService } from '@loopstack/core';
 import { mockCoreModuleProviders } from './core-module-mock.js';
 import { createTestingModule } from './create-testing-module.js';
@@ -202,6 +202,31 @@ export function createWorkflowTest(): WorkflowTestBuilder {
   return new WorkflowTestBuilder();
 }
 
-export function createStatelessContext(overrides?: Partial<RunContext>): RunContext {
-  return { options: { stateless: true }, ...overrides } as RunContext;
+export function createStatelessContext(overrides?: Partial<InternalRunContext>): InternalRunContext {
+  return { options: { stateless: true }, ...overrides } as InternalRunContext;
+}
+
+/**
+ * Friendly shape for test context overrides — accepts `Partial<WorkflowEntity>`
+ * directly so tests don't need to assert internal types.
+ */
+export interface TestContextInput {
+  workflowEntity?: Partial<WorkflowEntity>;
+  payload?: Record<string, unknown>;
+  args?: Record<string, unknown>;
+  userId?: string;
+  workspaceId?: string;
+  workflowId?: string;
+  labels?: string[];
+  workflowContext?: Record<string, unknown>;
+  options?: { stateless?: boolean };
+}
+
+/**
+ * Builds a partial run context for tests that need to resume from a persisted
+ * `workflowEntity` or deliver a transition `payload`. Use this instead of casting
+ * a literal to `InternalRunContext` — examples should not depend on internal types.
+ */
+export function createContext(overrides: TestContextInput): InternalRunContext {
+  return { ...overrides } as unknown as InternalRunContext;
 }

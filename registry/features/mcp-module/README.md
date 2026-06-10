@@ -1,160 +1,169 @@
+---
+title: MCP Module
+description: Remote MCP client tools for Loopstack — McpModule.forRoot(), McpCallTool (mcp_call), McpListToolsTool (mcp_list_tools), McpToolConfig with allowedHosts, hostHeaderEnv, SSRF allowlist, Streamable HTTP and SSE transports, McpClientService, error hierarchy, McpMetricsPort
+---
+
 # @loopstack/mcp-module
 
-> Remote-MCP client tools for the [Loopstack AI](https://loopstack.ai) automation framework.
+> Remote-MCP client module for the [Loopstack](https://loopstack.ai) automation framework.
 
-Lets a Loopstack agent list and call tools on remote Model Context Protocol (MCP)
-servers over HTTPS — Streamable HTTP or legacy SSE — with a strict SSRF allowlist
-and zero-trust handling of authentication secrets.
+Lets a Loopstack agent list and call tools on remote Model Context Protocol (MCP) servers over HTTPS — Streamable HTTP or legacy SSE — with a strict SSRF allowlist and zero-trust handling of authentication secrets.
 
-## What this is (and isn't)
+## When to Use
 
-- **Is:** a _client_ module — your Loopstack app reaches _out_ to a remote MCP
-  server (Linear, GitHub, internal tools, etc.).
-- **Isn't:** an MCP _server_ — it does not expose your workflows over MCP.
+- **Connect an agent to hosted MCP servers** (Linear, GitHub, internal tools) without writing custom tool wrappers for each API.
+- **Dynamically discover remote tool schemas** at runtime via `mcp_list_tools`, then invoke them with `mcp_call`.
+- **Reach multiple MCP servers from one workflow** — `serverUrl` is a per-call argument, so a single agent can hop between any allowlisted host.
+- **Not an MCP server** — this module does not expose your workflows over MCP. It is a client only.
 
-## Tools
+## Installation
 
-| Tool               | Purpose                                         |
-| ------------------ | ----------------------------------------------- |
-| `McpListToolsTool` | Discover the tools a remote MCP server exposes. |
-| `McpCallTool`      | Invoke a tool on a remote MCP server.           |
-
-Both take `serverUrl`, `transport` (`streamableHttp` or `sse`), and `timeoutMs`
-at call time. `McpCallTool` additionally takes `toolName` and `arguments`.
-
-## Security model
-
-Every connection passes three checks before any bytes go out:
-
-1. **Allowlist** — `serverUrl`'s hostname must match `allowedHosts`. Exact match
-   or `*.example.com` (which also matches `example.com`).
-2. **Scheme** — `https://` by default; `http://` only if `allowInsecureHttp: true`.
-3. **Public-IP resolution** — DNS (or a literal IP) must resolve to a routable
-   public address. Loopback, RFC1918, link-local, ULA, and IPv4-mapped
-   equivalents are rejected. Override with `allowPrivateHosts: true` for trusted
-   local MCP proxies.
-
-Userinfo in the URL (`https://user:pw@host/...`) is rejected — credentials must
-flow through headers.
-
-## Authentication
-
-Configure auth headers via constructor injection config:
-
-```ts
-constructor(private readonly mcpCallTool: McpCallTool) {}
-
-// Configure allowedHosts and hostHeaderEnv via call config:
-await this.mcpCallTool.call(args, {
-  config: {
-    allowedHosts: ['mcp.linear.app'],
-    hostHeaderEnv: { 'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' } },
-  },
-});
+```sh
+npm install @loopstack/mcp-module
 ```
 
-Three knobs, in increasing specificity:
+Register the module with `McpModule.forRoot()`:
 
-| Knob             | Use for                                                                                                                 |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `defaultHeaders` | Static, **non-secret** values (e.g. `X-Trace: on`). Sensitive header names like `Authorization` are rejected here.      |
-| `headerEnv`      | `header → env-var` mapping applied to _every_ host. Value is read from `process.env` at call time.                      |
-| `hostHeaderEnv`  | `host → { header → env-var }`. Use the hostname or `'*'` (applied to all). Host-specific entries override the wildcard. |
+```ts
+import { Module } from '@nestjs/common';
+import { McpModule } from '@loopstack/mcp-module';
 
-Precedence (later wins): `defaultHeaders` → `headerEnv` → `hostHeaderEnv['*']` → `hostHeaderEnv[hostname]`. `hostHeaderEnv['*']` outranks `headerEnv` because it lives in the same map as the host-specific entries — keeping all host-scoped knobs together in `hostHeaderEnv` is the intended override layer. Keys are matched case-insensitively (HTTP semantics).
+@Module({
+  imports: [
+    McpModule.forRoot({
+      allowedHosts: ['mcp.linear.app'],
+      hostHeaderEnv: {
+        'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' },
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
 
-Header _names_ are logged on connect (e.g. `headers=[Authorization]`); values
-never are. If a referenced env var is unset or empty, the header is silently
-omitted — so missing `LINEAR_MCP_TOKEN` means no `Authorization` header, not a
-crash.
-
-The header value is sent **raw**. If the remote server expects `Bearer <token>`,
-your env var must contain the `Bearer ` prefix:
+Set the corresponding env var. The value is sent raw — include `Bearer ` if the server expects it:
 
 ```env
 LINEAR_MCP_TOKEN="Bearer lin_oauth_..."
 ```
 
-## Registering the tools (workspace vs workflow)
+## Quick Start
 
-Import `McpModule` in your Nest module so the tool classes are available. Then
-register **instances** via the constructor — where you inject them
-depends on how you run the LLM loop.
-
-| How you run the agent                                                                                                                              | Where to injection MCP tools                                                                                                                                                 |
-| -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`ChatAgentWorkflow` / `AgentWorkflow` as a sub-workflow** (`this.agent.run({ tools: [...] })`)                                                   | **Workspace** — the child agent resolves tools from the executing workflow first, then the workspace. Tools on the parent workflow are not visible while the sub-agent runs. |
-| **Inline agent loop in one workflow** (your transitions call `this.llmGenerateText.call()` / `this.llmDelegateToolCalls.call()` on the same class) | **That workflow** — same pattern as other registry agents (e.g. Google Workspace).                                                                                           |
-
-See [@loopstack/agent — Tool Resolution]() for the full resolution order.
-
-### With `ChatAgentWorkflow` (register on the workspace)
-
-This is the pattern used by `@loopstack/mcp-linear-example-workflow` and the app
-template: declare MCP tools once on the workspace, then pass their property names
-to `agent.run()`.
+This example mirrors the `@loopstack/mcp-linear-example-workflow` package. It starts a `ChatAgentWorkflow` sub-workflow with both MCP tools available.
 
 ```ts
-import { Injectable } from '@nestjs/common';
+// mcp-linear.module.ts
+import { Module } from '@nestjs/common';
+import { AgentModule } from '@loopstack/agent';
+import { McpModule } from '@loopstack/mcp-module';
+import { McpLinearWorkflow } from './mcp-linear.workflow';
+
+@Module({
+  imports: [
+    McpModule.forRoot({
+      allowedHosts: ['mcp.linear.app'],
+      hostHeaderEnv: { 'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' } },
+    }),
+    AgentModule,
+  ],
+  providers: [McpLinearWorkflow],
+  exports: [McpLinearWorkflow],
+})
+export class McpLinearModule {}
+```
+
+```ts
+// mcp-linear.workflow.ts
+import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
-import { InjectTool, InjectWorkflow, Workspace } from '@loopstack/common';
+import { BaseWorkflow, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
-import { MyMcpWorkflow } from './my-mcp.workflow';
 
-const mcpToolConfig = {
-  allowedHosts: ['mcp.linear.app', 'mcp.github.com'],
-  hostHeaderEnv: {
-    'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' },
-    'mcp.github.com': { Authorization: 'GITHUB_MCP_TOKEN' },
-  },
-} as const;
+const ArgsSchema = z.object({
+  initialMessage: z.string().optional().default('List available Linear tools, then fetch my top 5 issues.'),
+});
 
-@Injectable()
-@Workspace({ uiConfig: { title: 'My Workspace' } })
-export class MyWorkspace {
+@Workflow({
+  title: 'MCP Linear',
+  description: 'Chat with an agent connected to Linear via MCP.',
+  schema: ArgsSchema,
+})
+export class McpLinearWorkflow extends BaseWorkflow<z.infer<typeof ArgsSchema>> {
   constructor(
-    public readonly mcpAgent: MyMcpWorkflow,
-    public readonly mcpListTools: McpListToolsTool,
-    public readonly mcpCallTool: McpCallTool,
-  ) {}
+    private readonly chatAgentWorkflow: ChatAgentWorkflow,
+    private readonly mcpListTools: McpListToolsTool,
+    private readonly mcpCallTool: McpCallTool,
+  ) {
+    super();
+  }
+
+  @Transition({ to: 'chatting' })
+  async startChat(state: Record<string, unknown>, ctx: RunContext): Promise<Record<string, unknown>> {
+    const args = ctx.args as z.infer<typeof ArgsSchema>;
+
+    const result = await this.chatAgentWorkflow.run({
+      system: 'You are a Linear assistant. Use mcp_list_tools to discover tools, then mcp_call to invoke them.',
+      tools: ['mcp_list_tools', 'mcp_call'],
+      userMessage: args.initialMessage,
+    });
+
+    await this.documentStore.save(LinkDocument, {
+      workflowId: result.workflowId,
+      label: 'Linear Agent Chat',
+      status: 'pending',
+      embed: true,
+      expanded: true,
+    });
+
+    return state;
+  }
 }
 ```
 
-```ts
-// my-mcp.workflow.ts — parent only starts the sub-agent
-constructor(private readonly agent: ChatAgentWorkflow) { super(); }
+Tools are referenced by their `@Tool({ name })` values (`'mcp_list_tools'`, `'mcp_call'`) and resolved from the NestJS DI container at runtime.
 
-await this.agent.run({
-  system: '...',
-  tools: ['mcpListTools', 'mcpCallTool'],
-  userMessage: '...',
-});
+## How It Works
+
+```
+Agent LLM loop
+  │
+  ├─ mcp_list_tools(serverUrl, transport?)
+  │     └─ McpClientService.listTools() → connect, list, disconnect
+  │
+  └─ mcp_call(serverUrl, toolName, arguments, transport?)
+        └─ McpClientService.callTool() → connect, call, disconnect
 ```
 
-### Inline agent loop (register on the workflow)
+Each tool call creates a fresh MCP client connection. Before any bytes go out, the URL passes through the security pipeline (allowlist, scheme, DNS resolution). Headers are merged from config and env vars are resolved at call time.
 
-If your workflow owns the LLM turns and tool delegation (no `ChatAgentWorkflow`
-sub-workflow), inject MCP tools on that same workflow class alongside
-`LlmGenerateTextTool` and `LlmDelegateToolCallsTool`.
+The agent decides which `serverUrl` and `toolName` to use per call, so a single workflow can reach any host in `allowedHosts`.
 
-The agent picks `serverUrl` per call, so it can hop between any of the
-allowlisted hosts within the same chat.
+### Security Model
 
-## Multiple MCP servers
+Every connection passes three checks:
 
-`serverUrl` is a per-call argument. **An agent can reach any host listed in
-`allowedHosts`** — there is no "primary" server. To add a new server:
+1. **Allowlist** — `serverUrl`'s hostname must match `allowedHosts`. Exact match or `*.example.com` (which also matches `example.com`).
+2. **Scheme** — `https://` by default; `http://` only if `allowInsecureHttp: true`.
+3. **Public-IP resolution** — DNS (or a literal IP) must resolve to a routable public address. Loopback, RFC1918, link-local, ULA, and IPv4-mapped equivalents are rejected. Override with `allowPrivateHosts: true` for trusted local MCP proxies.
 
-1. Add its hostname to `allowedHosts` on both injection configs.
-2. Add its auth mapping to `hostHeaderEnv`.
-3. Set the corresponding env var.
+Userinfo in the URL (`https://user:pw@host/...`) is rejected — credentials must flow through headers.
 
-Dynamic, end-user-driven server registration (paste any URL mid-chat) is
-deliberately _not_ supported — the allowlist exists to prevent agents from
-being tricked into hitting internal hosts. Adding that flow safely requires
-a per-user registry plus an auth onboarding step (out of scope here).
+### Authentication
 
-## Transport guidance
+Three knobs, in increasing specificity:
+
+| Knob             | Use for                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `defaultHeaders` | Static, **non-secret** values (e.g. `X-Trace: on`). Sensitive header names like `Authorization` are rejected here. |
+| `headerEnv`      | `header -> env-var` mapping applied to every host. Value is read from `process.env` at call time.                  |
+| `hostHeaderEnv`  | `host -> { header -> env-var }`. Use `'*'` for all hosts. Host-specific entries override the wildcard.             |
+
+Precedence (later wins): `defaultHeaders` -> `headerEnv` -> `hostHeaderEnv['*']` -> `hostHeaderEnv[hostname]`.
+
+Header names are logged on connect (e.g. `headers=[Authorization]`); values never are. If a referenced env var is unset or empty, the header is silently omitted.
+
+### Transport
 
 | Server                    | Transport                  |
 | ------------------------- | -------------------------- |
@@ -163,21 +172,107 @@ a per-user registry plus an auth onboarding step (out of scope here).
 
 Pass `transport: 'sse'` per call when needed.
 
+### Multiple MCP Servers
+
+`serverUrl` is a per-call argument. An agent can reach any host listed in `allowedHosts`. To add a new server:
+
+1. Add its hostname to `allowedHosts`.
+2. Add its auth mapping to `hostHeaderEnv`.
+3. Set the corresponding env var.
+
+Dynamic, end-user-driven server registration (paste any URL mid-chat) is deliberately not supported — the allowlist exists to prevent agents from being tricked into hitting internal hosts.
+
+## Tools Reference
+
+### `mcp_list_tools`
+
+Lists tool definitions exposed by a remote MCP server.
+
+**Class:** `McpListToolsTool`
+
+| Arg         | Type                        | Required | Description                                                 |
+| ----------- | --------------------------- | -------- | ----------------------------------------------------------- |
+| `serverUrl` | `z.url()`                   | Yes      | MCP endpoint URL (https recommended).                       |
+| `transport` | `'streamableHttp' \| 'sse'` | No       | Default `'streamableHttp'`. Use `'sse'` for legacy servers. |
+| `timeoutMs` | `number` (1–900000)         | No       | Per-request timeout in milliseconds.                        |
+
+**Config:** `McpToolConfig` (via `configSchema` / `options.config` / `McpModule.forRoot()`)
+
+**Returns:** `{ data: { tools: unknown } }` — the MCP `tools/list` response.
+
+### `mcp_call`
+
+Calls a tool on a remote MCP server.
+
+**Class:** `McpCallTool`
+
+| Arg         | Type                        | Required | Description                                                 |
+| ----------- | --------------------------- | -------- | ----------------------------------------------------------- |
+| `serverUrl` | `z.url()`                   | Yes      | MCP endpoint URL (https recommended).                       |
+| `toolName`  | `string`                    | Yes      | Name of the remote MCP tool to invoke.                      |
+| `arguments` | `Record<string, unknown>`   | No       | JSON object passed to the tool. Defaults to `{}`.           |
+| `transport` | `'streamableHttp' \| 'sse'` | No       | Default `'streamableHttp'`. Use `'sse'` for legacy servers. |
+| `timeoutMs` | `number` (1–900000)         | No       | Per-request timeout in milliseconds.                        |
+
+**Config:** `McpToolConfig` (via `configSchema` / `options.config` / `McpModule.forRoot()`)
+
+**Returns:** `{ data: McpCallToolResult }` — either `{ kind: 'callToolResult', content, structuredContent?, isError? }` or `{ kind: 'legacyToolResult', toolResult }`.
+
+## Configuration
+
+### `McpModule.forRoot(config?)`
+
+Registers the module globally. Config is optional — if omitted, each tool call must provide config via `options.config`.
+
+| Option              | Type                                     | Default | Description                                                                                |
+| ------------------- | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------ |
+| `allowedHosts`      | `string[]`                               | —       | Required. Hostnames allowed for `serverUrl`. Use `*.example.com` for wildcard.             |
+| `allowInsecureHttp` | `boolean`                                | `false` | Allow `http://` URLs.                                                                      |
+| `allowPrivateHosts` | `boolean`                                | `false` | Skip public-IP DNS check. For trusted local MCP proxies only.                              |
+| `defaultHeaders`    | `Record<string, string>`                 | —       | Static non-secret headers. Sensitive names (`Authorization`, `Cookie`, etc.) are rejected. |
+| `headerEnv`         | `Record<string, string>`                 | —       | `headerName -> envVarName` applied to every host.                                          |
+| `hostHeaderEnv`     | `Record<string, Record<string, string>>` | —       | `hostname -> { headerName -> envVarName }`. Use `'*'` for all hosts.                       |
+
+### Per-call config override
+
+Inject the tool and pass config via `options.config`:
+
+```ts
+await this.mcpCallTool.call(args, {
+  config: {
+    allowedHosts: ['mcp.linear.app'],
+    hostHeaderEnv: { 'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' } },
+  },
+});
+```
+
+Per-call config overrides `McpModule.forRoot()` defaults entirely. If no config is provided at either level, the tool throws.
+
+### Provider tokens
+
+| Token                | Default            | Description                                                                              |
+| -------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
+| `MCP_METRICS`        | `NoopMcpMetrics`   | Implement `McpMetricsPort` for OpenTelemetry or custom metrics.                          |
+| `MCP_ENV_READER`     | `ProcessEnvReader` | Implement `EnvReader` to source secrets from a secrets manager instead of `process.env`. |
+| `MCP_DEFAULT_CONFIG` | `null`             | Set by `McpModule.forRoot()`. Can also be provided manually.                             |
+
 ## Errors
 
 All failures throw subclasses of `McpError`:
 
-- `McpUrlSecurityError` — SSRF / allowlist / scheme / userinfo violations.
-- `McpAuthError` — 401 / 403 from the remote (or transport-equivalent).
-- `McpTimeoutError` — call exceeded `timeoutMs`.
-- `McpProtocolError` — malformed MCP response.
-- `McpTransportError` — DNS, TCP, TLS, abort, fallback.
+| Error class           | Cause                                            |
+| --------------------- | ------------------------------------------------ |
+| `McpUrlSecurityError` | SSRF / allowlist / scheme / userinfo violations. |
+| `McpAuthError`        | 401 / 403 from the remote server.                |
+| `McpTimeoutError`     | Call exceeded `timeoutMs`.                       |
+| `McpProtocolError`    | Malformed MCP response (JSON-RPC parse/invalid). |
+| `McpTransportError`   | DNS, TCP, TLS, abort, or fallback failures.      |
 
 Catch `McpError` for any failure, or a specific subclass to react to a category.
 
 ## Observability
 
-The service logs structured events with header _names_ only, never values:
+The service logs structured events with header names only, never values:
 
 ```
 mcp.connect host=mcp.linear.app transport=sse headers=[Authorization]
@@ -185,8 +280,7 @@ mcp.connect.done host=mcp.linear.app transport=sse outcome=success latencyMs=412
 mcp.callTool host=mcp.linear.app transport=sse toolName=createIssue outcome=success latencyMs=623
 ```
 
-For metrics, implement `McpMetricsPort` and bind it via the `MCP_METRICS`
-provider token — the default is a no-op:
+Override `MCP_METRICS` for custom metric collection:
 
 ```ts
 @Module({
@@ -194,20 +288,37 @@ provider token — the default is a no-op:
 })
 ```
 
-Same pattern for `MCP_ENV_READER` if you need to source secrets from somewhere
-other than `process.env` (e.g. a secrets manager).
+## Public API
 
-## Testing
+- **Module:** `McpModule`
+- **Tools:** `McpCallTool`, `McpListToolsTool`, `McpToolBase`
+- **Services:** `McpClientService`
+- **Schemas:** `McpToolConfigSchema`, `McpCallToolArgsSchema`, `McpListToolsArgsSchema`, `McpConnectionArgsSchema`
+- **Types:** `McpToolConfig`, `McpToolConfigInput`, `McpTransportKind`, `McpCallToolResult`, `McpClientCallOptions`
+- **Errors:** `McpError`, `McpUrlSecurityError`, `McpAuthError`, `McpTimeoutError`, `McpProtocolError`, `McpTransportError`
+- **Tokens:** `MCP_DEFAULT_CONFIG`, `MCP_METRICS`, `MCP_ENV_READER`
+- **Interfaces:** `McpMetricsPort`, `McpConnectSample`, `McpCallSample`, `McpCallOutcome`, `EnvReader`
+- **Utilities:** `hostMatchesAllowlist`, `assertIpIsPublic`, `assertResolvableHostIsPublic`, `assertMcpUrlSafe`
+- **Implementations:** `ProcessEnvReader`, `NoopMcpMetrics`
 
-The module ships unit tests for:
+## Dependencies
 
-- `hostMatchesAllowlist`, `assertIpIsPublic`, `assertMcpUrlSafe` (with mocked DNS)
-- `McpClientService.mergeHeaders` (precedence, host scoping, env-var skipping)
-- Both tools (config guard + arg forwarding)
-- Config-schema validation (secret-header rejection, strict mode, required keys)
+| Package                          | Role                                                 |
+| -------------------------------- | ---------------------------------------------------- |
+| `@modelcontextprotocol/sdk`      | MCP client, Streamable HTTP and SSE transports       |
+| `@loopstack/common`              | `BaseTool`, `@Tool`, `ToolCallOptions`, `RunContext` |
+| `@loopstack/core`                | `LoopCoreModule` (NestJS integration)                |
+| `@nestjs/common`, `@nestjs/core` | Dependency injection, module system                  |
+| `zod`                            | Schema validation                                    |
 
-Run with:
+## Related
 
-```sh
-npm test
-```
+- [`@loopstack/mcp-linear-example-workflow`](https://loopstack.ai/docs/registry/examples/mcp-linear-example-workflow) — Full working example connecting a ChatAgentWorkflow to Linear via MCP.
+- [Agent Workflows](https://loopstack.ai/docs/build/ai/agent-workflows) — How `ChatAgentWorkflow` and tool resolution work.
+- [Tool Configuration](https://loopstack.ai/docs/build/fundamentals/tools) — How `configSchema` and `options.config` are merged at call time.
+- [`@loopstack/claude-module`](https://loopstack.ai/docs/registry/features/claude-module) — LLM provider that powers the agent loop calling MCP tools.
+
+## About
+
+**Author:** Jakob Klippel
+**License:** MIT

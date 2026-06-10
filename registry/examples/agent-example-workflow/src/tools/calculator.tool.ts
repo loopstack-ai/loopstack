@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 export type CalculatorResult = string;
 
@@ -16,7 +16,7 @@ export type CalculatorResult = string;
 export class CalculatorTool extends BaseTool<{ operation: string; a: number; b: number }, object, CalculatorResult> {
   protected async handle(
     args: { operation: string; a: number; b: number },
-    _ctx: LoopstackContext,
+    _ctx: RunContext,
   ): Promise<ToolResult<CalculatorResult>> {
     let result: number;
 

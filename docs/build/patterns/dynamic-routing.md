@@ -40,7 +40,7 @@ Chain routing decisions with cascading forks:
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { MessageDocument } from '@loopstack/common';
 
 interface RoutingState {
@@ -52,7 +52,7 @@ interface RoutingState {
 })
 export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }, RoutingState> {
   @Transition({ to: 'prepared' })
-  async createMockData(state: RoutingState, ctx: LoopstackContext): Promise<RoutingState> {
+  async createMockData(state: RoutingState, ctx: RunContext): Promise<RoutingState> {
     const args = ctx.args as { value: number };
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -131,7 +131,7 @@ prepared → [value > 100?]
 
 ### Tool Call Routing
 
-Route based on LLM response (see [AI Tool Calling](/features/ai-tool-calling)):
+Route based on LLM response (see [AI Tool Calling](../ai/tool-calling.md)):
 
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })

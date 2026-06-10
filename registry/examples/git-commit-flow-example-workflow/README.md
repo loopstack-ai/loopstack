@@ -1,6 +1,11 @@
+---
+title: Git Commit Flow Example
+description: Example of scripted multi-tool orchestration using git-module — GitStatusTool, GitAddTool, GitCommitTool, GitLogTool in sequence, no LLM
+---
+
 # @loopstack/git-commit-flow-example-workflow
 
-Demonstrates a scripted multi-tool orchestration using [`@loopstack/git-module`](../../features/git-module). The workflow stages everything, commits with a canned message, and captures the resulting commit from `git log` — the full happy path of a commit flow, no LLM involved.
+Demonstrates a scripted multi-tool orchestration using [`@loopstack/git-module`](https://loopstack.ai/docs/registry/features/git-module). The workflow stages everything, commits with a canned message, and captures the resulting commit from `git log` — the full happy path of a commit flow, no LLM involved.
 
 ## By using this example you'll get...
 
@@ -15,6 +20,22 @@ npm install @loopstack/git-commit-flow-example-workflow
 ```
 
 `@loopstack/git-module` requires `@loopstack/remote-client` to be configured (sandbox environment with a git workspace).
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { GitCommitFlowExampleModule, GitCommitFlowExampleWorkflow } from '@loopstack/git-commit-flow-example-workflow';
+
+@StudioApp({
+  title: 'Git Commit Flow Example',
+  workflows: [GitCommitFlowExampleWorkflow],
+})
+@Module({
+  imports: [GitCommitFlowExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

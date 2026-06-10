@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow.js';
 
 const RequestSecretsTaskInputSchema = z
@@ -36,7 +36,7 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
 
   protected async handle(
     args: RequestSecretsTaskInput,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<RequestSecretsTaskResult>> {
     const result = await this.secretsRequestWorkflow.run(

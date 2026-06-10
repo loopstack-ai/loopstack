@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -40,7 +40,7 @@ export class SandboxListDirectory extends BaseTool<SandboxListDirectoryArgs, obj
 
   protected async handle(
     args: SandboxListDirectoryArgs,
-    _ctx: LoopstackContext,
+    _ctx: RunContext,
   ): Promise<ToolResult<SandboxListDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 

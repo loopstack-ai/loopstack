@@ -21,7 +21,7 @@ start → show raw notes → [user clicks "Optimize"] → LLM structures the not
 - How Handlebars templates keep prompts clean and maintainable
 - How state flows through a multi-step workflow with two human checkpoints
 
-**Prerequisites:** Complete the [Getting Started](/docs/build/getting-started) guide first. You should have a running NestJS app with `LoopstackModule.forRoot()` configured and Studio accessible at `http://localhost:5173`.
+**Prerequisites:** Complete the [Getting Started](../build/getting-started.md) guide first. You should have a running NestJS app with `LoopstackModule.forRoot()` configured and Studio accessible at `http://localhost:5173`.
 
 **Time:** ~30 minutes
 
@@ -221,7 +221,7 @@ Create `src/meeting-notes/meeting-notes.workflow.ts`:
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
@@ -249,7 +249,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
 
   // Step 1: Display raw notes as an editable form and wait
   @Transition({ to: 'waiting_for_response' })
-  async showNotes(state: MeetingNotesState, ctx: LoopstackContext): Promise<MeetingNotesState> {
+  async showNotes(state: MeetingNotesState, ctx: RunContext): Promise<MeetingNotesState> {
     const args = ctx.args as { inputText: string };
     await this.documentStore.save(MeetingNotesDocument, { text: args.inputText }, { id: 'input' });
     return state;
@@ -383,7 +383,7 @@ Each `wait: true` transition is a checkpoint. The workflow can pause here for se
 
 ## Next Steps
 
-- **[Sub-Workflows](/docs/build/patterns/sub-workflows)** — Use this workflow as a step inside a larger workflow
-- **[Dynamic Routing](/docs/build/patterns/dynamic-routing)** — Add a guard to route differently if the LLM output confidence is low
-- **[Error Handling](/docs/build/patterns/error-handling)** — Add retry logic to the `optimizeNotes` transition in case the LLM call fails
+- **[Sub-Workflows](../build/patterns/sub-workflows.md)** — Use this workflow as a step inside a larger workflow
+- **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — Add a guard to route differently if the LLM output confidence is low
+- **[Error Handling](../build/patterns/error-handling.md)** — Add retry logic to the `optimizeNotes` transition in case the LLM call fails
 - **[Registry example](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow)** — The complete source for this workflow

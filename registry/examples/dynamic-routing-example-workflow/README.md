@@ -1,3 +1,8 @@
+---
+title: Dynamic Routing Example
+description: Example workflow implementing conditional routing based on runtime values using guards and transition priorities
+---
+
 # @loopstack/dynamic-routing-example-workflow
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -20,7 +25,28 @@ This example is useful for developers building workflows that require decision t
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/dynamic-routing-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import {
+  DynamicRoutingExampleModule,
+  DynamicRoutingExampleWorkflow,
+} from '@loopstack/dynamic-routing-example-workflow';
+
+@StudioApp({
+  title: 'Dynamic Routing Example',
+  workflows: [DynamicRoutingExampleWorkflow],
+})
+@Module({
+  imports: [DynamicRoutingExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

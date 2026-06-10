@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, MessageDocument, ToolResult, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -105,7 +105,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async initSandbox(state: SandboxExampleState, ctx: LoopstackContext): Promise<SandboxExampleState> {
+  async initSandbox(state: SandboxExampleState, ctx: RunContext): Promise<SandboxExampleState> {
     const args = ctx.args as { outputDir: string };
     const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
       containerId: 'my-sandbox',

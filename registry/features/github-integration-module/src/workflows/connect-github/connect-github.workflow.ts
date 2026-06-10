@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import {
   BaseWorkflow,
   CallbackSchema,
@@ -56,7 +56,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
     super();
   }
 
-  private async getGitHubToken(ctx: LoopstackContext): Promise<string | undefined> {
+  private async getGitHubToken(ctx: RunContext): Promise<string | undefined> {
     return (await this.tokenStore.getValidAccessToken(ctx.userId, 'github')) ?? undefined;
   }
 
@@ -312,7 +312,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Step 4b: Configure remote and check for divergence ──────────────
 
   @Transition({ from: 'setup_remote', to: 'check_divergence' })
-  async setupRemote(state: ConnectGitHubState, ctx: LoopstackContext): Promise<ConnectGitHubState> {
+  async setupRemote(state: ConnectGitHubState, ctx: RunContext): Promise<ConnectGitHubState> {
     // If cancelled during commit confirmation, skip to done
     if (!state.repo) {
       return { ...state, divergenceState: 'none' };
@@ -357,7 +357,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'check_divergence', to: 'done' })
   @Guard('canPushDirectly')
-  async pushDirectly(state: ConnectGitHubState, ctx: LoopstackContext): Promise<ConnectGitHubState> {
+  async pushDirectly(state: ConnectGitHubState, ctx: RunContext): Promise<ConnectGitHubState> {
     if (state.divergenceState === 'none') {
       // Already in sync — nothing to push
       return state;
@@ -410,7 +410,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   async syncStrategyChosen(
     state: ConnectGitHubState,
     payload: { data: { answer: string } },
-    ctx: LoopstackContext,
+    ctx: RunContext,
   ): Promise<ConnectGitHubState> {
     await this.documentStore.save(
       LinkDocument,
@@ -442,7 +442,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Final: Show result ──────────────────────────────────────────────
 
   @Transition({ from: 'done', to: 'end' })
-  async showSuccess(state: ConnectGitHubState, ctx: LoopstackContext): Promise<unknown> {
+  async showSuccess(state: ConnectGitHubState, ctx: RunContext): Promise<unknown> {
     if (!state.repo) {
       await this.documentStore.save(MarkdownDocument, {
         markdown: '### Cancelled\n\nThe remote connection was removed. No changes were made.',

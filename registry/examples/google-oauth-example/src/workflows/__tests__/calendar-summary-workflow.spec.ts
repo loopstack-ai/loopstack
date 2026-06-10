@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
+import { getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GmailGetMessageTool,
@@ -17,7 +17,7 @@ import {
   GoogleDriveUploadFileTool,
 } from '@loopstack/google-workspace-module';
 import { OAuthModule, OAuthWorkflow } from '@loopstack/oauth-module';
-import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { ToolMock, createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { GoogleCalendarFetchEventsTool } from '../../tools';
 import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
 
@@ -216,12 +216,12 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
       },
     });
 
-    const context = {
+    const context = createContext({
       workflowEntity: {
         id: workflowId,
         place: 'awaiting_auth',
         documents: [],
-      } as Partial<WorkflowEntity>,
+      },
       payload: {
         transition: {
           id: 'authCompleted',
@@ -229,7 +229,7 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
           payload: { workflowId: 'auth-workflow-id', status: 'completed', data: {} },
         },
       },
-    } as unknown as RunContext;
+    });
 
     const result = await processor.process(workflow, args, context);
 

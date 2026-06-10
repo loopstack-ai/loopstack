@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { MathService } from '../services/math.service';
 
 const MathSumSchema = z
@@ -24,7 +24,7 @@ export class MathSumTool extends BaseTool<MathSumArgs, object, MathSumToolResult
     super();
   }
 
-  protected async handle(args: MathSumArgs, _ctx: LoopstackContext): Promise<ToolResult<MathSumToolResult>> {
+  protected async handle(args: MathSumArgs, _ctx: RunContext): Promise<ToolResult<MathSumToolResult>> {
     const sum = this.mathService.sum(args.a, args.b);
     return Promise.resolve({ data: sum });
   }

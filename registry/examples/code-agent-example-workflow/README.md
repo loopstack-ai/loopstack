@@ -1,6 +1,11 @@
+---
+title: Code Agent Example
+description: Example launching ExploreAgentWorkflow as a sub-workflow to explore a remote workspace and surface a synthesized summary
+---
+
 # @loopstack/code-agent-example-workflow
 
-Demonstrates how to launch the `ExploreAgentWorkflow` from [`@loopstack/code-agent`](../../features/code-agent-module) as a sub-workflow to explore a remote workspace and surface a synthesized summary.
+Demonstrates how to launch the `ExploreAgentWorkflow` from [`@loopstack/code-agent`](https://loopstack.ai/docs/registry/features/code-agent-module) as a sub-workflow to explore a remote workspace and surface a synthesized summary.
 
 ## By using this example you'll get...
 
@@ -15,6 +20,22 @@ npm install @loopstack/code-agent-example-workflow
 ```
 
 `@loopstack/code-agent` transitively requires `@loopstack/claude-module` and `@loopstack/remote-client` — make sure both are configured (Anthropic API key + sandbox environment) before running.
+
+Then register the module in your app:
+
+```typescript
+import { CodeAgentExampleModule, CodeAgentExampleWorkflow } from '@loopstack/code-agent-example-workflow';
+import { StudioApp } from '@loopstack/common';
+
+@StudioApp({
+  title: 'Code Agent Example',
+  workflows: [CodeAgentExampleWorkflow],
+})
+@Module({
+  imports: [CodeAgentExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

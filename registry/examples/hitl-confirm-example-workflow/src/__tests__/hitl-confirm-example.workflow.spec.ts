@@ -1,9 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
-import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { HitlConfirmExampleWorkflow } from '../hitl-confirm-example.workflow';
 
 const mockConfirmUserWorkflow = {
@@ -48,12 +47,12 @@ describe('HitlConfirmExampleWorkflow', () => {
 
   it('records a "confirmed" message when the user confirms', async () => {
     const workflowId = '00000000-0000-0000-0000-000000000001';
-    const context = {
+    const context = createContext({
       workflowEntity: {
         id: workflowId,
         place: 'waiting_for_confirmation',
         documents: [],
-      } as Partial<WorkflowEntity>,
+      },
       payload: {
         transition: {
           id: 'decisionReceived',
@@ -65,7 +64,7 @@ describe('HitlConfirmExampleWorkflow', () => {
           },
         },
       },
-    } as unknown as RunContext;
+    });
 
     const result = await processor.process(workflow, {}, context);
 
@@ -82,12 +81,12 @@ describe('HitlConfirmExampleWorkflow', () => {
 
   it('records a "denied" message when the user denies', async () => {
     const workflowId = '00000000-0000-0000-0000-000000000002';
-    const context = {
+    const context = createContext({
       workflowEntity: {
         id: workflowId,
         place: 'waiting_for_confirmation',
         documents: [],
-      } as Partial<WorkflowEntity>,
+      },
       payload: {
         transition: {
           id: 'decisionReceived',
@@ -99,7 +98,7 @@ describe('HitlConfirmExampleWorkflow', () => {
           },
         },
       },
-    } as unknown as RunContext;
+    });
 
     const result = await processor.process(workflow, {}, context);
 

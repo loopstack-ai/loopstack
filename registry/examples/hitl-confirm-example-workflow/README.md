@@ -1,6 +1,11 @@
+---
+title: HITL Confirm Example
+description: Example asking the user for yes/no confirmation using ConfirmUserWorkflow as a sub-workflow, branching on confirmed/denied outcome
+---
+
 # @loopstack/hitl-confirm-example-workflow
 
-Demonstrates how to ask the user for a yes/no confirmation from inside a workflow using the `ConfirmUserWorkflow` from [`@loopstack/hitl`](../../features/hitl-module) and branch on the decision.
+Demonstrates how to ask the user for a yes/no confirmation from inside a workflow using the `ConfirmUserWorkflow` from [`@loopstack/hitl`](https://loopstack.ai/docs/registry/features/hitl-module) and branch on the decision.
 
 ## By using this example you'll get...
 
@@ -15,6 +20,22 @@ npm install @loopstack/hitl-confirm-example-workflow
 ```
 
 The package depends on `@loopstack/hitl`.
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { HitlConfirmExampleModule, HitlConfirmExampleWorkflow } from '@loopstack/hitl-confirm-example-workflow';
+
+@StudioApp({
+  title: 'HITL Confirm Example',
+  workflows: [HitlConfirmExampleWorkflow],
+})
+@Module({
+  imports: [HitlConfirmExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

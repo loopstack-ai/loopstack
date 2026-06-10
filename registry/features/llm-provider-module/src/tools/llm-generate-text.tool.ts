@@ -2,7 +2,7 @@ import { Inject } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import type { ToolRegistry } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
 import type { LlmContext } from '../contracts/index.js';
@@ -67,7 +67,7 @@ export class LlmGenerateTextTool extends BaseTool<
 
   protected async handle(
     args: LlmGenerateTextArgs,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions<LlmGenerateTextConfig>,
   ): Promise<ToolResult<LlmGenerateTextResult, LlmResultMeta>> {
     const config = options?.config;
@@ -131,11 +131,11 @@ export class LlmGenerateTextTool extends BaseTool<
     };
   }
 
-  private canStreamToClient(ctx: LoopstackContext): boolean {
+  private canStreamToClient(ctx: RunContext): boolean {
     return !!(ctx.workflowId && ctx.userId && this.clientMessageService.clientId);
   }
 
-  private dispatchStreamEvent(ctx: LoopstackContext, event: LlmStreamEvent): void {
+  private dispatchStreamEvent(ctx: RunContext, event: LlmStreamEvent): void {
     const workflowId = ctx.workflowId;
     const userId = ctx.userId;
     if (!workflowId || !userId) return;

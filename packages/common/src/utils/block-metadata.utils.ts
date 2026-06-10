@@ -82,6 +82,18 @@ export function getBlockConfigSchema(target: object | Constructor): z.ZodType | 
   return options?.configSchema;
 }
 
+/**
+ * Gets the state schema from a `@Workflow({ stateSchema })` decorator.
+ * The schema is enforced by the workflow processor on each transition's resulting state.
+ */
+export function getWorkflowStateSchema(target: object | Constructor): z.ZodType | undefined {
+  const ctor = getConstructor(target);
+  const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as
+    | (BlockOptions & { stateSchema?: z.ZodType })
+    | undefined;
+  return options?.stateSchema;
+}
+
 // --- Transition metadata getters ---
 
 /**

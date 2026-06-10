@@ -1,7 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -33,10 +33,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(
-    args: GmailSendMessageArgs,
-    ctx: LoopstackContext,
-  ): Promise<ToolResult<GmailSendMessageResult>> {
+  protected async handle(args: GmailSendMessageArgs, ctx: RunContext): Promise<ToolResult<GmailSendMessageResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {

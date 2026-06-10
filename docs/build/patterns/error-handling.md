@@ -103,6 +103,21 @@ retry: {
 | 5       | 16,000ms               |
 | 6+      | 30,000ms (capped)      |
 
+### Reading the retry count
+
+Transitions can access the current retry count through `ctx.execution.retryCount`. It is 0-indexed: `0` on the first attempt, `1` after the first retry, and so on. Add `1` for a human-friendly attempt number when logging or branching on retries.
+
+```typescript
+@Transition({ from: 'fetching', to: 'done', retry: 3 })
+async fetchData(state: MyState, ctx: RunContext): Promise<MyState> {
+  const attempt = (ctx.execution?.retryCount ?? 0) + 1;
+  this.logger.log(`Fetch attempt ${attempt}`);
+  // ...
+}
+```
+
+`ctx.execution` is optional in the type — guard with `?.` or `!` depending on your call site. `ctx.execution.place` is also available for the current place name.
+
 ## Timeout
 
 Every transition has a default timeout of **5 minutes** (300,000ms). If a transition takes longer, it's interrupted with `Error: Transition '...' timed out after ...ms` and flows through the normal retry logic.

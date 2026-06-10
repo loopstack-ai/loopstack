@@ -44,13 +44,24 @@ ui:
 
 ```typescript
 @Document({
-  schema: NotesSchema,                      // Zod schema for validation
-  widget: __dirname + '/notes.ui.yaml',     // Path to UI YAML config
+  schema: NotesSchema,
+  widget: __dirname + '/notes.ui.yaml',
 })
 ```
 
-- **`schema`** — Zod schema that validates document content
-- **`widget`** — Path to YAML file defining how the document renders in the UI
+All options are optional.
+
+| Option        | Type                       | Default                                                 | Description                                                                                                |
+| ------------- | -------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `name`        | `string`                   | class name with `Document` suffix stripped, snake_cased | Explicit snake_case identifier. E.g. `AskUserDocument` → `ask_user`, `LlmMessageDocument` → `llm_message`. |
+| `title`       | `string`                   | —                                                       | Human-readable display title shown in Studio UI.                                                           |
+| `description` | `string`                   | —                                                       | Human-readable description shown in Studio UI.                                                             |
+| `widget`      | `WidgetRef \| WidgetRef[]` | —                                                       | Path(s) to YAML file(s) — or inline widget object(s) — defining how the document renders in Studio.        |
+| `schema`      | `z.ZodType`                | —                                                       | Zod schema validating document content on `documentStore.save()`.                                          |
+| `tags`        | `string[]`                 | —                                                       | Default tags assigned to every instance of this document. Useful for filtering and querying.               |
+| `meta`        | `StaticDocumentMeta`       | —                                                       | Static document metadata — served via the config endpoint, not persisted per instance.                     |
+
+> **Documents are plain DTOs, not NestJS providers.** Unlike `@Tool` and `@Workflow`, `@Document` does **not** apply `@Injectable()`. Don't add document classes to a module's `providers` array and don't try to inject them — reference the class directly when calling `documentStore.save(MyDocument, ...)`.
 
 ## Saving Documents
 
@@ -67,12 +78,55 @@ await this.documentStore.save(NotesDocument, { text: 'Updated content' }, { id: 
 await this.documentStore.save(NotesDocument, { text: 'Hidden note' }, { id: 'hidden', meta: { hidden: true } });
 ```
 
+### Saving an Instance
+
+`save()` is overloaded — instead of passing class + data, you can `create()` an instance, mutate it, then save it. Useful when you need to build up a document across several steps before persisting.
+
+```typescript
+const draft = this.documentStore.create(NotesDocument, { text: 'Initial draft' });
+draft.text += '\n\nAddendum.';
+await this.documentStore.save(draft);
+
+// With save options
+await this.documentStore.save(draft, { id: 'notes-1' });
+```
+
+`create()` returns a class instance (typed as `NotesDocument`) populated with the data; it does not persist anything. Persistence only happens on `save()`.
+
 ### Save Options
 
-| Option        | Type      | Description                                     |
-| ------------- | --------- | ----------------------------------------------- |
-| `id`          | `string`  | Custom ID — use for updating existing documents |
-| `meta.hidden` | `boolean` | Hide from the UI                                |
+| Option            | Type                           | Description                                                                                                                                                                                      |
+| ----------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`              | `string`                       | Custom ID — use for updating existing documents.                                                                                                                                                 |
+| `validate`        | `'strict' \| 'safe' \| 'skip'` | Validation mode. Default `'strict'` — throws on invalid content. `'safe'` stores partial data + error. `'skip'` bypasses validation. See [Validation](../../learn/document-store.md#validation). |
+| `meta.hidden`     | `boolean`                      | Hide this row from the Studio UI.                                                                                                                                                                |
+| `meta.invalidate` | `boolean`                      | When `false`, prevents the previous version with the same `id` from being invalidated. Default behavior replaces the old version.                                                                |
+
+## Querying Documents
+
+`documentStore` exposes three read methods. All of them return only **non-invalidated** documents for the current workflow run — invalidated revisions are filtered out automatically.
+
+| Method                | Returns            | When to use                                                          |
+| --------------------- | ------------------ | -------------------------------------------------------------------- |
+| `findAll(MyDocument)` | `MyDocument[]`     | All documents of one type, **hydrated as typed instances**.          |
+| `findByTag('tag')`    | `DocumentEntity[]` | Documents tagged with that tag (across types). Returns raw entities. |
+| `findAllDocuments()`  | `DocumentEntity[]` | Everything in the run — useful for LLM tools, history scans.         |
+
+```typescript
+// Typed, type-safe — preferred
+const notes = this.documentStore.findAll(NotesDocument);
+notes.forEach((n) => console.log(n.text));
+
+// By tag — across document types
+const messages = this.documentStore.findByTag('message');
+
+// All documents in this run (raw entities)
+const all = this.documentStore.findAllDocuments();
+```
+
+`findAll` re-validates and hydrates entities back into class instances (via `plainToInstance`). `findByTag` and `findAllDocuments` return raw `DocumentEntity` objects — use `entity.content` for the persisted data and `entity.documentName` to discriminate types.
+
+> Need a typed instance without persisting? Use [`documentStore.create(MyDocument, data)`](#saving-an-instance) — it validates against the Zod schema and returns a class instance with no DB write.
 
 ## Built-in Document Types
 
@@ -87,8 +141,17 @@ These are available without creating custom documents:
 | `PlainDocument`      | `@loopstack/common`              | `text`                                               |
 | `ErrorDocument`      | `@loopstack/common`              | `error`                                              |
 
+### Choosing the right built-in type
+
+- **`LlmMessageDocument`** — assistant/user conversation turns. The LLM provider tools (e.g. `LlmGenerateTextTool`) save these automatically; you only save them manually to seed system messages or inject synthetic turns.
+- **`MessageDocument`** — generic role/content messages for non-LLM chat-style flows (e.g. logging a `system` note, a `user` confirmation). Same shape as `LlmMessageDocument` but not LLM-aware.
+- **`MarkdownDocument`** — formatted prose, headings, lists, links. Use when you want Studio to render rich text.
+- **`PlainDocument`** — unformatted text output: raw command output, log dumps, plain blob. Use when Markdown rendering would interpret characters you want shown literally.
+- **`LinkDocument`** — links to other workflow runs (sub-workflows, related runs). Studio renders these as inline cards with status indicators.
+- **`ErrorDocument`** — engine-managed; do not construct manually. Written automatically when a transition fails (see [Workflow Engine — ErrorDocument](../../learn/workflow-engine.md#errordocument)).
+
 ```typescript
-import { LinkDocument, MarkdownDocument } from '@loopstack/common';
+import { LinkDocument, MarkdownDocument, PlainDocument } from '@loopstack/common';
 import { LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 await this.documentStore.save(LlmMessageDocument, {
@@ -99,6 +162,9 @@ await this.documentStore.save(LlmMessageDocument, {
 await this.documentStore.save(MarkdownDocument, {
   markdown: '# Report\n- Item 1\n- Item 2',
 });
+
+// Raw command output — keep characters literal
+await this.documentStore.save(PlainDocument, { text: shellOutput });
 ```
 
 ## YAML UI Configuration
@@ -173,7 +239,22 @@ actions:
 
 ### Tags
 
-Categorize documents for filtering and searching:
+Tags categorize documents for filtering and searching. There are two ways to set them:
+
+**Decorator default tags** — written to every instance, persisted on each row, queryable via `findByTag()`:
+
+```typescript
+@Document({
+  schema: NotesSchema,
+  widget: __dirname + '/notes.ui.yaml',
+  tags: ['message', 'important'],
+})
+export class NotesDocument {
+  /* ... */
+}
+```
+
+**YAML config tags** — static metadata served via the config endpoint, used by Studio and LLM tools for grouping/filtering, not persisted on individual rows:
 
 ```yaml
 type: document
@@ -182,7 +263,7 @@ tags:
   - important
 ```
 
-Tags are used by LLM tools with `messagesSearchTag` config to collect documents as conversation history.
+Decorator tags are the right choice for runtime querying — every saved instance carries them, and `this.documentStore.findByTag('message')` returns them. YAML tags are for static document-type metadata. Tags from both sources are also used by LLM tools with `messagesSearchTag` config to collect documents as conversation history.
 
 ## Structured Output Example
 
@@ -245,3 +326,7 @@ const result = await this.llmGenerateObject.call(
 - [prompt-structured-output-example-workflow](https://loopstack.ai/registry/loopstack-prompt-structured-output-example-workflow) — FileDocument with code-view widget for AI-generated code
 - [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
 - [test-ui-documents-example-workflow](https://loopstack.ai/registry/loopstack-test-ui-documents-example-workflow) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
+
+---
+
+> **Using an AI coding agent?** See [Skill: Create a Custom Document](../../skills/create-custom-document.md) for a dense checklist and syntax reference optimized for code generation.

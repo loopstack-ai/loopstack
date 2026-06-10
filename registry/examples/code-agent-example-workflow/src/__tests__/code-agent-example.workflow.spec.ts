@@ -1,9 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentWorkflow } from '@loopstack/agent';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { CodeAgentExampleWorkflow } from '../code-agent-example.workflow';
 
 const mockAgentWorkflow = {
@@ -61,12 +60,12 @@ describe('CodeAgentExampleWorkflow', () => {
 
   it('saves the agent response as a MessageDocument when resumed', async () => {
     const workflowId = '00000000-0000-0000-0000-000000000001';
-    const context = {
+    const context = createContext({
       workflowEntity: {
         id: workflowId,
         place: 'exploring',
         documents: [],
-      } as Partial<WorkflowEntity>,
+      },
       payload: {
         transition: {
           id: 'exploreComplete',
@@ -78,7 +77,7 @@ describe('CodeAgentExampleWorkflow', () => {
           },
         },
       },
-    } as unknown as RunContext;
+    });
 
     const result = await processor.process(workflow, {}, context);
 

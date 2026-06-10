@@ -1,6 +1,11 @@
+---
+title: Remote File Explorer Example
+description: Example browsing a remote workspace — RemoteFileExplorerController endpoints, GlobTool + ReadTool workflow pattern
+---
+
 # @loopstack/remote-file-explorer-example-workflow
 
-Demonstrates browsing a remote workspace. Imports [`@loopstack/remote-file-explorer-module`](../../features/remote-file-explorer-module) so its HTTP endpoints (`GET /tree`, `GET /read`) are live, and ships a small workflow that mirrors the same flow using `GlobTool` + `ReadTool` from `@loopstack/remote-client`.
+Demonstrates browsing a remote workspace. Imports [`@loopstack/remote-file-explorer-module`](https://loopstack.ai/docs/registry/features/remote-file-explorer-module) so its HTTP endpoints (`GET /tree`, `GET /read`) are live, and ships a small workflow that mirrors the same flow using `GlobTool` + `ReadTool` from `@loopstack/remote-client`.
 
 ## By using this example you'll get...
 
@@ -15,6 +20,25 @@ npm install @loopstack/remote-file-explorer-example-workflow
 ```
 
 `@loopstack/remote-client` must be configured with a sandbox environment pointing at a running remote agent.
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import {
+  RemoteFileExplorerExampleModule,
+  RemoteFileExplorerExampleWorkflow,
+} from '@loopstack/remote-file-explorer-example-workflow';
+
+@StudioApp({
+  title: 'Remote File Explorer Example',
+  workflows: [RemoteFileExplorerExampleWorkflow],
+})
+@Module({
+  imports: [RemoteFileExplorerExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

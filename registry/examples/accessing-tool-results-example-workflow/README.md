@@ -1,3 +1,8 @@
+---
+title: Accessing Tool Results Example
+description: Example workflow showing how to store and access data across workflow transitions using typed workflow state
+---
+
 # @loopstack/accessing-tool-results-example-workflow
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -19,7 +24,28 @@ This example is useful for developers learning to build data-driven workflows th
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/accessing-tool-results-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import {
+  ToolResultsExampleModule,
+  WorkflowToolResultsWorkflow,
+} from '@loopstack/accessing-tool-results-example-workflow';
+import { StudioApp } from '@loopstack/common';
+
+@StudioApp({
+  title: 'Tool Results Example',
+  workflows: [WorkflowToolResultsWorkflow],
+})
+@Module({
+  imports: [ToolResultsExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

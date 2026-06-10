@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
@@ -23,7 +23,7 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptStat
   }
 
   @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: LoopstackContext): Promise<PromptState> {
+  async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
     const args = ctx.args as { subject: string };
     const result = await this.llmGenerateText.call(
       {

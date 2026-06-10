@@ -8,7 +8,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
@@ -39,7 +39,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   // --- Fetch events from Google Calendar ---
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarSummaryState, ctx: LoopstackContext): Promise<CalendarSummaryState> {
+  async fetchEvents(state: CalendarSummaryState, ctx: RunContext): Promise<CalendarSummaryState> {
     const args = ctx.args as { calendarId: string };
     const result = await this.googleCalendarFetchEvents.call({
       calendarId: args.calendarId,

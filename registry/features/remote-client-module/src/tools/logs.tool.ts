@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
@@ -36,7 +36,7 @@ export class LogsTool extends BaseTool<LogsArgs, object, LogsResult> {
     super();
   }
 
-  protected async handle(args: LogsArgs, _ctx: LoopstackContext): Promise<ToolResult<LogsResult>> {
+  protected async handle(args: LogsArgs, _ctx: RunContext): Promise<ToolResult<LogsResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.getLogs(agentUrl, args.lines, args.type);
     return {

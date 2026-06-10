@@ -144,26 +144,46 @@ actions:
 
 ## Meta Properties
 
-Meta properties are set via the `options` parameter of `this.documentStore.save()`:
+Loopstack splits document metadata into two kinds: **static meta** (declared once on `@Document({ meta })` and applied to every instance) and **dynamic meta** (passed per-call via `documentStore.save(…, { meta })` and persisted on that specific document row).
+
+### Static Meta — `@Document({ meta })`
+
+Declared on the decorator. Applies to every instance of this document type.
 
 ```typescript
-await this.documentStore.save(MyDocument, content, {
-  id: 'doc-1',
-  meta: {
-    hidden: true,
-  },
-});
+@Document({
+  schema: ReportSchema,
+  meta: { hidden: false, mimeType: 'text/markdown', level: 'info' },
+})
+export class ReportDocument {
+  /* ... */
+}
 ```
 
-| Property         | Type       | Description                                         |
-| ---------------- | ---------- | --------------------------------------------------- |
-| `hidden`         | `boolean`  | Hide from the UI                                    |
-| `mimeType`       | `string`   | Content MIME type                                   |
-| `enableAtPlaces` | `string[]` | Places where the document is editable               |
-| `hideAtPlaces`   | `string[]` | Places where the document is hidden                 |
-| `invalidate`     | `boolean`  | Mark document as invalidated                        |
-| `level`          | `string`   | Severity level: `debug`, `info`, `warning`, `error` |
-| `data`           | `any`      | Arbitrary metadata                                  |
+| Property         | Type                                        | Description                                                                     |
+| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
+| `hidden`         | `boolean`                                   | Hide every instance of this document type from the Studio UI by default.        |
+| `mimeType`       | `string`                                    | MIME type hint used by Studio for rendering/downloads (see below for the list). |
+| `level`          | `'debug' \| 'info' \| 'warning' \| 'error'` | Severity tag. Studio may style documents based on this.                         |
+| `enableAtPlaces` | `string[]`                                  | Only render this document type when the workflow is at one of these places.     |
+| `hideAtPlaces`   | `string[]`                                  | Hide this document type when the workflow is at one of these places.            |
+
+### Dynamic Meta — `documentStore.save(…, { meta })`
+
+Set per call. Persisted on the specific document row.
+
+```typescript
+await this.documentStore.save(MyDocument, content, { id: 'doc-1', meta: { hidden: true, invalidate: false } });
+```
+
+| Property              | Type      | Description                                                                                                                                             |
+| --------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `invalidate`          | `boolean` | **Opt-out of replacement.** Default behavior (omitted/`true`) invalidates the previous version when reusing the same `id`. Set to `false` to keep both. |
+| `data`                | `any`     | Arbitrary per-instance metadata bag for user-defined data. Not used by the framework.                                                                   |
+| `streaming`           | `boolean` | _Frontend-managed._ Set by Studio during LLM streaming to indicate this document is still being filled in. Not typically set by backend code.           |
+| `streamReadyForFinal` | `boolean` | _Frontend-managed._ Companion to `streaming` — marks the stream complete and the final version ready to persist. Not typically set by backend code.     |
+
+> `hidden` also appears in `DocumentSaveOptions.meta` and overrides the static `hidden` value for this single row — handy when most rows should be visible but a specific one should be tucked away.
 
 ### Supported MIME Types
 
