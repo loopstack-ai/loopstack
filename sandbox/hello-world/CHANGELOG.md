@@ -1,5 +1,15 @@
 # hello-world
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b), [`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b)]:
+  - @loopstack/common@1.0.0
+  - @loopstack/claude-module@1.0.0
+  - @loopstack/llm-provider-module@1.0.0
+  - @loopstack/loopstack-module@0.31.2
+
 ## 0.2.0
 
 ### Minor Changes

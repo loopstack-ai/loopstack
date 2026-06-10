@@ -8,7 +8,7 @@
     "filesystem",
     "workflow"
   ],
-  "version": "0.24.1",
+  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -34,18 +34,18 @@
     "yaml": "^2.8.3"
   },
   "devDependencies": {
-    "@loopstack/common": "^0.32.3",
+    "@loopstack/common": "^1.0.0",
     "@loopstack/contracts": "^0.32.3",
-    "@loopstack/core": "^0.32.3",
+    "@loopstack/core": "^1.0.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
     "@nestjs/typeorm": "^11.0.1",
     "typeorm": "^0.3.28"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.32.3",
+    "@loopstack/common": "^1.0.0",
     "@loopstack/contracts": "^0.32.3",
-    "@loopstack/core": "^0.32.3",
+    "@loopstack/core": "^1.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/typeorm": "^11.0.0",

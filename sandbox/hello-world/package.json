@@ -1,6 +1,6 @@
 {
   "name": "hello-world",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "",
   "author": "",
   "private": true,
@@ -20,10 +20,10 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/claude-module": "^0.25.0",
-    "@loopstack/common": "^0.32.0",
-    "@loopstack/llm-provider-module": "^0.4.0",
-    "@loopstack/loopstack-module": "^0.31.0",
+    "@loopstack/claude-module": "^1.0.0",
+    "@loopstack/common": "^1.0.0",
+    "@loopstack/llm-provider-module": "^1.0.0",
+    "@loopstack/loopstack-module": "^0.31.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",

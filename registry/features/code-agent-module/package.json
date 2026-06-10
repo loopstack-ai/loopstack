@@ -9,7 +9,7 @@
     "exploration",
     "workflow"
   ],
-  "version": "0.4.1",
+  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,18 +33,18 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@loopstack/agent": "^0.5.1",
-    "@loopstack/common": "^0.32.3",
-    "@loopstack/core": "^0.32.3",
-    "@loopstack/remote-client": "^0.25.1",
+    "@loopstack/agent": "^1.0.0",
+    "@loopstack/common": "^1.0.0",
+    "@loopstack/core": "^1.0.0",
+    "@loopstack/remote-client": "^1.0.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/agent": "^0.5.1",
-    "@loopstack/common": "^0.32.3",
-    "@loopstack/core": "^0.32.3",
-    "@loopstack/remote-client": "^0.25.1",
+    "@loopstack/agent": "^1.0.0",
+    "@loopstack/common": "^1.0.0",
+    "@loopstack/core": "^1.0.0",
+    "@loopstack/remote-client": "^1.0.0",
     "@nestjs/common": "^11.0.0",
     "zod": "^4.0.0"
   },

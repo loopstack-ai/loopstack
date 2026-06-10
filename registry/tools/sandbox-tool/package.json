@@ -8,7 +8,7 @@
     "loopstack",
     "sandbox"
   ],
-  "version": "0.7.1",
+  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
@@ -33,7 +33,7 @@
     "dockerode": "^4.0.10"
   },
   "devDependencies": {
-    "@loopstack/common": "^0.32.3",
+    "@loopstack/common": "^1.0.0",
     "@nestjs/common": "^11.1.19",
     "@swc/core": "^1.15.33",
     "@types/dockerode": "^4.0.1",
@@ -42,7 +42,7 @@
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.32.3",
+    "@loopstack/common": "^1.0.0",
     "@nestjs/common": "^11.0.0",
     "zod": "^4.0.0"
   },

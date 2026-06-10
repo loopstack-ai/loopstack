@@ -2,7 +2,7 @@
   "name": "@loopstack/auth",
   "displayName": "Loopstack Auth Module",
   "description": "The auth module of the loopstack automation framework",
-  "version": "0.32.3",
+  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -30,9 +30,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.32.3",
+    "@loopstack/common": "^1.0.0",
     "@loopstack/contracts": "^0.32.3",
-    "@loopstack/core": "^0.32.3",
+    "@loopstack/core": "^1.0.0",
     "axios": "^1.15.0",
     "cookie-parser": "^1.4.7",
     "jose": "^6.2.2",
