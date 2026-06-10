@@ -1,3 +1,8 @@
+---
+title: Chat Example
+description: Example workflow building an interactive chat interface — system prompt setup, wait transitions, LlmGenerateTextTool, message loop, prompt-input widget
+---
+
 # @loopstack/chat-example-workflow
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -21,7 +26,31 @@ This example is useful for developers building chatbots, virtual assistants, or 
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/chat-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { ChatExampleModule, ChatWorkflow } from '@loopstack/chat-example-workflow';
+import { StudioApp } from '@loopstack/common';
+
+@StudioApp({
+  title: 'Chat Example',
+  workflows: [ChatWorkflow],
+})
+@Module({
+  imports: [ChatExampleModule],
+})
+export class MyAppModule {}
+```
+
+Set your Anthropic API key as an environment variable:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ## How It Works
 
@@ -59,16 +88,20 @@ When the user sends a message, the payload is saved as a `LlmMessageDocument` an
 
 #### 3. LLM Response Generation
 
-When the workflow reaches the `ready` state, it calls the LLM to generate a response based on the full conversation history using `messagesSearchTag`:
+When the workflow reaches the `ready` state, it calls the LLM to generate a response. Provider and model are passed via the `config` option at call time:
 
 ```typescript
 @Transition({ from: 'ready', to: 'waiting_for_user' })
-async llmTurn() {
-  const result = await this.llmGenerateText.call();
+async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const result = await this.llmGenerateText.call(
+    {},
+    { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
+  );
 
   await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-    meta: { response: result.data!.response, provider: 'claude' },
+    meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
   });
+  return state;
 }
 ```
 
@@ -93,41 +126,47 @@ The `transition: userMessage` connects the widget to the `userMessage` method, a
 
 ### Workflow Class
 
-The complete workflow class uses `@InjectTool()` with provider config to access the `LlmGenerateTextTool` tool and extends `BaseWorkflow`:
+The complete workflow class uses constructor injection to access the `LlmGenerateTextTool` tool and extends `BaseWorkflow`. Provider and model config is passed at call time via `{ config: { ... } }`:
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
-  uiConfig: __dirname + '/chat.ui.yaml',
+  title: 'LLM Chat Example (Assistant Bob)',
+  description: 'An example workflow that demonstrates how to create a simple chat interface.',
+  widget: __dirname + '/chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow {
-  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
-  llmGenerateText: LlmGenerateTextTool;
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
+    super();
+  }
 
   @Transition({ to: 'waiting_for_user' })
-  async setup() {
+  async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
+    return state;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(payload: string) {
+  async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
+    return state;
   }
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
-  async llmTurn() {
-    const result = await this.llmGenerateText.call();
+  async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const result = await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
 
     await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-      meta: { response: result.data!.response, provider: 'claude' },
+      meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
     });
+    return state;
   }
 }
 ```

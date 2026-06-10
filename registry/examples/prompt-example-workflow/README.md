@@ -1,3 +1,8 @@
+---
+title: Prompt Example
+description: Example workflow integrating an LLM using a simple prompt pattern — single-shot text generation, LlmGenerateTextTool, saving response as document
+---
+
 # @loopstack/prompt-example-workflow
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -13,14 +18,38 @@ By using this workflow as a reference, you'll learn how to:
 - Define workflow input arguments with a Zod schema and default values
 - Use the `prompt` parameter for simple LLM calls
 - Render Handlebars template files with dynamic variables
-- Store instance state on the workflow class
+- Manage workflow state via the state object passed through transitions
 - Save LLM responses as documents using `this.documentStore.save`
 
 This example is the ideal starting point for developers new to LLM integration in Loopstack.
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/prompt-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { PromptExampleModule, PromptWorkflow } from '@loopstack/prompt-example-workflow';
+
+@StudioApp({
+  title: 'Prompt Example',
+  workflows: [PromptWorkflow],
+})
+@Module({
+  imports: [PromptExampleModule],
+})
+export class MyAppModule {}
+```
+
+Set your Anthropic API key as an environment variable:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ## How It Works
 
@@ -28,59 +57,68 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 #### 1. Workflow Input Schema
 
-Define input parameters with default values using a Zod schema in the `@Workflow` decorator. The workflow class extends `BaseWorkflow<TArgs>` with a matching type:
+Define input parameters with default values using a Zod schema in the `@Workflow` decorator. The workflow class extends `BaseWorkflow<TArgs, TState>` with matching types:
 
 ```typescript
 @Workflow({
-  uiConfig: __dirname + '/prompt.ui.yaml',
+  title: 'Simple Prompt Example (Write a haiku)',
   schema: z.object({
     subject: z.string().default('coffee'),
   }),
 })
-export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
+export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
 ```
 
-The start `@Transition` method receives the validated arguments:
+The start `@Transition` method receives the state and context. Access workflow args via `ctx.args`:
 
 ```typescript
 @Transition({ to: 'prompt_executed' })
-async prompt(args: { subject: string }) {
+async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
+  const args = ctx.args as { subject: string };
 ```
 
 #### 2. Simple Prompt Pattern
 
-Use the `prompt` parameter for straightforward LLM calls without conversation history. The prompt content is rendered from a Handlebars template file with variables:
+Use the `prompt` parameter for straightforward LLM calls without conversation history. The prompt content is rendered from a Handlebars template file with variables. Provider and model are passed at call time via `{ config: { ... } }`:
 
 ```typescript
 @Transition({ to: 'prompt_executed' })
-async prompt(args: { subject: string }) {
-  const result = await this.llmGenerateText.call({
-    prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
-  });
-  this.llmResult = result.data;
+async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
+  const args = ctx.args as { subject: string };
+  const result = await this.llmGenerateText.call(
+    {
+      prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+    },
+    { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
+  );
+  return { llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
 }
 ```
 
 The `this.render()` method loads a Handlebars template and interpolates the provided variables.
 
-#### 3. Storing Results as Instance State
+#### 3. Storing Results in State
 
-Tool results are stored as instance properties on the workflow class, making them available in subsequent transitions:
+Tool results are stored in the state object returned from transitions, making them available in subsequent transitions:
 
 ```typescript
-llmResult?: LlmGenerateTextResult;
+interface PromptState {
+  llmResult?: LlmGenerateTextResult;
+  llmMeta?: LlmResultMeta;
+}
 ```
 
 #### 4. Saving Documents in a Final Transition
 
-The terminal `@Transition` decorator marks the last transition. Here the stored LLM result is saved as a `LlmMessageDocument`:
+The terminal `@Transition` saves the stored LLM result as a `LlmMessageDocument`:
 
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond() {
-  await this.documentStore.save(LlmMessageDocument, this.llmResult!.message, {
-    meta: { response: this.llmResult!.response, provider: 'claude' },
+async respond(state: PromptState): Promise<unknown> {
+  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
   });
+  return {};
 }
 ```
 
@@ -90,35 +128,46 @@ The complete workflow class:
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
-import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
+interface PromptState {
+  llmResult?: LlmGenerateTextResult;
+  llmMeta?: LlmResultMeta;
+}
+
 @Workflow({
-  uiConfig: __dirname + '/prompt.ui.yaml',
+  title: 'Simple Prompt Example (Write a haiku)',
+  description: 'An example workflow that demonstrates how to use a prompt to generate a haiku.',
   schema: z.object({
     subject: z.string().default('coffee'),
   }),
 })
-export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
-  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
-  llmGenerateText: LlmGenerateTextTool;
-
-  llmResult?: LlmGenerateTextResult;
+export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
+    super();
+  }
 
   @Transition({ to: 'prompt_executed' })
-  async prompt(args: { subject: string }) {
-    const result = await this.llmGenerateText.call({
-      prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
-    });
-    this.llmResult = result.data;
+  async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
+    const args = ctx.args as { subject: string };
+    const result = await this.llmGenerateText.call(
+      {
+        prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+      },
+      { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
+    );
+    return { llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond() {
-    await this.documentStore.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: 'claude' },
+  async respond(state: PromptState): Promise<unknown> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
+    return {};
   }
 }
 ```

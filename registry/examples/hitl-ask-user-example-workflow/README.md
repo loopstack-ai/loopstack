@@ -1,6 +1,11 @@
+---
+title: HITL Ask User Example
+description: Example prompting the user for free-text input using AskUserWorkflow as a sub-workflow with callback, waiting on human input without blocking
+---
+
 # @loopstack/hitl-ask-user-example-workflow
 
-Demonstrates how to prompt the user for free-text input from inside a workflow using the `AskUserWorkflow` from [`@loopstack/hitl`](../../features/hitl-module). The user's answer is captured and echoed back as an assistant message.
+Demonstrates how to prompt the user for free-text input from inside a workflow using the `AskUserWorkflow` from [`@loopstack/hitl`](https://loopstack.ai/docs/registry/features/hitl-module). The user's answer is captured and echoed back as an assistant message.
 
 ## By using this example you'll get...
 
@@ -15,6 +20,22 @@ npm install @loopstack/hitl-ask-user-example-workflow
 ```
 
 The package depends on `@loopstack/hitl`.
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { HitlAskUserExampleModule, HitlAskUserExampleWorkflow } from '@loopstack/hitl-ask-user-example-workflow';
+
+@StudioApp({
+  title: 'HITL Ask User Example',
+  workflows: [HitlAskUserExampleWorkflow],
+})
+@Module({
+  imports: [HitlAskUserExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

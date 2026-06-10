@@ -39,7 +39,7 @@ export class FileDocument {
 ```typescript
 import { toJSONSchema, z } from 'zod';
 import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
@@ -60,7 +60,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   }
 
   @Transition({ to: 'ready' })
-  async greeting(state: StructuredOutputState, ctx: LoopstackContext): Promise<StructuredOutputState> {
+  async greeting(state: StructuredOutputState, ctx: RunContext): Promise<StructuredOutputState> {
     const args = ctx.args as { language: string };
     await this.documentStore.save(
       LlmMessageDocument,

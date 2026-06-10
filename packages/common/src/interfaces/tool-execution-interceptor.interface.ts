@@ -1,12 +1,12 @@
 import { Injectable, SetMetadata } from '@nestjs/common';
 import { ToolResult } from './handler.interface.js';
-import type { LoopstackContext } from './loopstack-context.interface.js';
+import type { RunContext } from './run-context.interface.js';
 
 export interface ToolExecutionContext {
   tool: object;
   args: Record<string, unknown> | undefined;
   /** Read-only per-job framework context */
-  loopstackContext: LoopstackContext;
+  runContext: RunContext;
   /** Mutable metadata — interceptors can attach data here for downstream interceptors */
   metadata: Record<string, unknown>;
 }

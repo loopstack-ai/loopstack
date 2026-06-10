@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { ConfirmUserDocument } from '../../documents/confirm-user-document.js';
 
@@ -17,7 +17,7 @@ interface ConfirmUserState {
 })
 export class ConfirmUserWorkflow extends BaseWorkflow<{ markdown: string }, ConfirmUserState> {
   @Transition({ to: 'waiting_for_confirmation' })
-  async showContent(state: ConfirmUserState, ctx: LoopstackContext): Promise<ConfirmUserState> {
+  async showContent(state: ConfirmUserState, ctx: RunContext): Promise<ConfirmUserState> {
     const args = ctx.args as { markdown: string };
     await this.documentStore.save(ConfirmUserDocument, { markdown: args.markdown }, { id: 'content' });
     return { ...state, markdown: args.markdown };

@@ -49,7 +49,12 @@ export class DocumentPersistenceService {
 
     // Validate content against document schema
     const validateMode = options?.validate ?? 'strict';
-    const { content: validatedContent, error } = this.validateContent(contentSchema, content, validateMode);
+    const { content: validatedContent, error } = this.validateContent(
+      contentSchema,
+      content,
+      validateMode,
+      documentName,
+    );
 
     // Generate messageId if not provided
     const messageId = options?.id ?? randomUUID();
@@ -144,6 +149,7 @@ export class DocumentPersistenceService {
     schema: import('zod').ZodType | undefined,
     content: unknown,
     mode: 'strict' | 'safe' | 'skip',
+    documentName: string,
   ): { content: unknown; error?: ZodError } {
     if (!schema || mode === 'skip') {
       return { content };
@@ -154,7 +160,10 @@ export class DocumentPersistenceService {
     if (!result.success) {
       if (mode === 'strict') {
         this.logger.error(result.error);
-        throw new SchemaValidationError('Document schema validation failed (strict mode)');
+        const issues = result.error.issues
+          .map((i) => `${i.path.length ? i.path.join('.') : '<root>'}: ${i.message}`)
+          .join('; ');
+        throw new SchemaValidationError(`Document '${documentName}' failed schema validation (strict mode): ${issues}`);
       }
 
       // safe mode: store partial data + validation error

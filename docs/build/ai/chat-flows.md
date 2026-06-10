@@ -67,6 +67,39 @@ ui:
 2. The LLM provider module collects all documents with the `message` tag as conversation history by default
 3. Each new message adds to the conversation — the LLM sees the full history on every turn
 
+## Message Resolution
+
+When `LlmGenerateTextTool.call()` runs, it resolves the conversation in this priority order:
+
+1. **`args.prompt`** — if provided, used as a single user message. Documents are ignored.
+2. **`args.messages`** — if provided (and no `prompt`), used as the full message array. Documents are ignored.
+3. **Documents matching `config.messagesSearchTag`** — fallback when neither arg is set. Defaults to `'message'`.
+
+When falling back to documents, the tool:
+
+- Filters `DocumentEntity` records by `doc.tags.includes(messagesSearchTag)`
+- Excludes any document with `doc.isInvalidated === true`
+- Sorts by `doc.index` to preserve chronological order
+
+This means you can run parallel conversation threads in the same workflow by saving messages under different tags and switching `messagesSearchTag` per call:
+
+```typescript
+// Save a summary-thread message
+await this.documentStore.save(
+  LlmMessageDocument,
+  { role: 'user', content: 'Summarize the discussion so far.' },
+  { tags: ['summary-chat'] },
+);
+
+// Call the LLM with only the summary thread as history
+await this.llmGenerateText.call(
+  {},
+  { config: { provider: 'claude', model: 'claude-sonnet-4-6', messagesSearchTag: 'summary-chat' } },
+);
+```
+
+If a message isn't appearing in the LLM context, check that it has the expected tag and is not invalidated.
+
 ## Chat Loop Flow
 
 ```
@@ -81,7 +114,7 @@ setup → waiting_for_user → [user sends message] → ready → llmTurn → wa
 
 ## Combining with Tool Calling
 
-Add tool calling to a chat flow by combining the patterns from [AI Tool Calling](/docs/build/ai/tool-calling):
+Add tool calling to a chat flow by combining the patterns from [AI Tool Calling](./tool-calling.md):
 
 ```typescript
 import type { LlmResultMeta } from '@loopstack/llm-provider-module';

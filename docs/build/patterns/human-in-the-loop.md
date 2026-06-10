@@ -88,7 +88,7 @@ Show AI-generated content for user review before proceeding:
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 
 interface MeetingNotesState {
@@ -105,7 +105,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
   }
 
   @Transition({ to: 'waiting_for_response' })
-  async createForm(state: MeetingNotesState, ctx: LoopstackContext): Promise<MeetingNotesState> {
+  async createForm(state: MeetingNotesState, ctx: RunContext): Promise<MeetingNotesState> {
     const args = ctx.args as { inputText: string };
     await this.documentStore.save(MeetingNotesDocument, { text: args.inputText }, { id: 'input' });
     return state;

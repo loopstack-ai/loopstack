@@ -12,7 +12,7 @@ Tools are reusable TypeScript classes that encapsulate a single action — calli
 ```typescript
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 @Tool({
   name: 'search',
@@ -25,7 +25,7 @@ import type { LoopstackContext } from '@loopstack/common';
     .strict(),
 })
 export class SearchTool extends BaseTool<{ query: string; limit: number }, object, string> {
-  protected async handle(args: { query: string; limit: number }, ctx: LoopstackContext): Promise<ToolResult<string>> {
+  protected async handle(args: { query: string; limit: number }, ctx: RunContext): Promise<ToolResult<string>> {
     return { data: `Found results for: ${args.query}` };
   }
 }
@@ -35,17 +35,21 @@ export class SearchTool extends BaseTool<{ query: string; limit: number }, objec
 
 ```typescript
 @Tool({
-  name: 'my_tool',                    // Snake_case name used as identifier
-  description: 'User-facing description.',  // Also seen by LLMs for function calling
-  schema: InputSchema,                // Zod schema for input validation
-  configSchema: ConfigSchema,         // Optional: Zod schema for tool config
+  name: 'my_tool',
+  description: 'User-facing description.',
+  schema: InputSchema,
 })
 ```
 
-- **`name`** — Unique identifier for the tool (used in LLM wire format)
-- **`description`** — Human-readable description (shown to LLMs for tool-use)
-- **`schema`** — Zod schema that validates arguments before `handle()` is invoked
-- **`configSchema`** — Optional Zod schema for config (provided via `options.config`)
+All options are optional.
+
+| Option         | Type                       | Default            | Description                                                                                                                                                            |
+| -------------- | -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`         | `string`                   | class name (as-is) | Unique identifier used in the LLM tool-calling wire format. Always set this to a snake_case identifier (e.g. `git_status`, `math_sum`) — the class name is a fallback. |
+| `description`  | `string`                   | —                  | Human-readable description shown to LLMs for tool-use. Critical for autonomous tool calling.                                                                           |
+| `widget`       | `WidgetRef \| WidgetRef[]` | —                  | Custom Studio widget(s) for rendering tool calls/results — YAML file path(s) or inline widget object(s).                                                               |
+| `schema`       | `z.ZodType`                | —                  | Zod schema validating tool arguments before `handle()` is invoked.                                                                                                     |
+| `configSchema` | `z.ZodType`                | —                  | Zod schema validating tool config (provided via `options.config` on `call()`).                                                                                         |
 
 ## The `handle()` Method
 
@@ -54,7 +58,7 @@ The abstract method you implement. It receives validated arguments, the executio
 ```typescript
 protected async handle(
   args: TArgs,
-  ctx: LoopstackContext,
+  ctx: RunContext,
   options?: ToolCallOptions<TConfig>,
 ): Promise<ToolResult<TData>> {
   // Your logic here
@@ -102,7 +106,7 @@ export class MathSumTool extends BaseTool<{ a: number; b: number }, object, numb
     super();
   }
 
-  protected async handle(args: { a: number; b: number }, ctx: LoopstackContext): Promise<ToolResult<number>> {
+  protected async handle(args: { a: number; b: number }, ctx: RunContext): Promise<ToolResult<number>> {
     return { data: this.mathService.sum(args.a, args.b) };
   }
 }
@@ -121,7 +125,7 @@ When a tool is exposed to the LLM, the `description` and `schema` tell the LLM w
   }),
 })
 export class GetWeather extends BaseTool<{ location: string }, object, string> {
-  protected async handle(args: { location: string }, ctx: LoopstackContext): Promise<ToolResult<string>> {
+  protected async handle(args: { location: string }, ctx: RunContext): Promise<ToolResult<string>> {
     return Promise.resolve({ type: 'text', data: 'Mostly sunny, 14C.' });
   }
 }
@@ -138,6 +142,99 @@ constructor(
 const result = await this.llmGenerateText.call(
   {},
   { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
+);
+```
+
+## Async Tools (sub-workflow callbacks)
+
+A tool can launch a sub-workflow from `handle()` and finish asynchronously when that sub-workflow completes. The lifecycle has two halves:
+
+1. **`handle()`** returns `{ data, pending: { workflowId } }`. The `pending` field tells the framework "I started run `workflowId`, don't return to the LLM yet — wait for that run to finish, then call me back."
+2. **`complete(result)`** runs when the sub-workflow finishes. The argument is the sub-workflow's output. The return value is the `ToolResult` that's actually delivered to the LLM (or the caller).
+
+The default `complete()` on `BaseTool` passes the sub-workflow's data straight through:
+
+```typescript
+async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  return { data: (result as { data?: unknown }).data ?? result };
+}
+```
+
+Override it when you need to post-process: transform the payload, update link documents, validate, or short-circuit. The HITL pattern uses this — `AskForApprovalTool.handle()` saves a "Waiting…" link document and returns `pending`; `complete()` rewrites that document with the user's decision and returns the typed answer.
+
+```typescript
+@Tool({ name: 'ask_for_approval', description: 'Ask the user to approve.', /* … */ })
+export class AskForApprovalTool extends BaseTool</* … */> {
+  protected async handle(/* … */) {
+    const { workflowId } = await this.confirmWorkflow.run(args, { callback: { transition: 'onConfirm' } });
+    // … save a "pending" LinkDocument
+    return { data: { workflowId }, pending: { workflowId } };
+  }
+
+  async complete(result: Record<string, unknown>): Promise<ToolResult<AskForApprovalResult>> {
+    const { workflowId, data } = result as { workflowId: string; data: { confirmed: boolean } };
+    // … rewrite the LinkDocument with the final state
+    return { data: { approved: data.confirmed, workflowId } };
+  }
+}
+```
+
+Use this when a tool genuinely depends on an async outcome (HITL, long-running provisioning, external job completion). For tools that finish synchronously inside `handle()`, you don't need `complete()` at all.
+
+## Server Tools
+
+Some LLM providers ship built-in tools that **run on the provider's side**, not in your app — examples are Anthropic's `web_search` and `code_execution`. Loopstack exposes these via the `ServerTool` base class instead of `BaseTool`.
+
+Key differences from `BaseTool`:
+
+| Aspect          | `BaseTool`                                   | `ServerTool`                              |
+| --------------- | -------------------------------------------- | ----------------------------------------- |
+| Execution       | runs locally in your app                     | runs on the LLM provider's infrastructure |
+| Abstract method | `handle(args, ctx, options)`                 | `toServerToolConfig(config?)`             |
+| Has `call()`    | yes — entry point for workflow code          | no — the provider invokes it              |
+| Use it for      | your own logic, API calls, internal services | provider-native built-in tools            |
+
+A server tool's job is to translate the workflow author's config into the provider-native shape. The framework detects `instanceof ServerTool` when assembling the LLM request and sends the result of `toServerToolConfig()` to the provider instead of registering a callable local tool.
+
+```typescript
+import { z } from 'zod';
+import { ServerTool, Tool } from '@loopstack/common';
+
+const ConfigSchema = z.object({
+  maxUses: z.number().int().positive().default(8),
+  allowedDomains: z.array(z.string()).optional(),
+});
+type Config = z.infer<typeof ConfigSchema>;
+
+@Tool({
+  name: 'claude_web_search_server',
+  description: "Search the web using Claude's built-in server-side web search.",
+  configSchema: ConfigSchema,
+})
+export class ClaudeWebSearchServerTool extends ServerTool<Config> {
+  toServerToolConfig(config?: Config): unknown {
+    return {
+      type: 'web_search_20260209',
+      name: 'web_search',
+      max_uses: config?.maxUses ?? 8,
+      ...(config?.allowedDomains?.length ? { allowed_domains: config.allowedDomains } : {}),
+    };
+  }
+}
+```
+
+List the server tool in the LLM `tools` config the same way as a regular tool — the framework picks the right code path based on the class.
+
+```typescript
+await this.llmGenerateText.call(
+  {},
+  {
+    config: {
+      provider: 'claude',
+      model: 'claude-sonnet-4-6',
+      tools: ['claude_web_search_server'],
+    },
+  },
 );
 ```
 
@@ -188,4 +285,4 @@ src/
 
 ---
 
-> **Using an AI coding agent?** See [Skill: Create a Custom Tool](/docs/skills/create-custom-tool) for a dense checklist and syntax reference optimized for code generation.
+> **Using an AI coding agent?** See [Skill: Create a Custom Tool](../../skills/create-custom-tool.md) for a dense checklist and syntax reference optimized for code generation.

@@ -165,7 +165,7 @@ export class RunTestsTask extends BaseTool {
 
   protected async handle(
     args: { testDirectory: string },
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult> {
     const result = await this.testRunner.run({ testDirectory: args.testDirectory }, { callback: options?.callback });
@@ -205,7 +205,7 @@ Key parts:
 
 ## Nested Agents
 
-The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architectures. See [Agent Workflows](/docs/build/ai/agent-workflows) for the full pattern.
+The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architectures. See [Agent Workflows](../ai/agent-workflows.md) for the full pattern.
 
 ## Registry References
 

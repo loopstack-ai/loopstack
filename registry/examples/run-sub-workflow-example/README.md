@@ -1,3 +1,8 @@
+---
+title: Sub-Workflow Example
+description: Example executing child workflows from a parent workflow — workflow.run(), hierarchical workflow composition, callback transitions
+---
+
 # @loopstack/run-sub-workflow-example
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -22,7 +27,25 @@ This example is essential for developers building workflows that need to orchest
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/run-sub-workflow-example
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { RunSubWorkflowExampleModule, RunSubWorkflowExampleParentWorkflow } from '@loopstack/run-sub-workflow-example';
+
+@StudioApp({
+  title: 'Sub-Workflow Example',
+  workflows: [RunSubWorkflowExampleParentWorkflow],
+})
+@Module({
+  imports: [RunSubWorkflowExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

@@ -1,3 +1,8 @@
+---
+title: Secrets Example
+description: Example demonstrating two secrets flows — deterministic request/verify workflow and agentic LLM workflow using get_secret_keys, request_secrets_task tools
+---
+
 # @loopstack/secrets-example-workflow
 
 Demonstrates two secrets flows: a deterministic request/verify workflow and an agentic workflow where the LLM requests and validates secrets using secrets tools.
@@ -15,6 +20,26 @@ npm install @loopstack/secrets-example-workflow
 ```
 
 This example depends on `@loopstack/secrets-module` and `@loopstack/claude-module`; configure secrets storage and Claude credentials before running.
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import {
+  SecretsAgentExampleWorkflow,
+  SecretsExampleModule,
+  SecretsExampleWorkflow,
+} from '@loopstack/secrets-example-workflow';
+
+@StudioApp({
+  title: 'Secrets Example',
+  workflows: [SecretsExampleWorkflow, SecretsAgentExampleWorkflow],
+})
+@Module({
+  imports: [SecretsExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

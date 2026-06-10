@@ -1,7 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { OAuthProviderRegistry } from '../services/index.js';
 import { OAuthTokenStore } from '../services/index.js';
 
@@ -38,10 +38,7 @@ export class ExchangeOAuthTokenTool extends BaseTool<ExchangeOAuthTokenArgs, obj
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(
-    args: ExchangeOAuthTokenArgs,
-    ctx: LoopstackContext,
-  ): Promise<ToolResult<ExchangeOAuthTokenResult>> {
+  protected async handle(args: ExchangeOAuthTokenArgs, ctx: RunContext): Promise<ToolResult<ExchangeOAuthTokenResult>> {
     if (args.state !== args.expectedState) {
       throw new Error('OAuth state mismatch. Possible CSRF attack.');
     }

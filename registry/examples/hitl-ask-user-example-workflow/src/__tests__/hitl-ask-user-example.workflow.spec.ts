@@ -1,9 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { AskUserWorkflow } from '@loopstack/hitl';
-import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { HitlAskUserExampleWorkflow } from '../hitl-ask-user-example.workflow';
 
 const mockAskUserWorkflow = {
@@ -52,12 +51,12 @@ describe('HitlAskUserExampleWorkflow', () => {
 
   it('saves a MessageDocument with the answer when resumed', async () => {
     const workflowId = '00000000-0000-0000-0000-000000000001';
-    const context = {
+    const context = createContext({
       workflowEntity: {
         id: workflowId,
         place: 'waiting_for_answer',
         documents: [],
-      } as Partial<WorkflowEntity>,
+      },
       payload: {
         transition: {
           id: 'answerReceived',
@@ -65,7 +64,7 @@ describe('HitlAskUserExampleWorkflow', () => {
           payload: { workflowId, status: 'completed', data: { answer: 'Jakob' } },
         },
       },
-    } as unknown as RunContext;
+    });
 
     const result = await processor.process(workflow, {}, context);
 

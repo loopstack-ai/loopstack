@@ -5,7 +5,7 @@ description: Step-by-step instructions for AI agents to scaffold a new workflow 
 
 # Skill: Create a Custom Workflow
 
-> **For AI coding agents:** This page is a dense reference checklist optimized for tools like Claude Code scaffolding Loopstack code. For the human-readable guide, see [Creating Workflows](/docs/build/fundamentals/workflows).
+> **For AI coding agents:** This page is a dense reference checklist optimized for tools like Claude Code scaffolding Loopstack code. For the human-readable guide, see [Creating Workflows](../build/fundamentals/workflows.md).
 
 ## Workflow Anatomy
 
@@ -28,7 +28,7 @@ src/
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 const MyArgs = z.object({
   name: z.string().default('world'),
@@ -56,7 +56,7 @@ export class MyWorkflow extends BaseWorkflow<MyArgs, MyState> {
 
   // --- Initial transition (workflow entry point, from defaults to 'start') ---
   @Transition({ to: 'ready' })
-  async setup(state: MyState, ctx: LoopstackContext): Promise<MyState> {
+  async setup(state: MyState, ctx: RunContext): Promise<MyState> {
     const args = ctx.args as MyArgs;
     return { ...state, message: `Hello, ${args.name}!` };
   }
@@ -98,6 +98,7 @@ Class decorator. Configures the workflow.
 
 - `widget` — path to YAML file containing UI widget configuration
 - `schema` — Zod schema that validates workflow input arguments
+- `name`, `title`, `description`, `configSchema`, `stateSchema` — less common; see the [`@Workflow` reference table](../build/fundamentals/workflows.md#the-workflow-decorator)
 
 ### `extends BaseWorkflow`
 
@@ -131,7 +132,7 @@ Defines a state transition. All transitions use this single decorator.
 ```typescript
 // Initial transition (from defaults to 'start')
 @Transition({ to: 'ready' })
-async setup(state: MyState, ctx: LoopstackContext): Promise<MyState> { ... }
+async setup(state: MyState, ctx: RunContext): Promise<MyState> { ... }
 
 // Regular transition
 @Transition({ from: 'ready', to: 'processed' })
@@ -382,7 +383,15 @@ async finish(state: MyState): Promise<{ concept: string }> {
 
 ## Module Registration
 
+Every module whose workflows should appear in **Loopstack Studio** must be decorated with `@StudioApp`. Without it, workflows are NestJS providers but are not visible or launchable from the UI.
+
 ```typescript
+import { StudioApp } from '@loopstack/common';
+
+@StudioApp({
+  title: 'My Feature',
+  workflows: [MyWorkflow],
+})
 @Module({
   imports: [ClaudeModule],
   providers: [
@@ -390,10 +399,11 @@ async finish(state: MyState): Promise<{ concept: string }> {
     MyTool,
     // Documents are NOT listed as providers — they are plain DTOs
   ],
-  exports: [MyWorkflow, MyTool],
 })
 export class MyFeatureModule {}
 ```
+
+> **Note:** `@StudioApp` is required alongside `@Module` — it does not replace it. If you are building a reusable library module (not a standalone app), omit `@StudioApp` and let the consuming app module declare the workflows.
 
 ## Complete Examples
 
@@ -402,7 +412,7 @@ export class MyFeatureModule {}
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
@@ -423,7 +433,7 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptStat
   }
 
   @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: LoopstackContext): Promise<PromptState> {
+  async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
     const args = ctx.args as { subject: string };
     const result = await this.llmGenerateText.call(
       {
@@ -457,7 +467,7 @@ interface RoutingState {
 })
 export class RoutingWorkflow extends BaseWorkflow<{ value: number }, RoutingState> {
   @Transition({ to: 'prepared' })
-  async setup(state: RoutingState, ctx: LoopstackContext): Promise<RoutingState> {
+  async setup(state: RoutingState, ctx: RunContext): Promise<RoutingState> {
     const args = ctx.args as { value: number };
     return { ...state, value: args.value };
   }
@@ -526,7 +536,7 @@ export class ChatWorkflow extends BaseWorkflow<{ prompt: string }, ChatState> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: ChatState, ctx: LoopstackContext): Promise<ChatState> {
+  async setup(state: ChatState, ctx: RunContext): Promise<ChatState> {
     const args = ctx.args as { prompt: string };
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
@@ -600,4 +610,5 @@ export class ChatWorkflow extends BaseWorkflow<{ prompt: string }, ChatState> {
 7. Use `@Guard('methodName')` + `priority` for conditional routing
 8. State is passed as the first parameter and returned from each transition
 9. Write YAML config with UI widgets only (no transitions)
-10. Register workflow as provider and export in a NestJS `@Module()`
+10. Register workflow as provider in a NestJS `@Module()`
+11. Add `@StudioApp({ title, workflows: [MyWorkflow] })` to the module so workflows appear in Studio

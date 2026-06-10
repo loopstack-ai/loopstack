@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document.js';
 import { AskUserDocument } from '../../documents/ask-user-document.js';
@@ -28,7 +28,7 @@ type AskUserState = AskUserArgs;
 })
 export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
   @Transition({ to: 'show_question' })
-  async start(state: AskUserState, ctx: LoopstackContext): Promise<AskUserState> {
+  async start(state: AskUserState, ctx: RunContext): Promise<AskUserState> {
     const args = ctx.args as AskUserArgs;
     return { ...state, ...args };
   }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
@@ -25,7 +25,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   }
 
   @Transition({ to: 'ready' })
-  async greeting(state: PromptStructuredOutputState, ctx: LoopstackContext): Promise<PromptStructuredOutputState> {
+  async greeting(state: PromptStructuredOutputState, ctx: RunContext): Promise<PromptStructuredOutputState> {
     const args = ctx.args as { language: string };
     await this.documentStore.save(
       LlmMessageDocument,

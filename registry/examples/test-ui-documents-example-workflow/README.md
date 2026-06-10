@@ -1,3 +1,8 @@
+---
+title: UI Documents Example
+description: Example demonstrating Studio document rendering — MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument from a single workflow
+---
+
 # @loopstack/test-ui-documents-example-workflow
 
 Demonstrates core Studio document rendering by emitting message, error, markdown, and plain-text documents from a single workflow.
@@ -12,6 +17,22 @@ Demonstrates core Studio document rendering by emitting message, error, markdown
 
 ```sh
 npm install @loopstack/test-ui-documents-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { TestUiDocumentsExampleModule, TestUiDocumentsWorkflow } from '@loopstack/test-ui-documents-example-workflow';
+
+@StudioApp({
+  title: 'UI Documents Example',
+  workflows: [TestUiDocumentsWorkflow],
+})
+@Module({
+  imports: [TestUiDocumentsExampleModule],
+})
+export class MyAppModule {}
 ```
 
 ## How It Works

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitConfigUserArgs = {
@@ -28,7 +28,7 @@ export class GitConfigUserTool extends BaseTool<GitConfigUserArgs, object, GitCo
     super();
   }
 
-  protected async handle(args: GitConfigUserArgs, _ctx: LoopstackContext): Promise<ToolResult<GitConfigUserResult>> {
+  protected async handle(args: GitConfigUserArgs, _ctx: RunContext): Promise<ToolResult<GitConfigUserResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitConfigUser(agentUrl, args.name, args.email);
     return { data: result };

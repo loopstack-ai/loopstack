@@ -1,10 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateObjectTool, LlmProviderModule } from '@loopstack/llm-provider-module';
-import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { ToolMock, createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
 import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
 import { MeetingNotesWorkflow } from '../meeting-notes.workflow';
@@ -83,12 +82,12 @@ describe('MeetingNotesWorkflow', () => {
         data: { data: {} },
       });
 
-      const context = {
+      const context = createContext({
         workflowEntity: {
           id: workflowId,
           place: 'waiting_for_response',
           documents: [],
-        } as Partial<WorkflowEntity>,
+        },
         payload: {
           transition: {
             id: 'userResponse',
@@ -96,7 +95,7 @@ describe('MeetingNotesWorkflow', () => {
             payload: { text: 'Cleaned up meeting notes from user' },
           },
         },
-      } as unknown as RunContext;
+      });
 
       const result = await processor.process(workflow, {}, context);
 
@@ -135,12 +134,12 @@ describe('MeetingNotesWorkflow', () => {
         actionItems: ['Follow up on vendor pricing by Friday'],
       };
 
-      const context = {
+      const context = createContext({
         workflowEntity: {
           id: workflowId,
           place: 'notes_optimized',
           documents: [],
-        } as Partial<WorkflowEntity>,
+        },
         payload: {
           transition: {
             id: 'confirm',
@@ -148,7 +147,7 @@ describe('MeetingNotesWorkflow', () => {
             payload: optimizedPayload,
           },
         },
-      } as unknown as RunContext;
+      });
 
       const result = await processor.process(workflow, {}, context);
 

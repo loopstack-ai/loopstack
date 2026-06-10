@@ -68,6 +68,12 @@ If your transition method throws an error:
 
 This is what "automatic rollback" means in practice: a partially-executed transition leaves no trace. The workflow stays exactly where it was before the attempt.
 
+### ErrorDocument
+
+After the rollback completes, the engine writes a single `ErrorDocument` to the run with the thrown error's message. This is the only side-effect of a failed transition that survives the rollback — it lives **outside** the failed transaction so the audit trail is preserved. Subsequent retry attempts each add their own `ErrorDocument`, giving a full per-attempt history.
+
+`ErrorDocument` is a built-in document type (`@loopstack/common`) that workflow authors don't construct manually — it's an engine-managed artifact. See [Error Handling](../build/patterns/error-handling.md) for the retry/recovery patterns that consume it.
+
 ---
 
 ## Checkpoints
@@ -167,19 +173,45 @@ Set `timeout: 0` to disable the timeout entirely for a specific transition.
 
 ---
 
+## Workflow Lifecycle States
+
+Each workflow run has a `status` from the `WorkflowState` enum, persisted on the workflow entity. The engine sets it as the run progresses.
+
+| State       | Description                                                                                                       | Set by                                                                                    |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `pending`   | Run created, not yet picked up by a worker (or re-queued after a wait/error).                                     | Initial value when a run is created, and again when a wait transition is resumed.         |
+| `running`   | A worker is currently executing a transition for this run.                                                        | Root processor at the start of each job.                                                  |
+| `waiting`   | Run is paused — either waiting for an external trigger (wait transition) or waiting for a retry/sub-workflow.     | Processor when a job ends without reaching `end` and without an error that fails the run. |
+| `completed` | Final transition reached `to: 'end'`. The `result` field holds the return value.                                  | Processor when a transition moves to `end`.                                               |
+| `failed`    | A transition errored and retries are exhausted (or the error has no retry).                                       | Processor on terminal failure.                                                            |
+| `canceled`  | Cancellation was requested — recursively applied to all child runs. Parent callback fires with `canceled` status. | `WorkflowOrchestrationService.cancel()`.                                                  |
+| `paused`    | Reserved — currently not set by the engine. Treated like `waiting` in queries (e.g. dashboard "action required"). | —                                                                                         |
+
+Terminal states are `completed`, `failed`, and `canceled` — no further work is scheduled for them, and any parent sub-workflow callback fires once the terminal state is reached.
+
 ## Stateless Execution
 
-When a workflow runs with `{ stateless: true }` (used for testing or one-off execution), the engine skips all persistence:
+A workflow can run in **stateless mode** via `WorkflowRunner.runSync({ stateless: true, … })`. The engine skips all persistence and runs the entire state machine in a single pass:
 
 - No database transactions
 - No checkpoints
-- Documents are kept in memory only
-- All transitions run synchronously in a single pass
+- Documents created via `documentStore.save()` live in memory for the duration of the run and are returned in the result — they are not written to the database
+- All transitions run synchronously in one pass; the call returns when the workflow reaches `end` (or errors)
+
+Use stateless execution when:
+
+- **Testing workflows** — assert against the returned result and in-memory documents without spinning up Postgres/Redis (see `createStatelessContext` in `@loopstack/testing`).
+- **One-off computations** — synchronous request/response flows where you want the workflow logic but don't need durability or resumability (e.g. an internal API endpoint that computes something via a workflow and returns immediately).
+- **Dry-runs / previews** — verify a workflow's output for a given input without leaving a record.
+
+Stateless runs cannot pause: `wait: true` transitions and sub-workflow `queue()` calls aren't useful here, because there's no run to resume. Use the regular durable path for those.
+
+See [Programmatic Execution](../build/integrations/programmatic-execution.md) for the `runSync()` API.
 
 ---
 
 ## Next Steps
 
-- [Error Handling](/docs/build/patterns/error-handling) — retry configs, custom error places, and the Studio retry button
-- [Architecture Overview](/docs/learn/architecture) — how the engine fits into the broader system
-- [Why Documents Exist](/docs/learn/document-store) — the document store and its relationship to workflow state
+- [Error Handling](../build/patterns/error-handling.md) — retry configs, custom error places, and the Studio retry button
+- [Architecture Overview](./architecture.md) — how the engine fits into the broader system
+- [Why Documents Exist](./document-store.md) — the document store and its relationship to workflow state

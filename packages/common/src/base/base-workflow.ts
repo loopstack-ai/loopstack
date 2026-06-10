@@ -9,7 +9,16 @@ export interface RunOptions {
   callback?: { transition: string; metadata?: Record<string, unknown> };
 }
 
+/**
+ * Returned by `BaseWorkflow.run()` when queuing a sub-workflow.
+ *
+ * The parent does NOT wait for the child to finish — `run()` schedules the
+ * child and returns immediately. Use the `workflowId` to correlate the
+ * eventual callback (the transition named in `options.callback.transition`),
+ * or to query the child's status via the API.
+ */
 export interface QueueResult {
+  /** ID of the queued child workflow run. */
   workflowId: string;
 }
 

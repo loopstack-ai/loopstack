@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RunContext, WorkflowMetadataInterface, getBlockType } from '@loopstack/common';
+import { InternalRunContext, WorkflowMetadataInterface, getBlockType } from '@loopstack/common';
 import { ProcessorFactory } from './processor.factory.js';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class BlockProcessor {
   async processBlock<TInstance extends object>(
     block: TInstance,
     args: any,
-    ctx: RunContext,
+    ctx: InternalRunContext,
   ): Promise<WorkflowMetadataInterface> {
     const blockType = getBlockType(block);
 

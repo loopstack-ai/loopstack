@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '../workflows/confirm-user/confirm-user.workflow.js';
 
 const AskForApprovalInputSchema = z
@@ -28,7 +28,7 @@ export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, As
 
   protected async handle(
     args: AskForApprovalInput,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<AskForApprovalResult>> {
     const result = await this.confirmUserWorkflow.run({ markdown: args.concept }, { callback: options?.callback });

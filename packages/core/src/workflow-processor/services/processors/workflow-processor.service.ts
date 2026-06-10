@@ -10,9 +10,10 @@ import {
   WorkflowMetadataInterface,
   getBlockArgsSchema,
   getGuardMetadataMap,
+  getWorkflowStateSchema,
   normalizeRetryConfig,
 } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor } from '../../../common/index.js';
@@ -193,7 +194,7 @@ export class WorkflowProcessorService implements Processor {
   /**
    * Build a WorkflowContext from the scope data.
    */
-  private buildWorkflowContext(scopeData: ExecutionScopeData, meta: ProcessorMetadata): LoopstackContext {
+  private buildWorkflowContext(scopeData: ExecutionScopeData, meta: ProcessorMetadata): RunContext {
     return {
       userId: scopeData.userId,
       workspaceId: scopeData.workspaceId,
@@ -215,7 +216,7 @@ export class WorkflowProcessorService implements Processor {
   private invokeTransition(
     workflow: WorkflowInterface,
     methodName: string,
-    workflowCtx: LoopstackContext,
+    workflowCtx: RunContext,
     state: Record<string, unknown>,
     data?: unknown,
   ): Promise<unknown> {
@@ -231,6 +232,52 @@ export class WorkflowProcessorService implements Processor {
       // Auto transition (initial, normal, final): (state, ctx)
       return (method as (...args: unknown[]) => Promise<unknown>).call(workflow, state, workflowCtx);
     }
+  }
+
+  /**
+   * Validates the workflow state against the `@Workflow({ stateSchema })` Zod schema, if defined.
+   * Runs after each transition's return value is computed and before persistence.
+   * Throws a ConfigTraceError-wrapped error if validation fails — this becomes the transition error.
+   */
+  private validateState(
+    workflow: WorkflowInterface,
+    methodName: string,
+    to: string,
+    newState: Record<string, unknown>,
+  ): void {
+    const stateSchema = getWorkflowStateSchema(workflow);
+    if (!stateSchema) return;
+
+    const result = stateSchema.safeParse(newState);
+    if (result.success) return;
+
+    const issues = result.error.issues
+      .map((i) => `${i.path.length ? i.path.join('.') : '<root>'}: ${i.message}`)
+      .join('; ');
+    throw new Error(
+      `State validation failed after transition '${methodName}' (→ ${to}) on ${workflow.constructor.name}: ${issues}`,
+    );
+  }
+
+  /**
+   * Resolve the new state from a transition's return value.
+   *
+   * - `undefined` (including no `return` statement) preserves the previous state unchanged.
+   * - Any other value becomes the new state. If `@Workflow({ stateSchema })` is defined,
+   *   the value is validated against the schema and the transition throws on mismatch — so
+   *   `return null`, a primitive, or an object that doesn't satisfy the schema all error.
+   */
+  private resolveNewState(
+    workflow: WorkflowInterface,
+    methodName: string,
+    to: string,
+    returnValue: unknown,
+    state: Record<string, unknown>,
+  ): Record<string, unknown> {
+    if (returnValue === undefined) return state;
+
+    this.validateState(workflow, methodName, to, returnValue as Record<string, unknown>);
+    return returnValue as Record<string, unknown>;
   }
 
   /**
@@ -277,10 +324,7 @@ export class WorkflowProcessorService implements Processor {
     // Stateless workflows skip transactions
     if (!workflowEntity) {
       const returnValue = await invokeMethod();
-      const newState = (returnValue != null && typeof returnValue === 'object' ? returnValue : state) as Record<
-        string,
-        unknown
-      >;
+      const newState = this.resolveNewState(workflow, methodName, to, returnValue, state);
 
       meta.place = to;
       meta.version++;
@@ -303,10 +347,7 @@ export class WorkflowProcessorService implements Processor {
       this.logger.debug(`Applying transition: ${methodName} (${meta.place} → ${to})`);
 
       const returnValue = await invokeMethod();
-      const newState = (returnValue != null && typeof returnValue === 'object' ? returnValue : state) as Record<
-        string,
-        unknown
-      >;
+      const newState = this.resolveNewState(workflow, methodName, to, returnValue, state);
 
       // Capture result for @Final transitions
       if (to === 'end' && returnValue !== undefined && returnValue !== null) {

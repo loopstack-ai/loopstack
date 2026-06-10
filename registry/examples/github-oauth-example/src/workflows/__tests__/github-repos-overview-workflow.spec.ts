@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
+import { getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GitHubCreateIssueCommentTool,
@@ -31,7 +31,7 @@ import {
   GitHubTriggerWorkflowTool,
 } from '@loopstack/github-module';
 import { OAuthModule, OAuthWorkflow } from '@loopstack/oauth-module';
-import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { ToolMock, createContext, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { GitHubReposOverviewWorkflow } from '../github-repos-overview.workflow';
 
 const mockOAuthWorkflow = {
@@ -524,12 +524,12 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     mockListWorkflowRuns.call.mockResolvedValue({ data: { totalCount: 0, runs: [] } });
     mockSearchCode.call.mockResolvedValue({ data: { totalCount: 0, results: [] } });
 
-    const context = {
+    const context = createContext({
       workflowEntity: {
         id: workflowId,
         place: 'awaiting_auth',
         documents: [],
-      } as Partial<WorkflowEntity>,
+      },
       payload: {
         transition: {
           id: 'authCompleted',
@@ -537,7 +537,7 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
           payload: { workflowId: 'auth-workflow-id', status: 'completed', data: {} },
         },
       },
-    } as unknown as RunContext;
+    });
 
     const result = await processor.process(workflow, args, context);
 

@@ -1,3 +1,8 @@
+---
+title: Google OAuth Example
+description: Example workflows using Google Workspace APIs with OAuth — Calendar, Gmail, Drive, structured calendar summary and Claude chat agent with 11 Google tools
+---
+
 # @loopstack/google-oauth-example
 
 > An example module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -32,8 +37,8 @@ The workflow uses a custom tool to fetch calendar events, then checks for auth e
 
 ```typescript
 @Transition({ to: 'calendar_fetched' })
-async fetchEvents(state: CalendarSummaryState, ctx: WorkflowContext): Promise<CalendarSummaryState> {
-  const args = ctx.input.args as { calendarId: string };
+async fetchEvents(state: CalendarSummaryState, ctx: RunContext): Promise<CalendarSummaryState> {
+  const args = ctx.args as { calendarId: string };
   const result = await this.googleCalendarFetchEvents.call({
     calendarId: args.calendarId,
     timeMin: this.now(),
@@ -48,10 +53,10 @@ async fetchEvents(state: CalendarSummaryState, ctx: WorkflowContext): Promise<Ca
 
 @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
 @Guard('needsAuth')
-async authRequired() {
-  const result = await this.orchestrator.queue(
+async authRequired(state: CalendarSummaryState): Promise<CalendarSummaryState> {
+  const result = await this.oAuthWorkflow.run(
     { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-    { workflowName: OAuthWorkflow.name, callback: { transition: 'authCompleted' } },
+    { callback: { transition: 'authCompleted' } },
   );
 
   await this.documentStore.save(
@@ -140,55 +145,99 @@ An interactive chat agent that gives Claude access to all 11 Google Workspace to
 
 **Agent loop pattern:**
 
+All tools are injected via the constructor. Provider, model, system prompt, and tool list are passed at call time via `{ config: { ... } }`:
+
 ```typescript
-@InjectTool({
-  provider: 'claude',
-  model: 'claude-sonnet-4-6',
-  system: `You are a helpful Google Workspace assistant with access to Calendar, Gmail, and Drive tools.
-When a tool returns an unauthorized error, use authenticate_google to let the user sign in,
-then retry. Be concise and format results using markdown.`,
-  tools: [
-    'google_calendar_list_calendars',
-    'google_calendar_fetch_events',
-    'google_calendar_create_event',
-    'gmail_search_messages',
-    'gmail_get_message',
-    'gmail_send_message',
-    'gmail_reply_to_message',
-    'google_drive_list_files',
-    'google_drive_get_file_metadata',
-    'google_drive_download_file',
-    'google_drive_upload_file',
-    'authenticate_google',
-  ],
-})
-llmGenerateText: LlmGenerateTextTool;
-@InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
+constructor(
+  private readonly llmGenerateText: LlmGenerateTextTool,
+  private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+  private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
+  private readonly authenticateGoogle: AuthenticateGoogleTask,
+  // ... all 11 Google Workspace tools ...
+  private readonly oAuth: OAuthWorkflow,
+) {
+  super();
+}
 
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn() {
-  const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call();
-  this.llmResult = result.data;
+async llmTurn(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+  const result = await this.llmGenerateText.call(
+    {},
+    {
+      config: {
+        provider: 'claude',
+        model: 'claude-sonnet-4-6',
+        system: `You are a helpful Google Workspace assistant with access to Calendar, Gmail, and Drive tools.
+When a tool returns an unauthorized error, use authenticateGoogle to let the user sign in,
+then retry. Be concise and format results using markdown.`,
+        tools: [
+          'google_calendar_list_calendars',
+          'google_calendar_fetch_events',
+          'google_calendar_create_event',
+          'gmail_search_messages',
+          'gmail_get_message',
+          'gmail_send_message',
+          'gmail_reply_to_message',
+          'google_drive_list_files',
+          'google_drive_get_file_metadata',
+          'google_drive_download_file',
+          'google_drive_upload_file',
+          'authenticate_google',
+        ],
+      },
+    },
+  );
+  return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls() {
-  const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-    message: this.llmResult!.message,
-    callback: { transition: 'toolResultReceived' },
+async executeToolCalls(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
   });
-  this.delegateResult = result.data;
+  const result = await this.llmDelegateToolCalls.call(
+    {
+      message: state.llmResult!.message,
+      callback: { transition: 'toolResultReceived' },
+    },
+    { config: { provider: 'claude' } },
+  );
+  return { ...state, delegateResult: result.data };
 }
 
-hasToolCalls(): boolean {
-  return this.llmResult?.message.stopReason === 'tool_use';
+hasToolCalls(state: GoogleWorkspaceAgentState): boolean {
+  return state.llmResult?.message.stopReason === 'tool_use';
 }
 ```
 
 This is the easiest way to interactively test every Google Workspace tool -- just ask the agent to perform any operation.
 
-## Setup
+## Installation
+
+```bash
+npm install @loopstack/google-oauth-example
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import {
+  CalendarSummaryWorkflow,
+  GoogleExampleModule,
+  GoogleWorkspaceAgentWorkflow,
+} from '@loopstack/google-oauth-example';
+
+@StudioApp({
+  title: 'Google OAuth Example',
+  workflows: [CalendarSummaryWorkflow, GoogleWorkspaceAgentWorkflow],
+})
+@Module({
+  imports: [GoogleExampleModule],
+})
+export class MyAppModule {}
+```
 
 ### Environment Variables
 

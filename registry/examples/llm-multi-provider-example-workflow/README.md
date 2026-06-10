@@ -1,40 +1,46 @@
+---
+title: LLM Multi-Provider Example
+description: Example using multiple LLM providers (Claude and OpenAI) in the same workflow — side-by-side responses, call-time config with different provider settings
+---
+
 # LLM Multi-Provider Example
 
 Demonstrates how to use multiple LLM providers (Claude and OpenAI) in the same workflow. The same prompt is sent to both providers and the responses are displayed side by side.
 
 ## Key Concepts
 
-### Multiple injections with different defaults
+### One tool, multiple providers via call-time config
 
-The same tool class (`LlmGenerateTextTool`) is injected twice with different `@InjectTool` defaults — each pre-configured for its provider:
-
-```typescript
-@InjectTool({
-  provider: 'claude',
-  model: 'claude-sonnet-4-6',
-  system: 'You are a helpful assistant. Keep your response brief.',
-})
-claudeLlm: LlmGenerateTextTool;
-
-@InjectTool({
-  provider: 'openai',
-  model: 'gpt-4o-mini',
-  system: 'You are a helpful assistant. Keep your response brief.',
-})
-openaiLlm: LlmGenerateTextTool;
-```
-
-Each injection creates its own proxy with its own defaults. The underlying NestJS singleton is shared, but the defaults are per-injection-site.
-
-### Clean call sites
-
-With defaults set at the injection site, call sites only pass call-specific args:
+The same tool class (`LlmGenerateTextTool`) is injected once via the constructor. Each call passes the desired provider and model via `{ config: { ... } }`:
 
 ```typescript
-// No provider, model, or system needed — comes from @InjectTool defaults
-const result = await this.claudeLlm.call({
-  prompt: args.prompt,
-});
+constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
+  super();
+}
+
+// Claude call
+const result = await this.llmGenerateText.call(
+  { prompt: args.prompt },
+  {
+    config: {
+      provider: 'claude',
+      model: 'claude-sonnet-4-6',
+      system: 'You are a helpful assistant. Keep your response brief.',
+    },
+  },
+);
+
+// OpenAI call
+const result = await this.llmGenerateText.call(
+  { prompt: state.prompt },
+  {
+    config: {
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+      system: 'You are a helpful assistant. Keep your response brief.',
+    },
+  },
+);
 ```
 
 ### Module setup
@@ -49,73 +55,98 @@ Import both provider modules. The adapter tools are available globally via `LlmP
 export class LlmMultiProviderExampleModule {}
 ```
 
+### App registration
+
+Register the module in your app with `@StudioApp` so workflows appear in Studio:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import {
+  LlmMultiProviderExampleModule,
+  LlmMultiProviderWorkflow,
+} from '@loopstack/llm-multi-provider-example-workflow';
+
+@StudioApp({
+  title: 'Multi-Provider Example',
+  workflows: [LlmMultiProviderWorkflow],
+})
+@Module({
+  imports: [LlmMultiProviderExampleModule],
+})
+export class MyAppModule {}
+```
+
 ## Full Workflow
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
-import type { LlmContentBlock, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { LlmGenerateTextTool, LlmMessageDocument, extractText } from '@loopstack/llm-provider-module';
+
+interface LlmMultiProviderState {
+  prompt: string;
+}
 
 @Workflow({
-  uiConfig: __dirname + '/llm-multi-provider.ui.yaml',
+  title: 'LLM Multi-Provider',
+  description: 'Runs the same prompt through Claude and OpenAI side by side',
+  widget: __dirname + '/llm-multi-provider.ui.yaml',
   schema: z.object({
     prompt: z.string().default('What is the meaning of life? Answer in one sentence.'),
   }),
 })
-export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }> {
-  @InjectTool({
-    provider: 'claude',
-    model: 'claude-sonnet-4-6',
-    system: 'You are a helpful assistant. Keep your response brief.',
-  })
-  claudeLlm: LlmGenerateTextTool;
-
-  @InjectTool({
-    provider: 'openai',
-    model: 'gpt-4o-mini',
-    system: 'You are a helpful assistant. Keep your response brief.',
-  })
-  openaiLlm: LlmGenerateTextTool;
+export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, LlmMultiProviderState> {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
+    super();
+  }
 
   @Transition({ to: 'claude_done' })
-  async askClaude(args: { prompt: string }) {
+  async askClaude(state: LlmMultiProviderState, ctx: RunContext): Promise<LlmMultiProviderState> {
+    const args = ctx.args as { prompt: string };
     await this.documentStore.save(LlmMessageDocument, { role: 'user', content: args.prompt });
 
-    const result = await this.claudeLlm.call({
-      prompt: args.prompt,
-    });
+    const result = await this.llmGenerateText.call(
+      { prompt: args.prompt },
+      {
+        config: {
+          provider: 'claude',
+          model: 'claude-sonnet-4-6',
+          system: 'You are a helpful assistant. Keep your response brief.',
+        },
+      },
+    );
 
     await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
-      content: `**Claude:** ${this.extractText(result.data!)}`,
+      content: `**Claude:** ${extractText(result.data!)}`,
     });
+    return { ...state, prompt: args.prompt };
   }
 
   @Transition({ from: 'claude_done', to: 'openai_done' })
-  async askOpenAi() {
-    const args = ctx.args as { prompt: string };
-
-    const result = await this.openaiLlm.call({
-      prompt: args.prompt,
-    });
+  async askOpenAi(state: LlmMultiProviderState): Promise<LlmMultiProviderState> {
+    const result = await this.llmGenerateText.call(
+      { prompt: state.prompt },
+      {
+        config: {
+          provider: 'openai',
+          model: 'gpt-4o-mini',
+          system: 'You are a helpful assistant. Keep your response brief.',
+        },
+      },
+    );
 
     await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
-      content: `**OpenAI:** ${this.extractText(result.data!)}`,
+      content: `**OpenAI:** ${extractText(result.data!)}`,
     });
+    return state;
   }
 
   @Transition({ from: 'openai_done', to: 'end' })
-  async done(): Promise<void> {}
-
-  private extractText(result: LlmGenerateTextResult): string {
-    const content = result.message.content;
-    if (!content || typeof content === 'string') return (content as string) ?? '';
-    return (content as LlmContentBlock[])
-      .filter((block) => block.type === 'text')
-      .map((block) => (block as { type: 'text'; text: string }).text)
-      .join('\n');
+  async done(_state: LlmMultiProviderState): Promise<unknown> {
+    return {};
   }
 }
 ```
@@ -123,18 +154,17 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }> {
 ## How It Works
 
 1. User provides a prompt (defaults to "What is the meaning of life?")
-2. The prompt is sent to **Claude** via the `claudeLlm` tool (pre-configured with `@InjectTool`)
+2. The prompt is sent to **Claude** via `this.llmGenerateText.call()` with `config: { provider: 'claude' }`
 3. Claude's response is saved as a document
-4. The same prompt is sent to **OpenAI** via the `openaiLlm` tool
+4. The same prompt is sent to **OpenAI** via `this.llmGenerateText.call()` with `config: { provider: 'openai' }`
 5. OpenAI's response is saved as a document
 6. Both responses are visible in the UI
 
 ## Best Practices Demonstrated
 
-- **Configure once, call cleanly** — provider and model set at `@InjectTool`, not in every call
-- **Same class, different config** — `LlmGenerateTextTool` injected twice with different defaults
-- **Provider-agnostic code** — call sites don't know which provider they're using
-- **Explicit provider declaration** — `provider: 'claude'` in `@InjectTool` makes it clear which provider is used
+- **Same class, different config** — one `LlmGenerateTextTool` instance, different `config` per call
+- **Provider-agnostic tool** — the tool class works with any registered provider
+- **Explicit provider declaration** — `provider: 'claude'` / `provider: 'openai'` in config makes it clear which provider is used
 
 ## Dependencies
 

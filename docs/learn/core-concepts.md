@@ -70,12 +70,13 @@ Loopstack is built on NestJS. Workflows, tools, and services are standard NestJS
 
 - **Modules** group related workflows, tools, and services
 - **Constructor injection** wires everything together
-- **Decorators** (`@Workflow`, `@Tool`, `@Document`, `@Transition`, `@Guard`) configure behavior
+- **Decorators** (`@Workflow`, `@Tool`, `@Document`, `@Transition`, `@Guard`, `@StudioApp`) configure behavior
+- **`@StudioApp`** marks a module as a launchable application in Studio — without it, workflows exist as providers but don't appear in the UI
 
 If you know NestJS, you already know how to structure a Loopstack project.
 
 ## Next steps
 
-- [Capabilities](/docs/learn/capabilities) — feature matrix for quick validation
-- [Getting Started](/docs/build/getting-started) — build your first workflow
-- [Creating Workflows](/docs/build/fundamentals/workflows) — deep dive into workflow patterns
+- [Capabilities](./capabilities.md) — feature matrix for quick validation
+- [Getting Started](../build/getting-started.md) — build your first workflow
+- [Creating Workflows](../build/fundamentals/workflows.md) — deep dive into workflow patterns

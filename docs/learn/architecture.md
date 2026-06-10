@@ -131,6 +131,6 @@ VITE_API_URL=http://my-backend.example.com
 
 ## Next Steps
 
-- [How the Workflow Engine Works](/docs/learn/workflow-engine) — state persistence, transactions, retries
-- [Why Documents Exist](/docs/learn/document-store) — the role of the document store and its relationship to state
-- [Configuration](/docs/reference/configuration) — all environment variables and `LoopstackModule.forRoot()` options
+- [How the Workflow Engine Works](./workflow-engine.md) — state persistence, transactions, retries
+- [Why Documents Exist](./document-store.md) — the role of the document store and its relationship to state
+- [Configuration](../reference/configuration.md) — all environment variables and `LoopstackModule.forRoot()` options

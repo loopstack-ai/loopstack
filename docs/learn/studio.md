@@ -142,6 +142,7 @@ npm run dev
 
 ## Next Steps
 
-- [Getting Started](/docs/build/getting-started) — set up your first project and see Studio in action
-- [Human-in-the-Loop](/docs/build/patterns/human-in-the-loop) — build workflows that pause for user input in Studio
-- [Documents](/docs/build/fundamentals/documents) — control how your workflow output renders in Studio
+- [Getting Started](../build/getting-started.md) — set up your first project and see Studio in action
+- [Studio Configuration](../build/fundamentals/studio-config.md) — per-app `ui` options on `@StudioApp`
+- [Human-in-the-Loop](../build/patterns/human-in-the-loop.md) — build workflows that pause for user input in Studio
+- [Documents](../build/fundamentals/documents.md) — control how your workflow output renders in Studio

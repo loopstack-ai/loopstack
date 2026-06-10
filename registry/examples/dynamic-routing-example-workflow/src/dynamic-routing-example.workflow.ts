@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, Guard, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 interface DynamicRoutingState {
   value: number;
@@ -20,7 +20,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   // --- Initial transition ---
 
   @Transition({ to: 'prepared' })
-  async createMockData(state: DynamicRoutingState, ctx: LoopstackContext): Promise<DynamicRoutingState> {
+  async createMockData(state: DynamicRoutingState, ctx: RunContext): Promise<DynamicRoutingState> {
     const args = ctx.args as { value: number };
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

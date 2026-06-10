@@ -75,6 +75,6 @@ If you're building:
 
 ## Next Steps
 
-- [Core Concepts](/docs/learn/core-concepts) — workflows, tools, documents, and the module system
-- [Capabilities](/docs/learn/capabilities) — quick feature matrix to validate your use case
-- [Getting Started](/docs/build/getting-started) — set up your first project in a few minutes
+- [Core Concepts](./core-concepts.md) — workflows, tools, documents, and the module system
+- [Capabilities](./capabilities.md) — quick feature matrix to validate your use case
+- [Getting Started](../build/getting-started.md) — set up your first project in a few minutes

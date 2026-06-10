@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { DocumentStore } from '../interfaces/document-store.interface.js';
 import type { ToolCallOptions, ToolResult } from '../interfaces/handler.interface.js';
-import type { LoopstackContext } from '../interfaces/loopstack-context.interface.js';
+import type { RunContext } from '../interfaces/run-context.interface.js';
 import type { ToolPipeline } from '../interfaces/tool-pipeline.interface.js';
 import { DOCUMENT_STORE, TOOL_PIPELINE } from '../tokens.js';
 
@@ -15,7 +15,7 @@ import { DOCUMENT_STORE, TOOL_PIPELINE } from '../tokens.js';
  * ```ts
  * @Tool({ schema: ArgsSchema, configSchema: ConfigSchema })
  * class MyTool extends BaseTool<Args, Config, MyResult> {
- *   protected async handle(args: Args, ctx: LoopstackContext, options?: ToolCallOptions<Config>): Promise<ToolResult<MyResult>> {
+ *   protected async handle(args: Args, ctx: RunContext, options?: ToolCallOptions<Config>): Promise<ToolResult<MyResult>> {
  *     return { data: { value: args.prompt } };
  *   }
  * }
@@ -58,7 +58,7 @@ export abstract class BaseTool<
    */
   protected abstract handle(
     args: TArgs,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions<TConfig>,
   ): Promise<ToolResult<TResult, TMeta>>;
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents/index.js';
 
@@ -25,7 +25,7 @@ interface SecretsRequestState {
 })
 export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs, SecretsRequestState> {
   @Transition({ to: 'requesting_secrets' })
-  async showForm(state: SecretsRequestState, ctx: LoopstackContext): Promise<SecretsRequestState> {
+  async showForm(state: SecretsRequestState, ctx: RunContext): Promise<SecretsRequestState> {
     const args = ctx.args as SecretsRequestArgs;
     await this.documentStore.save(SecretRequestDocument, {
       variables: args.variables,

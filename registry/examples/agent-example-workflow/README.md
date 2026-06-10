@@ -1,6 +1,11 @@
+---
+title: Agent Example
+description: Example launching AgentWorkflow as a sub-workflow with custom tools (weather_lookup, calculator) and rendering progress in Studio
+---
+
 # @loopstack/agent-example-workflow
 
-Demonstrates how to launch `AgentWorkflow` from [`@loopstack/agent`](../../features/agent-module) as a sub-workflow with custom tools (`weather_lookup`, `calculator`) and render progress/results in Studio.
+Demonstrates how to launch `AgentWorkflow` from [`@loopstack/agent`](https://loopstack.ai/docs/registry/features/agent-module) as a sub-workflow with custom tools (`weather_lookup`, `calculator`) and render progress/results in Studio.
 
 ## By using this example you'll get...
 
@@ -15,6 +20,22 @@ npm install @loopstack/agent-example-workflow
 ```
 
 `@loopstack/agent` requires an LLM provider configuration. Use `AgentExampleModule.forFeature({ llm: ... })` when you want to override provider config per module.
+
+Then register the module in your app:
+
+```typescript
+import { AgentExampleModule, AgentExampleWorkflow } from '@loopstack/agent-example-workflow';
+import { StudioApp } from '@loopstack/common';
+
+@StudioApp({
+  title: 'Agent Example',
+  workflows: [AgentExampleWorkflow],
+})
+@Module({
+  imports: [AgentExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

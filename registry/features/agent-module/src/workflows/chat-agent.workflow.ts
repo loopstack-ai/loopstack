@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import {
   BaseWorkflow,
   Guard,
@@ -74,7 +74,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: ChatAgentState, ctx: LoopstackContext): Promise<ChatAgentState> {
+  async setup(state: ChatAgentState, ctx: RunContext): Promise<ChatAgentState> {
     const args = ctx.args as ChatAgentArgs;
     if (args.context) {
       await this.documentStore.save(
@@ -162,7 +162,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: ChatAgentState, ctx: LoopstackContext): Promise<ChatAgentState> {
+  async cancelPendingTools(state: ChatAgentState, ctx: RunContext): Promise<ChatAgentState> {
     if (ctx.workflowId) {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }

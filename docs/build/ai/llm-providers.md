@@ -74,18 +74,18 @@ const result = await this.llmGenerateText.call(
 
 ### Args vs Config
 
-LLM tools separate **args** (per-request data) from **config** (provider/model/behavior settings):
+LLM tools separate **args** (per-request data) from **config** (provider/model/behavior settings). For `LlmGenerateTextTool`, the input args are `prompt` and `messages`; `outputSchema` applies only to `LlmGenerateObjectTool`. See [Text Generation](./text-generation.md) for full call examples.
 
-| Parameter           | Location | Description                             |
-| ------------------- | -------- | --------------------------------------- |
-| `prompt`            | args     | Simple prompt string                    |
-| `messages`          | args     | Explicit message array                  |
-| `outputSchema`      | args     | JSON Schema (generate object only)      |
-| `provider`          | config   | LLM provider name (e.g. `'claude'`)     |
-| `model`             | config   | Model name (e.g. `'claude-sonnet-4-6'`) |
-| `system`            | config   | System prompt                           |
-| `messagesSearchTag` | config   | Load messages from documents by tag     |
-| `tools`             | config   | Tool names the LLM can call             |
+| Parameter           | Location | Description                                |
+| ------------------- | -------- | ------------------------------------------ |
+| `prompt`            | args     | Simple prompt string                       |
+| `messages`          | args     | Explicit message array                     |
+| `outputSchema`      | args     | JSON Schema (`LlmGenerateObjectTool` only) |
+| `provider`          | config   | LLM provider name (e.g. `'claude'`)        |
+| `model`             | config   | Model name (e.g. `'claude-sonnet-4-6'`)    |
+| `system`            | config   | System prompt                              |
+| `messagesSearchTag` | config   | Load messages from documents by tag        |
+| `tools`             | config   | Tool names the LLM can call                |
 
 ## Using Multiple Providers
 
@@ -112,6 +112,50 @@ const fastResult = await this.llmGenerateText.call(
 );
 ```
 
+## Provider-Specific Configuration
+
+`config.providerConfig` is an opaque pass-through to the active provider — its shape depends on which provider handles the call. Use it for tuning behavior beyond the cross-provider config fields (system prompt, tools, etc.).
+
+Provider-specific config is per-call only. The cross-provider fields `provider` and `model` can also be set at module level via `LlmProviderModule.forRoot()` / `forFeature()` (see [Module-Level Defaults](#module-level-defaults)) — per-call config always takes priority.
+
+```typescript
+await this.llmGenerateText.call(
+  { prompt: 'Write a haiku about coffee' },
+  {
+    config: {
+      provider: 'claude',
+      model: 'claude-sonnet-4-6',
+      providerConfig: {
+        maxTokens: 1024,
+        temperature: 0.7,
+        cache: true,
+      },
+    },
+  },
+);
+```
+
+### `ClaudeProviderConfig`
+
+| Field           | Type       | Description                                                                                                                                                                                        |
+| --------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxTokens`     | `number`   | Maximum tokens to generate                                                                                                                                                                         |
+| `temperature`   | `number`   | Sampling temperature (0–1)                                                                                                                                                                         |
+| `stopSequences` | `string[]` | Stop generation when any of these strings is produced                                                                                                                                              |
+| `cache`         | `boolean`  | Enable Anthropic prompt caching. Places cache breakpoints on the system prompt, tool definitions, and the last message automatically — useful for multi-turn workflows where the prefix is reused. |
+| `envApiKey`     | `string`   | Env var name holding the API key (defaults to `ANTHROPIC_API_KEY`)                                                                                                                                 |
+
+### `OpenAiProviderConfig`
+
+| Field              | Type       | Description                                                     |
+| ------------------ | ---------- | --------------------------------------------------------------- |
+| `maxTokens`        | `number`   | Maximum tokens to generate                                      |
+| `temperature`      | `number`   | Sampling temperature (0–2)                                      |
+| `stopSequences`    | `string[]` | Stop generation when any of these strings is produced           |
+| `frequencyPenalty` | `number`   | -2.0 to 2.0; reduces token repetition                           |
+| `presencePenalty`  | `number`   | -2.0 to 2.0; encourages topic diversity                         |
+| `envApiKey`        | `string`   | Env var name holding the API key (defaults to `OPENAI_API_KEY`) |
+
 ## Adapter Tools
 
 All LLM interactions go through adapter tools from `@loopstack/llm-provider-module`. This ensures validation, interceptors, and logging apply to every LLM call.
@@ -125,11 +169,30 @@ All LLM interactions go through adapter tools from `@loopstack/llm-provider-modu
 
 ## Message Documents
 
-All providers share a single `LlmMessageDocument` with normalized content. Native API responses are stored in `entity.meta.response` for provider-specific round-trips.
+All providers share a single `LlmMessageDocument` with normalized content. Native API responses are stored in `entity.meta.response` for provider-specific round-trips. See [Chat Flows — Message Resolution](./chat-flows.md#message-resolution) for how documents are collected from the document store and become the LLM's conversation history.
 
 | Document             | Content Format                                      | Widget        |
 | -------------------- | --------------------------------------------------- | ------------- |
 | `LlmMessageDocument` | Normalized (`text`, `thinking`, `tool_call` blocks) | `llm-message` |
+
+### Response shape
+
+`LlmGenerateTextResult.data.message` is an `LlmNormalizedMessage`:
+
+| Field        | Type                                                          | Description                          |
+| ------------ | ------------------------------------------------------------- | ------------------------------------ |
+| `role`       | `'user' \| 'assistant'`                                       | Message role                         |
+| `content`    | `string \| LlmContentBlock[]`                                 | Plain text or a list of typed blocks |
+| `stopReason` | `'end_turn' \| 'tool_use' \| 'max_tokens' \| 'stop_sequence'` | Why generation stopped               |
+| `id`         | `string` (optional)                                           | Provider-assigned message ID         |
+
+Content blocks are one of:
+
+- `{ type: 'text', text: string }` — text output
+- `{ type: 'thinking', text: string }` — reasoning/thinking output
+- `{ type: 'tool_call', id: string, name: string, args: Record<string, unknown> }` — tool call
+
+See [Creating LLM Providers](../../extend/llm-providers.md) for the full interface.
 
 ## Environment Variables
 
@@ -146,3 +209,5 @@ All providers share a single `LlmMessageDocument` with normalized content. Nativ
 | ---------------- | -------------------------- | ---------- |
 | Anthropic Claude | `@loopstack/claude-module` | `'claude'` |
 | OpenAI           | `@loopstack/openai-module` | `'openai'` |
+
+To create a custom provider, see [Creating LLM Providers](../../extend/llm-providers.md).

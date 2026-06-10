@@ -1,166 +1,244 @@
+---
+title: Sandbox Filesystem
+description: SandboxFilesystemModule providing SandboxWriteFile, SandboxReadFile, SandboxListDirectory, SandboxCreateDirectory, SandboxDelete, SandboxExists, SandboxFileInfo tools for secure file operations inside Docker containers. Depends on @loopstack/sandbox-tool.
+---
+
 # @loopstack/sandbox-filesystem
 
-> A module for the [Loopstack AI](https://loopstack.ai) automation framework.
+> Sandbox filesystem module for the [Loopstack](https://loopstack.ai) automation framework.
 
-This module provides secure, controlled filesystem operations within Docker sandbox environments for Loopstack workflows.
+Provides secure filesystem operations inside Docker sandbox containers. Use it alongside `@loopstack/sandbox-tool` to read, write, list, create, delete, and inspect files and directories in isolated environments without risking the host system.
 
-## Overview
+## When to Use
 
-The Sandbox Filesystem module enables workflows to perform file and directory operations in isolated Docker containers. It provides a comprehensive set of tools for reading, writing, listing, and managing files within sandbox environments, ensuring secure execution of filesystem operations.
-
-By using this module, you'll be able to:
-
-- Create, read, update, and delete files within sandbox containers
-- List directory contents with recursive options
-- Create directories with automatic parent directory creation
-- Get detailed file and directory metadata
-- Check for file/directory existence
-- Handle both text and binary file content using UTF-8 or base64 encoding
-- Perform all operations within the security boundary of Docker containers
-
-This module is essential for workflows that need to manipulate files in isolated environments, such as code execution sandboxes, build environments, or secure file processing pipelines.
-
-**Note:** This module requires `@loopstack/sandbox-tool` as a dependency. The Docker sandbox containers must be initialized using `SandboxInit` and destroyed using `SandboxDestroy` from the `@loopstack/sandbox-tool` module. The filesystem tools operate on containers that have been created by the sandbox-tool.
+- You need to read or write files inside an isolated Docker container (e.g., code execution sandboxes, build pipelines)
+- Your workflow generates untrusted or AI-produced files and you want filesystem access confined to a container
+- You want structured directory listing, existence checks, or file metadata from inside a sandbox
+- You already use `@loopstack/sandbox-tool` for container lifecycle and need filesystem operations on top
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/sandbox-filesystem @loopstack/sandbox-tool
+```
 
-**Note:** This module requires `@loopstack/sandbox-tool` as a dependency.
+Import `SandboxFilesystemModule` in your module. It automatically imports `SandboxToolModule`, so container lifecycle tools (`SandboxInit`, `SandboxDestroy`, `SandboxCommand`) are available too.
 
-## Usage
+```typescript
+import { Module } from '@nestjs/common';
+import { SandboxFilesystemModule } from '@loopstack/sandbox-filesystem';
 
-Inject the tools in your workflow class via the constructor:
+@Module({
+  imports: [SandboxFilesystemModule],
+  providers: [MyWorkflow],
+  exports: [MyWorkflow],
+})
+export class MyModule {}
+```
+
+## Quick Start
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
-import {
-  SandboxCreateDirectory,
-  SandboxDelete,
-  SandboxExists,
-  SandboxFileInfo,
-  SandboxListDirectory,
-  SandboxReadFile,
-  SandboxWriteFile,
-} from '@loopstack/sandbox-filesystem';
+import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { SandboxCreateDirectory, SandboxReadFile, SandboxWriteFile } from '@loopstack/sandbox-filesystem';
 import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 
+interface SandboxState {
+  containerId?: string;
+}
+
 @Workflow({
-  uiConfig: __dirname + '/my.ui.yaml',
-  schema: z.object({
-    outputDir: z.string().default(process.cwd() + '/out'),
-  }),
+  schema: z.object({ outputDir: z.string().default(process.cwd() + '/out') }),
 })
-export class MyWorkflow extends BaseWorkflow<{ outputDir: string }> {
+export class SandboxWorkflow extends BaseWorkflow<{ outputDir: string }, SandboxState> {
   constructor(
-    // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
     private readonly sandboxInit: SandboxInit,
     private readonly sandboxDestroy: SandboxDestroy,
-    // Filesystem tools (from @loopstack/sandbox-filesystem)
     private readonly sandboxWriteFile: SandboxWriteFile,
     private readonly sandboxReadFile: SandboxReadFile,
-    private readonly sandboxListDirectory: SandboxListDirectory,
     private readonly sandboxCreateDirectory: SandboxCreateDirectory,
-    private readonly sandboxDelete: SandboxDelete,
-    private readonly sandboxExists: SandboxExists,
-    private readonly sandboxFileInfo: SandboxFileInfo,
   ) {
     super();
   }
 
-  containerId?: string;
-  fileContent?: string;
-
-  // Initialize the sandbox container (required before filesystem operations)
-  @Initial({ to: 'sandbox_ready' })
-  async initSandbox(args: { outputDir: string }) {
-    const result = await this.sandboxInit.call({
+  @Transition({ to: 'sandbox_ready' })
+  async initSandbox(state: SandboxState, ctx: RunContext): Promise<SandboxState> {
+    const args = ctx.args as { outputDir: string };
+    const result: ToolResult = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
-      containerName: 'my-filesystem-sandbox',
+      containerName: 'sandbox-container',
       projectOutPath: args.outputDir,
       rootPath: 'workspace',
     });
-
-    this.containerId = result.data!.containerId;
+    return { ...state, containerId: result.data.containerId };
   }
 
-  // Create a directory and write a file
   @Transition({ from: 'sandbox_ready', to: 'file_written' })
-  async writeFile() {
+  async writeFile(state: SandboxState): Promise<SandboxState> {
     await this.sandboxCreateDirectory.call({
-      containerId: this.containerId!,
-      path: '/workspace/output',
+      containerId: state.containerId!,
+      path: '/workspace/src',
       recursive: true,
     });
 
     await this.sandboxWriteFile.call({
-      containerId: this.containerId!,
-      path: '/workspace/output/result.txt',
-      content: 'Hello from sandbox!',
+      containerId: state.containerId!,
+      path: '/workspace/src/hello.js',
+      content: "console.log('Hello from sandbox!');",
       encoding: 'utf8',
       createParentDirs: true,
     });
+    return state;
   }
 
-  // Read the file back
   @Transition({ from: 'file_written', to: 'file_read' })
-  async readFile() {
-    const result = await this.sandboxReadFile.call({
-      containerId: this.containerId!,
-      path: '/workspace/output/result.txt',
+  async readFile(state: SandboxState): Promise<SandboxState> {
+    await this.sandboxReadFile.call({
+      containerId: state.containerId!,
+      path: '/workspace/src/hello.js',
       encoding: 'utf8',
     });
-
-    this.fileContent = result.data!.content;
+    return state;
   }
 
-  // List directory, check existence, get info
-  @Transition({ from: 'file_read', to: 'inspected' })
-  async inspectFiles() {
-    await this.sandboxListDirectory.call({
-      containerId: this.containerId!,
-      path: '/workspace/output',
-      recursive: false,
-    });
-
-    await this.sandboxExists.call({
-      containerId: this.containerId!,
-      path: '/workspace/output/result.txt',
-    });
-
-    await this.sandboxFileInfo.call({
-      containerId: this.containerId!,
-      path: '/workspace/output/result.txt',
-    });
-  }
-
-  // Clean up and destroy the sandbox
-  @Final({ from: 'inspected' })
-  async cleanup() {
-    await this.sandboxDelete.call({
-      containerId: this.containerId!,
-      path: '/workspace/output/result.txt',
-      force: true,
-    });
-
+  @Transition({ from: 'file_read', to: 'end' })
+  async destroySandbox(state: SandboxState): Promise<unknown> {
     await this.sandboxDestroy.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       removeContainer: true,
     });
+    return {};
   }
 }
 ```
 
+## How It Works
+
+All filesystem tools delegate to `SandboxCommand` from `@loopstack/sandbox-tool`, which executes shell commands (`cat`, `mkdir`, `rm`, `stat`, `find`) inside the Docker container via the Docker exec API. Content is transferred safely using base64 encoding.
+
+```
+start ──> sandbox_ready ──> file_written ──> file_read ──> end
+  |            |                  |              |           |
+  v            v                  v              v           v
+SandboxInit  mkdir/write       read           cleanup    SandboxDestroy
+```
+
+Container lifecycle (`SandboxInit` / `SandboxDestroy`) comes from `@loopstack/sandbox-tool`. This module adds the filesystem layer on top.
+
+## Tools Reference
+
+Every tool requires a `containerId` argument that references a container created by `SandboxInit`.
+
+### sandbox_write_file
+
+Write content to a file in a sandbox container.
+
+| Arg                | Type                 | Required              | Description                          |
+| ------------------ | -------------------- | --------------------- | ------------------------------------ |
+| `containerId`      | `string`             | Yes                   | Container ID                         |
+| `path`             | `string`             | Yes                   | File path inside the container       |
+| `content`          | `string`             | Yes                   | Content to write                     |
+| `encoding`         | `'utf8' \| 'base64'` | No (default `'utf8'`) | Content encoding                     |
+| `createParentDirs` | `boolean`            | No (default `true`)   | Create parent directories if missing |
+
+**Returns:** `{ path: string, bytesWritten: number }`
+
+### sandbox_read_file
+
+Read file contents from a sandbox container.
+
+| Arg           | Type                 | Required              | Description                    |
+| ------------- | -------------------- | --------------------- | ------------------------------ |
+| `containerId` | `string`             | Yes                   | Container ID                   |
+| `path`        | `string`             | Yes                   | File path inside the container |
+| `encoding`    | `'utf8' \| 'base64'` | No (default `'utf8'`) | Encoding to use when reading   |
+
+**Returns:** `{ content: string, encoding: string }`
+
+### sandbox_list_directory
+
+List files and directories in a sandbox container.
+
+| Arg           | Type      | Required             | Description                         |
+| ------------- | --------- | -------------------- | ----------------------------------- |
+| `containerId` | `string`  | Yes                  | Container ID                        |
+| `path`        | `string`  | Yes                  | Directory path inside the container |
+| `recursive`   | `boolean` | No (default `false`) | List recursively                    |
+
+**Returns:** `{ path: string, entries: Array<{ name: string, type: 'file' | 'directory' | 'symlink' | 'other', size: number, path: string }> }`
+
+### sandbox_create_directory
+
+Create a directory in a sandbox container.
+
+| Arg           | Type      | Required            | Description                          |
+| ------------- | --------- | ------------------- | ------------------------------------ |
+| `containerId` | `string`  | Yes                 | Container ID                         |
+| `path`        | `string`  | Yes                 | Directory path to create             |
+| `recursive`   | `boolean` | No (default `true`) | Create parent directories if missing |
+
+**Returns:** `{ path: string, created: boolean }`
+
+### sandbox_delete
+
+Delete a file or directory in a sandbox container.
+
+| Arg           | Type      | Required             | Description                         |
+| ------------- | --------- | -------------------- | ----------------------------------- |
+| `containerId` | `string`  | Yes                  | Container ID                        |
+| `path`        | `string`  | Yes                  | Path to delete                      |
+| `recursive`   | `boolean` | No (default `false`) | Recursively delete directories      |
+| `force`       | `boolean` | No (default `false`) | Force deletion without confirmation |
+
+**Returns:** `{ path: string, deleted: boolean }`
+
+### sandbox_exists
+
+Check if a file or directory exists in a sandbox container.
+
+| Arg           | Type     | Required | Description   |
+| ------------- | -------- | -------- | ------------- |
+| `containerId` | `string` | Yes      | Container ID  |
+| `path`        | `string` | Yes      | Path to check |
+
+**Returns:** `{ path: string, exists: boolean, type: 'file' | 'directory' | 'symlink' | 'other' | null }`
+
+### sandbox_file_info
+
+Get detailed information about a file or directory in a sandbox container.
+
+| Arg           | Type     | Required | Description     |
+| ------------- | -------- | -------- | --------------- |
+| `containerId` | `string` | Yes      | Container ID    |
+| `path`        | `string` | Yes      | Path to inspect |
+
+**Returns:** `{ path: string, name: string, type: 'file' | 'directory' | 'symlink' | 'other', size: number, permissions: string, owner: string, group: string, modifiedAt: string, accessedAt: string, createdAt: string }`
+
+## Public API
+
+- **Module:** `SandboxFilesystemModule`
+- **Tools:** `SandboxWriteFile`, `SandboxReadFile`, `SandboxListDirectory`, `SandboxCreateDirectory`, `SandboxDelete`, `SandboxExists`, `SandboxFileInfo`
+
+## Dependencies
+
+| Package                   | Role                                                                                                               |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `@loopstack/common`       | Base tool class, decorators, types                                                                                 |
+| `@loopstack/sandbox-tool` | Container lifecycle (`SandboxInit`, `SandboxDestroy`) and `SandboxCommand` used internally by all filesystem tools |
+| `@nestjs/common`          | NestJS dependency injection                                                                                        |
+| `zod`                     | Schema validation                                                                                                  |
+
+## Related
+
+- [Sandbox Execution](https://loopstack.ai/docs/build/integrations/sandbox) -- Setup guide, full tool table, and security details for sandbox containers
+- [sandbox-example-workflow](https://loopstack.ai/registry/loopstack-sandbox-example-workflow) -- Complete example covering init, create directory, write/read files, list, exists, file info, delete, and destroy
+- [@loopstack/sandbox-tool](https://loopstack.ai/docs/registry/tools/sandbox-tool) -- Container lifecycle and command execution (required companion package)
+
 ## About
 
-Author: Tobias Blättermann, Jakob Klippel
+Author: Tobias Blattermann, Jakob Klippel
 
 License: MIT
-
-### Additional Resources:
-
-- [Loopstack Documentation](https://loopstack.ai/docs)
-- [Getting Started with Loopstack](https://loopstack.ai/docs/getting-started)
-- For more examples how to use this tool look for `@loopstack/sandbox-filesystem` in the [Loopstack Registry](https://loopstack.ai/registry)

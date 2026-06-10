@@ -109,7 +109,7 @@ The built-in `AgentWorkflow` is a regular workflow. When you need custom behavio
 
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -139,7 +139,7 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: AgentState, ctx: LoopstackContext): Promise<AgentState> {
+  async setup(state: AgentState, ctx: RunContext): Promise<AgentState> {
     const args = ctx.args as { instructions: string };
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
@@ -269,7 +269,7 @@ export class ExploreTask extends BaseTool {
 
   protected async handle(
     args: { instructions: string },
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult> {
     const result = await this.agentWorkflow.run(

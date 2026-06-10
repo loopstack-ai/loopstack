@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { BaseWorkflow, Guard, MessageDocument, Transition, WORKFLOW_ORCHESTRATOR, Workflow } from '@loopstack/common';
-import type { LoopstackContext, WorkflowOrchestrator } from '@loopstack/common';
+import type { RunContext, WorkflowOrchestrator } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -128,7 +128,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: DelegateErrorState, ctx: LoopstackContext): Promise<DelegateErrorState> {
+  async cancelPendingTools(state: DelegateErrorState, ctx: RunContext): Promise<DelegateErrorState> {
     await this.orchestrator.cancelChildren(ctx.workflowId);
     return state;
   }

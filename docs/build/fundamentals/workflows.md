@@ -67,12 +67,21 @@ start → waiting_for_user → [user sends message] → ready → llmTurn → wa
 
 ```typescript
 @Workflow({
-  widget: __dirname + '/chat.ui.yaml',  // UI-only YAML config
+  widget: __dirname + '/chat.ui.yaml',
 })
 ```
 
-- **`widget`** — Path to YAML file containing UI widget configuration (optional)
-- **`schema`** — Zod schema that validates workflow input arguments (optional):
+All options are optional.
+
+| Option         | Type                       | Default                                                 | Description                                                                                                                    |
+| -------------- | -------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `name`         | `string`                   | class name with `Workflow` suffix stripped, snake_cased | Explicit snake_case identifier. E.g. `ChatWorkflow` → `chat`, `AgentExampleWorkflow` → `agent_example`.                        |
+| `title`        | `string`                   | —                                                       | Human-readable display title shown in Studio UI.                                                                               |
+| `description`  | `string`                   | —                                                       | Human-readable description shown in Studio UI.                                                                                 |
+| `widget`       | `WidgetRef \| WidgetRef[]` | —                                                       | Path(s) to YAML file(s) — or inline widget object(s) — defining the Studio UI surface for this workflow.                       |
+| `schema`       | `z.ZodType`                | —                                                       | Zod schema validating workflow input arguments. Surfaces as `ctx.args` in transitions.                                         |
+| `configSchema` | `z.ZodType`                | —                                                       | Zod schema validating workflow config (provided via `options.config` at start time / sub-workflow `run()`).                    |
+| `stateSchema`  | `z.ZodType`                | —                                                       | Zod schema validating the resulting state after every transition (see [Validating State](#validating-state-with-stateschema)). |
 
 ```typescript
 @Workflow({
@@ -92,14 +101,23 @@ All workflows extend `BaseWorkflow`, which provides:
 | `this.documentStore` | Save and query documents via `this.documentStore.save(DocClass, content, options?)` |
 | `this.render`        | Render Handlebars templates via `this.render(templatePath, data?)`                  |
 
-Context is passed as a parameter to transition methods via `ctx: LoopstackContext`:
+Context is passed as a parameter to transition methods via `ctx: RunContext<TArgs>`. The generic parameter types `ctx.args` — prefer it over casting:
 
-| Context Property  | Description               |
-| ----------------- | ------------------------- |
-| `ctx.userId`      | User ID                   |
-| `ctx.workspaceId` | Workspace ID              |
-| `ctx.workflowId`  | Current workflow run ID   |
-| `ctx.args`        | Validated input arguments |
+| Context Property            | Description                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------ |
+| `ctx.userId`                | User ID                                                                                    |
+| `ctx.workspaceId`           | Workspace ID                                                                               |
+| `ctx.workflowId`            | Current workflow run ID                                                                    |
+| `ctx.args`                  | Validated input arguments (typed via `RunContext<TArgs>`)                                  |
+| `ctx.execution?.place`      | Current state name. Present in workflow transitions, absent when `ctx` is passed to tools. |
+| `ctx.execution?.retryCount` | Retry attempt counter for the current transition (0 on first run).                         |
+
+```typescript
+@Transition({ to: 'ready', schema: z.object({ subject: z.string() }) })
+async setup(state: MyState, ctx: RunContext<{ subject: string }>): Promise<MyState> {
+  return { ...state, subject: ctx.args.subject };
+}
+```
 
 ## Transition Types
 
@@ -109,11 +127,12 @@ Runs once when the workflow starts. Uses `@Transition` with no `from` (defaults 
 
 ```typescript
 @Transition({ to: 'ready' })
-async setup(state: MyState, ctx: LoopstackContext): Promise<MyState> {
-  const args = ctx.args as { subject: string };
-  return state;
+async setup(state: MyState, ctx: RunContext<{ subject: string }>): Promise<MyState> {
+  return { ...state, subject: ctx.args.subject };
 }
 ```
+
+The `state` parameter starts as an empty object `{}` — the initial transition is the place to populate it.
 
 ### Standard Transition — State Change
 
@@ -165,6 +184,29 @@ export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
 ```
 
 Values persist even when the workflow pauses and resumes.
+
+### Validating State with `stateSchema`
+
+Add a Zod schema via `@Workflow({ stateSchema })` to enforce the state shape at runtime. The processor validates the resulting state after every transition (before persistence). If validation fails the transition errors out — bugs that corrupt state are caught at the point they occur instead of leaking into later transitions or checkpoints.
+
+```typescript
+const MyStateSchema = z.object({
+  counter: z.number().int().nonnegative(),
+  llmResult: z.unknown().optional(),
+});
+
+@Workflow({
+  stateSchema: MyStateSchema,
+})
+export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, z.infer<typeof MyStateSchema>> {
+  @Transition({ from: 'ready', to: 'processed' })
+  async process(state) {
+    return { ...state, counter: (state.counter ?? 0) + 1 };
+  }
+}
+```
+
+Use this when the state shape is critical and you want fail-fast diagnostics. Skip it for prototyping or when the state is loose by design.
 
 ## Injecting Tools
 
@@ -355,4 +397,4 @@ src/
 
 ---
 
-> **Using an AI coding agent?** See [Skill: Create a Custom Workflow](/docs/skills/create-custom-workflow) for a dense checklist and syntax reference optimized for code generation.
+> **Using an AI coding agent?** See [Skill: Create a Custom Workflow](../../skills/create-custom-workflow.md) for a dense checklist and syntax reference optimized for code generation.

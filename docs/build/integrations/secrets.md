@@ -9,7 +9,25 @@ Loopstack provides built-in tools for requesting and retrieving secrets (API key
 
 ## Overview
 
-Secrets are requested from the user via `RequestSecretsTool` and stored securely. They can later be retrieved with `GetSecretKeysTool` to verify availability.
+Secrets are requested from the user via `RequestSecretsTool` and persisted in the database via `SecretEntity`, scoped per workspace. Values are never exposed to the LLM — only key names and availability flags (`GetSecretKeysTool`) are returned to workflow code.
+
+### Providing Secrets to Remote Environments
+
+When a workflow runs commands on a remote sandbox or Fly.io machine via `@loopstack/remote-client-module`, secrets must reach that environment to be useful. The `SyncSecretsTool` (`sync_secrets`) reads all workspace secrets, ships them to the remote agent over its authenticated control channel, and writes them as `.env` variables before restarting the app. Values stay on the server side of the control channel and are not surfaced to the LLM.
+
+Call `sync_secrets` before launching long-running commands or whenever a secret changes:
+
+```typescript
+constructor(private readonly syncSecrets: SyncSecretsTool) {
+  super();
+}
+
+@Transition({ from: 'secrets_received', to: 'ready' })
+async pushSecrets(state: SecretsState): Promise<SecretsState> {
+  await this.syncSecrets.call({});
+  return state;
+}
+```
 
 ## Available Tools
 

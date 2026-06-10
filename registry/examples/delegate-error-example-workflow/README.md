@@ -1,3 +1,8 @@
+---
+title: Delegate Error Handling Example
+description: Example showing how delegate tool-call loops handle failure modes — schema validation errors, runtime errors, failing sub-workflows, LLM error recovery
+---
+
 # @loopstack/delegate-error-example-workflow
 
 Demonstrates how delegate tool-call loops handle different tool failure modes and feed structured error results back to the LLM for recovery.
@@ -15,6 +20,22 @@ npm install @loopstack/delegate-error-example-workflow
 ```
 
 This example uses `@loopstack/claude-module` through `@loopstack/llm-provider-module`, so configure Claude credentials before running.
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { DelegateErrorExampleModule, DelegateErrorWorkflow } from '@loopstack/delegate-error-example-workflow';
+
+@StudioApp({
+  title: 'Delegate Error Example',
+  workflows: [DelegateErrorWorkflow],
+})
+@Module({
+  imports: [DelegateErrorExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 

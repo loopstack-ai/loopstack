@@ -1,3 +1,8 @@
+---
+title: Tool Calling Example
+description: Example workflow enabling LLM tool calling (function calling) with custom tools — LlmGenerateTextTool, LlmDelegateToolCallsTool, tool registration
+---
+
 # @loopstack/tool-call-example-workflow
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -11,17 +16,41 @@ The Tool Call Example Workflow shows how to build agentic workflows where the LL
 By using this workflow as a reference, you'll learn how to:
 
 - Create custom tools with the `@Tool` decorator and `BaseTool`
-- Pass tools to the LLM using the `tools` array in `@InjectTool`
+- Pass tools to the LLM using the `tools` array in the call-time `config`
 - Use `@Guard` decorators for conditional transition routing
 - Handle tool call responses with `LlmDelegateToolCallsTool`
-- Store workflow state as instance properties
+- Manage workflow state via the `state` object passed through transitions
 - Build agentic loops that continue until the LLM has a final answer
 
 This example is essential for developers building AI agents that need to interact with external systems or APIs.
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/tool-call-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { ToolCallWorkflow, ToolCallingExampleModule } from '@loopstack/tool-call-example-workflow';
+
+@StudioApp({
+  title: 'Tool Call Example',
+  workflows: [ToolCallWorkflow],
+})
+@Module({
+  imports: [ToolCallingExampleModule],
+})
+export class MyAppModule {}
+```
+
+Set your Anthropic API key as an environment variable:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ## How It Works
 
@@ -51,38 +80,38 @@ export class GetWeather extends BaseTool {
 
 The `description` in `uiConfig` is passed to the LLM to help it understand when to use the tool.
 
-#### 2. Registering Tools in the Workflow
+#### 2. Injecting Tools in the Workflow
 
-Register custom tools and built-in tools using the `@InjectTool()` decorator:
+Tools are injected via standard NestJS constructor injection:
 
 ```typescript
-@Workflow({ uiConfig: __dirname + '/tool-call.ui.yaml' })
-export class ToolCallWorkflow extends BaseWorkflow {
-  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6', tools: ['getWeather'] })
-  llmGenerateText: LlmGenerateTextTool;
-
-  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
-  @InjectTool() getWeather: GetWeather;
+@Workflow({ ... })
+export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
+  constructor(
+    private readonly llmGenerateText: LlmGenerateTextTool,
+    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly getWeather: GetWeather,
+  ) {
+    super();
+  }
 ```
 
 #### 3. Passing Tools to the LLM
 
-Provide tools to the LLM via the `tools` array in the `@InjectTool()` decorator. The LLM will decide whether to call a tool based on the user's request:
-
-```typescript
-@InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6', tools: ['getWeather'] })
-llmGenerateText: LlmGenerateTextTool;
-```
+Provide tools to the LLM via the `tools` array in the `config` option at call time. The LLM will decide whether to call a tool based on the user's request:
 
 ```typescript
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn() {
-  const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call({});
-  this.llmResult = result.data;
+async llmTurn(state: ToolCallState): Promise<ToolCallState> {
+  const result = await this.llmGenerateText.call(
+    {},
+    { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
+  );
+  return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
 }
 ```
 
-The `provider`, `model`, `tools`, and other config fields are set via `@InjectTool()` on the class property. The result is stored as an instance property for use in routing and subsequent transitions.
+The `provider`, `model`, `tools`, and other config fields are passed via `{ config: { ... } }` at call time. The result is stored in the state object for use in routing and subsequent transitions.
 
 #### 4. Guard-Based Conditional Routing
 
@@ -91,15 +120,18 @@ Use the `@Guard` decorator to conditionally enable transitions. Guards reference
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls() {
-  const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-    message: this.llmResult!.message,
+async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
+  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
   });
-  this.delegateResult = result.data;
+  const result = await this.llmDelegateToolCalls.call({
+    message: state.llmResult!.message,
+  });
+  return { ...state, delegateResult: result.data };
 }
 
-hasToolCalls() {
-  return this.llmResult?.message.stopReason === 'tool_use';
+hasToolCalls(state: ToolCallState): boolean {
+  return state.llmResult?.message.stopReason === 'tool_use';
 }
 ```
 
@@ -110,10 +142,10 @@ The `priority: 10` ensures this transition is evaluated before the terminal `@Tr
 The `LlmDelegateToolCallsTool` tool executes the tool calls from the LLM response message:
 
 ```typescript
-const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-  message: this.llmResult!.message,
+const result = await this.llmDelegateToolCalls.call({
+  message: state.llmResult!.message,
 });
-this.delegateResult = result.data;
+return { ...state, delegateResult: result.data };
 ```
 
 #### 6. Waiting for Tool Completion
@@ -123,10 +155,21 @@ A guard checks whether all delegated tool calls have completed before looping ba
 ```typescript
 @Transition({ from: 'awaiting_tools', to: 'ready' })
 @Guard('allToolsComplete')
-async toolsComplete() {}
+async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
+  await this.documentStore.save(LlmMessageDocument, {
+    role: 'user',
+    content: state.delegateResult!.toolResults.map((tr) => ({
+      type: 'tool_result' as const,
+      toolCallId: tr.toolCallId,
+      content: tr.content ?? '',
+      isError: tr.isError ?? false,
+    })),
+  });
+  return state;
+}
 
-allToolsComplete() {
-  return this.delegateResult?.allCompleted;
+allToolsComplete(state: ToolCallState): boolean {
+  return state.delegateResult?.allCompleted ?? false;
 }
 ```
 
@@ -141,10 +184,11 @@ The workflow implements an agentic loop:
 
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond() {
-  await this.documentStore.save(LlmMessageDocument, this.llmResult!.message, {
-    meta: { response: this.llmResult!.response, provider: 'claude' },
+async respond(state: ToolCallState): Promise<unknown> {
+  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
   });
+  return {};
 }
 ```
 
@@ -155,61 +199,86 @@ This pattern allows the LLM to make multiple tool calls before providing a final
 The complete workflow class:
 
 ```typescript
-import { BaseWorkflow, Final, Guard, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { GetWeather } from './tools/get-weather.tool';
 
-@Workflow({
-  uiConfig: __dirname + '/tool-call.ui.yaml',
-})
-export class ToolCallWorkflow extends BaseWorkflow {
-  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6', tools: ['getWeather'] })
-  llmGenerateText: LlmGenerateTextTool;
-
-  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
-  @InjectTool() getWeather: GetWeather;
-
+interface ToolCallState {
   llmResult?: LlmGenerateTextResult;
+  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
+}
+
+@Workflow({
+  title: 'LLM Tool Calling Example (Berlin Weather)',
+  description: 'An example workflow that demonstrates how to use an LLM to call external tools.',
+})
+export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
+  constructor(
+    private readonly llmGenerateText: LlmGenerateTextTool,
+    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly getWeather: GetWeather,
+  ) {
+    super();
+  }
 
   @Transition({ to: 'ready' })
-  async setup() {
+  async setup(state: ToolCallState): Promise<ToolCallState> {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
+    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn() {
-    const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call({});
-    this.llmResult = result.data;
+  async llmTurn(state: ToolCallState): Promise<ToolCallState> {
+    const result = await this.llmGenerateText.call(
+      {},
+      { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
+    );
+    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls() {
-    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-      message: this.llmResult!.message,
+  async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
-    this.delegateResult = result.data;
+    const result = await this.llmDelegateToolCalls.call({
+      message: state.llmResult!.message,
+    });
+    return { ...state, delegateResult: result.data };
   }
 
-  hasToolCalls() {
-    return this.llmResult?.message.stopReason === 'tool_use';
+  hasToolCalls(state: ToolCallState): boolean {
+    return state.llmResult?.message.stopReason === 'tool_use';
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async toolsComplete() {}
+  async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
+    await this.documentStore.save(LlmMessageDocument, {
+      role: 'user',
+      content: state.delegateResult!.toolResults.map((tr) => ({
+        type: 'tool_result' as const,
+        toolCallId: tr.toolCallId,
+        content: tr.content ?? '',
+        isError: tr.isError ?? false,
+      })),
+    });
+    return state;
+  }
 
-  allToolsComplete() {
-    return this.delegateResult?.allCompleted;
+  allToolsComplete(state: ToolCallState): boolean {
+    return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond() {
-    await this.documentStore.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: 'claude' },
+  async respond(state: ToolCallState): Promise<unknown> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
+    return {};
   }
 }
 ```

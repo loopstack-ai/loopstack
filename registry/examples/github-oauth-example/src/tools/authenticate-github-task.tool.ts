@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const AuthenticateGitHubTaskInputSchema = z
@@ -42,7 +42,7 @@ export class AuthenticateGitHubTask extends BaseTool<
 
   protected async handle(
     args: AuthenticateGitHubTaskInput,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
     const result = await this.oAuthWorkflow.run(

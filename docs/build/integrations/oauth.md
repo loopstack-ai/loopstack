@@ -7,6 +7,27 @@ description: Integrating OAuth 2.0 authentication using @loopstack/oauth-module.
 
 Add OAuth 2.0 authentication to your workflows using the provider-agnostic `@loopstack/oauth-module`. Register providers like Google Workspace or GitHub, and access OAuth-protected APIs from any workflow or tool.
 
+## How It Works
+
+The module is split into three layers:
+
+1. **Provider registry** — provider modules (Google, GitHub, etc.) implement `OAuthProviderInterface` and self-register at module init. The registry resolves a provider by name at call time.
+2. **OAuth workflow** — a generic `OAuthWorkflow` that builds the auth URL, surfaces a sign-in prompt via `OAuthPromptDocument`, waits for the browser callback, and exchanges the auth code for tokens. Run it as a sub-workflow from any parent workflow.
+3. **Token store** — `OAuthTokenStore` persists access/refresh tokens per user per provider in Redis (falls back to in-memory when Redis is unavailable). `getValidAccessToken()` automatically refreshes expired tokens via the provider's `refreshToken()` method.
+
+```
+start ──► initiateOAuth ──► awaiting_auth ──► exchangeToken ──► end
+              │                                     │
+              │  Builds auth URL,                    │  Validates CSRF state,
+              │  saves OAuthPromptDocument           │  exchanges code,
+              │  with sign-in prompt                 │  stores tokens
+              ▼                                      ▼
+         (waits for user to                    (callback resumes
+          complete OAuth in browser)            parent workflow)
+```
+
+Tools that need an access token call `OAuthTokenStore.getValidAccessToken(userId, provider)` and return `{ error: 'unauthorized' }` if no valid token exists, which lets the parent workflow guard branch into running `OAuthWorkflow`.
+
 ## Setup
 
 ```typescript
@@ -21,13 +42,28 @@ import { GoogleWorkspaceModule } from '@loopstack/google-workspace-module';
 export class MyModule {}
 ```
 
+`GoogleWorkspaceModule` and `GitHubModule` import `OAuthModule` internally — you don't need to add it explicitly. For a custom provider, import `OAuthModule` directly alongside your provider module:
+
+```typescript
+import { OAuthModule } from '@loopstack/oauth-module';
+import { MyCustomOAuthModule } from './my-custom-oauth.module';
+
+@Module({
+  imports: [OAuthModule, MyCustomOAuthModule],
+  providers: [MyWorkflow],
+})
+export class MyModule {}
+```
+
+`OAuthModule` is decorated with `@Global()`, so a single import makes the registry, token store, and OAuth tools available throughout your app.
+
 ## OAuth as Sub-Workflow
 
 The simplest approach: launch the built-in `OAuthWorkflow` when authentication is needed.
 
 ```typescript
 import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { LinkDocument, MarkdownDocument } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -46,7 +82,7 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   }
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarState, ctx: LoopstackContext): Promise<CalendarState> {
+  async fetchEvents(state: CalendarState, ctx: RunContext): Promise<CalendarState> {
     const args = ctx.args as { calendarId: string };
     const result = await this.calendarFetchEvents.call({
       calendarId: args.calendarId,
@@ -115,7 +151,7 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
 ```typescript
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 @Tool({
@@ -128,7 +164,7 @@ export class CalendarFetchEventsTool extends BaseTool {
     super();
   }
 
-  protected async handle(args: { calendarId: string }, ctx: LoopstackContext): Promise<ToolResult> {
+  protected async handle(args: { calendarId: string }, ctx: RunContext): Promise<ToolResult> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -146,15 +182,25 @@ export class CalendarFetchEventsTool extends BaseTool {
 
 ## Creating a Custom OAuth Provider
 
-See [Creating OAuth Providers](/docs/extend/oauth-providers) for how to implement `OAuthProviderInterface` and register a custom provider.
+See [Creating OAuth Providers](../../extend/oauth-providers.md) for how to implement `OAuthProviderInterface` and register a custom provider.
 
 ## Environment Variables
 
+Each OAuth provider reads its own credentials from env, conventionally named `<PROVIDER>_CLIENT_ID`, `<PROVIDER>_CLIENT_SECRET`, and `<PROVIDER>_OAUTH_REDIRECT_URI`:
+
 ```
+# Google Workspace
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GOOGLE_OAUTH_REDIRECT_URI=...
+
+# GitHub
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+GITHUB_OAUTH_REDIRECT_URI=...
 ```
+
+The token store also reads `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` — see [Configuration Reference](../../reference/configuration.md) for defaults. Redis is optional; an in-memory fallback is used when unavailable.
 
 ## Token Lifecycle
 

@@ -1,7 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -39,10 +39,7 @@ export class GitHubSearchCodeTool extends BaseTool<GitHubSearchCodeArgs, object,
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(
-    args: GitHubSearchCodeArgs,
-    ctx: LoopstackContext,
-  ): Promise<ToolResult<GitHubSearchCodeResult>> {
+  protected async handle(args: GitHubSearchCodeArgs, ctx: RunContext): Promise<ToolResult<GitHubSearchCodeResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {

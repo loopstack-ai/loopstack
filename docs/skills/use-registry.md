@@ -27,8 +27,7 @@ Every registry package in `node_modules/@loopstack/<package-name>/` contains:
 
 | Path           | Description                                                                               |
 | -------------- | ----------------------------------------------------------------------------------------- |
-| `README.md`    | Usage documentation — tools provided, how to import and use them                          |
-| `SETUP.md`     | Setup instructions — module registration, required config                                 |
+| `README.md`    | Usage documentation — installation, module registration, tools, configuration             |
 | `dist/`        | Compiled JavaScript (what gets imported at runtime)                                       |
 | `src/`         | Full TypeScript source — only published for example/template packages, not features/tools |
 | `package.json` | Contains `loopstack` metadata field describing modules and workflows                      |
@@ -42,7 +41,13 @@ mkdir -p /tmp/loopstack-inspect && cd /tmp/loopstack-inspect
 npm init -y && npm install @loopstack/<package-name>
 ```
 
-Then review `node_modules/@loopstack/<package-name>/README.md`, `SETUP.md`, and `src/` to verify the package does what you need.
+Then review `node_modules/@loopstack/<package-name>/README.md` and `src/` to verify the package does what you need.
+
+Alternatively, use [giget](https://github.com/unjs/giget) to download source directly from GitHub:
+
+```bash
+npx giget@latest gh:loopstackai/loopstack/registry/features/<package-name> /tmp/<package-name>
+```
 
 ## Package Metadata (`package.json`)
 

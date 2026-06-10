@@ -18,7 +18,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      loopstackContext: {
+      runContext: {
         userId: 'user-1',
         workspaceId: 'ws-1',
         workflowId: '',
@@ -37,7 +37,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      loopstackContext: {
+      runContext: {
         userId: 'user-1',
         workspaceId: 'ws-1',
         workflowId: '',
@@ -53,7 +53,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      loopstackContext: {
+      runContext: {
         userId: 'user-1',
         workspaceId: 'ws-1',
         workflowId: '',

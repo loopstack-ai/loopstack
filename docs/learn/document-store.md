@@ -65,6 +65,8 @@ Documents are written **inside the active transition's database transaction**. I
 
 This is why document output is always consistent with workflow state: you can't have a document from a transition that "didn't happen" from the state machine's perspective.
 
+> **In stateless workflows** (e.g. `runSync({ stateless: true })`), documents are kept **in memory only** for the duration of the run. `save()`, `findAll()`, and `findByTag()` work normally within the run, but nothing is written to the database — the documents live as long as the call and are returned with the result.
+
 ### Replacing a Document
 
 By default, each `save()` call creates a new document row at the end of the feed. To replace an existing document at its current position, pass a stable `id`:
@@ -83,15 +85,26 @@ Under the hood: the old document row is marked `isInvalidated: true`, and a new 
 
 ## Validation
 
-Documents have a Zod schema (from the `@Document` decorator). When you call `save()`, content is validated against this schema before writing.
+Documents have a Zod schema (from the `@Document` decorator). When you call `save()`, content is validated against this schema before writing. The validation mode is controlled by the `validate` save option.
 
-For LLM-generated content, validation can be loosened:
+| Mode                 | Behavior                                                                                                                                                                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'strict'` (default) | Throws `SchemaValidationError` (with the document name and field-level Zod issues) if content fails the schema. Because saves run inside a transition, the throw rolls back the whole transition — no document is persisted and the workflow stays at the previous place. |
+| `'safe'`             | Validates non-throwing: stores the parsed (possibly partial) data **plus** the `ZodError` on the document's `error` field. Save succeeds either way.                                                                                                                      |
+| `'skip'`             | Bypasses validation entirely. The raw content is stored as-is. No `error` is attached.                                                                                                                                                                                    |
 
 ```typescript
+// Strict (default) — throws if invalid
+await this.documentStore.save(NotesDocument, content, { id: 'notes' });
+
+// Safe — keeps partial data, attaches the ZodError for inspection
+await this.documentStore.save(NotesDocument, content, { id: 'notes', validate: 'safe' });
+
+// Skip — raw write, no Zod check
 await this.documentStore.save(OptimizedNotesDocument, llmResult.data, { id: 'notes', validate: 'skip' });
 ```
 
-`validate: 'skip'` saves the document regardless of schema conformance. This is useful when the LLM's output might have minor deviations (empty strings, missing optional fields) that you want the user to review and correct before confirming.
+`'safe'` and `'skip'` are most useful for LLM-generated content where the model's output may have minor deviations (empty strings, missing optional fields) that you want the user to review and correct in the UI before confirming.
 
 ---
 
@@ -144,12 +157,12 @@ You don't always need to create custom documents. The built-in types cover the m
 | `LinkDocument`       | `@loopstack/common`              | Links to sub-workflow runs, with embed and status support          |
 | `ErrorDocument`      | `@loopstack/common`              | Error messages, automatically saved on transition failure          |
 
-Custom documents are for when you need structured forms, interactive fields, or action buttons — see the [Creating Documents](/docs/build/fundamentals/documents) guide.
+Custom documents are for when you need structured forms, interactive fields, or action buttons — see the [Creating Documents](../build/fundamentals/documents.md) guide.
 
 ---
 
 ## Next Steps
 
-- [Creating Documents](/docs/build/fundamentals/documents) — custom schemas, YAML widgets, form actions
-- [How the Workflow Engine Works](/docs/learn/workflow-engine) — how documents fit into the transaction and rollback model
-- [Architecture Overview](/docs/learn/architecture) — where documents live in the broader system
+- [Creating Documents](../build/fundamentals/documents.md) — custom schemas, YAML widgets, form actions
+- [How the Workflow Engine Works](./workflow-engine.md) — how documents fit into the transaction and rollback model
+- [Architecture Overview](./architecture.md) — where documents live in the broader system

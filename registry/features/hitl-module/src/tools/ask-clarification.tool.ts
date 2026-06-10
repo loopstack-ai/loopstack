@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow.js';
 
 const AskClarificationInputSchema = z
@@ -49,7 +49,7 @@ export class AskClarificationTool extends BaseTool<AskClarificationInput, object
 
   protected async handle(
     args: AskClarificationInput,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<AskClarificationResult>> {
     const result = await this.askUserWorkflow.run(

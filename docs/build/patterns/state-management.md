@@ -13,15 +13,17 @@ Define a state interface and pass it as a generic to `BaseWorkflow`:
 
 ```typescript
 interface MyState {
-  counter: number;
+  counter?: number;
   llmResult?: LlmGenerateTextResult;
-  items: string[];
+  items?: string[];
 }
 
 export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
   // ...
 }
 ```
+
+State begins as an empty object `{}` — the initial transition is responsible for populating it. For this reason, **all properties on a state schema should be optional**. If a property is required, the empty starting state (or any transition that returns `{}` to reset) will fail validation immediately. Treat missing fields as the absence of data and read them defensively (`state.counter ?? 0`).
 
 ## Writing State
 
@@ -42,6 +44,17 @@ async process(state: MyState): Promise<MyState> {
   };
 }
 ```
+
+### Return value policy
+
+| Return                         | Effect                                                                                                                                               |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `return;` / `return undefined` | Previous state is preserved unchanged. Use this when the transition has no state to write.                                                           |
+| `return { ... }`               | Object becomes the new state. Validated against `stateSchema` if defined.                                                                            |
+| `return {}`                    | State is reset to an empty object (validated against `stateSchema` if defined).                                                                      |
+| `return null` / primitive      | The returned value becomes the new state. If `stateSchema` is defined, the transition throws — `null` and primitives don't satisfy an object schema. |
+
+Returning a new state always replaces the previous state — there is no automatic merge. Spread the previous state (`return { ...state, ... }`) when you want to keep existing fields.
 
 ## Reading State
 
@@ -89,7 +102,7 @@ Input arguments are available via `ctx.args`:
 })
 export class MyWorkflow extends BaseWorkflow<{ value: number }, MyState> {
   @Transition({ to: 'ready' })
-  async setup(state: MyState, ctx: LoopstackContext): Promise<MyState> {
+  async setup(state: MyState, ctx: RunContext): Promise<MyState> {
     const args = ctx.args as { value: number };
     console.log(args.value); // 150
     return state;

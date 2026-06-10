@@ -1,25 +1,48 @@
+---
+title: Workflow State Example
+description: Example workflow managing state across transitions using a typed state object — typed state interface, state persistence, accessing state in transitions
+---
+
 # @loopstack/workflow-state-example-workflow
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
 
-This module provides an example workflow demonstrating how to manage state across transitions using instance properties.
+This module provides an example workflow demonstrating how to manage state across transitions using a typed state object.
 
 ## Overview
 
-The Workflow State Example Workflow shows how to store data as instance properties and access it across transitions. It demonstrates the core patterns for managing data flow in a workflow.
+The Workflow State Example Workflow shows how to pass data through a typed state object across transitions. It demonstrates the core patterns for managing data flow in a workflow.
 
 By using this workflow as a reference, you'll learn how to:
 
-- Store tool results as workflow instance properties
-- Access instance properties in subsequent transitions
-- Create private helper methods to transform stored data
-- Use `@InjectTool()` to declare and call tools
+- Define a typed state interface for your workflow
+- Return updated state from transitions
+- Access state in subsequent transitions
+- Create private helper methods to transform state data
 
 This example is useful for developers building workflows that need to store and manipulate data across transitions.
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/workflow-state-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { WorkflowStateExampleModule, WorkflowStateWorkflow } from '@loopstack/workflow-state-example-workflow';
+
+@StudioApp({
+  title: 'Workflow State Example',
+  workflows: [WorkflowStateWorkflow],
+})
+@Module({
+  imports: [WorkflowStateExampleModule],
+})
+export class MyAppModule {}
+```
 
 ## How It Works
 
@@ -27,48 +50,51 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 #### 1. Defining Workflow State
 
-State is stored as instance properties on the workflow class. No special decorator is needed -- just declare properties on your class:
+State is defined as a typed interface and passed as the second generic to `BaseWorkflow`:
 
 ```typescript
-@Workflow({
-  uiConfig: __dirname + '/workflow-state.ui.yaml',
-})
-export class WorkflowStateWorkflow extends BaseWorkflow {
+interface WorkflowStateState {
   message?: string;
 }
+
+@Workflow({
+  title: 'Workflow State',
+})
+export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>, WorkflowStateState> {
 ```
 
-The `message` property is a plain instance property that persists across transitions automatically.
+The state object is passed to each transition and persists across transitions automatically.
 
 #### 2. Storing Data in State
 
-Assign values to instance properties inside a transition method:
+Return updated state from a transition method:
 
 ```typescript
 @Transition({ to: 'data_created' })
-async createSomeData() {
-  this.message = 'Hello :)';
+async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
+  return { ...state, message: 'Hello :)' };
 }
 ```
 
-The value is stored in `this.message` for use in later transitions.
+The returned state is passed to the next transition.
 
 #### 3. Accessing State in Later Transitions
 
-Instance properties are available in any subsequent transition method:
+State is available as the first parameter in any subsequent transition method:
 
 ```typescript
 @Transition({ from: 'data_created', to: 'end' })
-async showResults() {
-  await this.createChatMessage.call({
+async showResults(state: WorkflowStateState): Promise<unknown> {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Data from state: ${this.message}`,
+    content: `Data from state: ${state.message}`,
   });
 
-  await this.createChatMessage.call({
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Use workflow helper method: ${this.messageInUpperCase(this.message!)}`,
+    content: `Use workflow helper method: ${this.messageInUpperCase(state.message!)}`,
   });
+  return {};
 }
 ```
 
@@ -87,31 +113,33 @@ These are standard TypeScript methods with no decorator required. Call them from
 ### Complete Workflow
 
 ```typescript
-import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+
+interface WorkflowStateState {
+  message?: string;
+}
 
 @Workflow({
-  uiConfig: __dirname + '/workflow-state.ui.yaml',
+  title: 'Workflow State',
 })
-export class WorkflowStateWorkflow extends BaseWorkflow {
-  message?: string;
-
+export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>, WorkflowStateState> {
   @Transition({ to: 'data_created' })
-  async createSomeData() {
-    this.message = 'Hello :)';
+  async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
+    return { ...state, message: 'Hello :)' };
   }
 
   @Transition({ from: 'data_created', to: 'end' })
-  async showResults() {
+  async showResults(state: WorkflowStateState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Data from state: ${this.message}`,
+      content: `Data from state: ${state.message}`,
     });
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Use workflow helper method: ${this.messageInUpperCase(this.message!)}`,
+      content: `Use workflow helper method: ${this.messageInUpperCase(state.message!)}`,
     });
+    return {};
   }
 
   private messageInUpperCase(message: string): string {
@@ -124,8 +152,7 @@ export class WorkflowStateWorkflow extends BaseWorkflow {
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Base classes, decorators, and tool injection
-- `@loopstack/common` - Provides `MessageDocument` for chat messages
+- `@loopstack/common` - Base classes, decorators, and `MessageDocument`
 
 ## About
 

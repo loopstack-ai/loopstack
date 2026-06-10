@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/llm-multi-provider-example-workflow",
   "displayName": "Loopstack LLM Multi-Provider Example",
-  "description": "Demonstrates using multiple LLM providers (Claude + OpenAI) in the same workflow with @InjectTool defaults",
+  "description": "Demonstrates using multiple LLM providers (Claude + OpenAI) in the same workflow with call-time config",
   "keywords": [
     "loopstack",
     "example",

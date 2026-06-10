@@ -84,7 +84,7 @@ Create `src/hello/hello.workflow.ts`:
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 const InputSchema = z.object({
@@ -104,7 +104,7 @@ export class HelloWorkflow extends BaseWorkflow<InputArgs> {
   }
 
   @Transition({ to: 'end' })
-  async greet(_state: unknown, ctx: LoopstackContext) {
+  async greet(_state: unknown, ctx: RunContext) {
     const args = ctx.args as InputArgs;
     const result = await this.llmGenerateText.call({
       prompt: `Say hello to ${args.name} in a fun way in one sentence.`,
@@ -157,6 +157,6 @@ Restart the dev server. Open Studio at [http://localhost:5173](http://localhost:
 
 ## Next steps
 
-- [Core Concepts](/docs/learn/core-concepts) — understand workflows, tools, documents, and providers
-- [Creating Workflows](/docs/build/fundamentals/workflows) — transitions, guards, state, and wait patterns
-- [AI Text Generation](/docs/build/ai/text-generation) — add LLM calls to your workflows
+- [Core Concepts](../learn/core-concepts.md) — understand workflows, tools, documents, and providers
+- [Creating Workflows](./fundamentals/workflows.md) — transitions, guards, state, and wait patterns
+- [AI Text Generation](./ai/text-generation.md) — add LLM calls to your workflows

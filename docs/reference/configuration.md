@@ -9,6 +9,8 @@ Loopstack is configured via `LoopstackModule.forRoot()` options and environment 
 
 All settings have sensible defaults — a fresh project works out of the box with no configuration.
 
+> Need finer-grained control over the database connection, config loading, or which submodules are registered? See [Custom Bootstrap](../extend/custom-bootstrap.md) for replacing `LoopstackModule.forRoot()` with its underlying modules.
+
 ## `LoopstackModule.forRoot()` Options
 
 ```typescript
@@ -72,7 +74,7 @@ JWT and hub authentication settings. Only relevant when `enableAuth` is `true`.
 
 ### `cors`
 
-CORS configuration. Defaults to `{ origin: true, credentials: true }`. Set to `false` to disable CORS.
+Standard NestJS/Express CORS options (the [`cors`](https://github.com/expressjs/cors#configuration-options) package). Defaults to `{ origin: true, credentials: true }`. Set to `false` to disable CORS.
 
 ## Other Environment Variables
 

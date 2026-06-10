@@ -1,3 +1,8 @@
+---
+title: Meeting Notes Example
+description: Example building a human-in-the-loop AI workflow — interactive documents, review steps, LLM-generated meeting notes with user approval
+---
+
 # @loopstack/meeting-notes-example-workflow
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
@@ -13,7 +18,7 @@ By using this workflow as a reference, you'll learn how to:
 - Use `wait: true` transitions to pause workflows for user input
 - Create interactive documents with action buttons
 - Handle transition payloads from user interactions
-- Transform unstructured text into structured data with AI using `ClaudeGenerateDocument`
+- Transform unstructured text into structured data with AI using `LlmGenerateObjectTool`
 - Build review-and-confirm patterns for AI outputs
 - Define workflow input schemas via the `@Workflow` decorator
 - Use the document repository to save and update documents
@@ -22,7 +27,31 @@ This example is essential for developers building workflows that require human o
 
 ## Installation
 
-See [SETUP.md](./SETUP.md) for installation and setup instructions.
+```bash
+npm install @loopstack/meeting-notes-example-workflow
+```
+
+Then register the module in your app:
+
+```typescript
+import { StudioApp } from '@loopstack/common';
+import { MeetingNotesExampleModule, MeetingNotesWorkflow } from '@loopstack/meeting-notes-example-workflow';
+
+@StudioApp({
+  title: 'Meeting Notes Example',
+  workflows: [MeetingNotesWorkflow],
+})
+@Module({
+  imports: [MeetingNotesExampleModule],
+})
+export class MyAppModule {}
+```
+
+Set your Anthropic API key as an environment variable:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ## How It Works
 
@@ -51,11 +80,10 @@ Define input parameters directly in the `@Workflow` decorator with a Zod schema:
       ),
   }),
 })
-export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }> {
-  @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
-
-  meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
-  optimizedNotes?: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
+export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, MeetingNotesState> {
+  constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
+    super();
+  }
 }
 ```
 
@@ -164,16 +192,28 @@ ui:
 
 #### 6. AI Document Generation
 
-Use `ClaudeGenerateDocument` to populate a structured document. Reference workflow properties for dynamic content:
+Use `LlmGenerateObjectTool` to extract structured data from unstructured text. The `outputSchema` is derived from the document's Zod schema via `toJSONSchema`, and provider/model are passed at call time:
 
 ```typescript
 @Transition({ from: 'response_received', to: 'notes_optimized' })
-async optimizeNotes() {
-  await this.claudeGenerateDocument.call({
-    claude: { model: 'claude-sonnet-4-6' },
-    response: { id: 'final', document: OptimizedNotesDocument },
-    prompt: `Extract all information from the provided meeting notes into the structured document.\n\n<Meeting Notes>\n${this.meetingNotes?.text}\n</Meeting Notes>`,
-  });
+async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
+  const result = await this.llmGenerateObject.call(
+    {
+      outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
+      prompt: this.render(__dirname + '/templates/extract-notes.md', {
+        text: state.meetingNotes?.text,
+      }),
+    },
+    { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
+  );
+
+  const objectResult = result.data as LlmGenerateObjectResult;
+  await this.documentStore.save(
+    OptimizedNotesDocument,
+    objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+    { id: 'final', validate: 'skip' },
+  );
+  return state;
 }
 ```
 
@@ -193,8 +233,8 @@ async confirm(payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>) {
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Transition`, terminal `@Transition`, `@InjectTool`, `Document`)
-- `@loopstack/claude-module` - Provides `ClaudeGenerateDocument` tool for AI-powered document generation
+- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Document`)
+- `@loopstack/llm-provider-module` - Provides `LlmGenerateObjectTool` for structured AI output
 
 ## About
 

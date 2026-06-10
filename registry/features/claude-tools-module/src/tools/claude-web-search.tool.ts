@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LoopstackContext } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import { WebSearchHit, WebSearchResult, WebSearchResultBlock } from '../types/index.js';
@@ -44,7 +44,7 @@ export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSear
 
   protected async handle(
     args: ClaudeWebSearchArgs,
-    ctx: LoopstackContext,
+    ctx: RunContext,
     options?: ToolCallOptions<ClaudeWebSearchConfig>,
   ): Promise<ToolResult<WebSearchResult>> {
     const config = options?.config;
