@@ -56,7 +56,7 @@ describe('DelegateErrorWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(DelegateErrorWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
+      .withImports(LlmProviderModule, ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       // Real tools — we want to test actual validation and runtime errors
       .withProviders(StrictSchemaTool, RuntimeErrorTool, FailingSubWorkflowTool, FailingWorkflow)

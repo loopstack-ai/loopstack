@@ -26,7 +26,7 @@ describe('LlmMultiProviderWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(LlmMultiProviderWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule, OpenAiModule)
+      .withImports(LlmProviderModule, ClaudeModule, OpenAiModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 

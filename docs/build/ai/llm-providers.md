@@ -16,7 +16,7 @@ import { ClaudeModule } from '@loopstack/claude-module';
 import { LlmProviderModule } from '@loopstack/llm-provider-module';
 
 @Module({
-  imports: [LoopstackModule.forRoot(), LlmProviderModule.forRoot({}), ClaudeModule],
+  imports: [LoopstackModule.forRoot(), LlmProviderModule, ClaudeModule],
 })
 export class AppModule {}
 ```

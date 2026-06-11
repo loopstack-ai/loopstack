@@ -16,7 +16,7 @@ describe('ChatWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
+      .withImports(LlmProviderModule, ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 
