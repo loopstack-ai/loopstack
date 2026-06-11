@@ -31,21 +31,18 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "yaml": "^2.8.3"
-  },
-  "devDependencies": {
     "@loopstack/common": "^0.32.3",
     "@loopstack/contracts": "^0.32.3",
     "@loopstack/core": "^0.32.3",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
     "@nestjs/typeorm": "^11.0.1",
     "typeorm": "^0.3.28"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.32.3",
-    "@loopstack/contracts": "^0.32.3",
-    "@loopstack/core": "^0.32.3",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/typeorm": "^11.0.0",

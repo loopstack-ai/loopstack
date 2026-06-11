@@ -31,10 +31,11 @@
     "test": "vitest run",
     "watch": "nest build --watch"
   },
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "@loopstack/common": "^0.32.3",
-    "@loopstack/secrets-module": "^0.25.1",
+    "@loopstack/secrets-module": "^0.25.1"
+  },
+  "devDependencies": {
     "@nestjs/common": "^11.1.19",
     "@nestjs/typeorm": "^11.0.1",
     "@swc/core": "^1.15.33",
@@ -44,8 +45,6 @@
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.32.3",
-    "@loopstack/secrets-module": "^0.25.1",
     "@nestjs/common": "^11.0.0",
     "@nestjs/typeorm": "^11.0.0",
     "typeorm": "^0.3.0",

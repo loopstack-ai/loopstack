@@ -34,20 +34,18 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
+    "@loopstack/claude-module": "^0.25.1",
+    "@loopstack/common": "^0.32.3",
     "lru-cache": "^11.0.2",
     "turndown": "^7.2.0"
   },
   "devDependencies": {
-    "@loopstack/claude-module": "^0.25.1",
-    "@loopstack/common": "^0.32.3",
     "@nestjs/common": "^11.1.19",
     "@nestjs/core": "^11.1.19",
     "@types/turndown": "^5.0.5",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/claude-module": "^0.25.1",
-    "@loopstack/common": "^0.32.3",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "zod": "^4.0.0"
