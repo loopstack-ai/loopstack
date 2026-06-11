@@ -10,7 +10,7 @@
     "loopstack",
     "module"
   ],
-  "version": "0.4.1",
+  "version": "0.4.2",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,8 +33,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.32.3",
-    "@loopstack/llm-provider-module": "^0.4.1",
+    "@loopstack/common": "^0.33.0",
+    "@loopstack/llm-provider-module": "^0.4.2",
     "openai": "^4.103.0"
   },
   "devDependencies": {

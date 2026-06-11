@@ -1,5 +1,16 @@
 # @loopstack/remote-file-explorer-example-workflow
 
+## 0.23.1
+
+### Patch Changes
+
+- [#178](https://github.com/loopstack-ai/loopstack/pull/178) [`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Propagate `LoopstackContext` → `RunContext` rename in example tools and workflows. Rewrite example READMEs and consolidate `SETUP.md` content into each README.
+
+- Updated dependencies [[`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b), [`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b)]:
+  - @loopstack/common@0.33.0
+  - @loopstack/remote-client@0.25.2
+  - @loopstack/remote-file-explorer-module@0.24.2
+
 ## 0.23.0
 
 ### Minor Changes

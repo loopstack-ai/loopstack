@@ -1,5 +1,15 @@
 # @loopstack/loopstack-module
 
+## 0.31.2
+
+### Patch Changes
+
+- Updated dependencies [[`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b)]:
+  - @loopstack/common@0.33.0
+  - @loopstack/api@0.33.0
+  - @loopstack/auth@0.33.0
+  - @loopstack/core@0.33.0
+
 ## 0.31.1
 
 ### Patch Changes
