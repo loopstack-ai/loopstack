@@ -160,3 +160,7 @@ Restart the dev server. Open Studio at [http://localhost:5173](http://localhost:
 - [Core Concepts](../learn/core-concepts.md) — understand workflows, tools, documents, and providers
 - [Creating Workflows](./fundamentals/workflows.md) — transitions, guards, state, and wait patterns
 - [AI Text Generation](./ai/text-generation.md) — add LLM calls to your workflows
+
+## zod version (reference)
+
+Loopstack requires **zod v4** — it uses the v4-only `z.toJSONSchema()` API to turn workflow input schemas into JSON Schema. npm 7+ installs it automatically as a peer dependency when you run `npm install @loopstack/loopstack-module`, so you don't normally need to install it yourself. Older tutorials may show `zod@^3`; that won't resolve against Loopstack's peer constraint and `npm install` will fail with `ERESOLVE`.
