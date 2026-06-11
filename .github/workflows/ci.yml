@@ -1,12 +1,12 @@
 # ============================================================================
-# CI Workflow - Runs on PRs to develop and main
+# CI Workflow - Runs on PRs to main
 # ============================================================================
 
 name: CI
 
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
