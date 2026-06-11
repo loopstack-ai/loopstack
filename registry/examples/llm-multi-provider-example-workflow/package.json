@@ -10,7 +10,7 @@
     "claude",
     "openai"
   ],
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -30,11 +30,11 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/agent": "^0.5.0",
-    "@loopstack/claude-module": "^0.25.0",
-    "@loopstack/common": "^0.32.0",
-    "@loopstack/llm-provider-module": "^0.4.0",
-    "@loopstack/openai-module": "^0.4.0",
+    "@loopstack/agent": "^0.5.2",
+    "@loopstack/claude-module": "^0.25.2",
+    "@loopstack/common": "^1.0.0",
+    "@loopstack/llm-provider-module": "^0.4.2",
+    "@loopstack/openai-module": "^0.4.2",
     "zod": "^4.3.6"
   },
   "files": [
