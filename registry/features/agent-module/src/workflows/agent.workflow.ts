@@ -69,12 +69,12 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
     if (args.context) {
       await this.documentStore.save(
         LlmMessageDocument,
-        { role: 'user', content: args.context },
+        { role: 'user', text: args.context },
         { meta: { hidden: true } },
       );
     }
 
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: args.userMessage });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: args.userMessage });
 
     return { ...state, ...args };
   }
@@ -126,7 +126,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   async toolsComplete(state: AgentState): Promise<AgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: state.delegateResult!.toolResults.map((tr) => ({
+      blocks: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',
@@ -154,7 +154,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
         provider: state.llmMeta!.provider,
       },
     });
-    return { response: this.extractTextResponse(state) };
+    return { response: state.llmResult?.message.text ?? '' };
   }
 
   private hasToolCalls(state: AgentState): boolean {
@@ -167,14 +167,5 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
 
   private isEndTurn(state: AgentState): boolean {
     return state.llmResult?.message.stopReason === 'end_turn';
-  }
-
-  private extractTextResponse(state: AgentState): string {
-    const content = state.llmResult?.message.content;
-    if (!content || typeof content === 'string') return (content as string) ?? '';
-    return content
-      .filter((block) => block.type === 'text')
-      .map((block) => (block as { type: 'text'; text: string }).text)
-      .join('\n');
   }
 }

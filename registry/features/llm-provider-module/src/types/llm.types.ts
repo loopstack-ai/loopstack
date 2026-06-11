@@ -21,6 +21,7 @@ export type LlmContentBlock = UIContentBlock;
 
 export const LlmNormalizedMessageSchema = UIMessageSchema.extend({
   id: z.string().optional(),
+  text: z.string(),
   stopReason: z.enum(['end_turn', 'tool_use', 'max_tokens', 'stop_sequence']).optional(),
 });
 
@@ -44,7 +45,8 @@ export interface LlmToolCall {
 
 export interface LlmMessage {
   role: 'user' | 'assistant';
-  content: string | unknown[];
+  text?: string;
+  blocks?: LlmContentBlock[];
 }
 
 // ---------------------------------------------------------------------------

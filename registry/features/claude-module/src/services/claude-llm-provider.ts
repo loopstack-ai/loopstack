@@ -162,11 +162,26 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
   // toProviderMessage
   // ---------------------------------------------------------------------------
 
-  toProviderMessage(content: LlmNormalizedMessage): Anthropic.MessageParam {
-    return {
-      role: content.role,
-      content: content.content as string | Anthropic.ContentBlockParam[],
-    };
+  toProviderMessage(message: LlmNormalizedMessage): Anthropic.MessageParam {
+    const sourceBlocks = message.blocks ?? [];
+    if (sourceBlocks.length === 0) {
+      return { role: message.role, content: message.text };
+    }
+    const blocks: Anthropic.ContentBlockParam[] = sourceBlocks.map((b) => {
+      switch (b.type) {
+        case 'text':
+          return { type: 'text', text: b.text };
+        case 'thinking':
+          return { type: 'thinking', thinking: b.text, signature: '' } as Anthropic.ContentBlockParam;
+        case 'tool_call':
+          return { type: 'tool_use', id: b.id, name: b.name, input: b.args };
+        case 'tool_result':
+          return { type: 'tool_result', tool_use_id: b.toolCallId, content: b.content, is_error: b.isError };
+        default:
+          return { type: 'text', text: message.text };
+      }
+    });
+    return { role: message.role, content: blocks };
   }
 
   // ---------------------------------------------------------------------------
@@ -182,7 +197,9 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
     }
 
     if (args.messages?.length) {
-      return args.messages as Anthropic.MessageParam[];
+      return args.messages.map((m) =>
+        this.toProviderMessage({ role: m.role, text: m.text, blocks: m.blocks } as LlmNormalizedMessage),
+      );
     }
 
     const tag = args.messagesSearchTag ?? 'message';
@@ -190,11 +207,11 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
       .filter((doc) => !doc.isInvalidated && doc.tags?.includes(tag))
       .sort((a, b) => a.index - b.index)
       .flatMap((doc) => {
-        const content = doc.content as LlmNormalizedMessage;
+        const message = doc.content as LlmNormalizedMessage;
 
         // Tool result document — map to Claude's tool_result format
-        if (Array.isArray(content.content) && content.content[0]?.type === 'tool_result') {
-          const blocks = content.content as Array<{
+        if (message.blocks?.[0]?.type === 'tool_result') {
+          const blocks = message.blocks as Array<{
             type: 'tool_result';
             toolCallId: string;
             content: string;
@@ -219,12 +236,12 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
           return [{ role: native.role, content: native.content }] as Anthropic.MessageParam[];
         }
 
-        return [this.toProviderMessage(content)];
+        return [this.toProviderMessage(message)];
       });
   }
 
   private normalizeResponse(response: Anthropic.Message): LlmNormalizedMessage {
-    const content = response.content.map((block) => {
+    const blocks = response.content.map((block) => {
       switch (block.type) {
         case 'text':
           return { type: 'text' as const, text: block.text };
@@ -264,10 +281,16 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
       stop_sequence: 'stop_sequence',
     };
 
+    const text = blocks
+      .filter((b): b is { type: 'text'; text: string } => b.type === 'text')
+      .map((b) => b.text)
+      .join('\n');
+
     return LlmNormalizedMessageSchema.parse({
       id: response.id,
       role: 'assistant',
-      content,
+      text,
+      blocks,
       stopReason: response.stop_reason ? stopReasonMap[response.stop_reason] : 'end_turn',
     });
   }

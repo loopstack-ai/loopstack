@@ -36,7 +36,7 @@ export class ReviewWorkflow extends BaseWorkflow<Record<string, unknown>, Review
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
     await this.documentStore.save(LlmMessageDocument, result.data!.message);
-    return { ...state, draft: result.data!.message.content as string };
+    return { ...state, draft: result.data!.message.text };
   }
 
   // Step 2: Workflow pauses here until the user clicks Approve in the Studio UI

@@ -165,15 +165,8 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
   // toProviderMessage
   // ---------------------------------------------------------------------------
 
-  toProviderMessage(content: LlmNormalizedMessage): OpenAI.ChatCompletionMessageParam {
-    const text =
-      typeof content.content === 'string'
-        ? content.content
-        : content.content
-            .filter((b) => b.type === 'text')
-            .map((b) => (b as { type: 'text'; text: string }).text)
-            .join('\n');
-    return { role: content.role as 'user' | 'assistant', content: text };
+  toProviderMessage(message: LlmNormalizedMessage): OpenAI.ChatCompletionMessageParam {
+    return { role: message.role as 'user' | 'assistant', content: message.text };
   }
 
   // ---------------------------------------------------------------------------
@@ -192,7 +185,7 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
       return args.messages.map(
         (msg): OpenAI.ChatCompletionMessageParam => ({
           role: msg.role as 'user' | 'assistant',
-          content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+          content: msg.text ?? '',
         }),
       );
     }
@@ -205,11 +198,11 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
       .sort((a, b) => a.index - b.index);
 
     for (const doc of docs) {
-      const content = doc.content as LlmNormalizedMessage;
+      const message = doc.content as LlmNormalizedMessage;
 
       // Tool result document — map to OpenAI's tool role messages
-      if (Array.isArray(content.content) && content.content[0]?.type === 'tool_result') {
-        const blocks = content.content as Array<{
+      if (message.blocks?.[0]?.type === 'tool_result') {
+        const blocks = message.blocks as Array<{
           type: 'tool_result';
           toolCallId: string;
           content: string;
@@ -226,7 +219,7 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
           msgs.push(msg as OpenAI.ChatCompletionMessageParam);
         }
       } else {
-        msgs.push(this.toProviderMessage(content));
+        msgs.push(this.toProviderMessage(message));
       }
     }
 
@@ -235,13 +228,13 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
 
   private normalizeResponse(choice: OpenAI.ChatCompletion.Choice, responseId: string): LlmNormalizedMessage {
     const msg = choice.message;
-    const content: Array<{ type: string; [key: string]: unknown }> = [];
+    const blocks: Array<{ type: string; [key: string]: unknown }> = [];
 
     if (msg.content) {
-      content.push({ type: 'text', text: msg.content });
+      blocks.push({ type: 'text', text: msg.content });
     }
     if (msg.refusal) {
-      content.push({ type: 'text', text: msg.refusal });
+      blocks.push({ type: 'text', text: msg.refusal });
     }
 
     if (msg.tool_calls) {
@@ -252,9 +245,14 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
         } catch {
           /* keep empty */
         }
-        content.push({ type: 'tool_call', id: tc.id, name: tc.function.name, args });
+        blocks.push({ type: 'tool_call', id: tc.id, name: tc.function.name, args });
       }
     }
+
+    const text = blocks
+      .filter((b): b is { type: 'text'; text: string } => b.type === 'text')
+      .map((b) => b.text)
+      .join('\n');
 
     const stopReasonMap: Record<string, LlmStopReason> = {
       stop: 'end_turn',
@@ -265,7 +263,8 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
     return LlmNormalizedMessageSchema.parse({
       id: responseId,
       role: 'assistant',
-      content: content.length > 0 ? content : '',
+      text,
+      blocks,
       stopReason: choice.finish_reason ? stopReasonMap[choice.finish_reason] : 'end_turn',
     });
   }

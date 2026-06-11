@@ -81,15 +81,12 @@ export class OllamaLlmProvider implements LlmProviderInterface, OnModuleInit {
     };
   }
 
-  toProviderMessage(content: LlmNormalizedMessage): unknown {
-    // Convert normalized content back to provider-specific message format
+  toProviderMessage(message: LlmNormalizedMessage): unknown {
+    // Convert normalized message back to provider-specific message format
     // Used by resolveMessages() for API round-trips
     return {
-      role: content.role,
-      content:
-        typeof content.content === 'string'
-          ? content.content
-          : content.content.map((block) => this.convertBlock(block)),
+      role: message.role,
+      content: message.blocks ? message.blocks.map((block) => this.convertBlock(block)) : message.text,
     };
   }
 }
@@ -111,8 +108,8 @@ interface LlmProviderInterface<TProviderConfig = Record<string, unknown>> {
   /** Extract usage stats from the native API response. */
   extractUsage(response: unknown): LlmUsage | undefined;
 
-  /** Convert normalized content to provider-specific message format. */
-  toProviderMessage(content: LlmNormalizedMessage): unknown;
+  /** Convert normalized message to provider-specific message format. */
+  toProviderMessage(message: LlmNormalizedMessage): unknown;
 }
 ```
 
@@ -166,10 +163,13 @@ All providers must normalize their responses to `LlmNormalizedMessage`:
 interface LlmNormalizedMessage {
   id?: string;
   role: 'user' | 'assistant';
-  content: string | LlmContentBlock[];
+  text: string;
+  blocks?: LlmContentBlock[];
   stopReason?: 'end_turn' | 'tool_use' | 'max_tokens' | 'stop_sequence';
 }
 ```
+
+`text` is the plain-text projection (always populated). `blocks` is the structured form, present when the message contains non-text blocks (thinking, tool calls, tool results).
 
 Content blocks are a union of:
 

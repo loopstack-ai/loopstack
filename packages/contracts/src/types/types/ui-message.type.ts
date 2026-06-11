@@ -61,6 +61,7 @@ export type UIContentBlock = z.infer<typeof UIContentBlockSchema>;
 
 export const UIMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
-  content: z.union([z.string(), z.array(UIContentBlockSchema)]),
+  text: z.string().optional(),
+  blocks: z.array(UIContentBlockSchema).optional(),
 });
 export type UIMessage = z.infer<typeof UIMessageSchema>;

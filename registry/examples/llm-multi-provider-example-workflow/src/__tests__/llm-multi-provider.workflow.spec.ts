@@ -11,7 +11,9 @@ const mockLlmResponse = (text: string) => ({
   data: {
     message: {
       id: 'msg_1',
-      content: [{ type: 'text', text }],
+      role: 'assistant',
+      text,
+      blocks: [{ type: 'text', text }],
       stopReason: 'end_turn',
     },
   },
@@ -66,7 +68,7 @@ describe('LlmMultiProviderWorkflow', () => {
         documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'user',
-          content: 'What is the meaning of life?',
+          text: 'What is the meaning of life?',
         }),
       }),
     );
@@ -77,7 +79,7 @@ describe('LlmMultiProviderWorkflow', () => {
         documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'assistant',
-          content: expect.stringContaining('Claude'),
+          text: expect.stringContaining('Claude'),
         }),
       }),
     );
@@ -88,7 +90,7 @@ describe('LlmMultiProviderWorkflow', () => {
         documentName: 'llm_message',
         content: expect.objectContaining({
           role: 'assistant',
-          content: expect.stringContaining('OpenAI'),
+          text: expect.stringContaining('OpenAI'),
         }),
       }),
     );

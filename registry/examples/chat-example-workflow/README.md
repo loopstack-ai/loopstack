@@ -65,7 +65,7 @@ The workflow begins with an start `@Transition` method that saves a hidden syste
 async setup() {
   await this.documentStore.save(
     LlmMessageDocument,
-    { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
+    { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
     { meta: { hidden: true } },
   );
 }
@@ -80,7 +80,7 @@ The `userMessage` transition uses `wait: true` to pause the workflow and wait fo
 ```typescript
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
 async userMessage(payload: string) {
-  await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
+  await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
 }
 ```
 
@@ -147,7 +147,7 @@ export class ChatWorkflow extends BaseWorkflow {
   async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     await this.documentStore.save(
       LlmMessageDocument,
-      { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
+      { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
     return state;
@@ -155,7 +155,7 @@ export class ChatWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
     return state;
   }
 
