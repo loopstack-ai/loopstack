@@ -17,7 +17,7 @@ describe('ToolCallWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ToolCallWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
+      .withImports(LlmProviderModule, ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       .withToolOverride(LlmDelegateToolCallsTool)
       .withProviders(GetWeather)

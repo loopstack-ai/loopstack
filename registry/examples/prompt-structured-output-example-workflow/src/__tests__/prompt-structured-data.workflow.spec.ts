@@ -22,7 +22,7 @@ describe('PromptStructuredOutputWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptStructuredOutputWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
+      .withImports(LlmProviderModule, ClaudeModule)
       .withProvider(FileDocument)
       .withToolOverride(LlmGenerateObjectTool)
       .compile();

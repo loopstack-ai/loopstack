@@ -29,10 +29,11 @@ class LlmProviderRootModule {}
 /**
  * LLM Provider Module — configures LLM tools with provider/model defaults.
  *
- * - `forRoot(config)` — sets the global default config. Optional; empty defaults apply if omitted.
+ * - Bare import (`LlmProviderModule`) — registers the global root with default config.
+ * - `forRoot(config)` — sets the global default config.
  * - `forFeature(config)` — overrides config for a specific module's tools.
  */
-@Module({})
+@Module({ imports: [LlmProviderRootModule] })
 export class LlmProviderModule {
   static forRoot(config: LlmModuleConfig): DynamicModule {
     return {

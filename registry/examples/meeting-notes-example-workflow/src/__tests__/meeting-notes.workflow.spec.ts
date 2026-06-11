@@ -17,7 +17,7 @@ describe('MeetingNotesWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(MeetingNotesWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
+      .withImports(LlmProviderModule, ClaudeModule)
       .withProvider(MeetingNotesDocument)
       .withProvider(OptimizedNotesDocument)
       .withToolOverride(LlmGenerateObjectTool)
