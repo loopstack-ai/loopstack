@@ -177,20 +177,44 @@ All providers share a single `LlmMessageDocument` with normalized content. Nativ
 
 ### Response shape
 
-`LlmGenerateTextResult.data.message` is an `LlmNormalizedMessage`:
+`LlmGenerateTextResult.data.message` is an `LlmNormalizedMessage` — two views of the same response:
 
-| Field        | Type                                                          | Description                          |
-| ------------ | ------------------------------------------------------------- | ------------------------------------ |
-| `role`       | `'user' \| 'assistant'`                                       | Message role                         |
-| `content`    | `string \| LlmContentBlock[]`                                 | Plain text or a list of typed blocks |
-| `stopReason` | `'end_turn' \| 'tool_use' \| 'max_tokens' \| 'stop_sequence'` | Why generation stopped               |
-| `id`         | `string` (optional)                                           | Provider-assigned message ID         |
+| Field        | Type                                                          | Description                                                                                                                   |
+| ------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `role`       | `'user' \| 'assistant'`                                       | Message role                                                                                                                  |
+| `text`       | `string`                                                      | Plain-text projection — concatenated `text`-type blocks. Always populated by providers. Use this when you just want a string. |
+| `blocks`     | `LlmContentBlock[]` (optional)                                | Structured content blocks. Use this to inspect tool calls, thinking output, or render block-by-block.                         |
+| `stopReason` | `'end_turn' \| 'tool_use' \| 'max_tokens' \| 'stop_sequence'` | Why generation stopped                                                                                                        |
+| `id`         | `string` (optional)                                           | Provider-assigned message ID                                                                                                  |
+
+`text` is derived from `blocks` (text-type blocks joined with `\n`; `thinking` and tool blocks excluded). Both fields are populated by every provider, so you can pick whichever fits the call site without checking for `undefined`.
 
 Content blocks are one of:
 
 - `{ type: 'text', text: string }` — text output
 - `{ type: 'thinking', text: string }` — reasoning/thinking output
 - `{ type: 'tool_call', id: string, name: string, args: Record<string, unknown> }` — tool call
+- `{ type: 'tool_result', toolCallId: string, content: string, isError: boolean }` — tool result (user-side, fed back to the LLM next turn)
+
+### Writing messages — `text` vs `blocks`
+
+When you save an `LlmMessageDocument` manually, the same two fields are available — both optional. Provide whichever fits:
+
+```typescript
+// Plain text message — most common case
+await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'Hello!' });
+
+// Structured message — tool results, multi-block content
+await this.documentStore.save(LlmMessageDocument, {
+  role: 'user',
+  blocks: [{ type: 'tool_result', toolCallId: '...', content: '...', isError: false }],
+});
+
+// LLM response — both fields are already populated by the provider
+await this.documentStore.save(LlmMessageDocument, result.data!.message);
+```
+
+You don't need to fill both. The renderer and downstream providers fall back gracefully: if only `text` is set, it's rendered as a single text bubble; if only `blocks` is set, the text projection is derived from text-type blocks on demand.
 
 See [Creating LLM Providers](../../extend/llm-providers.md) for the full interface.
 

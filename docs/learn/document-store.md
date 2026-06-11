@@ -32,7 +32,7 @@ Documents are data that a workflow explicitly publishes for external consumption
 ```typescript
 await this.documentStore.save(LlmMessageDocument, {
   role: 'assistant',
-  content: result.data!.message.content,
+  text: result.data!.message.text,
 });
 ```
 
@@ -121,7 +121,7 @@ The LLM sees the messages in the order they were saved — user messages, assist
 
 ```typescript
 // Save user message → LLM will see it as the next turn
-await this.documentStore.save(LlmMessageDocument, { role: 'user', content: userInput });
+await this.documentStore.save(LlmMessageDocument, { role: 'user', text: userInput });
 
 // LLM call includes all prior messages + the new user message
 const result = await this.llmGenerateText.call({}, { config: { provider: 'claude' } });
@@ -135,11 +135,7 @@ Documents with `{ meta: { hidden: true } }` are saved to the database and visibl
 
 ```typescript
 // System prompt — LLM reads it, users don't see it
-await this.documentStore.save(
-  LlmMessageDocument,
-  { role: 'user', content: systemPromptText },
-  { meta: { hidden: true } },
-);
+await this.documentStore.save(LlmMessageDocument, { role: 'user', text: systemPromptText }, { meta: { hidden: true } });
 ```
 
 ---

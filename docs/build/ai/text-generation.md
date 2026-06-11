@@ -67,18 +67,19 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptStat
 }
 ```
 
-## Extracting Plain Text
+## Reading the Response
 
-`result.data!.message.content` can be either a string or an array of typed content blocks (`text`, `thinking`, `tool_call`). Use the `extractText()` helper to get a single concatenated text string regardless of shape:
+A normalized result has two views of the assistant's reply:
+
+- `result.data!.message.text` — the plain-text projection (always populated). This is what you want in 95% of cases.
+- `result.data!.message.blocks` — the structured content blocks (`text`, `thinking`, `tool_call`, etc.). Use these when you need to inspect tool calls, thinking output, or render block-by-block.
 
 ```typescript
-import { extractText } from '@loopstack/llm-provider-module';
-
 const result = await this.llmGenerateText.call({ prompt: 'Write a haiku about coffee' });
-const text = extractText(result.data!);
+const text = result.data!.message.text;
 ```
 
-`extractText()` filters out `thinking` and `tool_call` blocks and joins remaining `text` blocks with newlines.
+Both views are derived from the same underlying response — `text` is the concatenation of all `text`-type blocks, with `thinking` and tool blocks filtered out.
 
 ## Call Options
 
@@ -87,8 +88,8 @@ await this.llmGenerateText.call(
   {
     // Option 1: Simple prompt
     prompt: 'Write a haiku about coffee',
-    // Option 2: Explicit messages
-    messages: [{ role: 'user', content: 'Write a haiku about coffee' }],
+    // Option 2: Explicit messages — `text` for plain content, `blocks` for structured
+    messages: [{ role: 'user', text: 'Write a haiku about coffee' }],
   },
   {
     config: {

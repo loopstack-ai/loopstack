@@ -143,7 +143,7 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
     const args = ctx.args as { instructions: string };
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: args.instructions,
+      text: args.instructions,
     });
     return state;
   }
@@ -192,7 +192,7 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
   async toolsComplete(state: AgentState): Promise<AgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: state.delegateResult!.toolResults.map((tr) => ({
+      blocks: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',
@@ -244,7 +244,7 @@ async respondToUser(state: AgentState): Promise<AgentState> {
 async userMessage(state: AgentState, payload: string): Promise<AgentState> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    content: payload,
+    text: payload,
   });
   return state;
 }

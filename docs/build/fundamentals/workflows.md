@@ -38,7 +38,7 @@ export class ChatWorkflow extends BaseWorkflow {
     schema: z.string(),
   })
   async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
     return state;
   }
 
@@ -235,22 +235,18 @@ Use `this.documentStore.save()` to create or update documents. Reference documen
 // Create a document
 await this.documentStore.save(LlmMessageDocument, {
   role: 'user',
-  content: 'Hello!',
+  text: 'Hello!',
 });
 
 // Update an existing document by ID
 await this.documentStore.save(
   LlmMessageDocument,
-  { role: 'assistant', content: 'Updated response' },
+  { role: 'assistant', text: 'Updated response' },
   { id: 'response-1' },
 );
 
 // Hidden document (not shown in UI)
-await this.documentStore.save(
-  LlmMessageDocument,
-  { role: 'user', content: 'System prompt' },
-  { meta: { hidden: true } },
-);
+await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'System prompt' }, { meta: { hidden: true } });
 ```
 
 ## Templates
@@ -277,7 +273,7 @@ Add `wait: true` to pause the workflow until externally triggered — by user in
 async userMessage(state: MyState, payload: { message: string }): Promise<MyState> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    content: payload.message,
+    text: payload.message,
   });
   return state;
 }

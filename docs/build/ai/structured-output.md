@@ -64,10 +64,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     const args = ctx.args as { language: string };
     await this.documentStore.save(
       LlmMessageDocument,
-      {
-        role: 'assistant',
-        content: [{ type: 'text', text: `Creating a Hello World script in ${args.language}...` }],
-      },
+      { role: 'assistant', text: `Creating a Hello World script in ${args.language}...` },
       { id: 'status' },
     );
     return { ...state, language: args.language };
@@ -94,10 +91,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   async respond(state: StructuredOutputState): Promise<unknown> {
     await this.documentStore.save(
       LlmMessageDocument,
-      {
-        role: 'assistant',
-        content: [{ type: 'text', text: `Generated: ${state.llmResult?.content?.description ?? ''}` }],
-      },
+      { role: 'assistant', text: `Generated: ${state.llmResult?.content?.description ?? ''}` },
       { id: 'status' },
     );
     return {};

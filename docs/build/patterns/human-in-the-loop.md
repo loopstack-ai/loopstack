@@ -21,7 +21,7 @@ A transition with `wait: true` pauses the workflow until externally triggered by
 async userMessage(state: Record<string, unknown>, payload: { message: string }): Promise<Record<string, unknown>> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    content: payload.message,
+    text: payload.message,
   });
   return state;
 }
@@ -74,7 +74,7 @@ ui:
 async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    content: payload,
+    text: payload,
   });
   return state;
 }

@@ -37,14 +37,15 @@ function createStreamingDocument(
   place: string,
   state: StreamingMessageState,
 ): DocumentItemInterface {
-  const content: UIContentBlock[] = [];
+  const blocks: UIContentBlock[] = [];
 
   if (state.thinking) {
-    content.push({ type: 'thinking', text: state.thinking });
+    blocks.push({ type: 'thinking', text: state.thinking });
   }
 
-  content.push({ type: 'text', text: state.error ? `Error while streaming response: ${state.error}` : state.text });
-  content.push(...state.toolCalls);
+  const text = state.error ? `Error while streaming response: ${state.error}` : state.text;
+  blocks.push({ type: 'text', text });
+  blocks.push(...state.toolCalls);
 
   const now = new Date();
 
@@ -54,7 +55,8 @@ function createStreamingDocument(
     content: {
       id: state.messageId,
       role: 'assistant',
-      content,
+      text,
+      blocks,
     },
     validationError: null,
     meta: { streaming: !state.readyForFinal && !state.error, streamReadyForFinal: state.readyForFinal },

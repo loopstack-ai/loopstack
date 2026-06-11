@@ -34,8 +34,7 @@ export class LlmDelegateToolCallsTool extends BaseTool<LlmDelegateToolCallsToolA
   }
 
   private extractToolCalls(message: LlmNormalizedMessage) {
-    if (typeof message.content === 'string') return [];
-    return message.content
+    return (message.blocks ?? [])
       .filter((b): b is Extract<LlmContentBlock, { type: 'tool_call' }> => b.type === 'tool_call')
       .map((b) => ({ id: b.id, name: b.name, args: b.args }));
   }

@@ -115,7 +115,7 @@ Don't redefine these — import and save:
 
 | Document             | Source                           | Key fields                                           |
 | -------------------- | -------------------------------- | ---------------------------------------------------- |
-| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `content`                                    |
+| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `text`, `blocks`                             |
 | `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `status`, `embed`, `expanded` |
 | `MessageDocument`    | `@loopstack/common`              | `role`, `content`                                    |
 | `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                           |
@@ -126,7 +126,7 @@ Don't redefine these — import and save:
 import { MarkdownDocument } from '@loopstack/common';
 import { LlmMessageDocument } from '@loopstack/llm-provider-module';
 
-await this.documentStore.save(LlmMessageDocument, { role: 'assistant', content: 'Hello!' });
+await this.documentStore.save(LlmMessageDocument, { role: 'assistant', text: 'Hello!' });
 await this.documentStore.save(MarkdownDocument, { markdown: '# Report\n- A\n- B' });
 ```
 

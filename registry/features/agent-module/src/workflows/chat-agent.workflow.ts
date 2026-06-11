@@ -79,12 +79,12 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
     if (args.context) {
       await this.documentStore.save(
         LlmMessageDocument,
-        { role: 'user', content: args.context },
+        { role: 'user', text: args.context },
         { meta: { hidden: true } },
       );
     }
 
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: args.userMessage });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: args.userMessage });
 
     return { ...state, ...args };
   }
@@ -150,7 +150,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
   async toolsComplete(state: ChatAgentState): Promise<ChatAgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: state.delegateResult!.toolResults.map((tr) => ({
+      blocks: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',
@@ -183,7 +183,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(state: ChatAgentState, payload: string): Promise<ChatAgentState> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
     return state;
   }
 

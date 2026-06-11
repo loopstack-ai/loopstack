@@ -65,10 +65,7 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, un
   async setup(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
     await this.documentStore.save(
       LlmMessageDocument,
-      {
-        role: 'user',
-        content: this.render(__dirname + '/templates/systemMessage.md'),
-      },
+      { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
     return state;
@@ -76,10 +73,7 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, un
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(state: GoogleWorkspaceAgentState, payload: string): Promise<GoogleWorkspaceAgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      content: payload,
-    });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
     return state;
   }
 
@@ -154,7 +148,7 @@ then retry. Be concise and format results using markdown.`,
   async allToolsCompleteTransition(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: state.delegateResult!.toolResults.map((tr) => ({
+      blocks: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',

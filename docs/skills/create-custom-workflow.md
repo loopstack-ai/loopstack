@@ -214,13 +214,13 @@ import { LlmMessageDocument } from '@loopstack/llm-provider-module';
 // Save a new document
 await this.documentStore.save(LlmMessageDocument, {
   role: 'user',
-  content: 'Hello!',
+  text: 'Hello!',
 });
 
 // Save with options (id for updates, meta for visibility)
 await this.documentStore.save(
   LlmMessageDocument,
-  { role: 'assistant', content: 'Hi!' },
+  { role: 'assistant', text: 'Hi!' },
   { id: 'greeting', meta: { hidden: true } },
 );
 ```
@@ -328,7 +328,7 @@ async waitForUser(state: MyState): Promise<MyState> {
 async userMessage(state: MyState, payload: { message: string }): Promise<MyState> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    content: payload.message,
+    text: payload.message,
   });
   return state;
 }
@@ -540,7 +540,7 @@ export class ChatWorkflow extends BaseWorkflow<{ prompt: string }, ChatState> {
     const args = ctx.args as { prompt: string };
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: args.prompt,
+      text: args.prompt,
     });
     return state;
   }

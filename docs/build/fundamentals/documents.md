@@ -134,7 +134,7 @@ These are available without creating custom documents:
 
 | Document             | Source                           | Key Fields                                           |
 | -------------------- | -------------------------------- | ---------------------------------------------------- |
-| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `content`                                    |
+| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `text`, `blocks`                             |
 | `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `status`, `embed`, `expanded` |
 | `MessageDocument`    | `@loopstack/common`              | `role`, `content`                                    |
 | `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                           |
@@ -156,7 +156,7 @@ import { LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 await this.documentStore.save(LlmMessageDocument, {
   role: 'assistant',
-  content: 'Hello! How can I help?',
+  text: 'Hello! How can I help?',
 });
 
 await this.documentStore.save(MarkdownDocument, {
