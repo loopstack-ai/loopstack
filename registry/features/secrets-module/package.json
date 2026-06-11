@@ -8,7 +8,7 @@
     "environment-variables",
     "workflow"
   ],
-  "version": "0.25.1",
+  "version": "0.25.2",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,8 +32,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.32.3",
-    "@loopstack/core": "^0.32.3"
+    "@loopstack/common": "^0.33.0",
+    "@loopstack/core": "^0.33.0"
   },
   "devDependencies": {
     "@nestjs/common": "^11.1.19",

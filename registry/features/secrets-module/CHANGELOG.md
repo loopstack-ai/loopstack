@@ -1,5 +1,15 @@
 # @loopstack/secrets-module
 
+## 0.25.2
+
+### Patch Changes
+
+- [#178](https://github.com/loopstack-ai/loopstack/pull/178) [`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Propagate `LoopstackContext` → `RunContext` rename to tool `handle()` signatures. Rewrite registry READMEs to the canonical template and consolidate the per-package `SETUP.md` content into each README.
+
+- Updated dependencies [[`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b)]:
+  - @loopstack/common@0.33.0
+  - @loopstack/core@0.33.0
+
 ## 0.25.1
 
 ### Patch Changes

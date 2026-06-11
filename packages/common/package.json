@@ -2,7 +2,7 @@
   "name": "@loopstack/common",
   "displayName": "Loopstack Common Module",
   "description": "A collection of utils and dtos shared between nestjs modules",
-  "version": "0.32.3",
+  "version": "0.33.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",

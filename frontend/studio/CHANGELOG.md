@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.31.1
+
+### Patch Changes
+
+- [#178](https://github.com/loopstack-ai/loopstack/pull/178) [`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Rename `LoopstackContext` to `RunContext` and unify the per-job framework context interface used by both tools (`handle(args, ctx)`) and workflow transitions (trailing `ctx` param). Internal DTO renamed to `InternalRunContext`. `StudioUiConfig` slimmed down to the widget-based shape (`sidebar`, `workflowHistory`, `workflowNavigation`, `debugWorkflow` flags removed). Studio frontend api types cleanup.
+
 ## 0.31.0
 
 ### Minor Changes
