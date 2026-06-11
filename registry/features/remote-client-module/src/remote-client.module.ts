@@ -1,4 +1,4 @@
-import { type DynamicModule, Module } from '@nestjs/common';
+import { type DynamicModule, Global, Module, type Provider } from '@nestjs/common';
 import { DiscoveryModule, DiscoveryService } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ENVIRONMENT_CONFIG, WorkspaceEntity, registerStudioExtension } from '@loopstack/common';
@@ -45,34 +45,64 @@ const TOOLS = [
   SyncSecretsTool,
 ];
 
-@Module({})
+const SHARED_IMPORTS = [
+  DiscoveryModule,
+  SecretsModule,
+  TypeOrmModule.forFeature([WorkspaceEntity, WorkspaceEnvironmentEntity]),
+];
+
+const ROOT_EXPORTS = [RemoteClient, EnvironmentService, EnvironmentConfigService, ENVIRONMENT_CONFIG, ...TOOLS];
+
+function environmentConfigProvider(available?: AvailableEnvironmentInterface[]): Provider {
+  return {
+    provide: EnvironmentConfigService,
+    useFactory: (discoveryService: DiscoveryService) => new EnvironmentConfigService(discoveryService, available),
+    inject: [DiscoveryService],
+  };
+}
+
+function rootProviders(options?: RemoteClientModuleOptions): Provider[] {
+  return [
+    RemoteClient,
+    EnvironmentService,
+    environmentConfigProvider(options?.environments?.available),
+    { provide: ENVIRONMENT_CONFIG, useExisting: EnvironmentConfigService },
+    ...TOOLS,
+  ];
+}
+
+/**
+ * Internal global root module — provides RemoteClient, environment services, and
+ * default tools globally with empty defaults. Separate class from RemoteClientModule
+ * so a bare import boots a working container and forRoot() can override config
+ * without conflicting with forFeature() imports.
+ */
+@Global()
+@Module({
+  imports: SHARED_IMPORTS,
+  controllers: [EnvironmentController],
+  providers: rootProviders(),
+  exports: ROOT_EXPORTS,
+})
+class RemoteClientRootModule {}
+
+/**
+ * Remote Client Module — wires the RemoteClient and environment tools.
+ *
+ * - Bare import (`RemoteClientModule`) — registers the global root with default config.
+ * - `forRoot(options)` — sets the global config (e.g. available environments).
+ * - `forFeature(options)` — registers environment slots for the current module.
+ */
+@Module({ imports: [RemoteClientRootModule] })
 export class RemoteClientModule {
   static forRoot(options?: RemoteClientModuleOptions): DynamicModule {
     return {
+      module: RemoteClientRootModule,
       global: true,
-      module: RemoteClientModule,
-      imports: [
-        DiscoveryModule,
-        SecretsModule,
-        TypeOrmModule.forFeature([WorkspaceEntity, WorkspaceEnvironmentEntity]),
-      ],
+      imports: SHARED_IMPORTS,
       controllers: [EnvironmentController],
-      providers: [
-        RemoteClient,
-        EnvironmentService,
-        {
-          provide: EnvironmentConfigService,
-          useFactory: (discoveryService: DiscoveryService) =>
-            new EnvironmentConfigService(discoveryService, options?.environments?.available),
-          inject: [DiscoveryService],
-        },
-        {
-          provide: ENVIRONMENT_CONFIG,
-          useExisting: EnvironmentConfigService,
-        },
-        ...TOOLS,
-      ],
-      exports: [RemoteClient, EnvironmentService, EnvironmentConfigService, ENVIRONMENT_CONFIG, ...TOOLS],
+      providers: rootProviders(options),
+      exports: ROOT_EXPORTS,
     };
   }
 
