@@ -33,16 +33,14 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
+    "@loopstack/common": "^0.32.3",
+    "@loopstack/llm-provider-module": "^0.4.1",
     "openai": "^4.103.0"
   },
   "devDependencies": {
-    "@loopstack/common": "^0.32.3",
-    "@loopstack/llm-provider-module": "^0.4.1",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.32.3",
-    "@loopstack/llm-provider-module": "^0.4.1",
     "zod": "^4.0.0"
   },
   "files": [

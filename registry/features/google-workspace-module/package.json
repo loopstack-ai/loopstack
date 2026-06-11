@@ -33,13 +33,13 @@
     "test": "jest --passWithNoTests",
     "watch": "nest build --watch"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@loopstack/oauth-module": "^0.4.1"
+  },
   "devDependencies": {
-    "@loopstack/oauth-module": "^0.4.1",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@loopstack/oauth-module": "^0.4.1",
     "zod": "^4.0.0"
   },
   "files": [
