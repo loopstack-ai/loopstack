@@ -127,7 +127,9 @@ export async function resumeTransition(
 }
 
 export async function getDocuments(workflowId: string): Promise<DocumentResult[]> {
-  const result = await request<{ data: DocumentResult[] }>(`/api/v1/documents?workflowId=${workflowId}`);
+  // The documents endpoint takes a JSON-encoded `filter` param; a bare `?workflowId=` is ignored.
+  const filter = encodeURIComponent(JSON.stringify({ workflowId }));
+  const result = await request<{ data: DocumentResult[] }>(`/api/v1/documents?filter=${filter}`);
   return result.data;
 }
 

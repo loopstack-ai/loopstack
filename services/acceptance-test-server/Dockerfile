@@ -16,7 +16,17 @@ RUN mkdir -p packages
 RUN npm install -g @nestjs/cli
 RUN nest new app --skip-git --skip-install --package-manager npm
 WORKDIR /workspace-setup/app
-RUN npm install @loopstack/loopstack-module
+
+# Optional local @loopstack packages — populate via scripts/pack-local-packages.sh so the app
+# under test runs the working tree instead of the published registry versions. The tarballs are
+# kept at a stable path because the app's package.json references them via file: specifiers
+# (later `npm install` runs inside the container must still resolve them).
+COPY local-packages/ /opt/loopstack-local/
+RUN if ls /opt/loopstack-local/*.tgz >/dev/null 2>&1; then \
+      npm install /opt/loopstack-local/*.tgz; \
+    else \
+      npm install @loopstack/loopstack-module; \
+    fi
 
 # Apply fixtures over scaffolded files
 COPY fixtures/backend/ /tmp/fixtures/backend/
@@ -46,8 +56,9 @@ RUN npm i -g @anthropic-ai/claude-code
 
 WORKDIR /app
 
-# Copy monorepo workspace
+# Copy monorepo workspace (and the local package tarballs its file: specifiers may point at)
 COPY --from=build /workspace-setup /workspace
+COPY --from=build /opt/loopstack-local/ /opt/loopstack-local/
 
 # Initialize git repo in workspace so version control is available from the start
 RUN cd /workspace && \
