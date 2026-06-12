@@ -23,7 +23,7 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<strin
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Found ${files.length} markdown files:\n${files
+      text: `Found ${files.length} markdown files:\n${files
         .slice(0, 20)
         .map((f) => `- ${f}`)
         .join('\n')}`,
@@ -36,7 +36,7 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<strin
     if (!state.firstMatch) {
       await this.documentStore.save(MessageDocument, {
         role: 'assistant',
-        content: 'No markdown files to read.',
+        text: 'No markdown files to read.',
       });
       return {};
     }
@@ -46,7 +46,7 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<strin
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `# ${state.firstMatch}\n\n${content.slice(0, 500)}`,
+      text: `# ${state.firstMatch}\n\n${content.slice(0, 500)}`,
     });
     return {};
   }

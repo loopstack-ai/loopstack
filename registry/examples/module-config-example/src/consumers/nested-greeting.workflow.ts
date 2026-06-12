@@ -16,7 +16,7 @@ export class NestedGreetingWorkflow extends BaseWorkflow {
     const result = await this.greeter.call({ name: 'Mundo' });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `[Nested/Spanish] ${result.data!.message}`,
+      text: `[Nested/Spanish] ${result.data!.message}`,
     });
     return {};
   }

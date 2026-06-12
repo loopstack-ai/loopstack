@@ -117,7 +117,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
+      text: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
     });
     return { ...state, containerId: initResult.data!.containerId };
   }
@@ -132,7 +132,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Directory created: ${mkdirResult.data!.path} (created: ${mkdirResult.data!.created})`,
+      text: `Directory created: ${mkdirResult.data!.path} (created: ${mkdirResult.data!.created})`,
     });
     return state;
   }
@@ -149,7 +149,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
+      text: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
     });
     return state;
   }
@@ -164,7 +164,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
+      text: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
     });
     return { ...state, fileContent: readResult.data!.content };
   }
@@ -179,7 +179,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
+      text: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
     });
     return { ...state, fileList: listResult.data!.entries };
   }
@@ -193,7 +193,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `File existence check: ${existsResult.data!.path} exists=${existsResult.data!.exists}, type=${existsResult.data!.type}`,
+      text: `File existence check: ${existsResult.data!.path} exists=${existsResult.data!.exists}, type=${existsResult.data!.type}`,
     });
     return state;
   }
@@ -207,7 +207,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `File info for ${infoResult.data!.name}: type=${infoResult.data!.type}, size=${infoResult.data!.size} bytes, permissions=${infoResult.data!.permissions}, owner=${infoResult.data!.owner}`,
+      text: `File info for ${infoResult.data!.name}: type=${infoResult.data!.type}, size=${infoResult.data!.size} bytes, permissions=${infoResult.data!.permissions}, owner=${infoResult.data!.owner}`,
     });
     return state;
   }
@@ -223,7 +223,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `File deleted: ${deleteResult.data!.path} (deleted: ${deleteResult.data!.deleted})`,
+      text: `File deleted: ${deleteResult.data!.path} (deleted: ${deleteResult.data!.deleted})`,
     });
     return state;
   }
@@ -237,7 +237,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
+      text: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
     });
     return {};
   }

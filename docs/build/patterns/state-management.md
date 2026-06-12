@@ -65,7 +65,7 @@ Access state in any transition or guard method:
 async display(state: MyState): Promise<unknown> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Processed ${state.counter} items. Result: ${state.llmResult?.content}`,
+    text: `Processed ${state.counter} items. Result: ${state.llmResult?.text}`,
   });
   return {};
 }
@@ -120,7 +120,7 @@ export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
   async showResults(state: MyState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: this.formatMessage(state.message!),
+      text: this.formatMessage(state.message!),
     });
     return {};
   }

@@ -111,7 +111,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
             documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
-              content: 'A message from sub workflow 1: Hi mom!',
+              text: 'A message from sub workflow 1: Hi mom!',
             }),
           }),
         ]),
@@ -152,7 +152,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
             documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
-              content: 'A message from sub workflow 2: Hello from sub workflow 2!',
+              text: 'A message from sub workflow 2: Hello from sub workflow 2!',
             }),
           }),
         ]),

@@ -61,7 +61,7 @@ async onSubComplete(state: MyState, payload: { workflowId: string; status: strin
 
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Sub-workflow said: ${payload.data.message}`,
+    text: `Sub-workflow said: ${payload.data.message}`,
   });
   return state;
 }
@@ -127,7 +127,7 @@ export class ParentWorkflow extends BaseWorkflow {
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Message from sub-workflow: ${payload.data.message}`,
+      text: `Message from sub-workflow: ${payload.data.message}`,
     });
     return {};
   }

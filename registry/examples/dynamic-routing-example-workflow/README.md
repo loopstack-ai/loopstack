@@ -101,7 +101,7 @@ async createMockData(
 ): Promise<DynamicRoutingState> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Analysing value = ${args.value}`,
+    text: `Analysing value = ${args.value}`,
   });
   return { ...state, value: args.value };
 }
@@ -184,7 +184,7 @@ Terminal terminal `@Transition`s save the result message:
 async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: 'Value is less or equal 100',
+    text: 'Value is less or equal 100',
   });
   return {};
 }
@@ -232,7 +232,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   ): Promise<DynamicRoutingState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Analysing value = ${args.value}`,
+      text: `Analysing value = ${args.value}`,
     });
     return { ...state, value: args.value };
   }
@@ -271,7 +271,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Value is less or equal 100',
+      text: 'Value is less or equal 100',
     });
     return {};
   }
@@ -280,7 +280,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   async showMessagePlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Value is greater than 200',
+      text: 'Value is greater than 200',
     });
     return {};
   }
@@ -289,7 +289,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   async showMessagePlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Value is less or equal 200, but greater than 100',
+      text: 'Value is less or equal 200, but greater than 100',
     });
     return {};
   }

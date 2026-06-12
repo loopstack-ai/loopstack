@@ -73,7 +73,7 @@ export class CommitWorkflow extends BaseWorkflow {
     const status = await this.gitStatus.call();
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Status: ${JSON.stringify(status.data, null, 2)}`,
+      text: `Status: ${JSON.stringify(status.data, null, 2)}`,
     });
     await this.gitAdd.call({ files: ['.'] });
     return state;
@@ -85,7 +85,7 @@ export class CommitWorkflow extends BaseWorkflow {
     const log = await this.gitLog.call({ limit: 1 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Committed: ${JSON.stringify(log.data, null, 2)}`,
+      text: `Committed: ${JSON.stringify(log.data, null, 2)}`,
     });
     return {};
   }

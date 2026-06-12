@@ -15,7 +15,7 @@ export class DefaultGreetingWorkflow extends BaseWorkflow {
     const result = await this.greeter.call({ name: 'World' });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `[Default] ${result.data!.message}`,
+      text: `[Default] ${result.data!.message}`,
     });
     return {};
   }

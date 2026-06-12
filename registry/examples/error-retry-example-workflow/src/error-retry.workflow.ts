@@ -38,11 +38,11 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   async setup(_state: ErrorRetryState): Promise<ErrorRetryState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: '# Error Retry Example\n\nThis workflow tests five retry/error modes in sequence.',
+      text: '# Error Retry Example\n\nThis workflow tests five retry/error modes in sequence.',
     });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content:
+      text:
         '## Step 1: Auto-retry\n\n' +
         'The next step will fail twice. The framework auto-retries with exponential backoff ' +
         '(1s, then 2s). On the 3rd attempt it succeeds.\n\n' +
@@ -58,7 +58,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
     await this.step2Tool.call({ shouldFail: attempt <= 2 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Auto-retry succeeded on attempt ${attempt}.`,
+      text: `Auto-retry succeeded on attempt ${attempt}.`,
     });
     return { ...state, autoRetryAttempts: attempt };
   }
@@ -68,7 +68,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   async step2Instructions(state: ErrorRetryState): Promise<ErrorRetryState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content:
+      text:
         '## Step 2: Manual retry\n\n' +
         'The next step will fail once. The workflow stays at the current place and shows an error.\n\n' +
         '**Click the Retry button next to the error message to re-run the failed step.**',
@@ -83,7 +83,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
     await this.step2Tool.call({ shouldFail: attempt <= 1 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Manual retry succeeded on attempt ${attempt}.`,
+      text: `Manual retry succeeded on attempt ${attempt}.`,
     });
     return { ...state, manualRetryAttempts: attempt };
   }
@@ -93,7 +93,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   async step3Instructions(state: ErrorRetryState): Promise<ErrorRetryState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content:
+      text:
         '## Step 3: Custom error place\n\n' +
         'The next step always fails and transitions to a custom error place (`error_custom`).\n\n' +
         '**Click the "Recover" button that appears below to trigger the recovery transition.**',
@@ -112,7 +112,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   async handleCustomError(state: ErrorRetryState): Promise<ErrorRetryState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Recovered via custom error handler!',
+      text: 'Recovered via custom error handler!',
     });
     return state;
   }
@@ -122,7 +122,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   async step4Instructions(state: ErrorRetryState): Promise<ErrorRetryState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content:
+      text:
         '## Step 4: Timeout\n\n' +
         'The next step has a 2-second timeout but takes 5 seconds. It will be killed by the timeout.\n\n' +
         '**Click the Retry button — the second attempt will be fast and succeed.**',
@@ -138,7 +138,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
     await this.slowTool.call({ delayMs: attempt <= 1 ? 5000 : 0 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Timeout step succeeded on attempt ${attempt}.`,
+      text: `Timeout step succeeded on attempt ${attempt}.`,
     });
     return { ...state, timeoutAttempts: attempt };
   }
@@ -148,7 +148,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   async step5Instructions(state: ErrorRetryState): Promise<ErrorRetryState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content:
+      text:
         '## Step 5: Hybrid (auto-retry + custom error place)\n\n' +
         'The next step always fails. It auto-retries once, then transitions to `error_hybrid`.\n\n' +
         '**Click the "Recover" button that appears below.**',
@@ -167,7 +167,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   async handleHybridError(state: ErrorRetryState): Promise<ErrorRetryState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Recovered via hybrid error handler!',
+      text: 'Recovered via hybrid error handler!',
     });
     return state;
   }
@@ -176,7 +176,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   async showResult(_state: ErrorRetryState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'All five retry modes completed successfully!',
+      text: 'All five retry modes completed successfully!',
     });
     return {};
   }

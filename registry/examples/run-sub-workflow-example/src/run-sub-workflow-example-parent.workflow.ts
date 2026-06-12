@@ -61,7 +61,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `A message from sub workflow 1: ${payload.data.message}`,
+      text: `A message from sub workflow 1: ${payload.data.message}`,
     });
     return state;
   }
@@ -100,7 +100,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `A message from sub workflow 2: ${payload.data.message}`,
+      text: `A message from sub workflow 2: ${payload.data.message}`,
     });
     return {};
   }

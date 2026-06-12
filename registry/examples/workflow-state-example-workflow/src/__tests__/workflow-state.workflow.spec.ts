@@ -38,14 +38,14 @@ describe('WorkflowStateWorkflow', () => {
           documentName: 'message',
           content: expect.objectContaining({
             role: 'assistant',
-            content: 'Data from state: Hello :)',
+            text: 'Data from state: Hello :)',
           }),
         }),
         expect.objectContaining({
           documentName: 'message',
           content: expect.objectContaining({
             role: 'assistant',
-            content: 'Use workflow helper method: HELLO :)',
+            text: 'Use workflow helper method: HELLO :)',
           }),
         }),
       ]),

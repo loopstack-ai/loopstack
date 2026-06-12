@@ -42,7 +42,7 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Requesting confirmation (sub-workflow ${result.workflowId})...`,
+      text: `Requesting confirmation (sub-workflow ${result.workflowId})...`,
     });
 
     await this.documentStore.save(
@@ -78,11 +78,11 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    const content = payload.data.confirmed ? 'User confirmed — proceeding with deploy.' : 'User denied — aborting.';
+    const text = payload.data.confirmed ? 'User confirmed — proceeding with deploy.' : 'User denied — aborting.';
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content,
+      text,
     });
     return {};
   }

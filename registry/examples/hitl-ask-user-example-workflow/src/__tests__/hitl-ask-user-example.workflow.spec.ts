@@ -76,7 +76,7 @@ describe('HitlAskUserExampleWorkflow', () => {
           documentName: 'message',
           content: expect.objectContaining({
             role: 'assistant',
-            content: 'Thanks! You answered: Jakob',
+            text: 'Thanks! You answered: Jakob',
           }),
         }),
       ]),

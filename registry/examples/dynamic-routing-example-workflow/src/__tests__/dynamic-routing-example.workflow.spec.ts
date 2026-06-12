@@ -38,11 +38,11 @@ describe('DynamicRoutingExampleWorkflow', () => {
         expect.arrayContaining([
           expect.objectContaining({
             documentName: 'message',
-            content: expect.objectContaining({ role: 'assistant', content: 'Analysing value = 50' }),
+            content: expect.objectContaining({ role: 'assistant', text: 'Analysing value = 50' }),
           }),
           expect.objectContaining({
             documentName: 'message',
-            content: expect.objectContaining({ role: 'assistant', content: 'Value is less or equal 100' }),
+            content: expect.objectContaining({ role: 'assistant', text: 'Value is less or equal 100' }),
           }),
         ]),
       );
@@ -57,11 +57,11 @@ describe('DynamicRoutingExampleWorkflow', () => {
         expect.arrayContaining([
           expect.objectContaining({
             documentName: 'message',
-            content: expect.objectContaining({ role: 'assistant', content: 'Analysing value = 250' }),
+            content: expect.objectContaining({ role: 'assistant', text: 'Analysing value = 250' }),
           }),
           expect.objectContaining({
             documentName: 'message',
-            content: expect.objectContaining({ role: 'assistant', content: 'Value is greater than 200' }),
+            content: expect.objectContaining({ role: 'assistant', text: 'Value is greater than 200' }),
           }),
         ]),
       );
@@ -76,13 +76,13 @@ describe('DynamicRoutingExampleWorkflow', () => {
         expect.arrayContaining([
           expect.objectContaining({
             documentName: 'message',
-            content: expect.objectContaining({ role: 'assistant', content: 'Analysing value = 150' }),
+            content: expect.objectContaining({ role: 'assistant', text: 'Analysing value = 150' }),
           }),
           expect.objectContaining({
             documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
-              content: 'Value is less or equal 200, but greater than 100',
+              text: 'Value is less or equal 200, but greater than 100',
             }),
           }),
         ]),

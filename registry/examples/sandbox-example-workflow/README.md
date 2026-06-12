@@ -103,7 +103,7 @@ async initSandbox(state: SandboxExampleState, ctx: RunContext): Promise<SandboxE
 
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
+    text: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
   });
   return { ...state, containerId: initResult.data!.containerId };
 }
@@ -121,7 +121,7 @@ async destroySandbox(state: SandboxExampleState): Promise<unknown> {
 
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
+    text: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
   });
   return {};
 }
@@ -144,7 +144,7 @@ async writeFile(state: SandboxExampleState): Promise<SandboxExampleState> {
 
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
+    text: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
   });
   return state;
 }
@@ -159,7 +159,7 @@ async readFile(state: SandboxExampleState): Promise<SandboxExampleState> {
 
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
+    text: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
   });
   return { ...state, fileContent: readResult.data!.content };
 }
@@ -174,7 +174,7 @@ async listDir(state: SandboxExampleState): Promise<SandboxExampleState> {
 
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
+    text: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
   });
   return { ...state, fileList: listResult.data!.entries };
 }

@@ -112,7 +112,7 @@ describe('CustomToolExampleWorkflow', () => {
             documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
-              content: expect.stringContaining('10 + 20 = 30'),
+              text: expect.stringContaining('10 + 20 = 30'),
             }),
           }),
         ]),
