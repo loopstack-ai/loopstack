@@ -1,13 +1,16 @@
 import { z } from 'zod';
-import { Document } from '@loopstack/common';
-import { UIContentBlockSchema, UIMessageSchema } from '@loopstack/contracts/types';
+import { Document, MessageDocument, MessageDocumentSchema } from '@loopstack/common';
+import { UIContentBlockSchema } from '@loopstack/contracts/types';
 import type { LlmContentBlock, LlmStopReason } from '../types/index.js';
 
 // ---------------------------------------------------------------------------
-// Document content schema — loose shape: provide `text`, `blocks`, or both.
+// Document content schema — extends MessageDocumentSchema with a narrowed
+// role union and optional structured content (blocks, stopReason, id).
 // ---------------------------------------------------------------------------
 
-export const LlmMessageDocumentContentSchema = UIMessageSchema.extend({
+export const LlmMessageDocumentContentSchema = z.object({
+  ...MessageDocumentSchema.shape,
+  role: z.enum(['user', 'assistant']),
   id: z.string().optional(),
   blocks: z.array(UIContentBlockSchema).optional(),
   stopReason: z.enum(['end_turn', 'tool_use', 'max_tokens', 'stop_sequence']).optional(),
@@ -24,10 +27,9 @@ export type LlmMessageDocumentContentType = z.infer<typeof LlmMessageDocumentCon
   widget: import.meta.dirname + '/llm-message.document.yaml',
   tags: ['message'],
 })
-export class LlmMessageDocument {
+export class LlmMessageDocument extends MessageDocument {
+  declare role: 'user' | 'assistant';
   id?: string;
-  role: 'user' | 'assistant';
-  text?: string;
   blocks?: LlmContentBlock[];
   stopReason?: LlmStopReason;
 }

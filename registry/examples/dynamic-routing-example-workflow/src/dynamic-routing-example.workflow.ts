@@ -24,7 +24,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
     const args = ctx.args as { value: number };
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Analysing value = ${args.value}`,
+      text: `Analysing value = ${args.value}`,
     });
     return { ...state, value: args.value };
   }
@@ -69,7 +69,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   async showMessagePlaceB(_state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Value is less or equal 100',
+      text: 'Value is less or equal 100',
     });
     return {};
   }
@@ -78,7 +78,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   async showMessagePlaceC(_state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Value is greater than 200',
+      text: 'Value is greater than 200',
     });
     return {};
   }
@@ -87,7 +87,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   async showMessagePlaceD(_state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Value is less or equal 200, but greater than 100',
+      text: 'Value is less or equal 200, but greater than 100',
     });
     return {};
   }

@@ -73,7 +73,7 @@ export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   async message(): Promise<{ message: string }> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'Sub workflow completed.',
+      text: 'Sub workflow completed.',
     });
     return { message: 'Hi mom!' };
   }
@@ -126,7 +126,7 @@ async subWorkflowCallback(payload: SubWorkflowCallback) {
   );
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `A message from sub workflow 1: ${payload.data.message}`,
+    text: `A message from sub workflow 1: ${payload.data.message}`,
   });
 }
 ```
@@ -180,7 +180,7 @@ async subWorkflow2Callback(payload: SubWorkflowCallback) {
   );
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `A message from sub workflow 2: ${payload.data.message}`,
+    text: `A message from sub workflow 2: ${payload.data.message}`,
   });
 }
 ```

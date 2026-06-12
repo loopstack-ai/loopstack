@@ -59,7 +59,7 @@ export class AgentExampleWorkflow extends BaseWorkflow {
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: payload.data.response,
+      text: payload.data.response,
     });
     return {};
   }

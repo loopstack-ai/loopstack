@@ -89,7 +89,7 @@ describe('AgentExampleWorkflow', () => {
       expect.arrayContaining([
         expect.objectContaining({
           documentName: 'message',
-          content: expect.objectContaining({ content: expect.stringContaining('714') }),
+          content: expect.objectContaining({ text: expect.stringContaining('714') }),
         }),
       ]),
     );

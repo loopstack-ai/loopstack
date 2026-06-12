@@ -38,13 +38,13 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     // Display the result
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Tool calculation result:\n${args.a} + ${args.b} = ${total}`,
+      text: `Tool calculation result:\n${args.a} + ${args.b} = ${total}`,
     });
 
     // Alternatively, use a custom workflow method
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Alternatively, using workflow method:\n${args.a} + ${args.b} = ${this.sum(args.a, args.b)}`,
+      text: `Alternatively, using workflow method:\n${args.a} + ${args.b} = ${this.sum(args.a, args.b)}`,
     });
 
     // Count before pause — should be 1, 2, 3
@@ -54,7 +54,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Counter before pause: ${c1.data}, ${c2.data}, ${c3.data}\n\nPress Next to continue...`,
+      text: `Counter before pause: ${c1.data}, ${c2.data}, ${c3.data}\n\nPress Next to continue...`,
     });
     return { ...state, total };
   }
@@ -74,7 +74,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Counter after resume: ${c4.data}, ${c5.data}, ${c6.data}\n\nIf state persisted, this should be 4, 5, 6.`,
+      text: `Counter after resume: ${c4.data}, ${c5.data}, ${c6.data}\n\nIf state persisted, this should be 4, 5, 6.`,
     });
 
     return { total: state.total };

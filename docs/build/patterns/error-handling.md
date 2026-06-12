@@ -37,7 +37,7 @@ async handleProcessingError() {
   // Recovery logic — user clicks a "Recover" button to trigger this
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: 'Processing failed. Retrying with fallback strategy.',
+    text: 'Processing failed. Retrying with fallback strategy.',
   });
 }
 ```

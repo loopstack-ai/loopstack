@@ -83,7 +83,7 @@ async createSomeData(
 ): Promise<ToolResultsState> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Stored in initial transition: Hello World.`,
+    text: `Stored in initial transition: Hello World.`,
   });
   return { ...state, storedMessage: 'Hello World.' };
 }
@@ -100,7 +100,7 @@ In a subsequent transition, read values from the `state` parameter:
 async accessData(ctx: WorkflowContext, state: ToolResultsState): Promise<unknown> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Accessed from previous transition: ${state.storedMessage}`,
+    text: `Accessed from previous transition: ${state.storedMessage}`,
   });
   return {};
 }
@@ -133,7 +133,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
   ): Promise<ToolResultsState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Stored in initial transition: Hello World.`,
+      text: `Stored in initial transition: Hello World.`,
     });
     return { ...state, storedMessage: 'Hello World.' };
   }
@@ -142,7 +142,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
   async accessData(ctx: WorkflowContext, state: ToolResultsState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Accessed from previous transition: ${state.storedMessage}`,
+      text: `Accessed from previous transition: ${state.storedMessage}`,
     });
     return {};
   }

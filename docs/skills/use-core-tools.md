@@ -105,7 +105,7 @@ These document types are available from `@loopstack/common` without additional i
 
 | Document           | Description                     | Key Fields                                           |
 | ------------------ | ------------------------------- | ---------------------------------------------------- |
-| `MessageDocument`  | Simple chat message             | `role`, `content`                                    |
+| `MessageDocument`  | UI-only chat message            | `role`, `text`                                       |
 | `MarkdownDocument` | Rendered markdown               | `markdown`                                           |
 | `PlainDocument`    | Plain text                      | `text`                                               |
 | `ErrorDocument`    | Error message (red styling)     | `error`                                              |
@@ -124,7 +124,7 @@ await this.documentStore.save(LinkDocument, {
 
 await this.documentStore.save(MessageDocument, {
   role: 'assistant',
-  content: 'Hello! How can I help?',
+  text: 'Hello! How can I help?',
 });
 ```
 

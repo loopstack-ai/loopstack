@@ -72,7 +72,7 @@ export class MyWorkflow extends BaseWorkflow {
   async answerReceived(state: Record<string, unknown>, payload: z.infer<typeof AnswerCallback>): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Hello, ${payload.data.answer}!`,
+      text: `Hello, ${payload.data.answer}!`,
     });
     return {};
   }

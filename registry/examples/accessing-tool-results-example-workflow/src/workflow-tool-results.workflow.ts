@@ -12,7 +12,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
   async createSomeData(state: ToolResultsState): Promise<ToolResultsState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Stored in initial transition: Hello World.`,
+      text: `Stored in initial transition: Hello World.`,
     });
     return { ...state, storedMessage: 'Hello World.' };
   }
@@ -21,7 +21,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
   async accessData(state: ToolResultsState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Accessed from previous transition: ${state.storedMessage}`,
+      text: `Accessed from previous transition: ${state.storedMessage}`,
     });
     return {};
   }

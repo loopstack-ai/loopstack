@@ -21,7 +21,7 @@ export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
     const status = await this.gitStatus.call();
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Status before commit:\n\`\`\`json\n${JSON.stringify(status.data, null, 2)}\n\`\`\``,
+      text: `Status before commit:\n\`\`\`json\n${JSON.stringify(status.data, null, 2)}\n\`\`\``,
     });
     return state;
   }
@@ -43,7 +43,7 @@ export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
     const log = await this.gitLog.call({ limit: 1 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Latest commit:\n\`\`\`json\n${JSON.stringify(log.data, null, 2)}\n\`\`\``,
+      text: `Latest commit:\n\`\`\`json\n${JSON.stringify(log.data, null, 2)}\n\`\`\``,
     });
     return {};
   }

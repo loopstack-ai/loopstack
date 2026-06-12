@@ -50,7 +50,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
   async setup(state: DelegateErrorState): Promise<DelegateErrorState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content:
+      text:
         '# Delegate Error Handling Example\n\n' +
         'This workflow tests how tool errors are handled and fed back to the LLM.\n\n' +
         'The LLM will deliberately trigger errors, then self-correct.',

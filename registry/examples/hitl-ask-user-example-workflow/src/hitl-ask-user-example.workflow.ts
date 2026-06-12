@@ -33,7 +33,7 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Asking user a question (sub-workflow ${result.workflowId})...`,
+      text: `Asking user a question (sub-workflow ${result.workflowId})...`,
     });
 
     await this.documentStore.save(
@@ -71,7 +71,7 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Thanks! You answered: ${payload.data.answer}`,
+      text: `Thanks! You answered: ${payload.data.answer}`,
     });
     return {};
   }

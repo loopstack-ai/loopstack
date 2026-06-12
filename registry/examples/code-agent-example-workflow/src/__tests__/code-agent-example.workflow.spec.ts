@@ -86,7 +86,7 @@ describe('CodeAgentExampleWorkflow', () => {
       expect.arrayContaining([
         expect.objectContaining({
           documentName: 'message',
-          content: expect.objectContaining({ content: expect.stringContaining('AppModule') }),
+          content: expect.objectContaining({ text: expect.stringContaining('AppModule') }),
         }),
       ]),
     );

@@ -57,7 +57,7 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Connected to Linear MCP at ${LINEAR_MCP_URL}.`,
+      text: `Connected to Linear MCP at ${LINEAR_MCP_URL}.`,
     });
     return state;
   }
