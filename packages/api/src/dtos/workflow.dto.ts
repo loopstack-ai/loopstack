@@ -40,6 +40,9 @@ export class WorkflowDto {
   availableTransitions: WorkflowTransitionType[] | null;
 
   @Expose()
+  result: Record<string, unknown> | null;
+
+  @Expose()
   args: any;
 
   @Expose()
