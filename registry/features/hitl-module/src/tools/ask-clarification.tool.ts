@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow.js';
 
@@ -59,32 +59,17 @@ export class AskClarificationTool extends BaseTool<AskClarificationInput, object
         options: args.options,
         allowCustomAnswer: args.allowCustomAnswer,
       },
-      { callback: options?.callback },
-    );
-
-    const workflowId = result.workflowId;
-
-    await this.documentStore.save(
-      LinkDocument,
-      { status: 'pending', label: 'Waiting for user answer...', workflowId, embed: true, expanded: true },
-      { id: `ask_clarification_link_${workflowId}` },
+      { callback: options?.callback, show: 'inline', label: 'Waiting for user answer...' },
     );
 
     return {
-      data: { workflowId },
-      pending: { workflowId },
+      data: { workflowId: result.workflowId },
+      pending: { workflowId: result.workflowId },
     };
   }
 
   async complete(result: Record<string, unknown>): Promise<ToolResult<AskClarificationResult>> {
-    const data = result as { workflowId?: string; data?: { answer?: string } };
-
-    await this.documentStore.save(
-      LinkDocument,
-      { status: 'success', label: 'User answered', workflowId: data.workflowId!, embed: true, expanded: false },
-      { id: `ask_clarification_link_${data.workflowId}` },
-    );
-
+    const data = result as { data?: { answer?: string } };
     return { data: data.data?.answer ?? result };
   }
 }

@@ -1,13 +1,5 @@
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  Guard,
-  LinkDocument,
-  MarkdownDocument,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
@@ -57,20 +49,9 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired(state: CalendarSummaryState): Promise<CalendarSummaryState> {
-    const result = await this.oAuthWorkflow.run(
+    await this.oAuthWorkflow.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-      { callback: { transition: 'authCompleted' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        label: 'Google authentication required',
-        workflowId: result.workflowId,
-        embed: true,
-        expanded: true,
-      },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
     return state;
   }
@@ -86,18 +67,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
     wait: true,
     schema: CallbackSchema,
   })
-  async authCompleted(state: CalendarSummaryState, payload: { workflowId: string }): Promise<CalendarSummaryState> {
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'success',
-        label: 'Google authentication completed',
-        workflowId: payload.workflowId,
-        embed: true,
-        expanded: false,
-      },
-      { id: `link_${payload.workflowId}` },
-    );
+  async authCompleted(state: CalendarSummaryState, _payload: { workflowId: string }): Promise<CalendarSummaryState> {
     return state;
   }
 

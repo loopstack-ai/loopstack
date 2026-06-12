@@ -76,7 +76,7 @@ export class McpLinearModule {}
 // mcp-linear.workflow.ts
 import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
 
@@ -102,19 +102,14 @@ export class McpLinearWorkflow extends BaseWorkflow<z.infer<typeof ArgsSchema>> 
   async startChat(state: Record<string, unknown>, ctx: RunContext): Promise<Record<string, unknown>> {
     const args = ctx.args as z.infer<typeof ArgsSchema>;
 
-    const result = await this.chatAgentWorkflow.run({
-      system: 'You are a Linear assistant. Use mcp_list_tools to discover tools, then mcp_call to invoke them.',
-      tools: ['mcp_list_tools', 'mcp_call'],
-      userMessage: args.initialMessage,
-    });
-
-    await this.documentStore.save(LinkDocument, {
-      workflowId: result.workflowId,
-      label: 'Linear Agent Chat',
-      status: 'pending',
-      embed: true,
-      expanded: true,
-    });
+    await this.chatAgentWorkflow.run(
+      {
+        system: 'You are a Linear assistant. Use mcp_list_tools to discover tools, then mcp_call to invoke them.',
+        tools: ['mcp_list_tools', 'mcp_call'],
+        userMessage: args.initialMessage,
+      },
+      { show: 'inline', label: 'Linear Agent Chat' },
+    );
 
     return state;
   }

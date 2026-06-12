@@ -44,7 +44,7 @@ Inject `ConnectGitHubWorkflow` into your own workflow and run it as a sub-workfl
 
 ```ts
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, LinkDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, Transition, Workflow } from '@loopstack/common';
 import { ConnectGitHubWorkflow } from '@loopstack/github-integration';
 
 @Workflow({
@@ -59,25 +59,15 @@ export class SetupProjectWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'awaiting_github' })
   async start(state: Record<string, never>): Promise<unknown> {
-    const result = await this.connectGitHub.run({}, { callback: { transition: 'onGitHubConnected' } });
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Connect to GitHub', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: 'link_github' },
+    await this.connectGitHub.run(
+      {},
+      { callback: { transition: 'onGitHubConnected' }, show: 'inline', label: 'Connect to GitHub' },
     );
-
     return state;
   }
 
   @Transition({ from: 'awaiting_github', to: 'end', wait: true, schema: CallbackSchema })
   async onGitHubConnected(state: Record<string, never>, payload: { data: unknown }): Promise<unknown> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Connect to GitHub', status: 'success', embed: true, expanded: false },
-      { id: 'link_github' },
-    );
-
     return { github: payload.data };
   }
 }
@@ -136,7 +126,7 @@ awaiting_choice ──[callback]──► route_choice
 ### Step-by-step
 
 1. **Check auth** -- calls `GitHubGetAuthenticatedUserTool` to see if the user already has a valid token.
-2. **OAuth** -- if not authenticated, launches `OAuthWorkflow` with `provider: 'github'` and `scopes: ['repo', 'user']`. Displays a sign-in link via `LinkDocument`.
+2. **OAuth** -- if not authenticated, launches `OAuthWorkflow` with `provider: 'github'` and `scopes: ['repo', 'user']`. The sign-in UI is embedded in the parent's run view via the default `show: 'inline'`.
 3. **Repo choice** -- uses `AskUserWorkflow` (HITL) to let the user choose between creating a new repo or connecting an existing one.
 4. **Create or select** -- either calls `GitHubCreateRepoTool` or `GitHubListReposTool` followed by a second HITL prompt to pick from the list.
 5. **Uncommitted changes** -- checks `GitStatusTool` for uncommitted work. If dirty, asks the user whether to auto-commit or cancel.
@@ -178,16 +168,16 @@ No module-level configuration. OAuth credentials are managed by `@loopstack/oaut
 
 ## Dependencies
 
-| Package                    | Role                                                                                                               |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `@loopstack/common`        | Framework types, decorators (`@Workflow`, `@Transition`, `@Guard`), documents (`LinkDocument`, `MarkdownDocument`) |
-| `@loopstack/core`          | `ClientMessageService` for dispatching workspace events                                                            |
-| `@loopstack/git-module`    | Git tools: `GitStatusTool`, `GitPushTool`, `GitFetchTool`, `GitRemoteConfigureTool`, `GitConfigUserTool`           |
-| `@loopstack/github-module` | GitHub API tools: `GitHubGetAuthenticatedUserTool`, `GitHubCreateRepoTool`, `GitHubListReposTool`                  |
-| `@loopstack/hitl`          | `AskUserWorkflow` for interactive decision points                                                                  |
-| `@loopstack/oauth-module`  | `OAuthWorkflow` and `OAuthTokenStore` for GitHub authentication                                                    |
-| `@loopstack/remote-client` | `BashTool` for running git commands on the remote server                                                           |
-| `zod`                      | Schema validation                                                                                                  |
+| Package                    | Role                                                                                                     |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `@loopstack/common`        | Framework types, decorators (`@Workflow`, `@Transition`, `@Guard`), documents (`MarkdownDocument`)       |
+| `@loopstack/core`          | `ClientMessageService` for dispatching workspace events                                                  |
+| `@loopstack/git-module`    | Git tools: `GitStatusTool`, `GitPushTool`, `GitFetchTool`, `GitRemoteConfigureTool`, `GitConfigUserTool` |
+| `@loopstack/github-module` | GitHub API tools: `GitHubGetAuthenticatedUserTool`, `GitHubCreateRepoTool`, `GitHubListReposTool`        |
+| `@loopstack/hitl`          | `AskUserWorkflow` for interactive decision points                                                        |
+| `@loopstack/oauth-module`  | `OAuthWorkflow` and `OAuthTokenStore` for GitHub authentication                                          |
+| `@loopstack/remote-client` | `BashTool` for running git commands on the remote server                                                 |
+| `zod`                      | Schema validation                                                                                        |
 
 ## Related
 

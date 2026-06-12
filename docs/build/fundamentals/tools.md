@@ -160,20 +160,21 @@ async complete(result: Record<string, unknown>): Promise<ToolResult> {
 }
 ```
 
-Override it when you need to post-process: transform the payload, update link documents, validate, or short-circuit. The HITL pattern uses this — `AskForApprovalTool.handle()` saves a "Waiting…" link document and returns `pending`; `complete()` rewrites that document with the user's decision and returns the typed answer.
+Override it when you need to post-process: transform the payload, validate, or short-circuit. The HITL pattern uses this — `AskForApprovalTool.handle()` launches the sub-workflow with `show: 'inline'` so its UI appears in the parent's run view, and returns `pending`; `complete()` returns the user's decision as the typed answer.
 
 ```typescript
 @Tool({ name: 'ask_for_approval', description: 'Ask the user to approve.', /* … */ })
 export class AskForApprovalTool extends BaseTool</* … */> {
   protected async handle(/* … */) {
-    const { workflowId } = await this.confirmWorkflow.run(args, { callback: { transition: 'onConfirm' } });
-    // … save a "pending" LinkDocument
+    const { workflowId } = await this.confirmWorkflow.run(
+      args,
+      { callback: { transition: 'onConfirm' }, show: 'inline', label: 'Waiting for approval...' },
+    );
     return { data: { workflowId }, pending: { workflowId } };
   }
 
   async complete(result: Record<string, unknown>): Promise<ToolResult<AskForApprovalResult>> {
     const { workflowId, data } = result as { workflowId: string; data: { confirmed: boolean } };
-    // … rewrite the LinkDocument with the final state
     return { data: { approved: data.confirmed, workflowId } };
   }
 }

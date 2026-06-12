@@ -41,7 +41,7 @@ describe('HitlConfirmExampleWorkflow', () => {
 
     expect(mockConfirmUserWorkflow.run).toHaveBeenCalledWith(
       expect.objectContaining({ markdown: expect.stringContaining('Ready to deploy') }),
-      { callback: { transition: 'decisionReceived' } },
+      { callback: { transition: 'decisionReceived' }, show: 'inline', label: 'Waiting for user confirmation...' },
     );
   });
 

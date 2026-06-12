@@ -64,7 +64,7 @@ The simplest approach: launch the built-in `OAuthWorkflow` when authentication i
 ```typescript
 import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LinkDocument, MarkdownDocument } from '@loopstack/common';
+import { MarkdownDocument } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 interface CalendarState {
@@ -98,20 +98,9 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired(state: CalendarState): Promise<CalendarState> {
-    const result = await this.oAuth.run(
+    await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-      { callback: { transition: 'authCompleted' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        label: 'Google authentication required',
-        workflowId: result.workflowId,
-        embed: true,
-        expanded: true,
-      },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
     return state;
   }
@@ -122,16 +111,7 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
 
   // After auth -> retry from start
   @Transition({ from: 'awaiting_auth', to: 'start', wait: true, schema: CallbackSchema })
-  async authCompleted(state: CalendarState, payload: { workflowId: string }): Promise<CalendarState> {
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'success',
-        label: 'Google authentication completed',
-        workflowId: payload.workflowId,
-      },
-      { id: `link_${payload.workflowId}` },
-    );
+  async authCompleted(state: CalendarState, _payload: { workflowId: string }): Promise<CalendarState> {
     return state;
   }
 

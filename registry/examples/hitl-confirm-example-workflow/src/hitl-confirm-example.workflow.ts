@@ -1,13 +1,5 @@
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  LinkDocument,
-  MessageDocument,
-  QueueResult,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, MessageDocument, QueueResult, Transition, Workflow } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 
 const ConfirmCallbackSchema = CallbackSchema.extend({
@@ -37,25 +29,13 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
   async askForConfirmation(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.confirmUserWorkflow.run(
       { markdown: MARKDOWN_SUMMARY },
-      { callback: { transition: 'decisionReceived' } },
+      { callback: { transition: 'decisionReceived' }, show: 'inline', label: 'Waiting for user confirmation...' },
     );
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Requesting confirmation (sub-workflow ${result.workflowId})...`,
     });
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'pending',
-        label: 'Waiting for user confirmation...',
-        workflowId: result.workflowId,
-        embed: true,
-        expanded: true,
-      },
-      { id: `link_${result.workflowId}` },
-    );
     return state;
   }
 
@@ -66,18 +46,6 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
     schema: ConfirmCallbackSchema,
   })
   async decisionReceived(state: Record<string, unknown>, payload: ConfirmCallback): Promise<unknown> {
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'success',
-        label: payload.data.confirmed ? 'User confirmed' : 'User denied',
-        workflowId: payload.workflowId,
-        embed: true,
-        expanded: false,
-      },
-      { id: `link_${payload.workflowId}` },
-    );
-
     const text = payload.data.confirmed ? 'User confirmed — proceeding with deploy.' : 'User denied — aborting.';
 
     await this.documentStore.save(MessageDocument, {

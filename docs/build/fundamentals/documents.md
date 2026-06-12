@@ -132,14 +132,14 @@ const all = this.documentStore.findAllDocuments();
 
 These are available without creating custom documents:
 
-| Document             | Source                           | Key Fields                                           |
-| -------------------- | -------------------------------- | ---------------------------------------------------- |
-| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `text`, `blocks`                             |
-| `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `status`, `embed`, `expanded` |
-| `MessageDocument`    | `@loopstack/common`              | `role`, `text`                                       |
-| `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                           |
-| `PlainDocument`      | `@loopstack/common`              | `text`                                               |
-| `ErrorDocument`      | `@loopstack/common`              | `error`                                              |
+| Document             | Source                           | Key Fields                                 |
+| -------------------- | -------------------------------- | ------------------------------------------ |
+| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `text`, `blocks`                   |
+| `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `embed`, `expanded` |
+| `MessageDocument`    | `@loopstack/common`              | `role`, `text`                             |
+| `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                 |
+| `PlainDocument`      | `@loopstack/common`              | `text`                                     |
+| `ErrorDocument`      | `@loopstack/common`              | `error`                                    |
 
 ### Choosing the right built-in type
 
@@ -147,7 +147,7 @@ These are available without creating custom documents:
 - **`MessageDocument`** — plain `{ role, text }` UI bubbles for non-LLM flows (status updates, narrative output, logging a `system` note). Tagged `'ui-message'` — **not** collected into LLM history. Use this when you want a chat-style message in Studio without polluting the LLM's context.
 - **`MarkdownDocument`** — formatted prose, headings, lists, links. Use when you want Studio to render rich text.
 - **`PlainDocument`** — unformatted text output: raw command output, log dumps, plain blob. Use when Markdown rendering would interpret characters you want shown literally.
-- **`LinkDocument`** — links to other workflow runs (sub-workflows, related runs). Studio renders these as inline cards with status indicators.
+- **`LinkDocument`** — links to other workflow runs (sub-workflows, related runs). Studio renders these as cards with a live status indicator derived from the linked workflow's state. The orchestrator saves one automatically when you call `subWorkflow.run()` (see [Sub-Workflows](../patterns/sub-workflows.md)); save manually only if you need a link card outside the standard sub-workflow flow.
 - **`ErrorDocument`** — engine-managed; do not construct manually. Written automatically when a transition fails (see [Workflow Engine — ErrorDocument](../../learn/workflow-engine.md#errordocument)).
 
 ```typescript

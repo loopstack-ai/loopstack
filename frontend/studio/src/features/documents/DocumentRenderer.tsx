@@ -63,7 +63,7 @@ const coreRendererRegistry = new Map<string, WidgetRenderer>([
   ['error', ({ document }) => <ErrorMessageRenderer document={document} />],
   ['plain', ({ document }) => <PlainMessageRenderer document={document} />],
   ['markdown', ({ document }) => <MarkdownMessageRenderer document={document} />],
-  ['link', ({ document }) => <LinkMessageRenderer document={document} />],
+  ['link', ({ workflow, document }) => <LinkMessageRenderer workflow={workflow} document={document} />],
   [
     'oauth-prompt',
     ({ parentWorkflow, workflow, document, isActive }) => (

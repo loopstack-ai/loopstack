@@ -10,7 +10,7 @@ Demonstrates how to launch `AgentWorkflow` from [`@loopstack/agent`](https://loo
 ## By using this example you'll get...
 
 - A parent workflow that queues `AgentWorkflow` via `WORKFLOW_ORCHESTRATOR`
-- A `LinkDocument` that embeds the running child workflow
+- The child agent rendered inline in the parent's view via `show: 'inline'`
 - A callback transition that stores the final agent response as a `MessageDocument`
 
 ## Installation
@@ -39,10 +39,9 @@ export class MyAppModule {}
 
 ## How It Works
 
-1. `start` queues `AgentWorkflow` with a system prompt and selected tools.
-2. A `LinkDocument` is saved to show embedded progress in Studio.
-3. When the child workflow finishes, `agentComplete` receives callback payload data.
-4. The workflow marks the link as successful and saves the final assistant message.
+1. `start` queues `AgentWorkflow` with a system prompt and selected tools, with `show: 'inline'` so the child is embedded in the parent's run view.
+2. When the child workflow finishes, `agentComplete` receives the callback payload data.
+3. The workflow saves the final assistant message.
 
 ## Public API
 

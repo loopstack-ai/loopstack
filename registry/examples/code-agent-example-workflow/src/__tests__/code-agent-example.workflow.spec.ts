@@ -45,16 +45,7 @@ describe('CodeAgentExampleWorkflow', () => {
         tools: ['glob', 'grep', 'read'],
         userMessage: expect.any(String),
       }),
-      { callback: { transition: 'exploreComplete' } },
-    );
-
-    expect(result.documents).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          documentName: 'link',
-          content: expect.objectContaining({ workflowId: 'sub-id' }),
-        }),
-      ]),
+      { callback: { transition: 'exploreComplete' }, show: 'inline', label: 'Exploring codebase...' },
     );
   });
 
