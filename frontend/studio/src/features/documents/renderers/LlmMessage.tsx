@@ -25,29 +25,37 @@ const CopyActions = ({ text }: { text: string }) => (
   </FadeInBlock>
 );
 
+function hasStructuredBlocks(blocks: UIContentBlock[] | undefined): boolean {
+  return !!blocks?.some((b) => b.type !== 'text');
+}
+
+function textFromBlocks(blocks: UIContentBlock[] | undefined): string {
+  return (blocks ?? [])
+    .filter((b): b is Extract<UIContentBlock, { type: 'text' }> => b.type === 'text')
+    .map((b) => b.text)
+    .join('\n');
+}
+
 const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem: boolean }) => {
   const message = document.content as UIMessage;
-  const messageId = (message as any).id ?? document.id;
+  const messageId = (message as { id?: string }).id ?? document.id;
   const isStreaming = !!(document.meta as { streaming?: boolean } | undefined)?.streaming;
 
-  // String content — simple text message
-  if (typeof message.content === 'string') {
+  // Plain text path — no structured blocks present.
+  if (!hasStructuredBlocks(message.blocks)) {
+    const text = message.text ?? textFromBlocks(message.blocks);
     return (
       <Message from={message.role}>
         <MessageContent>
-          {isStreaming ? (
-            <StreamingText text={message.content} />
-          ) : (
-            <MessageResponse>{message.content}</MessageResponse>
-          )}
+          {isStreaming ? <StreamingText text={text} /> : <MessageResponse>{text}</MessageResponse>}
         </MessageContent>
-        {message.role === 'assistant' && !isStreaming && <CopyActions text={message.content as string} />}
+        {message.role === 'assistant' && !isStreaming && <CopyActions text={text} />}
       </Message>
     );
   }
 
-  // Array content — iterate over UIContentBlocks
-  const blocks: UIContentBlock[] = message.content;
+  // Structured path — walk blocks.
+  const blocks = message.blocks ?? [];
 
   return (
     <Fragment>
@@ -108,7 +116,6 @@ const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem:
           }
 
           case 'server_tool_use': {
-            // Find matching server_tool_result in the blocks
             const serverResult = blocks.find(
               (b): b is Extract<UIContentBlock, { type: 'server_tool_result' }> =>
                 b.type === 'server_tool_result' && b.toolUseId === block.id,
@@ -130,7 +137,6 @@ const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem:
           }
 
           case 'server_tool_result':
-            // Rendered inline with server_tool_use above
             return null;
 
           default:

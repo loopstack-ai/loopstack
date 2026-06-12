@@ -50,7 +50,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
   async setup(state: DelegateErrorState): Promise<DelegateErrorState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content:
+      text:
         '# Delegate Error Handling Example\n\n' +
         'This workflow tests how tool errors are handled and fed back to the LLM.\n\n' +
         'The LLM will deliberately trigger errors, then self-correct.',
@@ -58,7 +58,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
 
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content:
+      text:
         'Follow the instructions in your system prompt exactly. ' +
         'Start with step 1: call strictSchema with no arguments.',
     });
@@ -117,7 +117,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
   async toolsComplete(state: DelegateErrorState): Promise<DelegateErrorState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: state.delegateResult!.toolResults.map((tr) => ({
+      blocks: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',

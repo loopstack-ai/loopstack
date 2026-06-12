@@ -436,7 +436,11 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(mockOAuthWorkflow.run).toHaveBeenCalledTimes(1);
       expect(mockOAuthWorkflow.run).toHaveBeenCalledWith(
         { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-        { callback: { transition: 'authCompleted' } },
+        {
+          callback: { transition: 'authCompleted' },
+          show: 'inline',
+          label: 'GitHub authentication required',
+        },
       );
 
       // Subsequent tools should NOT be called

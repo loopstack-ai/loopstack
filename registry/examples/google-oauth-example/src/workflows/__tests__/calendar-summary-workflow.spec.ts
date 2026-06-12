@@ -152,19 +152,7 @@ describe('CalendarSummaryWorkflow', () => {
       expect(mockOAuthWorkflow.run).toHaveBeenCalledTimes(1);
       expect(mockOAuthWorkflow.run).toHaveBeenCalledWith(
         { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-        { callback: { transition: 'authCompleted' } },
-      );
-
-      // Link document should have been created for auth flow
-      expect(result.documents).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            documentName: 'link',
-            content: expect.objectContaining({
-              label: 'Google authentication required',
-            }),
-          }),
-        ]),
+        { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
       );
     });
 

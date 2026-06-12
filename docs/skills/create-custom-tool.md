@@ -175,7 +175,7 @@ return {
 protected async handle(args: MyArgs, ctx: RunContext): Promise<ToolResult> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: 'Processing complete.',
+    text: 'Processing complete.',
   });
   return { data: 'done' };
 }

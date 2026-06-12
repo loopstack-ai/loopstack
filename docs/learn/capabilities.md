@@ -50,14 +50,14 @@ Quick reference for what Loopstack can do. Each entry links to the relevant buil
 
 ## UI & Studio
 
-| Capability                 | Description                                                |
-| -------------------------- | ---------------------------------------------------------- |
-| Visual workflow monitoring | Watch workflow execution in real-time                      |
-| Chat interface             | `prompt-input` widget for conversational UIs               |
-| Form widgets               | Text, textarea, select, slider, code-view, radio, checkbox |
-| Document actions           | Buttons that trigger workflow transitions                  |
-| Conditional widgets        | `enabledWhen` shows/hides UI based on workflow state       |
-| Sub-workflow embedding     | LinkDocument displays sub-workflow progress inline         |
+| Capability                 | Description                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Visual workflow monitoring | Watch workflow execution in real-time                                                                        |
+| Chat interface             | `prompt-input` widget for conversational UIs                                                                 |
+| Form widgets               | Text, textarea, select, slider, code-view, radio, checkbox                                                   |
+| Document actions           | Buttons that trigger workflow transitions                                                                    |
+| Conditional widgets        | `enabledWhen` shows/hides UI based on workflow state                                                         |
+| Sub-workflow embedding     | `.run()` auto-renders child workflows inline in the parent's view via `show: 'inline' \| 'link' \| 'hidden'` |
 
 ## Extensibility
 

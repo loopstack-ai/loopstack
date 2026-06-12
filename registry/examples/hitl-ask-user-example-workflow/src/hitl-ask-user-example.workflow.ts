@@ -1,13 +1,5 @@
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  LinkDocument,
-  MessageDocument,
-  QueueResult,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, MessageDocument, QueueResult, Transition, Workflow } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
 const AskUserCallbackSchema = CallbackSchema.extend({
@@ -28,25 +20,13 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
   async askQuestion(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.askUserWorkflow.run(
       { question: 'What is your name?' },
-      { callback: { transition: 'answerReceived' } },
+      { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for user answer...' },
     );
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Asking user a question (sub-workflow ${result.workflowId})...`,
+      text: `Asking user a question (sub-workflow ${result.workflowId})...`,
     });
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'pending',
-        label: 'Waiting for user answer...',
-        workflowId: result.workflowId,
-        embed: true,
-        expanded: true,
-      },
-      { id: `link_${result.workflowId}` },
-    );
     return state;
   }
 
@@ -57,21 +37,9 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
     schema: AskUserCallbackSchema,
   })
   async answerReceived(state: Record<string, unknown>, payload: AskUserCallback): Promise<unknown> {
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'success',
-        label: 'User answered',
-        workflowId: payload.workflowId,
-        embed: true,
-        expanded: false,
-      },
-      { id: `link_${payload.workflowId}` },
-    );
-
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Thanks! You answered: ${payload.data.answer}`,
+      text: `Thanks! You answered: ${payload.data.answer}`,
     });
     return {};
   }

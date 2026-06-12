@@ -1,14 +1,6 @@
 import { z } from 'zod';
 import type { RunContext } from '@loopstack/common';
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  Guard,
-  LinkDocument,
-  MarkdownDocument,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
 import {
   GitConfigUserTool,
@@ -77,22 +69,10 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   @Transition({ from: 'check_auth', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async launchOAuth(state: ConnectGitHubState): Promise<ConnectGitHubState> {
-    const result = await this.oAuth.run(
+    await this.oAuth.run(
       { provider: 'github', scopes: ['repo', 'user'] },
-      { callback: { transition: 'authCompleted' } },
+      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Sign in with GitHub' },
     );
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        label: 'Sign in with GitHub',
-        workflowId: result.workflowId,
-        embed: true,
-        expanded: true,
-      },
-      { id: `link_${result.workflowId}` },
-    );
-
     return state;
   }
 
@@ -101,19 +81,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   }
 
   @Transition({ from: 'awaiting_auth', to: 'check_auth', wait: true, schema: CallbackSchema })
-  async authCompleted(state: ConnectGitHubState, payload: { workflowId: string }): Promise<ConnectGitHubState> {
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'success',
-        label: 'GitHub authentication completed',
-        workflowId: payload.workflowId,
-        embed: true,
-        expanded: false,
-      },
-      { id: `link_${payload.workflowId}` },
-    );
-
+  async authCompleted(state: ConnectGitHubState, _payload: { workflowId: string }): Promise<ConnectGitHubState> {
     const result = await this.gitHubGetAuthenticatedUser.call();
     return { ...state, user: result.data!.user, requiresAuth: false };
   }
@@ -122,32 +90,19 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'check_auth', to: 'awaiting_choice' })
   async askCreateOrLink(state: ConnectGitHubState): Promise<ConnectGitHubState> {
-    const result = await this.askUser.run(
+    await this.askUser.run(
       {
         question: 'Would you like to create a new GitHub repository or connect an existing one?',
         mode: 'options',
         options: ['Create new repository', 'Connect existing repository'],
       },
-      { callback: { transition: 'choiceReceived' } },
+      { callback: { transition: 'choiceReceived' }, show: 'inline', label: 'Create or connect repository' },
     );
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Create or connect repository', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_choice` },
-    );
-
     return state;
   }
 
   @Transition({ from: 'awaiting_choice', to: 'route_choice', wait: true, schema: CallbackSchema })
   async choiceReceived(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Create or connect repository', status: 'success', embed: true, expanded: false },
-      { id: `link_choice` },
-    );
-
     if (payload.data.answer === 'Connect existing repository') {
       const listResult = await this.gitHubListRepos.call({
         visibility: 'all',
@@ -158,26 +113,14 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
       const repos = listResult.data!.repos ?? [];
       const repoNames = repos.map((r) => r.fullName);
 
-      const askResult = await this.askUser.run(
+      await this.askUser.run(
         { question: 'Select a repository to connect:', mode: 'options', options: repoNames },
-        { callback: { transition: 'repoSelected' } },
-      );
-
-      await this.documentStore.save(
-        LinkDocument,
-        { label: 'Select repository', workflowId: askResult.workflowId, embed: true, expanded: true },
-        { id: `link_repo_select` },
+        { callback: { transition: 'repoSelected' }, show: 'inline', label: 'Select repository' },
       );
     } else {
-      const askResult = await this.askUser.run(
+      await this.askUser.run(
         { question: 'Enter a name for your new repository:' },
-        { callback: { transition: 'createRepo' } },
-      );
-
-      await this.documentStore.save(
-        LinkDocument,
-        { label: 'Repository name', workflowId: askResult.workflowId, embed: true, expanded: true },
-        { id: `link_repo_name` },
+        { callback: { transition: 'createRepo' }, show: 'inline', label: 'Repository name' },
       );
     }
 
@@ -188,12 +131,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: CallbackSchema })
   async createRepo(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Repository name', status: 'success', embed: true, expanded: false },
-      { id: `link_repo_name` },
-    );
-
     const repoName = payload.data.answer.trim();
     const createResult = await this.gitHubCreateRepo.call({
       name: repoName,
@@ -208,12 +145,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: CallbackSchema })
   async repoSelected(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Select repository', status: 'success', embed: true, expanded: false },
-      { id: `link_repo_select` },
-    );
-
     const fullName = payload.data.answer;
     const [, name] = fullName.split('/');
 
@@ -269,22 +200,15 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // Uncommitted changes — ask user
   @Transition({ from: 'check_uncommitted', to: 'awaiting_commit_confirm' })
   async askCommitChanges(state: ConnectGitHubState): Promise<ConnectGitHubState> {
-    const confirmResult = await this.askUser.run(
+    await this.askUser.run(
       {
         question:
           'There are uncommitted changes in your workspace. They need to be committed before connecting to a remote repository. Would you like to commit them now?',
         mode: 'options',
         options: ['Commit changes and continue', 'Cancel'],
       },
-      { callback: { transition: 'uncommittedChangesHandled' } },
+      { callback: { transition: 'uncommittedChangesHandled' }, show: 'inline', label: 'Uncommitted changes' },
     );
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Uncommitted changes', workflowId: confirmResult.workflowId, embed: true, expanded: true },
-      { id: `link_uncommitted` },
-    );
-
     return state;
   }
 
@@ -293,12 +217,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
     state: ConnectGitHubState,
     payload: { data: { answer: string } },
   ): Promise<ConnectGitHubState> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Uncommitted changes', status: 'success', embed: true, expanded: false },
-      { id: `link_uncommitted` },
-    );
-
     if (payload.data.answer === 'Cancel') {
       return { ...state, repo: undefined };
     }
@@ -392,15 +310,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
           'Cancel (disconnect remote)',
         ];
 
-    const result = await this.askUser.run(
+    await this.askUser.run(
       { question, mode: 'options', options },
-      { callback: { transition: 'syncStrategyChosen' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Resolve differences', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_sync` },
+      { callback: { transition: 'syncStrategyChosen' }, show: 'inline', label: 'Resolve differences' },
     );
 
     return state;
@@ -412,12 +324,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
     payload: { data: { answer: string } },
     ctx: RunContext,
   ): Promise<ConnectGitHubState> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Resolve differences', status: 'success', embed: true, expanded: false },
-      { id: `link_sync` },
-    );
-
     const answer = payload.data.answer;
     const statusResult = await this.gitStatus.call();
     const branch = statusResult.data!.branch ?? 'main';

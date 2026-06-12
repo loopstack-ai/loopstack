@@ -16,7 +16,7 @@ describe('ChatWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
+      .withImports(LlmProviderModule, ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 
@@ -71,7 +71,8 @@ describe('ChatWorkflow', () => {
           message: {
             id: 'msg_1',
             role: 'assistant',
-            content: [{ type: 'text', text: 'I am doing well, thank you!' }],
+            text: 'I am doing well, thank you!',
+            blocks: [{ type: 'text', text: 'I am doing well, thank you!' }],
             stopReason: 'end_turn',
           },
         },
@@ -114,7 +115,7 @@ describe('ChatWorkflow', () => {
         expect.arrayContaining([
           expect.objectContaining({
             documentName: 'llm_message',
-            content: expect.objectContaining({ role: 'user', content: 'Hello, how are you?' }),
+            content: expect.objectContaining({ role: 'user', text: 'Hello, how are you?' }),
           }),
           expect.objectContaining({
             documentName: 'llm_message',

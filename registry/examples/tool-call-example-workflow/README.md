@@ -158,7 +158,7 @@ A guard checks whether all delegated tool calls have completed before looping ba
 async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    content: state.delegateResult!.toolResults.map((tr) => ({
+    blocks: state.delegateResult!.toolResults.map((tr) => ({
       type: 'tool_result' as const,
       toolCallId: tr.toolCallId,
       content: tr.content ?? '',
@@ -225,7 +225,7 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
 
   @Transition({ to: 'ready' })
   async setup(state: ToolCallState): Promise<ToolCallState> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'How is the weather in Berlin?' });
     return state;
   }
 
@@ -259,7 +259,7 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
   async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: state.delegateResult!.toolResults.map((tr) => ({
+      blocks: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',

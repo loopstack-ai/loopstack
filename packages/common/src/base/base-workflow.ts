@@ -5,8 +5,23 @@ import type { WorkflowOrchestrator } from '../interfaces/workflow-orchestrator.i
 import { DOCUMENT_STORE, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
 import type { TemplateRenderFn } from './workflow-templates.js';
 
+/**
+ * How a sub-workflow appears inside its parent's run view.
+ *
+ * - `'inline'` *(default)* — the child is rendered inline as an embedded iframe.
+ *   Use for interactive children (HITL, OAuth flows).
+ * - `'link'` — the child appears as a status link card in the parent's stream;
+ *   clicking opens it in a separate window. Use for autonomous children the
+ *   user only needs to track.
+ * - `'hidden'` — no UI is added to the parent's stream. Use for background
+ *   fan-out where surfacing each child would be noise.
+ */
+export type SubWorkflowShow = 'inline' | 'link' | 'hidden';
+
 export interface RunOptions {
   callback?: { transition: string; metadata?: Record<string, unknown> };
+  show?: SubWorkflowShow;
+  label?: string;
 }
 
 /**

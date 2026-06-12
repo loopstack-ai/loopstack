@@ -183,7 +183,7 @@ export class WeatherChatWorkflow extends BaseWorkflow<Record<string, unknown>, C
   async setup(state: ChatState): Promise<ChatState> {
     await this.documentStore.save(
       LlmMessageDocument,
-      { role: 'user', content: this.render(__dirname + '/templates/system.md') },
+      { role: 'user', text: this.render(__dirname + '/templates/system.md') },
       { meta: { hidden: true } },
     );
     return state;
@@ -192,7 +192,7 @@ export class WeatherChatWorkflow extends BaseWorkflow<Record<string, unknown>, C
   // Step 2: User sends a message — save it and move to LLM generation
   @Transition({ from: 'waiting_for_user', to: 'generating', wait: true, schema: z.string() })
   async userMessage(state: ChatState, payload: string): Promise<ChatState> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
     return state;
   }
 
@@ -223,7 +223,7 @@ export class WeatherChatWorkflow extends BaseWorkflow<Record<string, unknown>, C
     // Save tool results as a user-role message — this feeds back into the LLM on the next turn
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: result.data!.toolResults.map((tr) => ({
+      blocks: result.data!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',

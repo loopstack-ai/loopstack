@@ -45,7 +45,7 @@ describe('HitlAskUserExampleWorkflow', () => {
 
     expect(mockAskUserWorkflow.run).toHaveBeenCalledWith(
       { question: 'What is your name?' },
-      { callback: { transition: 'answerReceived' } },
+      { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for user answer...' },
     );
   });
 
@@ -76,7 +76,7 @@ describe('HitlAskUserExampleWorkflow', () => {
           documentName: 'message',
           content: expect.objectContaining({
             role: 'assistant',
-            content: 'Thanks! You answered: Jakob',
+            text: 'Thanks! You answered: Jakob',
           }),
         }),
       ]),

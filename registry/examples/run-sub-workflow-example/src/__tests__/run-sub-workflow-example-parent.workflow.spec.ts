@@ -59,19 +59,9 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.place).toBe('sub_workflow_started');
 
       expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
-      expect(mockSubWorkflow.run).toHaveBeenCalledWith({}, { callback: { transition: 'subWorkflowCallback' } });
-
-      // Link document should have been created
-      expect(result.documents).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            documentName: 'link',
-            content: expect.objectContaining({
-              label: 'Executing Sub-Workflow...',
-              workflowId: 'test-workflow-id',
-            }),
-          }),
-        ]),
+      expect(mockSubWorkflow.run).toHaveBeenCalledWith(
+        {},
+        { callback: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
       );
     });
 
@@ -111,7 +101,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
             documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
-              content: 'A message from sub workflow 1: Hi mom!',
+              text: 'A message from sub workflow 1: Hi mom!',
             }),
           }),
         ]),
@@ -119,7 +109,10 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
 
       // runWorkflow2 fires automatically and calls sub workflow again
       expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
-      expect(mockSubWorkflow.run).toHaveBeenCalledWith({}, { callback: { transition: 'subWorkflow2Callback' } });
+      expect(mockSubWorkflow.run).toHaveBeenCalledWith(
+        {},
+        { callback: { transition: 'subWorkflow2Callback' }, show: 'link', label: 'Sub-Workflow 2' },
+      );
     });
 
     it('should execute sub_workflow2_callback when resumed from sub_workflow2_started', async () => {
@@ -152,7 +145,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
             documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
-              content: 'A message from sub workflow 2: Hello from sub workflow 2!',
+              text: 'A message from sub workflow 2: Hello from sub workflow 2!',
             }),
           }),
         ]),

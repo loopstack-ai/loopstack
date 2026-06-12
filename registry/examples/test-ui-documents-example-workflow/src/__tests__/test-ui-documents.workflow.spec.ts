@@ -45,7 +45,7 @@ describe('TestUiDocumentsWorkflow', () => {
             documentName: 'message',
             content: {
               role: 'assistant',
-              content: 'This is the default message',
+              text: 'This is the default message',
             },
           }),
         ]),

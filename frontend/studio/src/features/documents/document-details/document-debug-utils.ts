@@ -49,24 +49,14 @@ export function summarizeDocumentContent(content: unknown): ContentSummary {
 
   const record = content as Record<string, unknown>;
 
-  if ('role' in record && 'content' in record) {
+  if ('role' in record && ('text' in record || 'blocks' in record)) {
     const role = String(record.role);
     const messageId = typeof record.id === 'string' ? record.id : undefined;
     const stopReason = typeof record.stopReason === 'string' ? record.stopReason : undefined;
-    const inner = record.content;
+    const text = typeof record.text === 'string' ? record.text : undefined;
+    const blocks = Array.isArray(record.blocks) ? (record.blocks as UIContentBlock[]) : undefined;
 
-    if (typeof inner === 'string') {
-      return {
-        kind: 'ui-message',
-        role,
-        messageId,
-        stopReason,
-        charCount: inner.length,
-      };
-    }
-
-    if (Array.isArray(inner)) {
-      const blocks = inner as UIContentBlock[];
+    if (blocks && blocks.length > 0) {
       const blockCounts = new Map<string, { count: number; labels: string[] }>();
 
       for (const block of blocks) {
@@ -78,7 +68,7 @@ export function summarizeDocumentContent(content: unknown): ContentSummary {
         blockCounts.set(block.type, existing);
       }
 
-      const charCount = blocks.reduce((total, block) => {
+      const blockCharCount = blocks.reduce((total, block) => {
         if (block.type === 'text' || block.type === 'thinking') return total + block.text.length;
         if (block.type === 'tool_result') return total + block.content.length;
         return total;
@@ -89,7 +79,7 @@ export function summarizeDocumentContent(content: unknown): ContentSummary {
         role,
         messageId,
         stopReason,
-        charCount,
+        charCount: text?.length ?? blockCharCount,
         blocks: [...blockCounts.entries()].map(([type, { count, labels }]) => ({
           type,
           count,
@@ -97,6 +87,14 @@ export function summarizeDocumentContent(content: unknown): ContentSummary {
         })),
       };
     }
+
+    return {
+      kind: 'ui-message',
+      role,
+      messageId,
+      stopReason,
+      charCount: text?.length ?? 0,
+    };
   }
 
   const keys = Object.keys(record);

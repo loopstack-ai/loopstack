@@ -1,9 +1,11 @@
 import { Injectable, Logger, Type } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
+  LinkDocument,
   QueueResult,
   ResumeOptions,
   RunOptions,
+  SubWorkflowShow,
   WorkflowEntity,
   WorkflowOrchestrator,
   WorkflowState,
@@ -13,6 +15,7 @@ import { WorkflowService } from '../../persistence/services/workflow.service.js'
 import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
 import { ExecutionScope } from '../utils/index.js';
 import { CreateWorkflowService } from './create-workflow.service.js';
+import { DocumentStore } from './document-store.service.js';
 import { WorkflowRegistryService } from './workflow-registry.service.js';
 
 /**
@@ -33,6 +36,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly workflowService: WorkflowService,
     private readonly workflowRegistryService: WorkflowRegistryService,
+    private readonly documentStore: DocumentStore,
   ) {}
 
   async queue(workflowClass: Type, args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
@@ -73,9 +77,32 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
       },
     } satisfies ScheduledTask);
 
+    await this.persistSubWorkflowLink(workflowEntity.id, workflowName, options);
+
     return {
       workflowId: workflowEntity.id,
     };
+  }
+
+  private async persistSubWorkflowLink(
+    childWorkflowId: string,
+    workflowName: string,
+    options: RunOptions | undefined,
+  ): Promise<void> {
+    const show: SubWorkflowShow = options?.show ?? 'inline';
+    if (show === 'hidden') return;
+
+    const label = options?.label ?? workflowName;
+    await this.documentStore.save(
+      LinkDocument,
+      {
+        label,
+        workflowId: childWorkflowId,
+        embed: show === 'inline',
+        expanded: show === 'inline',
+      },
+      { id: `link_${childWorkflowId}` },
+    );
   }
 
   async resume(workflowId: string, payload: Record<string, unknown>, options: ResumeOptions): Promise<void> {

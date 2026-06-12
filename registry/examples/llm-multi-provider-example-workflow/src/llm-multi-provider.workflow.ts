@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmGenerateTextTool, LlmMessageDocument, extractText } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 /**
  * Multi-provider LLM example.
@@ -34,7 +34,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, L
   @Transition({ to: 'claude_done' })
   async askClaude(state: LlmMultiProviderState, ctx: RunContext): Promise<LlmMultiProviderState> {
     const args = ctx.args as { prompt: string };
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: args.prompt });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: args.prompt });
 
     const result = await this.llmGenerateText.call(
       { prompt: args.prompt },
@@ -49,7 +49,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, L
 
     await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
-      content: `**Claude:** ${extractText(result.data!)}`,
+      text: `**Claude:** ${result.data!.message.text}`,
     });
     return { ...state, prompt: args.prompt };
   }
@@ -69,7 +69,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, L
 
     await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
-      content: `**OpenAI:** ${extractText(result.data!)}`,
+      text: `**OpenAI:** ${result.data!.message.text}`,
     });
     return state;
   }

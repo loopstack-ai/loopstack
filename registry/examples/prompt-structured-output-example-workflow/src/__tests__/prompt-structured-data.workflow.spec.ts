@@ -22,7 +22,7 @@ describe('PromptStructuredOutputWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptStructuredOutputWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
+      .withImports(LlmProviderModule, ClaudeModule)
       .withProvider(FileDocument)
       .withToolOverride(LlmGenerateObjectTool)
       .compile();
@@ -73,12 +73,7 @@ describe('PromptStructuredOutputWorkflow', () => {
       expect(statusDoc!.content).toEqual(
         expect.objectContaining({
           role: 'assistant',
-          content: expect.arrayContaining([
-            expect.objectContaining({
-              type: 'text',
-              text: expect.stringContaining('Successfully generated'),
-            }),
-          ]),
+          text: expect.stringContaining('Successfully generated'),
         }),
       );
     });

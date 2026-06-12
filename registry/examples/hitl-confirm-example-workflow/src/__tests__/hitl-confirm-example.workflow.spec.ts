@@ -41,7 +41,7 @@ describe('HitlConfirmExampleWorkflow', () => {
 
     expect(mockConfirmUserWorkflow.run).toHaveBeenCalledWith(
       expect.objectContaining({ markdown: expect.stringContaining('Ready to deploy') }),
-      { callback: { transition: 'decisionReceived' } },
+      { callback: { transition: 'decisionReceived' }, show: 'inline', label: 'Waiting for user confirmation...' },
     );
   });
 
@@ -73,7 +73,7 @@ describe('HitlConfirmExampleWorkflow', () => {
       expect.arrayContaining([
         expect.objectContaining({
           documentName: 'message',
-          content: expect.objectContaining({ content: expect.stringContaining('confirmed') }),
+          content: expect.objectContaining({ text: expect.stringContaining('confirmed') }),
         }),
       ]),
     );
@@ -107,7 +107,7 @@ describe('HitlConfirmExampleWorkflow', () => {
       expect.arrayContaining([
         expect.objectContaining({
           documentName: 'message',
-          content: expect.objectContaining({ content: expect.stringContaining('denied') }),
+          content: expect.objectContaining({ text: expect.stringContaining('denied') }),
         }),
       ]),
     );

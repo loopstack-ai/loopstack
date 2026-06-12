@@ -41,7 +41,7 @@ export class MyModule {}
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
 const AnswerCallback = CallbackSchema.extend({
@@ -56,14 +56,9 @@ export class MyWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'waiting' })
   async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.askUser.run(
+    await this.askUser.run(
       { question: 'What is your name?' },
-      { callback: { transition: 'answerReceived' } },
-    );
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Waiting for answer...', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },
     );
     return state;
   }
@@ -72,7 +67,7 @@ export class MyWorkflow extends BaseWorkflow {
   async answerReceived(state: Record<string, unknown>, payload: z.infer<typeof AnswerCallback>): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Hello, ${payload.data.answer}!`,
+      text: `Hello, ${payload.data.answer}!`,
     });
     return {};
   }
@@ -228,7 +223,7 @@ Present markdown content to the user for approval. Pauses the agent until the us
 
 ## Dependencies
 
-- `@loopstack/common` — `BaseWorkflow`, `BaseTool`, decorators, `LinkDocument`
+- `@loopstack/common` — `BaseWorkflow`, `BaseTool`, decorators
 - `@loopstack/core` — `LoopCoreModule`
 
 ## Related

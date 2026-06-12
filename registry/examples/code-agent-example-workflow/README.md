@@ -10,7 +10,7 @@ Demonstrates how to launch the `ExploreAgentWorkflow` from [`@loopstack/code-age
 ## By using this example you'll get...
 
 - A parent workflow that runs `ExploreAgentWorkflow` with a fixed exploration brief
-- A `LinkDocument` that renders the embedded sub-workflow while it runs
+- The embedded sub-workflow rendered inline in the parent's view via `show: 'inline'`
 - A final `MessageDocument` summarizing the agent's findings
 
 ## Installation

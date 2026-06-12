@@ -1,6 +1,6 @@
 ---
 title: Sub-Workflows
-description: Running workflows inside other workflows via .run(), callback transitions, passing arguments to child workflows, and receiving sub-workflow results.
+description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, callback transitions, passing arguments to child workflows, and receiving sub-workflow results.
 ---
 
 # Sub-Workflows
@@ -22,19 +22,44 @@ constructor(private readonly subWorkflow: SubWorkflow) {
 ```typescript
 @Transition({ to: 'sub_started' })
 async start(state: MyState): Promise<MyState> {
-  const result: QueueResult = await this.subWorkflow.run(
-    { prompt: 'Hello' },                         // Args passed to the sub-workflow
+  await this.subWorkflow.run(
+    { prompt: 'Hello' },                          // Args passed to the sub-workflow
     { callback: { transition: 'onSubComplete' } }, // Method to call when done
   );
-
-  // Track with a link document
-  await this.documentStore.save(LinkDocument, {
-    label: 'Running sub-workflow...',
-    workflowId: result.workflowId,
-  }, { id: `link_${result.workflowId}` });
   return state;
 }
 ```
+
+The parent's run view automatically renders the child sub-workflow inline by default — there is no extra `documentStore.save(LinkDocument, …)` step.
+
+## Controlling How the Child Appears: `show`
+
+The `show` option on `RunOptions` controls how the child sub-workflow is rendered inside the parent's run view:
+
+| `show`                 | What the parent sees                                                                                           | Use for                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `'inline'` _(default)_ | The child is embedded as an inline iframe; the user can interact with it in place.                             | HITL prompts, OAuth flows, agents whose progress you want visible. |
+| `'link'`               | A status link card with the child's label and live status — opens the child in a separate window when clicked. | Long-running autonomous children the parent just tracks.           |
+| `'hidden'`             | Nothing is shown.                                                                                              | Background fan-out where surfacing each child would be noise.      |
+
+```typescript
+await this.askUser.run(args, {
+  callback: { transition: 'answered' },
+  show: 'inline', // (default) embed the child UI in the parent's view
+  label: 'Waiting for user answer', // optional — defaults to the child workflow's name
+});
+
+await this.longJob.run(args, {
+  callback: { transition: 'done' },
+  show: 'link', // status card, opens child in a separate window
+});
+
+await this.background.run(args, {
+  show: 'hidden', // no card at all
+});
+```
+
+The link card's status is read live from the child workflow's actual state — it transitions from pending to success or failure automatically as the child runs.
 
 ## Receiving the Callback
 
@@ -51,17 +76,13 @@ const SubWorkflowCallbackSchema = CallbackSchema.extend({
   wait: true,
   schema: SubWorkflowCallbackSchema,
 })
-async onSubComplete(state: MyState, payload: { workflowId: string; status: string; data: { message: string } }): Promise<MyState> {
-  // Update the link document
-  await this.documentStore.save(LinkDocument, {
-    label: 'Sub-Workflow',
-    status: 'success',
-    workflowId: payload.workflowId,
-  }, { id: `link_${payload.workflowId}` });
-
+async onSubComplete(
+  state: MyState,
+  payload: { workflowId: string; status: string; data: { message: string } },
+): Promise<MyState> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Sub-workflow said: ${payload.data.message}`,
+    text: `Sub-workflow said: ${payload.data.message}`,
   });
   return state;
 }
@@ -92,15 +113,9 @@ export class ParentWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'sub_started' })
   async runWorkflow(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.subWorkflow.run({}, { callback: { transition: 'subWorkflowCallback' } });
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        label: 'Executing Sub-Workflow...',
-        workflowId: result.workflowId,
-      },
-      { id: `link_${result.workflowId}` },
+    await this.subWorkflow.run(
+      {},
+      { callback: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
     );
     return state;
   }
@@ -115,19 +130,9 @@ export class ParentWorkflow extends BaseWorkflow {
     state: Record<string, unknown>,
     payload: { workflowId: string; status: string; data: { message: string } },
   ): Promise<unknown> {
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        label: 'Sub-Workflow',
-        status: 'success',
-        workflowId: payload.workflowId,
-      },
-      { id: `link_${payload.workflowId}` },
-    );
-
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Message from sub-workflow: ${payload.data.message}`,
+      text: `Message from sub-workflow: ${payload.data.message}`,
     });
     return {};
   }
@@ -168,12 +173,9 @@ export class RunTestsTask extends BaseTool {
     ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult> {
-    const result = await this.testRunner.run({ testDirectory: args.testDirectory }, { callback: options?.callback });
-
-    await this.documentStore.save(
-      LinkDocument,
-      { status: 'pending', label: 'Running tests...', workflowId: result.workflowId, embed: true },
-      { id: `test_link_${result.workflowId}` },
+    const result = await this.testRunner.run(
+      { testDirectory: args.testDirectory },
+      { callback: options?.callback, show: 'inline', label: 'Running tests...' },
     );
 
     return {
@@ -183,14 +185,7 @@ export class RunTestsTask extends BaseTool {
   }
 
   async complete(result: Record<string, unknown>): Promise<ToolResult> {
-    const data = result as { workflowId?: string; data?: { passed: boolean; output: string } };
-
-    await this.documentStore.save(
-      LinkDocument,
-      { status: data.data?.passed ? 'success' : 'failure', label: 'Tests complete', workflowId: data.workflowId! },
-      { id: `test_link_${data.workflowId}` },
-    );
-
+    const data = result as { data?: { passed: boolean; output: string } };
     return { data: data.data ?? result };
   }
 }
@@ -200,8 +195,8 @@ Key parts:
 
 - **`pending: { workflowId }`** tells the framework this tool is async — the parent workflow waits for a callback
 - **`callback: options?.callback`** passes the parent's callback config to the sub-workflow
-- **`complete()`** is called when the sub-workflow finishes — transform results and update UI documents here
-- **`LinkDocument`** gives visual feedback while the sub-workflow runs
+- **`show`** decides how the child appears in the parent's run view (`'inline'` by default)
+- **`complete()`** is called when the sub-workflow finishes — transform results and return the tool's final value here
 
 ## Nested Agents
 
@@ -209,5 +204,5 @@ The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architec
 
 ## Registry References
 
-- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent workflow calling a sub-workflow with callbacks, LinkDocument tracking, and output passing
+- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent workflow calling a sub-workflow with callbacks and output passing
 - [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — ExploreTask wrapping AgentWorkflow as a task tool

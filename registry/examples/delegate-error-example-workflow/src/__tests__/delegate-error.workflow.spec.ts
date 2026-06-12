@@ -19,7 +19,8 @@ function mockToolUseResponse(toolName: string, args: Record<string, unknown>, to
       message: {
         id: 'msg_test',
         role: 'assistant',
-        content: [
+        text: `Calling ${toolName}...`,
+        blocks: [
           { type: 'text', text: `Calling ${toolName}...` },
           { type: 'tool_call', id: toolCallId, name: toolName, args },
         ],
@@ -39,7 +40,8 @@ function mockEndTurnResponse(text: string) {
       message: {
         id: 'msg_final',
         role: 'assistant',
-        content: [{ type: 'text', text }],
+        text,
+        blocks: [{ type: 'text', text }],
         stopReason: 'end_turn',
       },
     },
@@ -56,7 +58,7 @@ describe('DelegateErrorWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(DelegateErrorWorkflow)
-      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
+      .withImports(LlmProviderModule, ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       // Real tools — we want to test actual validation and runtime errors
       .withProviders(StrictSchemaTool, RuntimeErrorTool, FailingSubWorkflowTool, FailingWorkflow)
@@ -90,8 +92,8 @@ describe('DelegateErrorWorkflow', () => {
 
       const toolResultDocs = result.documents.filter(
         (d) =>
-          Array.isArray(d.content?.content) &&
-          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
+          Array.isArray(d.content?.blocks) &&
+          d.content.blocks.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(toolResultDocs.length).toBeGreaterThan(0);
     });
@@ -112,8 +114,8 @@ describe('DelegateErrorWorkflow', () => {
 
       const toolResultDocs = result.documents.filter(
         (d) =>
-          Array.isArray(d.content?.content) &&
-          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
+          Array.isArray(d.content?.blocks) &&
+          d.content.blocks.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(toolResultDocs.length).toBeGreaterThan(0);
     });
@@ -134,8 +136,8 @@ describe('DelegateErrorWorkflow', () => {
 
       const errorToolResults = result.documents.filter(
         (d) =>
-          Array.isArray(d.content?.content) &&
-          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
+          Array.isArray(d.content?.blocks) &&
+          d.content.blocks.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(errorToolResults).toHaveLength(0);
     });
@@ -154,12 +156,12 @@ describe('DelegateErrorWorkflow', () => {
 
       const toolResultDocs = result.documents.filter(
         (d) =>
-          Array.isArray(d.content?.content) &&
-          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
+          Array.isArray(d.content?.blocks) &&
+          d.content.blocks.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(toolResultDocs.length).toBeGreaterThan(0);
 
-      const errorResult = toolResultDocs[0].content.content.find(
+      const errorResult = toolResultDocs[0].content.blocks.find(
         (b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError,
       );
       expect(errorResult.content).toBeDefined();
@@ -178,12 +180,12 @@ describe('DelegateErrorWorkflow', () => {
 
       const toolResultDocs = result.documents.filter(
         (d) =>
-          Array.isArray(d.content?.content) &&
-          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
+          Array.isArray(d.content?.blocks) &&
+          d.content.blocks.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(toolResultDocs.length).toBeGreaterThan(0);
 
-      const errorResult = toolResultDocs[0].content.content.find(
+      const errorResult = toolResultDocs[0].content.blocks.find(
         (b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError,
       );
       expect(errorResult.content).toContain('external service unavailable');
@@ -200,10 +202,10 @@ describe('DelegateErrorWorkflow', () => {
 
       const validationErrorDoc = result1.documents.find(
         (d) =>
-          Array.isArray(d.content?.content) &&
-          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
+          Array.isArray(d.content?.blocks) &&
+          d.content.blocks.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
-      const validationError = validationErrorDoc?.content.content.find(
+      const validationError = validationErrorDoc?.content.blocks.find(
         (b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError,
       );
 
@@ -215,10 +217,10 @@ describe('DelegateErrorWorkflow', () => {
 
       const runtimeErrorDoc = result2.documents.find(
         (d) =>
-          Array.isArray(d.content?.content) &&
-          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
+          Array.isArray(d.content?.blocks) &&
+          d.content.blocks.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
-      const runtimeError = runtimeErrorDoc?.content.content.find(
+      const runtimeError = runtimeErrorDoc?.content.blocks.find(
         (b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError,
       );
 

@@ -52,7 +52,7 @@ Use Google tools in an agent workflow:
 
 ```typescript
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, LinkDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({ title: 'Google Assistant' })
 export class GoogleAssistantWorkflow extends BaseWorkflow {
@@ -62,7 +62,7 @@ export class GoogleAssistantWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'chatting' })
   async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.agent.run(
+    await this.agent.run(
       {
         system: 'You are a Google Workspace assistant with access to Calendar, Gmail, and Drive.',
         tools: [
@@ -80,13 +80,7 @@ export class GoogleAssistantWorkflow extends BaseWorkflow {
         ],
         userMessage: 'Summarize my calendar events for today.',
       },
-      { callback: { transition: 'agentDone' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Working...', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'agentDone' }, show: 'inline', label: 'Working...' },
     );
     return state;
   }

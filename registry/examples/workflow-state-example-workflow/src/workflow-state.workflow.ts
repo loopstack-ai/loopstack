@@ -17,12 +17,12 @@ export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>,
   async showResults(state: WorkflowStateState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Data from state: ${state.message}`,
+      text: `Data from state: ${state.message}`,
     });
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Use workflow helper method: ${this.messageInUpperCase(state.message!)}`,
+      text: `Use workflow helper method: ${this.messageInUpperCase(state.message!)}`,
     });
     return {};
   }

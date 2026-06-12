@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -47,19 +47,7 @@ export class AuthenticateGitHubTask extends BaseTool<
   ): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
     const result = await this.oAuthWorkflow.run(
       { provider: 'github', scopes: args.scopes },
-      { callback: options?.callback ?? args.callback },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'pending',
-        label: 'GitHub authentication required',
-        workflowId: result.workflowId,
-        embed: true,
-        expanded: true,
-      },
-      { id: `link_${result.workflowId}` },
+      { callback: options?.callback ?? args.callback, show: 'inline', label: 'GitHub authentication required' },
     );
 
     return {
@@ -68,19 +56,7 @@ export class AuthenticateGitHubTask extends BaseTool<
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
-    const data = result as { workflowId?: string };
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'success',
-        label: 'GitHub authentication completed',
-        workflowId: data.workflowId,
-      },
-      { id: `link_${data.workflowId}` },
-    );
-
+  async complete(_result: Record<string, unknown>): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
     return {
       data: 'GitHub authentication completed successfully. You can now use GitHub tools.',
     };

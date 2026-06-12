@@ -37,7 +37,7 @@ describe('WorkflowToolResultsWorkflow', () => {
             documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
-              content: 'Stored in initial transition: Hello World.',
+              text: 'Stored in initial transition: Hello World.',
             }),
           }),
         ]),
@@ -56,7 +56,7 @@ describe('WorkflowToolResultsWorkflow', () => {
             documentName: 'message',
             content: expect.objectContaining({
               role: 'assistant',
-              content: 'Accessed from previous transition: Hello World.',
+              text: 'Accessed from previous transition: Hello World.',
             }),
           }),
         ]),

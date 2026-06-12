@@ -107,10 +107,7 @@ async greeting(state: PromptStructuredOutputState, ctx: RunContext): Promise<Pro
   const args = ctx.args as { language: string };
   await this.documentStore.save(
     LlmMessageDocument,
-    {
-      role: 'assistant',
-      content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${args.language}...` }],
-    },
+    { role: 'assistant', text: `Creating a 'Hello, World!' script in ${args.language}...` },
     { id: 'status' },
   );
   return { ...state, language: args.language };
@@ -153,10 +150,7 @@ The terminal `@Transition` method updates the status message saved earlier using
 async respond(state: PromptStructuredOutputState): Promise<unknown> {
   await this.documentStore.save(
     LlmMessageDocument,
-    {
-      role: 'assistant',
-      content: [{ type: 'text', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` }],
-    },
+    { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
     { id: 'status' },
   );
   return {};
@@ -198,10 +192,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     const args = ctx.args as { language: string };
     await this.documentStore.save(
       LlmMessageDocument,
-      {
-        role: 'assistant',
-        content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${args.language}...` }],
-      },
+      { role: 'assistant', text: `Creating a 'Hello, World!' script in ${args.language}...` },
       { id: 'status' },
     );
     return { ...state, language: args.language };
@@ -228,10 +219,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   async respond(state: PromptStructuredOutputState): Promise<unknown> {
     await this.documentStore.save(
       LlmMessageDocument,
-      {
-        role: 'assistant',
-        content: [{ type: 'text', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` }],
-      },
+      { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
       { id: 'status' },
     );
     return {};

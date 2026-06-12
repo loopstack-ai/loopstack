@@ -208,19 +208,18 @@ export class MyWorkflow extends BaseWorkflow<MyArgs, MyState> {
 Documents are referenced by class — no injection needed. Use `this.documentStore.save()` to create/update documents. `documentStore` is auto-injected on `BaseWorkflow`.
 
 ```typescript
-import { LinkDocument } from '@loopstack/common';
 import { LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 // Save a new document
 await this.documentStore.save(LlmMessageDocument, {
   role: 'user',
-  content: 'Hello!',
+  text: 'Hello!',
 });
 
 // Save with options (id for updates, meta for visibility)
 await this.documentStore.save(
   LlmMessageDocument,
-  { role: 'assistant', content: 'Hi!' },
+  { role: 'assistant', text: 'Hi!' },
   { id: 'greeting', meta: { hidden: true } },
 );
 ```
@@ -328,7 +327,7 @@ async waitForUser(state: MyState): Promise<MyState> {
 async userMessage(state: MyState, payload: { message: string }): Promise<MyState> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    content: payload.message,
+    text: payload.message,
   });
   return state;
 }
@@ -338,23 +337,17 @@ Best practice: add a `schema` to validate the callback payload and receive it as
 
 ## Sub-Workflows
 
-Inject sub-workflows via the constructor and use `.run()` to execute them asynchronously.
+Inject sub-workflows via the constructor and use `.run()` to execute them asynchronously. The orchestrator automatically renders the child in the parent's run view based on the `show` option (default `'inline'`).
 
 ```typescript
 constructor(private readonly subWorkflow: SubWorkflow) { super(); }
 
 @Transition({ to: 'sub_started' })
 async start(state: MyState): Promise<MyState> {
-  const result: QueueResult = await this.subWorkflow.run(
-    { prompt: 'Hello' },                                    // args
-    { callback: { transition: 'onSubComplete' } },  // options
+  await this.subWorkflow.run(
+    { prompt: 'Hello' },                                                       // args
+    { callback: { transition: 'onSubComplete' }, show: 'inline', label: 'Running sub-workflow...' },
   );
-
-  // Track the sub-workflow with a link document
-  await this.documentStore.save(LinkDocument, {
-    label: 'Running sub-workflow...',
-    workflowId: result.workflowId,
-  }, { id: `link_${result.workflowId}` });
   return state;
 }
 
@@ -369,6 +362,8 @@ async onSubComplete(state: MyState, payload: { workflowId: string; status: strin
   return state;
 }
 ```
+
+`show` accepts `'inline'` (default — embed as iframe), `'link'` (status link card opening in a separate window), or `'hidden'` (no card). See [Sub-Workflows](../build/patterns/sub-workflows.md) for the full reference.
 
 ## Workflow Output
 
@@ -540,7 +535,7 @@ export class ChatWorkflow extends BaseWorkflow<{ prompt: string }, ChatState> {
     const args = ctx.args as { prompt: string };
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: args.prompt,
+      text: args.prompt,
     });
     return state;
   }

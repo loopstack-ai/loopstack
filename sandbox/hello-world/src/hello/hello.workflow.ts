@@ -35,7 +35,7 @@ export class HelloWorkflow extends BaseWorkflow<InputArgs> {
   async saveMessage() {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
-      content: 'Bye.',
+      text: 'Bye.',
     });
   }
 }

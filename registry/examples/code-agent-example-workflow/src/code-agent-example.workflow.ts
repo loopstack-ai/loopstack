@@ -1,14 +1,6 @@
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  LinkDocument,
-  MessageDocument,
-  QueueResult,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
 
 const ExploreCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -29,19 +21,13 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'exploring' })
   async startExploration(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.agentWorkflow.run(
+    await this.agentWorkflow.run(
       {
         system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',
         tools: ['glob', 'grep', 'read'],
         userMessage: EXPLORE_INSTRUCTIONS,
       },
-      { callback: { transition: 'exploreComplete' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Exploring codebase...', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'exploreComplete' }, show: 'inline', label: 'Exploring codebase...' },
     );
     return state;
   }
@@ -53,15 +39,9 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
     schema: ExploreCallbackSchema,
   })
   async exploreComplete(state: Record<string, unknown>, payload: ExploreCallback): Promise<unknown> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Exploration complete', status: 'success', workflowId: payload.workflowId },
-      { id: `link_${payload.workflowId}` },
-    );
-
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: payload.data.response,
+      text: payload.data.response,
     });
     return {};
   }

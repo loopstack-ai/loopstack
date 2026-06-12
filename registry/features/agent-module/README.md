@@ -49,7 +49,7 @@ Launch an agent from any workflow:
 ```typescript
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, CallbackSchema, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
 
 const AgentCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -65,33 +65,22 @@ export class MyWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'running' })
   async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.agent.run(
+    await this.agent.run(
       {
         system: 'You are a helpful assistant with access to search and summarize tools.',
         tools: ['search', 'summarize'],
         userMessage: 'Find and summarize the latest news about AI.',
       },
-      { callback: { transition: 'agentDone' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Agent working...', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'agentDone' }, show: 'inline', label: 'Agent working...' },
     );
     return state;
   }
 
   @Transition({ from: 'running', to: 'end', wait: true, schema: AgentCallbackSchema })
   async agentDone(state: Record<string, unknown>, payload: AgentCallback): Promise<unknown> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Agent complete', status: 'success', workflowId: payload.workflowId },
-      { id: `link_${payload.workflowId}` },
-    );
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: payload.data.response,
+      text: payload.data.response,
     });
     return {};
   }
@@ -142,7 +131,7 @@ With `taskMode: true`, `AgentFinishTool` is added to the tool set. When the LLM 
 
 ```typescript
 import { ChatAgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 @Workflow({
@@ -156,18 +145,14 @@ export class MyChatWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'chatting' })
   async startChat(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.chatAgent.run({
-      system: 'You are a helpful assistant.',
-      tools: ['mcp_list_tools', 'mcp_call'],
-      userMessage: 'What tools are available?',
-    });
-
-    await this.documentStore.save(LinkDocument, {
-      workflowId: result.workflowId,
-      label: 'Chat Agent',
-      embed: true,
-      expanded: true,
-    });
+    await this.chatAgent.run(
+      {
+        system: 'You are a helpful assistant.',
+        tools: ['mcp_list_tools', 'mcp_call'],
+        userMessage: 'What tools are available?',
+      },
+      { show: 'inline', label: 'Chat Agent' },
+    );
     return state;
   }
 }

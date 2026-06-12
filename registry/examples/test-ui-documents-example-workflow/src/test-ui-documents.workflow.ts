@@ -18,7 +18,7 @@ export class TestUiDocumentsWorkflow extends BaseWorkflow {
     // Message
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: 'This is the default message',
+      text: 'This is the default message',
     });
 
     // Error
