@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow.js';
 
@@ -41,19 +41,7 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
   ): Promise<ToolResult<RequestSecretsTaskResult>> {
     const result = await this.secretsRequestWorkflow.run(
       { variables: args.variables },
-      { callback: options?.callback },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'pending',
-        label: 'Requesting Secrets',
-        workflowId: result.workflowId,
-        embed: true,
-        expanded: true,
-      },
-      { id: `link_${result.workflowId}` },
+      { callback: options?.callback, show: 'inline', label: 'Requesting Secrets' },
     );
 
     return {
@@ -62,19 +50,7 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult<RequestSecretsTaskResult>> {
-    const data = result as { workflowId?: string };
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'success',
-        label: 'Secrets have been stored',
-        workflowId: data.workflowId,
-      },
-      { id: `link_${data.workflowId}` },
-    );
-
+  async complete(_result: Record<string, unknown>): Promise<ToolResult<RequestSecretsTaskResult>> {
     return {
       data: 'Secrets have been stored securely by the user.',
     };

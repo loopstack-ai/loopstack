@@ -146,14 +146,14 @@ await this.documentStore.save(LlmMessageDocument, { role: 'user', text: systemPr
 
 You don't always need to create custom documents. The built-in types cover the most common cases:
 
-| Document             | Source                           | Use case                                                                                                   |
-| -------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `LlmMessageDocument` | `@loopstack/llm-provider-module` | Chat messages — user and assistant turns, tool calls, tool results. Collected into LLM history by default. |
-| `MessageDocument`    | `@loopstack/common`              | UI-only role/text bubbles (status updates, narrative). Not collected into LLM history.                     |
-| `MarkdownDocument`   | `@loopstack/common`              | Rich text output rendered as formatted markdown                                                            |
-| `PlainDocument`      | `@loopstack/common`              | Plain text output                                                                                          |
-| `LinkDocument`       | `@loopstack/common`              | Links to sub-workflow runs, with embed and status support                                                  |
-| `ErrorDocument`      | `@loopstack/common`              | Error messages, automatically saved on transition failure                                                  |
+| Document             | Source                           | Use case                                                                                                                                                             |
+| -------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LlmMessageDocument` | `@loopstack/llm-provider-module` | Chat messages — user and assistant turns, tool calls, tool results. Collected into LLM history by default.                                                           |
+| `MessageDocument`    | `@loopstack/common`              | UI-only role/text bubbles (status updates, narrative). Not collected into LLM history.                                                                               |
+| `MarkdownDocument`   | `@loopstack/common`              | Rich text output rendered as formatted markdown                                                                                                                      |
+| `PlainDocument`      | `@loopstack/common`              | Plain text output                                                                                                                                                    |
+| `LinkDocument`       | `@loopstack/common`              | Status card / inline embed for sub-workflow runs. Auto-saved by `subWorkflow.run()` based on the `show` option; live status derived from the child workflow's state. |
+| `ErrorDocument`      | `@loopstack/common`              | Error messages, automatically saved on transition failure                                                                                                            |
 
 Custom documents are for when you need structured forms, interactive fields, or action buttons — see the [Creating Documents](../build/fundamentals/documents.md) guide.
 

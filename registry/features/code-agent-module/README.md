@@ -1,6 +1,6 @@
 ---
 title: Code Agent Module
-description: AI-powered codebase exploration for Loopstack — ExploreTask tool launches AgentWorkflow sub-agent with glob/grep/read tools, CodeAgentModule registration, forFeature() LLM config, LinkDocument embedding, CallbackSchema for sub-workflow completion
+description: AI-powered codebase exploration for Loopstack — ExploreTask tool launches AgentWorkflow sub-agent with glob/grep/read tools, CodeAgentModule registration, forFeature() LLM config, CallbackSchema for sub-workflow completion
 ---
 
 # @loopstack/code-agent
@@ -54,15 +54,7 @@ import { Module } from '@nestjs/common';
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
 import { CodeAgentModule } from '@loopstack/code-agent';
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  LinkDocument,
-  MessageDocument,
-  QueueResult,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
 
 const ExploreCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -78,19 +70,13 @@ export class MyWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'exploring' })
   async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.agentWorkflow.run(
+    await this.agentWorkflow.run(
       {
         system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',
         tools: ['glob', 'grep', 'read'],
         userMessage: 'Find the entry-point module and list its top-level providers.',
       },
-      { callback: { transition: 'onExploreComplete' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Exploring codebase...', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'onExploreComplete' }, show: 'inline', label: 'Exploring codebase...' },
     );
 
     return state;
@@ -98,12 +84,6 @@ export class MyWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'exploring', to: 'end', wait: true, schema: ExploreCallbackSchema })
   async onExploreComplete(state: Record<string, unknown>, payload: ExploreCallback): Promise<unknown> {
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Exploration complete', status: 'success', workflowId: payload.workflowId },
-      { id: `link_${payload.workflowId}` },
-    );
-
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: payload.data.response,
@@ -133,13 +113,13 @@ start ──► exploring (wait) ──► end
 
 1. The parent workflow calls `agentWorkflow.run()` with a system prompt, tool list, and user message
 2. The `AgentWorkflow` sub-workflow starts its own agent loop: LLM generates text, calls tools (`glob`, `grep`, `read`), loops until it produces a final answer
-3. A `LinkDocument` is saved with `embed: true` and `expanded: true` to show the sub-workflow inline in the UI
+3. The orchestrator renders the sub-workflow inline in the parent's UI based on the `show` option (`'inline'` by default)
 4. When the agent finishes, it calls back to the parent workflow's wait transition with `{ data: { response } }`
 5. The parent receives the synthesized answer and can display it or act on it
 
 ### ExploreTask Tool
 
-The module also provides `ExploreTask`, a tool wrapper around `AgentWorkflow` that can be used by other agents. It handles the sub-workflow launch and `LinkDocument` lifecycle automatically:
+The module also provides `ExploreTask`, a tool wrapper around `AgentWorkflow` that can be used by other agents:
 
 ```
 Parent Agent ──► explore_task tool call ──► AgentWorkflow sub-agent
@@ -151,7 +131,7 @@ Parent Agent ──► explore_task tool call ──► AgentWorkflow sub-agent
                                            ◄── complete() callback
 ```
 
-`ExploreTask` launches the sub-agent, saves a `LinkDocument`, and returns `{ workflowId }` with `pending` status. When the sub-agent completes, `ExploreTask.complete()` updates the link and returns the response text.
+`ExploreTask` launches the sub-agent and returns `{ workflowId }` with `pending` status. The orchestrator renders the sub-agent inline in the parent's view. When the sub-agent completes, `ExploreTask.complete()` returns the response text.
 
 ## Args Reference
 
@@ -246,7 +226,7 @@ CodeAgentModule.forFeature({
 
 ## Related
 
-- [`code-agent-example-workflow`](https://loopstack.ai/docs/registry/examples/code-agent-example-workflow) — full working example showing `AgentWorkflow` with glob/grep/read and `LinkDocument` embedding
+- [`code-agent-example-workflow`](https://loopstack.ai/docs/registry/examples/code-agent-example-workflow) — full working example showing `AgentWorkflow` with glob/grep/read
 - [Agent Workflows](https://loopstack.ai/docs/build/ai/agent-workflows) — how the agent loop, tool resolution, and callbacks work
 - [`@loopstack/agent`](https://loopstack.ai/docs/registry/features/agent-module) — the generic `AgentWorkflow` that powers the code agent
 - [`@loopstack/remote-client`](https://loopstack.ai/docs/registry/features/remote-client-module) — the `glob`, `grep`, and `read` tools used by the agent

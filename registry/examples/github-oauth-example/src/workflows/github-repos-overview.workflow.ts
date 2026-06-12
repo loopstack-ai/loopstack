@@ -1,13 +1,5 @@
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  CallbackSchema,
-  Guard,
-  LinkDocument,
-  MarkdownDocument,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import {
   GitHubGetAuthenticatedUserTool,
@@ -109,20 +101,9 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
   @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
-    const result = await this.oAuthWorkflow.run(
+    await this.oAuthWorkflow.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-      { callback: { transition: 'authCompleted' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        label: 'GitHub authentication required',
-        workflowId: result.workflowId,
-        embed: true,
-        expanded: true,
-      },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
     );
     return state;
   }
@@ -140,19 +121,8 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
   })
   async authCompleted(
     state: GitHubReposOverviewState,
-    payload: { workflowId: string },
+    _payload: { workflowId: string },
   ): Promise<GitHubReposOverviewState> {
-    await this.documentStore.save(
-      LinkDocument,
-      {
-        status: 'success',
-        label: 'GitHub authentication completed',
-        workflowId: payload.workflowId,
-        embed: true,
-        expanded: false,
-      },
-      { id: `link_${payload.workflowId}` },
-    );
     return state;
   }
 

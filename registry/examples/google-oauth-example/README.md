@@ -54,21 +54,11 @@ async fetchEvents(state: CalendarSummaryState, ctx: RunContext): Promise<Calenda
 @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
 @Guard('needsAuth')
 async authRequired(state: CalendarSummaryState): Promise<CalendarSummaryState> {
-  const result = await this.oAuthWorkflow.run(
+  await this.oAuthWorkflow.run(
     { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-    { callback: { transition: 'authCompleted' } },
+    { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
   );
-
-  await this.documentStore.save(
-    LinkDocument,
-    {
-      label: 'Google authentication required',
-      workflowId: result.workflowId,
-      embed: true,
-      expanded: true,
-    },
-    { id: `link_${result.workflowId}` },
-  );
+  return state;
 }
 
 needsAuth(state: CalendarSummaryState): boolean {
@@ -85,18 +75,7 @@ The auth callback uses `wait: true` with `CallbackSchema` and transitions back t
   wait: true,
   schema: CallbackSchema,
 })
-async authCompleted(state: CalendarSummaryState, payload: { workflowId: string }): Promise<CalendarSummaryState> {
-  await this.documentStore.save(
-    LinkDocument,
-    {
-      status: 'success',
-      label: 'Google authentication completed',
-      workflowId: payload.workflowId,
-      embed: true,
-      expanded: false,
-    },
-    { id: `link_${payload.workflowId}` },
-  );
+async authCompleted(state: CalendarSummaryState, _payload: { workflowId: string }): Promise<CalendarSummaryState> {
   return state;
 }
 ```
@@ -257,7 +236,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 
 ## Dependencies
 
-- `@loopstack/common` - Core workflow/runtime types and documents (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `CallbackSchema`, `LinkDocument`, `MarkdownDocument`)
+- `@loopstack/common` - Core workflow/runtime types and documents (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `CallbackSchema`, `MarkdownDocument`)
 - `@loopstack/claude-module` - Claude provider registration used by LLM tools
 - `@loopstack/llm-provider-module` - LLM adapter tools (`LlmGenerateTextTool`, `LlmMessageDocument`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`, `OAuthTokenStore`)

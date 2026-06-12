@@ -40,21 +40,11 @@ The workflow uses `@Guard` to check if authentication is needed and routes to th
 @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
 @Guard('needsAuth')
 async authRequired(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
-  const result = await this.oAuthWorkflow.run(
+  await this.oAuthWorkflow.run(
     { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-    { callback: { transition: 'authCompleted' } },
+    { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
   );
-
-  await this.documentStore.save(
-    LinkDocument,
-    {
-      label: 'GitHub authentication required',
-      workflowId: result.workflowId,
-      embed: true,
-      expanded: true,
-    },
-    { id: `link_${result.workflowId}` },
-  );
+  return state;
 }
 
 needsAuth(state: GitHubReposOverviewState): boolean {
@@ -71,18 +61,8 @@ The auth callback uses `wait: true` with `CallbackSchema` to receive the OAuth c
   wait: true,
   schema: CallbackSchema,
 })
-async authCompleted(state: GitHubReposOverviewState, payload: { workflowId: string }): Promise<GitHubReposOverviewState> {
-  await this.documentStore.save(
-    LinkDocument,
-    {
-      status: 'success',
-      label: 'GitHub authentication completed',
-      workflowId: payload.workflowId,
-      embed: true,
-      expanded: false,
-    },
-    { id: `link_${payload.workflowId}` },
-  );
+async authCompleted(state: GitHubReposOverviewState, _payload: { workflowId: string }): Promise<GitHubReposOverviewState> {
+  return state;
 }
 ```
 
@@ -234,7 +214,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 
 ## Dependencies
 
-- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `CallbackSchema`, `ToolResult`, `LinkDocument`, `MarkdownDocument`, `MessageDocument`)
+- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `CallbackSchema`, `ToolResult`, `MarkdownDocument`, `MessageDocument`)
 - `@loopstack/llm-provider-module` - LLM adapter tools (`LlmGenerateTextTool`, `LlmMessageDocument`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`)
 - `@loopstack/github-module` - All 25 GitHub tools

@@ -48,16 +48,7 @@ describe('AgentExampleWorkflow', () => {
         tools: ['weather_lookup', 'calculator'],
         userMessage: expect.any(String),
       }),
-      { callback: { transition: 'agentComplete' } },
-    );
-
-    expect(result.documents).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          documentName: 'link',
-          content: expect.objectContaining({ workflowId: 'agent-sub-id' }),
-        }),
-      ]),
+      { callback: { transition: 'agentComplete' }, show: 'inline', label: 'Agent working...' },
     );
   });
 

@@ -27,9 +27,9 @@ constructor(private readonly subWorkflow: SubWorkflow) { super(); }
 const result: QueueResult = await this.subWorkflow.run(
   { prompt: 'Hello' }, // args passed to the sub-workflow
   {
-    callback: {
-      transition: 'onSubComplete', // method name of the wait transition
-    },
+    callback: { transition: 'onSubComplete' }, // method name of the wait transition
+    show: 'inline', // 'inline' (default) | 'link' | 'hidden' — how the child appears in the parent's view
+    label: 'Running sub-workflow', // optional override (defaults to the child workflow's name)
   },
 );
 // result.workflowId — the ID of the spawned sub-workflow
@@ -71,56 +71,32 @@ async finish(state: SubState): Promise<{ message: string }> {
 }
 ```
 
-### Tracking with LinkDocument
+### Rendering in the Parent's View
 
-Use `LinkDocument` to show a clickable link to the sub-workflow in the UI:
+The `show` option on `.run()` controls how the child appears inside the parent's run view:
 
-```typescript
-import { LinkDocument } from '@loopstack/common';
+- `'inline'` _(default)_ — child is embedded as an inline iframe. Best for HITL / OAuth / interactive children.
+- `'link'` — status link card, opens the child in a separate window. Best for autonomous children the parent just tracks.
+- `'hidden'` — no card at all. Best for background fan-out.
 
-await this.documentStore.save(
-  LinkDocument,
-  {
-    label: 'Running sub-workflow...',
-    workflowId: result.workflowId,
-  },
-  { id: `link_${result.workflowId}` },
-);
-
-// Update after completion
-await this.documentStore.save(
-  LinkDocument,
-  {
-    label: 'Sub-Workflow',
-    status: 'success',
-    workflowId: payload.workflowId,
-  },
-  { id: `link_${payload.workflowId}` },
-);
-```
+The orchestrator auto-creates the corresponding `LinkDocument` for `'inline'` and `'link'`; the card's status is derived live from the child workflow's actual state — no manual updates needed.
 
 ## Built-in Document Types
 
 These document types are available from `@loopstack/common` without additional imports:
 
-| Document           | Description                     | Key Fields                                           |
-| ------------------ | ------------------------------- | ---------------------------------------------------- |
-| `MessageDocument`  | UI-only chat message            | `role`, `text`                                       |
-| `MarkdownDocument` | Rendered markdown               | `markdown`                                           |
-| `PlainDocument`    | Plain text                      | `text`                                               |
-| `ErrorDocument`    | Error message (red styling)     | `error`                                              |
-| `LinkDocument`     | Clickable link to sub-workflows | `label`, `workflowId`, `status`, `embed`, `expanded` |
+| Document           | Description                                                        | Key Fields                                 |
+| ------------------ | ------------------------------------------------------------------ | ------------------------------------------ |
+| `MessageDocument`  | UI-only chat message                                               | `role`, `text`                             |
+| `MarkdownDocument` | Rendered markdown                                                  | `markdown`                                 |
+| `PlainDocument`    | Plain text                                                         | `text`                                     |
+| `ErrorDocument`    | Error message (red styling)                                        | `error`                                    |
+| `LinkDocument`     | Status card / iframe link to sub-workflows (auto-saved by `run()`) | `label`, `workflowId`, `embed`, `expanded` |
 
 ### Usage
 
 ```typescript
-import { LinkDocument, MessageDocument } from '@loopstack/common';
-
-// Save any built-in document
-await this.documentStore.save(LinkDocument, {
-  label: 'View Details',
-  workflowId: result.workflowId,
-});
+import { MessageDocument } from '@loopstack/common';
 
 await this.documentStore.save(MessageDocument, {
   role: 'assistant',

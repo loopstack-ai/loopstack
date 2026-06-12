@@ -111,7 +111,7 @@ start ──> requesting_secrets ──(wait)──> verifying ──> end
 
 ### Using RequestSecretsTask in agent workflows
 
-`RequestSecretsTask` is the agent-friendly variant. It launches `SecretsRequestWorkflow` as a sub-workflow with a callback, displays a `LinkDocument` with an embedded view of the sub-workflow, and resolves when the user completes the form. Use this when an LLM agent decides at runtime which secrets to request.
+`RequestSecretsTask` is the agent-friendly variant. It launches `SecretsRequestWorkflow` as a sub-workflow with a callback (rendered inline in the parent's view via the default `show: 'inline'`), and resolves when the user completes the form. Use this when an LLM agent decides at runtime which secrets to request.
 
 ```ts
 import { RequestSecretsTask, GetSecretKeysTool, SecretsRequestWorkflow } from '@loopstack/secrets-module';

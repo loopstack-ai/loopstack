@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
 
@@ -41,19 +41,14 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
       `Always pass serverUrl="${LINEAR_MCP_URL}" and transport="streamableHttp".`,
     ].join('\n');
 
-    const result = await this.chatAgentWorkflow.run({
-      system: systemPrompt,
-      tools: ['mcp_list_tools', 'mcp_call'],
-      userMessage: args.initialMessage,
-    });
-
-    await this.documentStore.save(LinkDocument, {
-      workflowId: result.workflowId,
-      label: 'Linear Agent Chat',
-      status: 'pending',
-      embed: true,
-      expanded: true,
-    });
+    await this.chatAgentWorkflow.run(
+      {
+        system: systemPrompt,
+        tools: ['mcp_list_tools', 'mcp_call'],
+        userMessage: args.initialMessage,
+      },
+      { show: 'inline', label: 'Linear Agent Chat' },
+    );
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
@@ -54,32 +54,17 @@ export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskR
         tools: this.tools,
         userMessage: args.instructions,
       },
-      { callback: options?.callback },
-    );
-
-    const workflowId = result.workflowId;
-
-    await this.documentStore.save(
-      LinkDocument,
-      { status: 'pending', label: 'Exploring...', workflowId, embed: true, expanded: true },
-      { id: 'explore_link' },
+      { callback: options?.callback, show: 'inline', label: 'Exploring...' },
     );
 
     return {
-      data: { workflowId },
-      pending: { workflowId },
+      data: { workflowId: result.workflowId },
+      pending: { workflowId: result.workflowId },
     };
   }
 
   async complete(result: Record<string, unknown>): Promise<ToolResult<ExploreTaskResult>> {
     const data = result as { workflowId?: string; data?: { response?: string } };
-
-    await this.documentStore.save(
-      LinkDocument,
-      { status: 'success', label: 'Exploring complete', workflowId: data.workflowId! },
-      { id: 'explore_link' },
-    );
-
     return { data: data.data?.response ?? result };
   }
 }

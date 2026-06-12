@@ -54,7 +54,7 @@ The fastest way to use GitHub tools is through `AgentWorkflow` — pass tool nam
 
 ```typescript
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, LinkDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({ title: 'GitHub Assistant' })
 export class GitHubAssistantWorkflow extends BaseWorkflow {
@@ -64,7 +64,7 @@ export class GitHubAssistantWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'chatting' })
   async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.agent.run(
+    await this.agent.run(
       {
         system: 'You are a GitHub assistant. Help the user manage repos, issues, PRs, and actions.',
         tools: [
@@ -80,13 +80,7 @@ export class GitHubAssistantWorkflow extends BaseWorkflow {
         ],
         userMessage: 'List my five most recently updated repositories.',
       },
-      { callback: { transition: 'agentDone' } },
-    );
-
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'Working...', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'agentDone' }, show: 'inline', label: 'Working...' },
     );
     return state;
   }
@@ -101,7 +95,7 @@ For full control over the auth flow, inject the individual tools and `OAuthWorkf
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, Guard, LinkDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { GitHubGetAuthenticatedUserTool, GitHubListReposTool } from '@loopstack/github-module';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
@@ -134,14 +128,9 @@ export class MyGitHubWorkflow extends BaseWorkflow<Record<string, unknown>, Stat
   @Transition({ from: 'user_checked', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async startAuth(state: State): Promise<State> {
-    const result = await this.oAuthWorkflow.run(
+    await this.oAuthWorkflow.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-      { callback: { transition: 'authCompleted' } },
-    );
-    await this.documentStore.save(
-      LinkDocument,
-      { label: 'GitHub authentication required', workflowId: result.workflowId, embed: true, expanded: true },
-      { id: `link_${result.workflowId}` },
+      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
     );
     return state;
   }

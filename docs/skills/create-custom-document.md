@@ -113,14 +113,14 @@ const all = this.documentStore.findAllDocuments();
 
 Don't redefine these — import and save:
 
-| Document             | Source                           | Key fields                                           |
-| -------------------- | -------------------------------- | ---------------------------------------------------- |
-| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `text`, `blocks`                             |
-| `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `status`, `embed`, `expanded` |
-| `MessageDocument`    | `@loopstack/common`              | `role`, `text`                                       |
-| `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                           |
-| `PlainDocument`      | `@loopstack/common`              | `text`                                               |
-| `ErrorDocument`      | `@loopstack/common`              | `error`                                              |
+| Document             | Source                           | Key fields                                 |
+| -------------------- | -------------------------------- | ------------------------------------------ |
+| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `text`, `blocks`                   |
+| `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `embed`, `expanded` |
+| `MessageDocument`    | `@loopstack/common`              | `role`, `text`                             |
+| `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                 |
+| `PlainDocument`      | `@loopstack/common`              | `text`                                     |
+| `ErrorDocument`      | `@loopstack/common`              | `error`                                    |
 
 ```typescript
 import { MarkdownDocument } from '@loopstack/common';
