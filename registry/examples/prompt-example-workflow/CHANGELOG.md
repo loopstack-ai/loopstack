@@ -1,5 +1,14 @@
 # @loopstack/prompt-example-workflow
 
+## 0.23.3
+
+### Patch Changes
+
+- Updated dependencies [[`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c)]:
+  - @loopstack/llm-provider-module@0.5.0
+  - @loopstack/common@0.34.0
+  - @loopstack/claude-module@0.25.3
+
 ## 0.23.2
 
 ### Patch Changes
