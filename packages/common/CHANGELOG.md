@@ -1,5 +1,29 @@
 # @loopstack/common
 
+## 0.35.0
+
+### Minor Changes
+
+- [#218](https://github.com/loopstack-ai/loopstack/pull/218) [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `CallbackSchema` exposes `hasError: boolean` and `errorMessage: string | null` so a parent workflow can branch on a child's failure without parsing `status` strings or querying the child entity. The orchestrator populates both fields from the terminating child when it dispatches the parent's callback. The framework no longer auto-saves an `ErrorDocument` on caught transition exceptions — those failures surface via the workflow's own `errorMessage` field and the Retry affordance, so the document stream only contains errors explicitly recorded by user workflows. `@loopstack/run-sub-workflow-example` adds a `FailingSubWorkflow`, an `ErrorHandlingWorkflow` that exercises the error UI in both `show: 'inline'` and `show: 'link'` modes, and a `ShowModesWorkflow` that chains all three render modes (`inline → link → hidden`) in one flow.
+
+- [#218](https://github.com/loopstack-ai/loopstack/pull/218) [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `MessageDocument`'s field is renamed `content: string` → `text?: string` so it lines up with `LlmMessageDocument`, and its default tag changes from `['message']` to `['ui-message']`. The tag change means a `MessageDocument` is no longer picked up by LLM history collection (`messagesSearchTag` defaults to `'message'`) — plain UI bubbles stop leaking into the conversation context. `LlmMessageDocument` now extends `MessageDocument` for a shared base; its exposed fields (`role`, `text`, `blocks`, `stopReason`, `id`) are unchanged. To restore the old behaviour and feed a `MessageDocument` into LLM history, save it with explicit `tags: ['message']`.
+
+- [#218](https://github.com/loopstack-ai/loopstack/pull/218) [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Sub-workflow rendering is now controlled by a single `show` option on `RunOptions`, and the orchestrator auto-creates the link card so the parent's view never goes blank.
+
+  `BaseWorkflow.run()` accepts `show?: 'inline' | 'link' | 'hidden'` (default `'inline'`) and `label?: string`. The orchestrator writes the matching `LinkDocument` into the parent's stream from `WorkflowOrchestrationService.queue()` while still inside the parent's `ExecutionScope`:
+  - `'inline'` — `embed: true, expanded: true` (iframe in the parent's view). Right for HITL/OAuth/agents.
+  - `'link'` — `embed: false` (status card opens in a separate window). Right for autonomous children.
+  - `'hidden'` — no save. Right for fan-out / background work.
+
+  The `status` field is removed from `LinkDocumentSchema`. The Studio `LinkCard` reads live status from `useChildWorkflows(parentId)` (already SSE-invalidated) and maps `WorkflowState` to its colored badge — there is no longer any denormalized status to keep in sync.
+
+  All registry features, examples, and sandbox call sites drop their manual `documentStore.save(LinkDocument, …)` pairs around `subWorkflow.run()` and pass `show` + `label` on the `.run()` call instead.
+
+### Patch Changes
+
+- Updated dependencies [[`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c)]:
+  - @loopstack/contracts@0.35.0
+
 ## 0.34.0
 
 ### Minor Changes

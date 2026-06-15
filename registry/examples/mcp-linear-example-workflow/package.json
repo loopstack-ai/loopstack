@@ -9,7 +9,7 @@
     "agent",
     "workflow"
   ],
-  "version": "0.3.2",
+  "version": "0.3.3",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -30,9 +30,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/agent": "^0.5.3",
-    "@loopstack/common": "^0.34.0",
-    "@loopstack/mcp-module": "^0.3.3",
+    "@loopstack/agent": "^0.5.4",
+    "@loopstack/common": "^0.35.0",
+    "@loopstack/mcp-module": "^0.3.4",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },

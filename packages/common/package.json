@@ -2,7 +2,7 @@
   "name": "@loopstack/common",
   "displayName": "Loopstack Common Module",
   "description": "A collection of utils and dtos shared between nestjs modules",
-  "version": "0.34.0",
+  "version": "0.35.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -25,7 +25,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/contracts": "^0.34.0",
+    "@loopstack/contracts": "^0.35.0",
     "fast-json-stable-stringify": "^2.1.0",
     "yaml": "^2.8.3"
   },

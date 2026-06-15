@@ -1,5 +1,13 @@
 # @loopstack/git-module
 
+## 0.3.4
+
+### Patch Changes
+
+- Updated dependencies [[`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c)]:
+  - @loopstack/remote-client@0.25.4
+  - @loopstack/common@0.35.0
+
 ## 0.3.3
 
 ### Patch Changes

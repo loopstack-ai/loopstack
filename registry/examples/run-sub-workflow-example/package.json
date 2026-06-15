@@ -10,7 +10,7 @@
     "sub-workflow",
     "workflow"
   ],
-  "version": "0.23.2",
+  "version": "0.24.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -31,8 +31,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/core": "^0.34.0",
-    "@loopstack/common": "^0.34.0",
+    "@loopstack/core": "^0.35.0",
+    "@loopstack/common": "^0.35.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },

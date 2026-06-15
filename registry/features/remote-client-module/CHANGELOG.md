@@ -1,5 +1,15 @@
 # @loopstack/remote-client
 
+## 0.25.4
+
+### Patch Changes
+
+- [#218](https://github.com/loopstack-ai/loopstack/pull/218) [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Allow bare `RemoteClientModule` import without `forRoot()`. The module's static `@Module` decorator now wires a global root module, so importing the class directly registers `RemoteClient`, `EnvironmentService`, `EnvironmentConfigService`, `ENVIRONMENT_CONFIG`, and the file/exec tools with default config. `forRoot(options)` and `forFeature(options)` are unchanged.
+
+- Updated dependencies [[`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c)]:
+  - @loopstack/common@0.35.0
+  - @loopstack/secrets-module@0.25.4
+
 ## 0.25.3
 
 ### Patch Changes

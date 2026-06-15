@@ -13,7 +13,7 @@
     "prompt-input",
     "workflow"
   ],
-  "version": "0.23.2",
+  "version": "0.24.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -34,10 +34,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.34.0",
-    "@loopstack/hitl": "^0.4.3",
-    "@loopstack/agent": "^0.5.3",
-    "@loopstack/llm-provider-module": "^0.5.0",
+    "@loopstack/common": "^0.35.0",
+    "@loopstack/hitl": "^0.4.4",
+    "@loopstack/agent": "^0.5.4",
+    "@loopstack/llm-provider-module": "^0.6.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
