@@ -55,6 +55,8 @@ describe('AgentAskForApprovalWorkflow', () => {
           payload: {
             workflowId,
             status: 'completed',
+            hasError: false,
+            errorMessage: null,
             data: { response: 'Release notes approved and finalized.' },
           },
         },

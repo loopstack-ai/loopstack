@@ -54,7 +54,13 @@ describe('AskUserOptionsWorkflow', () => {
         transition: {
           id: 'choiceReceived',
           workflowId,
-          payload: { workflowId, status: 'completed', data: { answer: 'production' } },
+          payload: {
+            workflowId,
+            status: 'completed',
+            hasError: false,
+            errorMessage: null,
+            data: { answer: 'production' },
+          },
         },
       },
     });
@@ -80,7 +86,13 @@ describe('AskUserOptionsWorkflow', () => {
         transition: {
           id: 'choiceReceived',
           workflowId,
-          payload: { workflowId, status: 'completed', data: { answer: 'edge-eu' } },
+          payload: {
+            workflowId,
+            status: 'completed',
+            hasError: false,
+            errorMessage: null,
+            data: { answer: 'edge-eu' },
+          },
         },
       },
     });

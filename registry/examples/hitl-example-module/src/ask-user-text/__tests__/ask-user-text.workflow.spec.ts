@@ -50,7 +50,13 @@ describe('AskUserTextWorkflow', () => {
         transition: {
           id: 'answerReceived',
           workflowId,
-          payload: { workflowId, status: 'completed', data: { answer: 'Ada' } },
+          payload: {
+            workflowId,
+            status: 'completed',
+            hasError: false,
+            errorMessage: null,
+            data: { answer: 'Ada' },
+          },
         },
       },
     });
@@ -65,7 +71,7 @@ describe('AskUserTextWorkflow', () => {
           documentName: 'message',
           content: expect.objectContaining({
             role: 'assistant',
-            text: 'Thanks! You answered: Jakob',
+            text: 'Hello, Ada!',
           }),
         }),
       ]),

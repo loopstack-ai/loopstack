@@ -52,7 +52,13 @@ describe('AgentAskClarificationWorkflow', () => {
         transition: {
           id: 'agentComplete',
           workflowId,
-          payload: { workflowId, status: 'completed', data: { response: 'Try Lisbon.' } },
+          payload: {
+            workflowId,
+            status: 'completed',
+            hasError: false,
+            errorMessage: null,
+            data: { response: 'Try Lisbon.' },
+          },
         },
       },
     });

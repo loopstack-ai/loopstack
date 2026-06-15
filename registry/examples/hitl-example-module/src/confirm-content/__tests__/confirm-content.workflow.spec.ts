@@ -51,6 +51,8 @@ describe('ConfirmContentWorkflow', () => {
           payload: {
             workflowId,
             status: 'completed',
+            hasError: false,
+            errorMessage: null,
             data: { confirmed: true, markdown: '...' },
           },
         },
@@ -80,6 +82,8 @@ describe('ConfirmContentWorkflow', () => {
           payload: {
             workflowId,
             status: 'completed',
+            hasError: false,
+            errorMessage: null,
             data: { confirmed: false, markdown: '...' },
           },
         },

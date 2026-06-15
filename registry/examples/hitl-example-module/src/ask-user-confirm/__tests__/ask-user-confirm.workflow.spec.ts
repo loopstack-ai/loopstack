@@ -48,7 +48,13 @@ describe('AskUserConfirmWorkflow', () => {
         transition: {
           id: 'decisionReceived',
           workflowId,
-          payload: { workflowId, status: 'completed', data: { answer: 'yes' } },
+          payload: {
+            workflowId,
+            status: 'completed',
+            hasError: false,
+            errorMessage: null,
+            data: { answer: 'yes' },
+          },
         },
       },
     });
@@ -73,7 +79,13 @@ describe('AskUserConfirmWorkflow', () => {
         transition: {
           id: 'decisionReceived',
           workflowId,
-          payload: { workflowId, status: 'completed', data: { answer: 'no' } },
+          payload: {
+            workflowId,
+            status: 'completed',
+            hasError: false,
+            errorMessage: null,
+            data: { answer: 'no' },
+          },
         },
       },
     });
