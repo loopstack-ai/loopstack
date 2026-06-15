@@ -2,7 +2,12 @@ import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import debounce from 'lodash/debounce';
 import { useEffect, useRef } from 'react';
 import { SseClientEvents } from '@/events';
-import { getChildWorkflowsCacheKey, getDocumentsCacheKey, getWorkflowCacheKey } from '@/hooks/query-keys';
+import {
+  getChildWorkflowsCacheKey,
+  getDocumentsCacheKey,
+  getWorkflowCacheKey,
+  getWorkflowStatusCacheKey,
+} from '@/hooks/query-keys';
 import { eventBus } from '@/services';
 import { useStudio } from './StudioProvider';
 
@@ -55,6 +60,7 @@ export function InvalidationEventsProvider() {
     const unsubWorkflowUpdated = eventBus.on(SseClientEvents.WORKFLOW_UPDATED, (payload: WorkflowEventPayload) => {
       if (payload.id) {
         invalidate(getWorkflowCacheKey(envKey, payload.id));
+        invalidate(getWorkflowStatusCacheKey(envKey, payload.id));
       }
       if (payload.parentId) {
         invalidate(getChildWorkflowsCacheKey(envKey, payload.parentId));

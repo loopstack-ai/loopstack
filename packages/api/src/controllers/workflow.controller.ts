@@ -18,6 +18,7 @@ import { WorkflowCreateDto } from '../dtos/workflow-create.dto.js';
 import { WorkflowFilterDto } from '../dtos/workflow-filter.dto.js';
 import { WorkflowItemDto } from '../dtos/workflow-item.dto.js';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto.js';
+import { WorkflowStatusDto } from '../dtos/workflow-status.dto.js';
 import { WorkflowUpdateDto } from '../dtos/workflow-update.dto.js';
 import { WorkflowDto } from '../dtos/workflow.dto.js';
 import { ParseJsonPipe } from '../pipes/parse-json.pipe.js';
@@ -60,6 +61,19 @@ export class WorkflowController {
   async getWorkflowById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkflowDto> {
     const workflow = await this.workflowService.findOneById(id, user.userId);
     return WorkflowDto.create(workflow);
+  }
+
+  /**
+   * Retrieves a slim status projection for a workflow — used by Studio's embedded sub-workflow
+   * cards to react to live status changes without pulling the full payload on every SSE tick.
+   */
+  @Get(':id/status')
+  async getWorkflowStatus(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<WorkflowStatusDto> {
+    const workflow = await this.workflowService.findStatusById(id, user.userId);
+    return WorkflowStatusDto.create(workflow);
   }
 
   /**

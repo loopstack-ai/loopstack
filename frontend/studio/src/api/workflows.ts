@@ -6,6 +6,7 @@ import type {
   WorkflowCreateInterface,
   WorkflowFullInterface,
   WorkflowItemInterface,
+  WorkflowStatusInterface,
   WorkflowUpdateInterface,
 } from '@loopstack/contracts/api';
 
@@ -13,6 +14,9 @@ export function createWorkflowsApi(http: AxiosInstance) {
   return {
     getById: (params: { id: string }): Promise<WorkflowFullInterface> =>
       http.get<WorkflowFullInterface>(`/api/v1/workflows/${params.id}`).then((res) => res.data),
+
+    getStatusById: (params: { id: string }): Promise<WorkflowStatusInterface> =>
+      http.get<WorkflowStatusInterface>(`/api/v1/workflows/${params.id}/status`).then((res) => res.data),
 
     getAll: (params?: {
       filter?: string;
