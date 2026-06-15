@@ -10,8 +10,6 @@
 '@loopstack/dynamic-routing-example-workflow': patch
 '@loopstack/error-retry-example-workflow': patch
 '@loopstack/git-commit-flow-example-workflow': patch
-'@loopstack/hitl-ask-user-example-workflow': patch
-'@loopstack/hitl-confirm-example-workflow': patch
 '@loopstack/mcp-linear-example-workflow': patch
 '@loopstack/module-config-example': patch
 '@loopstack/remote-file-explorer-example-workflow': patch
