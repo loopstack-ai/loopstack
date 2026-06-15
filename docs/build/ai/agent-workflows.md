@@ -19,12 +19,14 @@ Register tools in your module so the agent can use them:
 
 ```typescript
 @Module({
-  imports: [ClaudeModule, AgentModule],
+  imports: [LlmProviderModule, ClaudeModule, AgentModule],
   providers: [GlobTool, GrepTool, ReadTool, MyWorkflow],
   exports: [MyWorkflow],
 })
 export class MyModule {}
 ```
+
+`LlmProviderModule` must be imported alongside any LLM provider module (`ClaudeModule`, `OpenAiModule`) — it registers the global provider registry the adapter tools and provider implementations depend on. See [LLM Providers](./llm-providers.md).
 
 Launch the agent from any workflow:
 

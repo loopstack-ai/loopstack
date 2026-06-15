@@ -12,14 +12,17 @@ Generate text from any configured LLM provider using `LlmGenerateTextTool`. Pass
 ```typescript
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
 
 @Module({
-  imports: [ClaudeModule],
+  imports: [LlmProviderModule, ClaudeModule],
   providers: [PromptWorkflow],
   exports: [PromptWorkflow],
 })
 export class PromptModule {}
 ```
+
+`LlmProviderModule` registers the global provider registry that adapter tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool`) and provider implementations (`ClaudeLlmProvider`) depend on. Without it, NestJS throws `UnknownDependenciesException` for `LlmProviderRegistry` at boot. See [LLM Providers](./llm-providers.md) for details and module-level defaults.
 
 ## Example Workflow
 

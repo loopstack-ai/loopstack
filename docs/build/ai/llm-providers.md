@@ -21,6 +21,12 @@ import { LlmProviderModule } from '@loopstack/llm-provider-module';
 export class AppModule {}
 ```
 
+> **`LlmProviderModule` is required, and must be imported before any provider module.**
+>
+> `LlmProviderModule` registers `LlmProviderRegistry` — the runtime registry that provider modules (`ClaudeModule`, `OpenAiModule`) inject to self-register their backends. Importing a provider module without `LlmProviderModule` fails at boot with `UnknownDependenciesException` on `LlmProviderRegistry` (and on `ClaudeLlmProvider` / `OpenAiLlmProvider`, which depend on it).
+>
+> Any of these forms registers the registry: bare `LlmProviderModule`, `LlmProviderModule.forRoot(config)`, or `LlmProviderModule.forFeature(config)` (the feature form imports the global root transitively). Pick `forRoot` when setting app-wide defaults, `forFeature` for per-module overrides, and the bare import when no defaults are needed.
+
 ## Module-Level Defaults
 
 Use `LlmProviderModule.forRoot()` to set a default model for all LLM calls in your app. Use `forFeature()` to override per-module:
