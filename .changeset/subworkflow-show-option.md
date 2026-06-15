@@ -10,8 +10,6 @@
 '@loopstack/code-agent-example-workflow': patch
 '@loopstack/github-oauth-example': patch
 '@loopstack/google-oauth-example': patch
-'@loopstack/hitl-ask-user-example-workflow': patch
-'@loopstack/hitl-confirm-example-workflow': patch
 '@loopstack/mcp-linear-example-workflow': patch
 '@loopstack/run-sub-workflow-example': patch
 ---
