@@ -41,6 +41,7 @@ import {
   WorkflowStateService,
 } from './workflow-processor/services/index.js';
 import { ExecutionScope, TemplateRenderer } from './workflow-processor/utils/index.js';
+import { FanOutWorkflow, SequenceWorkflow } from './workflows/index.js';
 
 export interface LoopCoreModuleOptions {
   connection?: string;
@@ -78,6 +79,10 @@ const PROVIDERS = [
   StudioDiscoveryService,
   FeatureRegistryService,
   ToolRegistryService,
+
+  // Built-in coordination workflows
+  FanOutWorkflow,
+  SequenceWorkflow,
 
   // Framework injection tokens (consumed by BaseTool / BaseWorkflow via @Inject)
   {
@@ -140,6 +145,10 @@ const EXPORTS = [
   StudioDiscoveryService,
   FeatureRegistryService,
   ToolRegistryService,
+
+  // Built-in coordination workflows
+  FanOutWorkflow,
+  SequenceWorkflow,
 
   // Framework injection tokens
   WORKFLOW_ORCHESTRATOR,

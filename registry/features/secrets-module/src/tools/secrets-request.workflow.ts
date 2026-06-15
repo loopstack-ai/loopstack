@@ -12,6 +12,7 @@ interface SecretsRequestState {
 }
 
 @Workflow({
+  name: 'secrets_request',
   title: 'Secrets Request',
   description:
     'Sub-workflow that presents a secrets request form to the user\nand waits for submission. Completes when the user submits the form.',
