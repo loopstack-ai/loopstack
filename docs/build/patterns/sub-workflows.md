@@ -1,6 +1,6 @@
 ---
 title: Sub-Workflows
-description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, callback transitions, passing arguments to child workflows, receiving sub-workflow results, and coordinating multiple sub-workflows via FanOutWorkflow (parallel) and SequenceWorkflow (sequential) with 'all' / 'allSettled' failure modes.
+description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, callback transitions, typing the callback payload with CallbackSchema.extend({ data }), handling sub-workflow failures via payload.hasError / payload.errorMessage without try/catch, passing arguments to child workflows, receiving sub-workflow results, and coordinating multiple sub-workflows via FanOutWorkflow (parallel) and SequenceWorkflow (sequential) with 'all' / 'allSettled' failure modes.
 ---
 
 # Sub-Workflows
@@ -87,6 +87,96 @@ async onSubComplete(
   return state;
 }
 ```
+
+## Typing the Callback Payload
+
+Every sub-workflow callback receives the same envelope, defined by `CallbackSchema` in `@loopstack/common`:
+
+```typescript
+export const CallbackSchema = z.object({
+  workflowId: z.string(),
+  status: z.string(),
+  hasError: z.boolean(),
+  errorMessage: z.string().nullable(),
+  data: z.unknown(),
+});
+```
+
+| Field          | Type             | What it is                                                                   |
+| -------------- | ---------------- | ---------------------------------------------------------------------------- |
+| `workflowId`   | `string`         | ID of the child run that produced this callback.                             |
+| `status`       | `string`         | The child's terminal place (e.g. `'end'`, or a custom final state).          |
+| `hasError`     | `boolean`        | `true` if the child terminated in failure — branch on this, not on `status`. |
+| `errorMessage` | `string \| null` | Error message if `hasError`, otherwise `null`.                               |
+| `data`         | `unknown`        | The value returned by the child's final transition.                          |
+
+`data` is `unknown` on the base schema because every sub-workflow returns a different shape. Type it by extending the schema with your own `data` definition:
+
+```typescript
+import { CallbackSchema } from '@loopstack/common';
+import { z } from 'zod';
+
+const MyCallback = CallbackSchema.extend({
+  data: z.object({ answer: z.string() }),
+});
+
+@Transition({
+  from: 'awaiting',
+  to: 'end',
+  wait: true,
+  schema: MyCallback,
+})
+async onAnswer(state: MyState, payload: z.infer<typeof MyCallback>): Promise<unknown> {
+  // payload.workflowId, payload.status, payload.hasError available at top level
+  // payload.data.answer is fully typed
+  return { answer: payload.data.answer };
+}
+```
+
+The extended schema goes on the `@Transition({ schema })` — the framework validates the payload against it before the transition fires. Use `z.infer<typeof MyCallback>` to derive the parameter type rather than hand-writing the shape.
+
+## Error Handling
+
+When a sub-workflow throws, the failure does **not** bubble up through `run()` — `run()` only schedules the child. Instead, the parent's callback transition still fires, with `hasError: true` and `errorMessage` populated. The parent branches on `payload.hasError`:
+
+```typescript
+import { z } from 'zod';
+import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+
+type FailingCallback = z.infer<typeof CallbackSchema>;
+
+@Workflow({ title: 'Recovers from a Failing Child' })
+export class RecoveringParentWorkflow extends BaseWorkflow {
+  constructor(private readonly failingSub: FailingSubWorkflow) {
+    super();
+  }
+
+  @Transition({ to: 'awaiting' })
+  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    await this.failingSub.run({}, { callback: { transition: 'onFinished' }, show: 'link', label: 'Failing child' });
+    return state;
+  }
+
+  @Transition({ from: 'awaiting', to: 'end', wait: true, schema: CallbackSchema })
+  async onFinished(state: Record<string, unknown>, payload: FailingCallback): Promise<unknown> {
+    if (payload.hasError) {
+      await this.documentStore.save(MessageDocument, {
+        role: 'assistant',
+        text: `Child failed: ${payload.errorMessage ?? 'unknown error'} — continuing with a fallback.`,
+      });
+      return { recovered: true };
+    }
+    return { recovered: false };
+  }
+}
+```
+
+Two things to note:
+
+- **No try/catch at the parent.** The child's exception is captured by the framework, persisted on the child run, and surfaced through the callback envelope. The parent only sees `hasError`.
+- **The link card / inline iframe turns red automatically.** No extra UI wiring is needed to reflect the failure in the parent's run view.
+
+For `FanOutWorkflow` and `SequenceWorkflow` the same idea applies one level deeper: each item's per-result entry carries its own `hasError`, and the aggregate payload exposes `payload.data.hasErrors` and `payload.data.errorCount`.
 
 ## Sub-Workflow Output
 
@@ -288,5 +378,5 @@ The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architec
 
 ## Registry References
 
-- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent workflow calling a sub-workflow with callbacks and output passing, plus `FanOutWorkflow` and `SequenceWorkflow` coordination demos
+- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent calling sub-workflows with callbacks and typed output, all three `show` modes chained, `FanOutWorkflow` / `SequenceWorkflow` coordination, and a failing-child workflow paired with a parent that branches on `payload.hasError`
 - [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — ExploreTask wrapping AgentWorkflow as a task tool

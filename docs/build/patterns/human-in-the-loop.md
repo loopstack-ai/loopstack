@@ -1,11 +1,21 @@
 ---
 title: Human-in-the-Loop
-description: Pausing workflows for user input, review, or confirmation using wait:true transitions, document UI actions, payload schemas, and approval patterns.
+description: Pausing workflows for user input, review, or confirmation. Covers wait:true transitions on custom documents, AskUserWorkflow / ConfirmUserWorkflow sub-workflow shortcuts, and LLM-agent HITL via the ask_clarification and ask_for_approval tools.
 ---
 
 # Human-in-the-Loop
 
-Pause workflows for user input, review, or confirmation using `wait: true` transitions and document UI actions.
+Pause workflows for user input, review, or confirmation. Loopstack offers three distinct patterns — pick the one that matches who decides what to ask.
+
+## Choosing a HITL Pattern
+
+| You are building...                                                                     | Use                                                                                | Where it lives                                                            |
+| --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| A predefined workflow with known user-input steps — form fields, structured records     | **Custom document with a widget** — your workflow owns the document + `wait: true` | This page → [Wait Transition Pattern](#wait-transition-pattern)           |
+| A predefined workflow that just needs a quick generic ask (free text, yes/no, pick one) | **`AskUserWorkflow` / `ConfirmUserWorkflow`** as a sub-workflow shortcut           | This page → [Using HITL as a Sub-Workflow](#using-hitl-as-a-sub-workflow) |
+| An LLM agent loop where the agent dynamically decides when to ask                       | **Agent tools** `ask_clarification` / `ask_for_approval`                           | This page → [Agent-Driven HITL](#agent-driven-hitl)                       |
+
+The custom-document pattern is the **default for predefined workflows**: the form _is_ the structured data, the wait-transition payload schema _is_ the document schema, and types line up end-to-end. Sub-workflow shortcuts are for when designing a form would be overkill. Agent tools are for LLM-driven flows where the next question isn't known in advance.
 
 ## Wait Transition Pattern
 
@@ -177,7 +187,174 @@ ui:
 
 The widget only appears when the workflow is at the `review` or `editing` place.
 
+## Using HITL as a Sub-Workflow
+
+The `wait: true` pattern above is for workflows that own their own UI. For generic prompts you don't want to design a form for, run `AskUserWorkflow` or `ConfirmUserWorkflow` from `@loopstack/hitl` as a sub-workflow and receive the answer through a callback.
+
+The callback payload is the standard sub-workflow envelope — extend `CallbackSchema` with the child's return shape so `payload.data` is typed. See [Sub-Workflows → Typing the Callback Payload](./sub-workflows.md#typing-the-callback-payload) for the full reference.
+
+### `AskUserWorkflow` — free text
+
+```typescript
+import { z } from 'zod';
+import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { AskUserWorkflow } from '@loopstack/hitl';
+
+const AnswerCallback = CallbackSchema.extend({
+  data: z.object({ answer: z.string() }),
+});
+
+@Workflow({ title: 'Ask Then Continue' })
+export class AskThenContinueWorkflow extends BaseWorkflow {
+  constructor(private readonly askUser: AskUserWorkflow) {
+    super();
+  }
+
+  @Transition({ to: 'waiting' })
+  async ask(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    await this.askUser.run({ question: 'What is your name?' }, { callback: { transition: 'onAnswer' } });
+    return state;
+  }
+
+  @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerCallback })
+  async onAnswer(state: Record<string, unknown>, payload: z.infer<typeof AnswerCallback>): Promise<unknown> {
+    return { name: payload.data.answer };
+  }
+}
+```
+
+### `AskUserWorkflow` — pick from options
+
+Pass `mode: 'options'` with a list of choices. `allowCustomAnswer: true` adds a free-text field alongside the choices for "other".
+
+```typescript
+await this.askUser.run(
+  {
+    question: 'Which environment should we deploy to?',
+    mode: 'options',
+    options: ['staging', 'production'],
+    allowCustomAnswer: true,
+  },
+  { callback: { transition: 'choiceReceived' } },
+);
+```
+
+The callback payload shape is the same as the free-text case (`data: { answer: string }`).
+
+### `AskUserWorkflow` — yes / no
+
+Pass `mode: 'confirm'`. The answer comes back as the literal string `'yes'` or `'no'` in `payload.data.answer` — compare directly.
+
+```typescript
+await this.askUser.run(
+  { question: 'Send the email now?', mode: 'confirm' },
+  { callback: { transition: 'decisionReceived' } },
+);
+```
+
+### `ConfirmUserWorkflow` — markdown review
+
+For showing a pre-rendered markdown blob (a release plan, a summary, a code diff) and receiving an explicit approve/deny, use `ConfirmUserWorkflow`. The callback `data` carries both the user's decision and the original markdown:
+
+```typescript
+import { ConfirmUserWorkflow } from '@loopstack/hitl';
+
+const ConfirmCallback = CallbackSchema.extend({
+  data: z.object({ confirmed: z.boolean(), markdown: z.string() }),
+});
+
+@Transition({ to: 'awaiting' })
+async showSummary(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  await this.confirmUser.run(
+    { markdown: '## Ready to deploy v1.2.3?\n\n- 3 commits since last release\n- Smoke tests passing' },
+    { callback: { transition: 'decisionReceived' } },
+  );
+  return state;
+}
+
+@Transition({ from: 'awaiting', to: 'end', wait: true, schema: ConfirmCallback })
+async decisionReceived(
+  state: Record<string, unknown>,
+  payload: z.infer<typeof ConfirmCallback>,
+): Promise<unknown> {
+  return { confirmed: payload.data.confirmed };
+}
+```
+
+## Agent-Driven HITL
+
+When the asking party is an LLM agent rather than your workflow, use the `ask_clarification` and `ask_for_approval` tools from `@loopstack/hitl`. The agent decides at runtime to call the tool; the agent loop pauses, the user answers, and the answer flows back as the tool result — no extra wait-transition wiring at your level.
+
+### `ask_clarification` — agent asks the user a question
+
+Register the tool in your module and add it to the agent's tool list. A system prompt that tells the agent to use the tool when info is missing is enough:
+
+```typescript
+import { z } from 'zod';
+import { AgentWorkflow } from '@loopstack/agent';
+import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+
+const AgentCallback = CallbackSchema.extend({
+  data: z.object({ response: z.string() }),
+});
+
+const SYSTEM_PROMPT = `You are a trip-planning assistant.
+- Before recommending a destination, you MUST know BOTH the user's budget AND climate preference.
+- If either is missing, your response MUST be exactly ONE tool call to "ask_clarification".`;
+
+@Workflow({ title: 'Trip Planner' })
+export class TripPlannerWorkflow extends BaseWorkflow {
+  constructor(private readonly agent: AgentWorkflow) {
+    super();
+  }
+
+  @Transition({ to: 'running' })
+  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    await this.agent.run(
+      {
+        system: SYSTEM_PROMPT,
+        tools: ['ask_clarification'],
+        userMessage: 'Where should I go on holiday next month?',
+      },
+      { callback: { transition: 'onComplete' } },
+    );
+    return state;
+  }
+
+  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentCallback })
+  async onComplete(state: Record<string, unknown>, payload: z.infer<typeof AgentCallback>): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, { role: 'assistant', text: payload.data.response });
+    return { response: payload.data.response };
+  }
+}
+```
+
+`ask_clarification` supports the same `mode` arg as `AskUserWorkflow` (`'text'` / `'options'` / `'confirm'`) — the LLM can pick the right mode per call.
+
+### `ask_for_approval` — agent asks the user to approve content
+
+Same shape, with `tools: ['ask_for_approval']`. The agent drafts content and passes it as the `concept` argument; the user sees the markdown and confirms or denies. The agent loop only resumes after the decision.
+
+```typescript
+const SYSTEM_PROMPT = `You are a release-notes drafting assistant.
+- Your response MUST be exactly ONE tool call to "ask_for_approval".
+- The "concept" argument IS the markdown draft.`;
+
+await this.agent.run(
+  {
+    system: SYSTEM_PROMPT,
+    tools: ['ask_for_approval'],
+    userMessage: 'Draft release notes for v1.2.3.',
+  },
+  { callback: { transition: 'onComplete' } },
+);
+```
+
+See [`@loopstack/hitl`](https://loopstack.ai/registry/loopstack-hitl-module) for the full tool args reference.
+
 ## Registry References
 
+- [hitl-example-module](https://loopstack.ai/registry/loopstack-hitl-example-module) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
+- [@loopstack/hitl](https://loopstack.ai/registry/loopstack-hitl-module) — The underlying HITL module: `AskUserWorkflow`, `ConfirmUserWorkflow`, `ask_clarification`, `ask_for_approval`
 - [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
 - [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Chat input pattern with prompt-input widget
