@@ -631,10 +631,6 @@ export class WorkflowProcessorService implements Processor {
 
     // Auto-transition loop
     while (true) {
-      if (meta.place === 'end') break;
-
-      meta.nextPlace = undefined;
-
       const available = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
 
       meta.availableTransitions = available.map((t) => ({
@@ -643,6 +639,10 @@ export class WorkflowProcessorService implements Processor {
         to: t.to,
         trigger: t.wait ? ('manual' as const) : undefined,
       }));
+
+      if (meta.place === 'end') break;
+
+      meta.nextPlace = undefined;
 
       // Resolve next auto-transition — pass state for guard evaluation
       const next = await this.executionScope.run(scopeData, () => {
