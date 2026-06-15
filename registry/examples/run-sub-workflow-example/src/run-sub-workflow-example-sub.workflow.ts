@@ -1,6 +1,7 @@
 import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({
+  name: 'run_sub_workflow_example_sub',
   title: 'Sub Workflow',
 })
 export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {

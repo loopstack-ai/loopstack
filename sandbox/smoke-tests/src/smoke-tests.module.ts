@@ -22,10 +22,17 @@ import { GitHubExampleModule } from '@loopstack/github-oauth-example';
 import { GitHubAgentWorkflow, GitHubReposOverviewWorkflow } from '@loopstack/github-oauth-example';
 import { GoogleExampleModule } from '@loopstack/google-oauth-example';
 import { CalendarSummaryWorkflow, GoogleWorkspaceAgentWorkflow } from '@loopstack/google-oauth-example';
-import { HitlAskUserExampleModule } from '@loopstack/hitl-ask-user-example-workflow';
-import { HitlAskUserExampleWorkflow } from '@loopstack/hitl-ask-user-example-workflow';
-import { HitlConfirmExampleModule } from '@loopstack/hitl-confirm-example-workflow';
-import { HitlConfirmExampleWorkflow } from '@loopstack/hitl-confirm-example-workflow';
+import {
+  AgentAskClarificationWorkflow,
+  AgentAskForApprovalWorkflow,
+  AskUserConfirmWorkflow,
+  AskUserOptionsWorkflow,
+  AskUserTextWorkflow,
+  ConfirmContentWorkflow,
+  HitlExampleModule,
+  InlineFormWorkflow,
+  PromptInputChatWorkflow,
+} from '@loopstack/hitl-example-module';
 import { LlmMultiProviderExampleModule } from '@loopstack/llm-multi-provider-example-workflow';
 import { LlmMultiProviderWorkflow } from '@loopstack/llm-multi-provider-example-workflow';
 import { McpLinearExampleModule } from '@loopstack/mcp-linear-example-workflow';
@@ -48,8 +55,9 @@ import { RemoteFileExplorerExampleModule } from '@loopstack/remote-file-explorer
 import { RemoteFileExplorerExampleWorkflow } from '@loopstack/remote-file-explorer-example-workflow';
 import { RunSubWorkflowExampleModule } from '@loopstack/run-sub-workflow-example';
 import {
+  RunSubWorkflowExampleFanOutWorkflow,
   RunSubWorkflowExampleParentWorkflow,
-  RunSubWorkflowExampleSubWorkflow,
+  RunSubWorkflowExampleSequenceWorkflow,
 } from '@loopstack/run-sub-workflow-example';
 import { SandboxExampleModule } from '@loopstack/sandbox-example-workflow';
 import { SandboxExampleWorkflow } from '@loopstack/sandbox-example-workflow';
@@ -72,7 +80,8 @@ import { SmokeTestsController } from './smoke-tests.controller';
     DynamicRoutingExampleWorkflow,
     ErrorRetryWorkflow,
     RunSubWorkflowExampleParentWorkflow,
-    RunSubWorkflowExampleSubWorkflow,
+    RunSubWorkflowExampleFanOutWorkflow,
+    RunSubWorkflowExampleSequenceWorkflow,
     TestUiDocumentsWorkflow,
     WorkflowStateWorkflow,
 
@@ -88,8 +97,14 @@ import { SmokeTestsController } from './smoke-tests.controller';
     LlmMultiProviderWorkflow,
 
     // HITL
-    HitlAskUserExampleWorkflow,
-    HitlConfirmExampleWorkflow,
+    InlineFormWorkflow,
+    PromptInputChatWorkflow,
+    AskUserTextWorkflow,
+    AskUserOptionsWorkflow,
+    AskUserConfirmWorkflow,
+    ConfirmContentWorkflow,
+    AgentAskClarificationWorkflow,
+    AgentAskForApprovalWorkflow,
 
     // Module Config
     DefaultGreetingWorkflow,
@@ -136,8 +151,7 @@ import { SmokeTestsController } from './smoke-tests.controller';
     LlmMultiProviderExampleModule,
 
     // HITL workflows
-    HitlAskUserExampleModule,
-    HitlConfirmExampleModule,
+    HitlExampleModule,
 
     // Module config
     ModuleConfigExampleModule,

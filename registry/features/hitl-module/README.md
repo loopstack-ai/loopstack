@@ -229,8 +229,7 @@ Present markdown content to the user for approval. Pauses the agent until the us
 ## Related
 
 - [Human-in-the-Loop Patterns](https://loopstack.ai/docs/build/patterns/human-in-the-loop) — wait transitions, document actions, conditional widgets
-- [hitl-ask-user-example-workflow](https://loopstack.ai/registry/loopstack-hitl-ask-user-example-workflow) — AskUserWorkflow example with callback
-- [hitl-confirm-example-workflow](https://loopstack.ai/registry/loopstack-hitl-confirm-example-workflow) — ConfirmUserWorkflow example with confirm/deny
+- [hitl-example-module](https://loopstack.ai/registry/loopstack-hitl-example-module) — comprehensive HITL examples: custom document with widget, AskUserWorkflow / ConfirmUserWorkflow shortcuts, and agent-tool flows
 
 ## About
 

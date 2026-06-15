@@ -1,6 +1,6 @@
 ---
 title: Sub-Workflows
-description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, callback transitions, passing arguments to child workflows, and receiving sub-workflow results.
+description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, callback transitions, passing arguments to child workflows, receiving sub-workflow results, and coordinating multiple sub-workflows via FanOutWorkflow (parallel) and SequenceWorkflow (sequential) with 'all' / 'allSettled' failure modes.
 ---
 
 # Sub-Workflows
@@ -139,6 +139,90 @@ export class ParentWorkflow extends BaseWorkflow {
 }
 ```
 
+## Running Sub-Workflows in Parallel
+
+To launch multiple sub-workflows at the same time and receive a single aggregated callback when they all complete, use the built-in `FanOutWorkflow` from `@loopstack/core`. Inject it like any other sub-workflow.
+
+```typescript
+import { type FanOutCallbackPayload, FanOutCallbackSchema, FanOutWorkflow } from '@loopstack/core';
+
+@Workflow({ title: 'Parallel Fan-Out' })
+export class ParallelWorkflow extends BaseWorkflow {
+  constructor(private readonly fanOut: FanOutWorkflow) {
+    super();
+  }
+
+  @Transition({ to: 'awaiting' })
+  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    await this.fanOut.run(
+      {
+        items: {
+          user: { workflow: 'fetch_user', args: { id: 1 } },
+          orders: { workflow: 'fetch_orders', args: { id: 1 } },
+        },
+      },
+      { callback: { transition: 'onAllDone' } },
+    );
+    return state;
+  }
+
+  @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutCallbackSchema })
+  async onAllDone(state: Record<string, unknown>, payload: FanOutCallbackPayload): Promise<unknown> {
+    const user = (payload.data.results as Record<string, { data?: unknown }>).user.data;
+    const orders = (payload.data.results as Record<string, { data?: unknown }>).orders.data;
+    return { user, orders };
+  }
+}
+```
+
+`items` accepts either a **keyed record** (results addressable by name) or an **array** of `{ workflow, args, label?, show? }` (results returned in input order with each entry's `key`). The `workflow` field is the canonical name string — either the explicit `@Workflow({ name })` value or the auto-derived snake_case form (e.g. `FetchUserWorkflow` → `'fetch_user'`).
+
+### Failure modes
+
+| `mode`              | Behavior                                                                                                                                                                                      |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'all'` _(default)_ | First failure triggers `cancelChildren` on the parent; the callback fires once every in-flight child has settled (canceled siblings also send callbacks). `payload.data.hasErrors` is `true`. |
+| `'allSettled'`      | Every child runs to completion regardless of siblings; the callback aggregates `completed` / `failed` results for every item.                                                                 |
+
+## Running Sub-Workflows in Sequence
+
+To run sub-workflows one after another with a single aggregated callback at the end, use `SequenceWorkflow`. Same call shape as `FanOutWorkflow`, same `'all'` / `'allSettled'` modes.
+
+```typescript
+import { SequenceWorkflow, SequenceCallbackSchema, type SequenceCallbackPayload } from '@loopstack/core';
+
+@Workflow({ title: 'Sequential' })
+export class SequentialWorkflow extends BaseWorkflow {
+  constructor(private readonly sequence: SequenceWorkflow) {
+    super();
+  }
+
+  @Transition({ to: 'awaiting' })
+  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+    await this.sequence.run(
+      {
+        items: [
+          { workflow: 'step_a', args: { ... }, label: 'step-1' },
+          { workflow: 'step_b', args: { ... }, label: 'step-2' },
+          { workflow: 'step_c', args: { ... }, label: 'step-3' },
+        ],
+      },
+      { callback: { transition: 'onComplete' } },
+    );
+    return state;
+  }
+
+  @Transition({ from: 'awaiting', to: 'end', wait: true, schema: SequenceCallbackSchema })
+  async onComplete(state: Record<string, unknown>, payload: SequenceCallbackPayload): Promise<unknown> {
+    return { results: payload.data.results };
+  }
+}
+```
+
+In `mode: 'all'`, a failure aborts the sequence and remaining items are marked `'skipped'` in the result. In `mode: 'allSettled'`, the sequence continues past failures.
+
+`FanOutWorkflow` and `SequenceWorkflow` are auto-registered by `LoopstackModule.forRoot()` — there is no manual `providers: [...]` entry needed for them. You still register your own sub-workflows normally.
+
 ## Registering Sub-Workflows
 
 Both workflows must be registered in the module:
@@ -204,5 +288,5 @@ The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architec
 
 ## Registry References
 
-- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent workflow calling a sub-workflow with callbacks and output passing
+- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent workflow calling a sub-workflow with callbacks and output passing, plus `FanOutWorkflow` and `SequenceWorkflow` coordination demos
 - [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — ExploreTask wrapping AgentWorkflow as a task tool
