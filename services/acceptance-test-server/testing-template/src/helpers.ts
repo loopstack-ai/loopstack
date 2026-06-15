@@ -44,10 +44,16 @@ interface WorkflowResult {
 
 interface DocumentResult {
   id: string;
-  tag: string;
-  data: Record<string, unknown>;
+  documentName: string;
+  content: Record<string, unknown>;
+  meta: Record<string, unknown> | null;
+  isInvalidated: boolean;
+  index: number;
+  tags: string[];
   workflowId: string;
+  workspaceId: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -60,7 +66,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const body = await res.text();
     throw new Error(`HTTP ${res.status} ${res.statusText}: ${body}`);
   }
-  return res.json() as Promise<T>;
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 // A workflow can only be started inside a workspace bound to its @StudioApp. We create one lazily
@@ -94,6 +101,12 @@ export async function startWorkflow(
 
 export async function getWorkflow(workflowId: string): Promise<WorkflowResult> {
   return request<WorkflowResult>(`/api/v1/workflows/${workflowId}`);
+}
+
+/** Ids of the currently-available transitions (a transition's id is its name, e.g. `'review'`). */
+export async function getTransitions(workflowId: string): Promise<string[]> {
+  const workflow = await getWorkflow(workflowId);
+  return (workflow.availableTransitions ?? []).map((t) => t.id);
 }
 
 export async function pollUntilComplete(
@@ -131,6 +144,37 @@ export async function getDocuments(workflowId: string): Promise<DocumentResult[]
   const filter = encodeURIComponent(JSON.stringify({ workflowId }));
   const result = await request<{ data: DocumentResult[] }>(`/api/v1/documents?filter=${filter}`);
   return result.data;
+}
+
+export interface Message {
+  role: string;
+  text?: string;
+}
+
+/** Collects every string value nested anywhere inside a document's content. */
+function collectStrings(value: unknown, out: string[] = []): string[] {
+  if (typeof value === 'string') out.push(value);
+  else if (Array.isArray(value)) for (const v of value) collectStrings(v, out);
+  else if (value && typeof value === 'object') for (const v of Object.values(value)) collectStrings(v, out);
+  return out;
+}
+
+/** True if `text` appears as any string value in any document — works whatever the app's doc shape. */
+export async function hasMessage(workflowId: string, text: string): Promise<boolean> {
+  const docs = await getDocuments(workflowId);
+  return docs.some((d) => collectStrings(d.content).includes(text));
+}
+
+/** Messages as `{ role, text }`, reading either `content.text` or `content.content`. */
+export async function getMessages(workflowId: string): Promise<Message[]> {
+  const docs = await getDocuments(workflowId);
+  const messages: Message[] = [];
+  for (const d of docs) {
+    const c = d.content;
+    const text = typeof c.text === 'string' ? c.text : typeof c.content === 'string' ? c.content : undefined;
+    if (text !== undefined) messages.push({ role: String(c.role ?? ''), text });
+  }
+  return messages;
 }
 
 export function scrub(obj: unknown): unknown {
