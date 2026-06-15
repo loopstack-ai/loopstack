@@ -1,0 +1,6 @@
+widget: prompt-input
+enabledWhen:
+  - waiting_for_user
+options:
+  transition: userMessage
+  label: Send

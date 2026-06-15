@@ -1,6 +1,6 @@
 ---
 title: Sub-Workflow Example
-description: Example executing child workflows from a parent workflow — workflow.run(), hierarchical workflow composition, callback transitions, the show option for parent-view rendering
+description: Example executing child workflows from a parent workflow — workflow.run(), hierarchical workflow composition, callback transitions, the show option for parent-view rendering (inline embed, link, hidden), and graceful handling of failed sub-workflows
 ---
 
 # @loopstack/run-sub-workflow-example
@@ -20,8 +20,10 @@ By using this example as a reference, you'll learn how to:
 - Define callback schemas with `CallbackSchema.extend()` to type callback payloads
 - Return structured data from sub-workflows via the return value of the final `@Transition` method
 - Control how a child appears in the parent's run view via the `show` option (`'inline'`, `'link'`, `'hidden'`)
+- Handle failed sub-workflows in the parent via the `status` field on the callback payload
 - Compose complex workflows from smaller, reusable workflow components
 - Chain multiple sequential sub-workflow executions
+- Run sub-workflows in parallel (`FanOutWorkflow`) or in series (`SequenceWorkflow`)
 
 This example is essential for developers building workflows that need to orchestrate multiple workflow executions or break down complex processes into manageable sub-workflows.
 
@@ -39,7 +41,13 @@ import { RunSubWorkflowExampleModule, RunSubWorkflowExampleParentWorkflow } from
 
 @StudioApp({
   title: 'Sub-Workflow Example',
-  workflows: [RunSubWorkflowExampleParentWorkflow],
+  workflows: [
+    RunSubWorkflowExampleParentWorkflow,
+    RunSubWorkflowExampleFanOutWorkflow,
+    RunSubWorkflowExampleSequenceWorkflow,
+    RunSubWorkflowExampleShowModesWorkflow,
+    RunSubWorkflowExampleErrorHandlingWorkflow,
+  ],
 })
 @Module({
   imports: [RunSubWorkflowExampleModule],
@@ -133,7 +141,57 @@ async subWorkflowCallback(payload: SubWorkflowCallback) {
 }
 ```
 
-#### 5. Chaining Multiple Sub-Workflows
+#### 5. Demonstrating Every `show` Mode (`RunSubWorkflowExampleShowModesWorkflow`)
+
+This workflow chains the same sub-workflow three times — once per `show` mode — so you can see (or not see) each mode side-by-side in a single run:
+
+```typescript
+await this.sub.run({}, { callback: { transition: 'onInlineDone' }, show: 'inline', label: 'Inline embed (iframe)' });
+// ...later...
+await this.sub.run({}, { callback: { transition: 'onLinkDone' }, show: 'link', label: 'Status link card' });
+// ...later...
+await this.sub.run({}, { callback: { transition: 'onHiddenDone' }, show: 'hidden', label: 'Background child' });
+```
+
+- `show: 'inline'` — Studio renders the child as an embedded iframe inside the parent's stream and auto-collapses it once the child reaches a terminal state.
+- `show: 'link'` — Studio renders a status link card; clicking opens the child in a separate window.
+- `show: 'hidden'` — no UI is rendered for the child but the callback still fires normally. Useful when surfacing the child would just be noise.
+
+#### 6. Handling Failed Sub-Workflows (`RunSubWorkflowExampleErrorHandlingWorkflow`)
+
+When a child throws, the parent's callback is still triggered — with `payload.status === 'failed'`. The parent decides whether to recover, retry, or terminate:
+
+```typescript
+@Transition({ to: 'awaiting' })
+async launch() {
+  await this.failingSub.run(
+    {},
+    { callback: { transition: 'onFinished' }, show: 'inline', label: 'Failing sub-workflow' },
+  );
+}
+
+@Transition({ from: 'awaiting', to: 'end', wait: true, schema: CallbackSchema })
+async onFinished(state, payload) {
+  await this.documentStore.save(MessageDocument, {
+    role: 'assistant',
+    text: `Child finished with status="${payload.status}". The parent recovered gracefully.`,
+  });
+  return { childStatus: payload.status };
+}
+```
+
+In Studio, the failed child renders with a red link icon and an inline error message under the link card, while the embedded iframe collapses automatically.
+
+#### 7. Running Sub-Workflows in Parallel or Series
+
+For dynamic fan-out and ordered sequencing, use the dedicated helpers from `@loopstack/core`:
+
+- `FanOutWorkflow` (see `RunSubWorkflowExampleFanOutWorkflow`) — launches a map of children concurrently and aggregates their results into a single callback.
+- `SequenceWorkflow` (see `RunSubWorkflowExampleSequenceWorkflow`) — runs children one at a time and aggregates their results.
+
+Both surface a single callback payload with `hasErrors` / `errorCount` plus per-child results, so the parent doesn't need a transition per child.
+
+#### 8. Chaining Multiple Sub-Workflows
 
 The parent workflow demonstrates running two sub-workflows sequentially. After the first callback completes, a second sub-workflow is started with its own callback. The second callback uses a terminal `@Transition` to end the parent workflow:
 

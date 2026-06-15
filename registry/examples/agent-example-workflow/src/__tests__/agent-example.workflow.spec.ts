@@ -67,6 +67,8 @@ describe('AgentExampleWorkflow', () => {
           payload: {
             workflowId,
             status: 'completed',
+            hasError: false,
+            errorMessage: null,
             data: { response: 'Tokyo is 22°C and sunny. 42 * 17 = 714.' },
           },
         },

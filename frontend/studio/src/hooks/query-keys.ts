@@ -45,6 +45,10 @@ export function getWorkflowCacheKey(envKey: string, id: string) {
   return ['workflow', envKey, id];
 }
 
+export function getWorkflowStatusCacheKey(envKey: string, id: string) {
+  return ['workflowStatus', envKey, id];
+}
+
 export function getWorkflowsCacheKey(envKey: string) {
   return ['workflows', envKey];
 }

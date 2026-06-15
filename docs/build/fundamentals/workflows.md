@@ -154,6 +154,28 @@ A method can listen on **multiple source states**:
 async llmTurn(state: MyState): Promise<MyState> { ... }
 ```
 
+### Wait Transition — Pause for Input
+
+Add `wait: true` to pause the workflow until externally triggered — by user input, a button click, or a sub-workflow callback. Use `schema` to validate and type the incoming payload.
+
+```typescript
+@Transition({
+  from: 'waiting_for_user',
+  to: 'ready',
+  wait: true,
+  schema: z.object({ message: z.string() }),
+})
+async userMessage(state: MyState, payload: { message: string }): Promise<MyState> {
+  await this.documentStore.save(LlmMessageDocument, {
+    role: 'user',
+    text: payload.message,
+  });
+  return state;
+}
+```
+
+For approval gates, confirmation dialogs, and other interactive pauses built on top of `wait: true`, see [Human-in-the-Loop](../patterns/human-in-the-loop.md).
+
 ### Final Transition — Completion
 
 Uses `@Transition` with `to: 'end'`. The return value is the workflow's output (passed to parent workflow callbacks).
@@ -164,6 +186,35 @@ async finish(state: MyState): Promise<{ concept: string }> {
   return { concept: state.confirmedConcept! };
 }
 ```
+
+## Guarding Transitions
+
+When multiple transitions share the same `from` state, attach `@Guard('methodName')` to pick which one fires:
+
+- Higher `priority` is checked first. Transitions without `priority` are evaluated last, in declaration order.
+- A guard is a boolean method on the workflow that receives the current `state` and returns `true` to allow the transition.
+- A transition without a guard always passes — use it as the fallback.
+
+```typescript
+@Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
+@Guard('hasToolCalls')
+async executeToolCalls(state: MyState): Promise<MyState> {
+  const result = await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
+  return { ...state, delegateResult: result.data };
+}
+
+@Transition({ from: 'prompt_executed', to: 'end' })
+async respond(state: MyState): Promise<unknown> {
+  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message);
+  return {};
+}
+
+hasToolCalls(state: MyState): boolean {
+  return state.llmResult?.message.stopReason === 'tool_use';
+}
+```
+
+From `prompt_executed`, `executeToolCalls` fires whenever the LLM requested tools; otherwise `respond` (unguarded) ends the workflow.
 
 ## State
 
@@ -257,45 +308,6 @@ await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'System 
 const rendered = this.render(__dirname + '/templates/prompt.md', {
   subject: args.subject,
 });
-```
-
-## Wait Transitions
-
-Add `wait: true` to pause the workflow until externally triggered — by user input, a button click, or a sub-workflow callback.
-
-```typescript
-@Transition({
-  from: 'waiting_for_user',
-  to: 'ready',
-  wait: true,
-  schema: z.object({ message: z.string() }),
-})
-async userMessage(state: MyState, payload: { message: string }): Promise<MyState> {
-  await this.documentStore.save(LlmMessageDocument, {
-    role: 'user',
-    text: payload.message,
-  });
-  return state;
-}
-```
-
-Use `schema` to validate and type the incoming payload.
-
-## Guards (Conditional Routing)
-
-When multiple transitions share the same `from` state, use `@Guard` to choose which one fires. Higher `priority` is checked first. A transition without a guard acts as the fallback.
-
-```typescript
-@Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
-@Guard('hasToolCalls')
-async executeToolCalls(state: MyState): Promise<MyState> { ... }
-
-@Transition({ from: 'prompt_executed', to: 'end' })
-async respond(state: MyState): Promise<unknown> { ... }  // Fallback — no guard
-
-hasToolCalls(state: MyState): boolean {
-  return state.llmResult?.message.stopReason === 'tool_use';
-}
 ```
 
 ## Places (States)

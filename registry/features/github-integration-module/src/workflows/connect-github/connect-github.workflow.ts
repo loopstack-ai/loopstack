@@ -24,6 +24,7 @@ interface ConnectGitHubState {
 }
 
 @Workflow({
+  name: 'connect_github',
   title: 'Connect to GitHub',
   description:
     'Connects your workspace to a GitHub repository.\nAuthenticates with GitHub, lets you create or link a repo, and configures git push access.',

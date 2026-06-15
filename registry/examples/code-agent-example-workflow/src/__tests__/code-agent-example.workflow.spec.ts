@@ -64,6 +64,8 @@ describe('CodeAgentExampleWorkflow', () => {
           payload: {
             workflowId,
             status: 'completed',
+            hasError: false,
+            errorMessage: null,
             data: { response: '- src/main.ts\n- AppModule' },
           },
         },

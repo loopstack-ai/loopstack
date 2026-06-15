@@ -4,6 +4,7 @@ export interface ClientMessageInterface {
   workerId: string;
   id?: string;
   workflowId?: string;
+  parentId?: string;
   workspaceId?: string;
   [key: string]: unknown;
 }

@@ -82,7 +82,13 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
           transition: {
             id: 'subWorkflowCallback',
             workflowId,
-            payload: { workflowId, status: 'completed', data: { message: 'Hi mom!' } },
+            payload: {
+              workflowId,
+              status: 'completed',
+              hasError: false,
+              errorMessage: null,
+              data: { message: 'Hi mom!' },
+            },
           },
         },
       });
@@ -128,7 +134,13 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
           transition: {
             id: 'subWorkflow2Callback',
             workflowId,
-            payload: { workflowId, status: 'completed', data: { message: 'Hello from sub workflow 2!' } },
+            payload: {
+              workflowId,
+              status: 'completed',
+              hasError: false,
+              errorMessage: null,
+              data: { message: 'Hello from sub workflow 2!' },
+            },
           },
         },
       });

@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon, FolderClosedIcon, FolderOpenIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useStudio } from '@/providers/StudioProvider';
@@ -31,6 +31,15 @@ export const LinkCard = ({ className, href, label, status = 'pending', embed, de
   const { router } = useStudio();
   const [expanded, setExpanded] = useState(defaultExpanded ?? false);
   const [iframeHeight, setIframeHeight] = useState(0);
+  // `defaultExpanded === undefined` means the caller is still loading status — defer locking in
+  // the initial expanded value until it arrives, otherwise useState's first call wins forever.
+  const initializedRef = useRef(defaultExpanded !== undefined);
+
+  useEffect(() => {
+    if (initializedRef.current || defaultExpanded === undefined) return;
+    setExpanded(defaultExpanded);
+    initializedRef.current = true;
+  }, [defaultExpanded]);
 
   // Extract domain for display if no label provided
   const displayLabel =
@@ -50,6 +59,12 @@ export const LinkCard = ({ className, href, label, status = 'pending', embed, de
   const workflowId = workflowMatch?.[1] ?? null;
   const canEmbed = embed === true && workflowId != null;
   const embedSrc = canEmbed ? router.getEmbedWorkflow(workflowId) : null;
+
+  useEffect(() => {
+    if (status === 'success' || status === 'failure') {
+      setExpanded(false);
+    }
+  }, [status]);
 
   // Listen for resize messages from the embedded iframe
   useEffect(() => {

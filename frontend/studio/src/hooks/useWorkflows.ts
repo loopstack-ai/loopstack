@@ -5,6 +5,7 @@ import type {
   WorkflowFullInterface,
   WorkflowSortByInterface,
   WorkflowSourceInterface,
+  WorkflowStatusInterface,
   WorkflowUpdateInterface,
 } from '@loopstack/contracts/api';
 import type { WorkflowCheckpoint } from '../api/workflows.ts';
@@ -13,6 +14,7 @@ import {
   getWorkflowCacheKey,
   getWorkflowConfigCacheKey,
   getWorkflowSourceCacheKey,
+  getWorkflowStatusCacheKey,
   getWorkflowsCacheKey,
 } from './query-keys.ts';
 import { useApiClient } from './useApi.ts';
@@ -26,6 +28,20 @@ export function useWorkflow(id: string | undefined) {
   return useQuery<WorkflowFullInterface>({
     queryKey: getWorkflowCacheKey(envKey, id!),
     queryFn: () => api.workflows.getById({ id: id! }),
+    enabled: !!id,
+  });
+}
+
+/**
+ * Fetch the slim live status for a single workflow — used by embedded sub-workflow link cards
+ * to react to state changes without pulling the full workflow payload.
+ */
+export function useWorkflowStatus(id: string | undefined) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery<WorkflowStatusInterface>({
+    queryKey: getWorkflowStatusCacheKey(envKey, id!),
+    queryFn: () => api.workflows.getStatusById({ id: id! }),
     enabled: !!id,
   });
 }

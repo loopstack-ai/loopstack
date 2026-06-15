@@ -21,6 +21,7 @@ const AskUserAnswerSchema = z.object({
 type AskUserState = AskUserArgs;
 
 @Workflow({
+  name: 'ask_user',
   title: 'Ask User',
   description:
     'Generic sub-workflow that presents a question to the user and waits for their answer.\nUsed by async tool calls (e.g. askClarification) to interrupt an agent loop for user input.\nSupports three modes: text (default), options (pick from a list), and confirm (yes/no).',

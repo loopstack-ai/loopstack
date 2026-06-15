@@ -59,16 +59,7 @@ describe('ErrorRetryWorkflow', () => {
       expect(result._retrySignal!.delayMs).toBe(1000); // first retry: 1s
       expect(result.place).toBe('step1_done'); // stays at from place
       expect(result.retryCount).toBe(1);
-
-      // ErrorDocument should be saved inline
-      expect(result.documents).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            documentName: 'error',
-            content: expect.objectContaining({ error: 'Simulated error' }),
-          }),
-        ]),
-      );
+      expect(result.errorMessage).toBe('Simulated error');
     });
 
     it('should succeed after auto-retries exhaust and manual retry', async () => {

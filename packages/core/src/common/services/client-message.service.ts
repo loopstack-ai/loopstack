@@ -28,6 +28,7 @@ export class ClientMessageService {
         id: entity.id,
         userId: entity.createdBy,
         workflowId: entity.id,
+        parentId: entity.parentId ?? undefined,
         workerId: this.clientId,
       }),
     );

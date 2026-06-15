@@ -538,7 +538,13 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
         transition: {
           id: 'authCompleted',
           workflowId,
-          payload: { workflowId: 'auth-workflow-id', status: 'completed', data: {} },
+          payload: {
+            workflowId: 'auth-workflow-id',
+            status: 'completed',
+            hasError: false,
+            errorMessage: null,
+            data: {},
+          },
         },
       },
     });

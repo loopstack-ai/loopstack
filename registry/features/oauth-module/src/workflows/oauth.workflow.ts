@@ -17,6 +17,7 @@ interface OAuthState {
 }
 
 @Workflow({
+  name: 'oauth',
   title: 'OAuth',
   description:
     'Authenticate with an OAuth 2.0 provider.\nCan be run standalone to pre-authenticate, or invoked from\nother workflows when authentication is required.',

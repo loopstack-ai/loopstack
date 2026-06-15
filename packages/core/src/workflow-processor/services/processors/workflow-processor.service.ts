@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import {
-  ErrorDocument,
   NormalizedRetryConfig,
   TransitionMetadata,
   WorkflowCheckpointEntity,
@@ -18,8 +17,6 @@ import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/co
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor } from '../../../common/index.js';
 import { ExecutionScope, ExecutionScopeData } from '../../utils/index.js';
-import { DocumentPersistenceService } from '../document-persistence.service.js';
-import { resolveDocumentName } from '../document-store.service.js';
 import { TransitionResolverService } from '../transition-resolver.service.js';
 import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service.js';
 import { WorkflowStateService } from '../workflow-state.service.js';
@@ -49,7 +46,6 @@ export class WorkflowProcessorService implements Processor {
     private readonly transitionResolverService: TransitionResolverService,
     private readonly executionScope: ExecutionScope,
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
-    private readonly documentPersistenceService: DocumentPersistenceService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -386,28 +382,11 @@ export class WorkflowProcessorService implements Processor {
    * Handles a transition error according to the retry configuration.
    */
   private async handleTransitionError(
-    scopeData: ExecutionScopeData,
     meta: ProcessorMetadata,
     error: Error,
     transitionMeta: TransitionMetadata,
   ): Promise<void> {
     meta.version++;
-
-    // Save an inline ErrorDocument (outside the rolled-back transaction)
-    try {
-      await this.executionScope.run(scopeData, async () => {
-        await this.documentPersistenceService.create(
-          resolveDocumentName(ErrorDocument),
-          ErrorDocument,
-          { error: error.message },
-          { id: `error_${Date.now()}` },
-        );
-      });
-    } catch (docError) {
-      this.logger.warn(
-        `Failed to save error document: ${docError instanceof Error ? docError.message : String(docError)}`,
-      );
-    }
 
     const retry: NormalizedRetryConfig = transitionMeta.retry ?? normalizeRetryConfig();
     const methodName = transitionMeta.methodName;
@@ -526,7 +505,7 @@ export class WorkflowProcessorService implements Processor {
         } catch (e) {
           const error = e instanceof Error ? e : new Error(String(e));
           this.logger.error(new ConfigTraceError(error, workflow));
-          await this.handleTransitionError(scopeData, meta, error, waitTransition);
+          await this.handleTransitionError(meta, error, waitTransition);
 
           const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
           meta.availableTransitions = errorAvailable.map((t) => ({
@@ -592,7 +571,7 @@ export class WorkflowProcessorService implements Processor {
       } catch (e) {
         const error = e instanceof Error ? e : new Error(String(e));
         this.logger.error(new ConfigTraceError(error, workflow));
-        await this.handleTransitionError(scopeData, meta, error, next);
+        await this.handleTransitionError(meta, error, next);
 
         const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
         meta.availableTransitions = errorAvailable.map((t) => ({

@@ -5,6 +5,7 @@ export class ClientMessageDto implements ClientMessageInterface {
   workerId!: string;
   id?: string;
   workflowId?: string;
+  parentId?: string;
   workspaceId?: string;
   type!: string;
   [key: string]: unknown;
