@@ -31,7 +31,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/core": "^0.33.0",
+    "@loopstack/core": "^0.34.0",
     "@loopstack/common": "^0.34.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
