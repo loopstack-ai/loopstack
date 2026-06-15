@@ -1,5 +1,13 @@
 # @loopstack/claude-tools-module
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c)]:
+  - @loopstack/llm-provider-module@0.5.0
+  - @loopstack/common@0.34.0
+
 ## 0.2.2
 
 ### Patch Changes

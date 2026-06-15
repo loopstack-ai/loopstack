@@ -63,7 +63,10 @@ describe('AskUserTextWorkflow', () => {
       expect.arrayContaining([
         expect.objectContaining({
           documentName: 'message',
-          content: expect.objectContaining({ role: 'assistant', text: 'Hello, Ada!' }),
+          content: expect.objectContaining({
+            role: 'assistant',
+            text: 'Thanks! You answered: Jakob',
+          }),
         }),
       ]),
     );
