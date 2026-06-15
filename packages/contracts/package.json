@@ -2,7 +2,7 @@
   "name": "@loopstack/contracts",
   "displayName": "Loopstack Contracts",
   "description": "A collection of types and schemas shared between projects",
-  "version": "0.34.0",
+  "version": "0.35.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",

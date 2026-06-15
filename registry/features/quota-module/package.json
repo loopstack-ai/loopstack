@@ -9,7 +9,7 @@
     "redis",
     "workflow"
   ],
-  "version": "0.25.3",
+  "version": "0.25.4",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,7 +32,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.34.0"
+    "@loopstack/common": "^0.35.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.19",
