@@ -50,6 +50,8 @@ describe('RunSubWorkflowExampleSequenceWorkflow', () => {
     const sequencePayload = {
       workflowId: 'sequence-id',
       status: 'completed',
+      hasError: false,
+      errorMessage: null,
       data: {
         results: [
           { key: 'step-1', status: 'completed', data: { message: 'A' } },

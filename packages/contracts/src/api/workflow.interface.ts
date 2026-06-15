@@ -23,6 +23,13 @@ export interface WorkflowItemInterface {
   hasChildren: number;
 }
 
+export interface WorkflowStatusInterface {
+  id: string;
+  status: WorkflowState;
+  hasError: boolean;
+  errorMessage: string | null;
+}
+
 export interface WorkflowFullInterface extends WorkflowItemInterface {
   errorMessage: string | null;
   context: WorkflowContextInterface;

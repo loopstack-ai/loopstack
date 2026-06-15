@@ -55,9 +55,11 @@ import { RemoteFileExplorerExampleModule } from '@loopstack/remote-file-explorer
 import { RemoteFileExplorerExampleWorkflow } from '@loopstack/remote-file-explorer-example-workflow';
 import { RunSubWorkflowExampleModule } from '@loopstack/run-sub-workflow-example';
 import {
+  RunSubWorkflowExampleErrorHandlingWorkflow,
   RunSubWorkflowExampleFanOutWorkflow,
   RunSubWorkflowExampleParentWorkflow,
   RunSubWorkflowExampleSequenceWorkflow,
+  RunSubWorkflowExampleShowModesWorkflow,
 } from '@loopstack/run-sub-workflow-example';
 import { SandboxExampleModule } from '@loopstack/sandbox-example-workflow';
 import { SandboxExampleWorkflow } from '@loopstack/sandbox-example-workflow';
@@ -82,6 +84,8 @@ import { SmokeTestsController } from './smoke-tests.controller';
     RunSubWorkflowExampleParentWorkflow,
     RunSubWorkflowExampleFanOutWorkflow,
     RunSubWorkflowExampleSequenceWorkflow,
+    RunSubWorkflowExampleShowModesWorkflow,
+    RunSubWorkflowExampleErrorHandlingWorkflow,
     TestUiDocumentsWorkflow,
     WorkflowStateWorkflow,
 

@@ -94,6 +94,26 @@ export class WorkflowApiService {
   }
 
   /**
+   * Finds a minimal status projection for a workflow by ID — used by Studio's embedded link cards
+   * to react to live workflow state changes without pulling args/context/transitions.
+   */
+  async findStatusById(
+    id: string,
+    user: string,
+  ): Promise<Pick<WorkflowEntity, 'id' | 'status' | 'hasError' | 'errorMessage'>> {
+    const workflow = await this.workflowRepository
+      .createQueryBuilder('workflow')
+      .select(['workflow.id', 'workflow.status', 'workflow.hasError', 'workflow.errorMessage'])
+      .where({ id, createdBy: user })
+      .getOne();
+
+    if (!workflow) {
+      throw new NotFoundException(`Workflow with ID ${id} not found`);
+    }
+    return workflow;
+  }
+
+  /**
    * Finds a workflow by ID.
    */
   async findOneById(id: string, user: string): Promise<WorkflowEntity> {

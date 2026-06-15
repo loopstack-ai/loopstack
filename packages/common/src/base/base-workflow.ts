@@ -37,10 +37,17 @@ export interface QueueResult {
   workflowId: string;
 }
 
-/** Base Zod schema for sub-workflow callback payloads. Extend with `.extend({ data: ... })` to type the result. */
+/**
+ * Base Zod schema for sub-workflow callback payloads. Extend with `.extend({ data: ... })` to type the result.
+ *
+ * `hasError` / `errorMessage` reflect the child's terminal state so the parent can branch
+ * on failure without having to introspect `status` strings.
+ */
 export const CallbackSchema = z.object({
   workflowId: z.string(),
   status: z.string(),
+  hasError: z.boolean(),
+  errorMessage: z.string().nullable(),
   data: z.unknown(),
 });
 

@@ -50,6 +50,8 @@ describe('RunSubWorkflowExampleFanOutWorkflow', () => {
     const fanOutPayload = {
       workflowId: 'fanout-id',
       status: 'completed',
+      hasError: false,
+      errorMessage: null,
       data: {
         results: {
           first: { status: 'completed', data: { message: 'Hi from first' } },
