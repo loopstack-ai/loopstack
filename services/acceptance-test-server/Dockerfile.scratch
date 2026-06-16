@@ -1,0 +1,82 @@
+# Scratch variant of the acceptance-test agent: ships Node.js + infra and an EMPTY app slot.
+#
+# Unlike the default Dockerfile (which prebuilds a scaffolded loopstack app), here the coding agent
+# scaffolds the app itself by following loopstack's getting-started flow — `nest new app`, then
+# `npm install /opt/loopstack-local/*.tgz` to pull @loopstack/* from the local working-tree tarballs.
+# Only the test harness scaffold (the measuring instrument) is pre-staged; the app under test does not
+# exist until the agent creates it.
+#
+# Build it with:
+#   cd loopstack/services/acceptance-test-server
+#   ./scripts/pack-local-packages.sh    # populate local-packages/ from the working tree first
+#   docker build -f Dockerfile.scratch -t acceptance-test-agent-scratch:latest .
+#
+# Run it by pointing the harness at this image: ACCEPTANCE_TEST_IMAGE=acceptance-test-agent-scratch:latest
+
+FROM node:20-slim AS build
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm install
+
+COPY tsconfig.json ./
+COPY src/ ./src/
+RUN npm run build
+
+# Stage the workspace. NO app scaffold and NO loopstack pre-install — the agent builds the app from
+# scratch at runtime. Only the standalone test scaffold is pre-staged (with its deps installed so the
+# suite can run immediately).
+WORKDIR /workspace-setup
+COPY testing-template/ ./tests/
+RUN cd tests && npm install
+
+FROM node:20-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends postgresql redis-server git curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# PM2 (process manager for the app), the NestJS CLI (so the agent can `nest new app`), and Claude Code
+RUN npm i -g pm2 @nestjs/cli @anthropic-ai/claude-code
+
+WORKDIR /app
+
+# Empty workspace with only the test scaffold; /workspace/app is created by the agent.
+COPY --from=build /workspace-setup /workspace
+
+# Local @loopstack tarballs the agent installs during its getting-started scaffold
+# (npm install /opt/loopstack-local/*.tgz). Populated by scripts/pack-local-packages.sh.
+COPY local-packages/ /opt/loopstack-local/
+
+# Initialize git so the agent has version control from the first commit
+RUN cd /workspace && \
+    git config --global user.name "loopstack" && \
+    git config --global user.email "noreply@loopstack.ai" && \
+    git config --global init.defaultBranch main && \
+    git init && git add -A && git commit -m "Initial scratch workspace (tests only)"
+
+# Compressed backup of the initial (app-less) workspace so /app/reset restores the scratch state
+RUN tar czf /opt/workspace-backup.tar.gz -C / workspace
+
+# Install agent production dependencies
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev && npm cache clean --force
+
+# Copy agent build output
+COPY --from=build /app/dist ./dist
+
+# Copy PM2 ecosystem config + entrypoint
+COPY ecosystem.config.cjs ./
+COPY start.sh ./
+RUN chmod +x start.sh
+
+ENV AGENT_PORT=3001
+ENV WORKSPACE_ROOT=/workspace
+
+EXPOSE 3000 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://localhost:3001/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+
+CMD ["./start.sh"]
