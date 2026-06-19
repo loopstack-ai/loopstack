@@ -8,19 +8,23 @@ interface CustomToolExampleState {
   total?: number;
 }
 
+const CustomToolExampleArgsSchema = z
+  .object({
+    a: z.number().default(1),
+    b: z.number().default(2),
+  })
+  .strict();
+
+type CustomToolExampleArgs = z.infer<typeof CustomToolExampleArgsSchema>;
+
 @Workflow({
   title: 'Custom Tool',
   description:
     'This workflow demonstrates the usage of custom tools, including both stateless and stateful tools.\nIt performs a simple addition operation using a custom MathSumTool and showcases the behavior of\nstateless and stateful counter tools. It also tests that tool state persists across checkpoints.',
   widget: __dirname + '/custom-tool-example.ui.yaml',
-  schema: z
-    .object({
-      a: z.number().default(1),
-      b: z.number().default(2),
-    })
-    .strict(),
+  schema: CustomToolExampleArgsSchema,
 })
-export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }, CustomToolExampleState> {
+export class CustomToolExampleWorkflow extends BaseWorkflow<CustomToolExampleArgs> {
   constructor(
     private readonly counterTool: CounterTool,
     private readonly mathTool: MathSumTool,
@@ -29,22 +33,24 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async calculate(state: CustomToolExampleState, ctx: RunContext): Promise<CustomToolExampleState> {
-    const args = ctx.args as { a: number; b: number };
+  async calculate(
+    state: CustomToolExampleState,
+    ctx: RunContext<CustomToolExampleArgs>,
+  ): Promise<CustomToolExampleState> {
     // Use a custom tool
-    const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
+    const calcResult = await this.mathTool.call({ a: ctx.args.a, b: ctx.args.b });
     const total = calcResult.data as number;
 
     // Display the result
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Tool calculation result:\n${args.a} + ${args.b} = ${total}`,
+      text: `Tool calculation result:\n${ctx.args.a} + ${ctx.args.b} = ${total}`,
     });
 
     // Alternatively, use a custom workflow method
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Alternatively, using workflow method:\n${args.a} + ${args.b} = ${this.sum(args.a, args.b)}`,
+      text: `Alternatively, using workflow method:\n${ctx.args.a} + ${ctx.args.b} = ${this.sum(ctx.args.a, ctx.args.b)}`,
     });
 
     // Count before pause — should be 1, 2, 3

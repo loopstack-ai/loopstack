@@ -63,7 +63,11 @@ interface SequenceState {
   description: 'Runs multiple sub-workflows one after another and aggregates their results.',
   schema: SequenceArgsSchema,
 })
-export class SequenceWorkflow extends BaseWorkflow<SequenceInput, SequenceState> {
+// The class is typed with SequenceInput (the friendly external API), but at runtime ctx.args
+// is the normalized SequenceArgs (entries-array). The `as unknown as SequenceArgs` casts below
+// bridge that gap. Single-generic BaseWorkflow can't model Input ≠ Args; revisit if we add
+// a second generic later.
+export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     private readonly registry: WorkflowRegistryService,
@@ -85,8 +89,8 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput, SequenceState>
   }
 
   @Transition({ to: 'awaiting' })
-  async start(state: SequenceState, ctx: RunContext): Promise<SequenceState> {
-    const args = ctx.args as SequenceArgs;
+  async start(state: SequenceState, ctx: RunContext<SequenceInput>): Promise<SequenceState> {
+    const args = ctx.args as unknown as SequenceArgs;
     const itemKeys = args.entries.map(([key]) => key);
 
     // Resolve every workflow class up front so a bad name fails the sequence immediately.
@@ -110,9 +114,9 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput, SequenceState>
   async onChildComplete(
     state: SequenceState,
     payload: Record<string, unknown>,
-    ctx: RunContext,
+    ctx: RunContext<SequenceInput>,
   ): Promise<SequenceState> {
-    const args = ctx.args as SequenceArgs;
+    const args = ctx.args as unknown as SequenceArgs;
     const key = state.itemKeys[state.currentIndex];
     if (!key) {
       throw new Error('Sequence received a child callback with no matching active item.');

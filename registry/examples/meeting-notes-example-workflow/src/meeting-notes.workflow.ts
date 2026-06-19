@@ -12,28 +12,31 @@ interface MeetingNotesState {
   optimizedNotes?: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
 }
 
+const MeetingNotesArgsSchema = z.object({
+  inputText: z
+    .string()
+    .default(
+      '- meeting 1.1.2025\n- budget: need 2 cut costs sarah said\n- hire new person?? --> marketing\n- vendor pricing - follow up needed by anna',
+    ),
+});
+
+type MeetingNotesArgs = z.infer<typeof MeetingNotesArgsSchema>;
+
 @Workflow({
   title: 'Human-in-the-loop Demo (Meeting Notes Optimizer)',
   description: 'A demo workflow to demonstrate how to use AI to structure meeting notes.',
-  schema: z.object({
-    inputText: z
-      .string()
-      .default(
-        '- meeting 1.1.2025\n- budget: need 2 cut costs sarah said\n- hire new person?? --> marketing\n- vendor pricing - follow up needed by anna',
-      ),
-  }),
+  schema: MeetingNotesArgsSchema,
 })
-export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, MeetingNotesState> {
+export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
   @Transition({ to: 'waiting_for_response' })
-  async createForm(state: MeetingNotesState, ctx: RunContext): Promise<MeetingNotesState> {
-    const args = ctx.args as { inputText: string };
+  async createForm(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>): Promise<MeetingNotesState> {
     await this.documentStore.save(
       MeetingNotesDocument,
-      { text: `Unstructured Notes:\n\n${args.inputText}` },
+      { text: `Unstructured Notes:\n\n${ctx.args.inputText}` },
       { id: 'input' },
     );
     return state;

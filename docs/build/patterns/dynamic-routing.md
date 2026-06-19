@@ -47,18 +47,20 @@ interface RoutingState {
   value?: number;
 }
 
+const RoutingSchema = z.object({ value: z.number().default(150) }).strict();
+type RoutingArgs = z.infer<typeof RoutingSchema>;
+
 @Workflow({
-  schema: z.object({ value: z.number().default(150) }).strict(),
+  schema: RoutingSchema,
 })
-export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }, RoutingState> {
+export class DynamicRoutingExampleWorkflow extends BaseWorkflow<RoutingArgs> {
   @Transition({ to: 'prepared' })
-  async createMockData(state: RoutingState, ctx: RunContext): Promise<RoutingState> {
-    const args = ctx.args as { value: number };
+  async createMockData(state: RoutingState, ctx: RunContext<RoutingArgs>): Promise<RoutingState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Analysing value = ${args.value}`,
+      text: `Analysing value = ${ctx.args.value}`,
     });
-    return { ...state, value: args.value };
+    return { ...state, value: ctx.args.value };
   }
 
   // First fork: value > 100?

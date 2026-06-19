@@ -27,7 +27,7 @@ export interface StudioAppOptions {
   /** Developer-defined UI preferences. */
   ui?: StudioUiConfig;
   /** Workflow classes that are launchable from Studio. */
-  workflows?: Type<BaseWorkflow<any, any>>[];
+  workflows?: Type<BaseWorkflow<any>>[];
 }
 
 /** Resolved metadata stored on the module class. */

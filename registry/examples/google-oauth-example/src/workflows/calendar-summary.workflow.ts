@@ -9,18 +9,22 @@ interface CalendarSummaryState {
   requiresAuthentication?: boolean;
 }
 
+const CalendarSummaryArgsSchema = z
+  .object({
+    calendarId: z.string().default('primary'),
+  })
+  .strict();
+
+type CalendarSummaryArgs = z.infer<typeof CalendarSummaryArgsSchema>;
+
 @Workflow({
   title: 'Google Calendar Summary',
   description:
     'Fetches upcoming events from Google Calendar and displays a summary.\nIf not authenticated, launches the OAuth workflow as a sub-workflow\nand retries automatically after authentication completes.',
   name: 'google_calendar_summary',
-  schema: z
-    .object({
-      calendarId: z.string().default('primary'),
-    })
-    .strict(),
+  schema: CalendarSummaryArgsSchema,
 })
-export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }, CalendarSummaryState> {
+export class CalendarSummaryWorkflow extends BaseWorkflow<CalendarSummaryArgs> {
   constructor(
     private readonly googleCalendarFetchEvents: GoogleCalendarFetchEventsTool,
     private readonly oAuthWorkflow: OAuthWorkflow,
@@ -31,10 +35,9 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   // --- Fetch events from Google Calendar ---
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarSummaryState, ctx: RunContext): Promise<CalendarSummaryState> {
-    const args = ctx.args as { calendarId: string };
+  async fetchEvents(state: CalendarSummaryState, ctx: RunContext<CalendarSummaryArgs>): Promise<CalendarSummaryState> {
     const result = await this.googleCalendarFetchEvents.call({
-      calendarId: args.calendarId,
+      calendarId: ctx.args.calendarId,
       timeMin: this.now(),
       timeMax: this.endOfWeek(),
     });

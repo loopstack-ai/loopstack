@@ -63,7 +63,7 @@ interface ChatAgentState {
   widget: import.meta.dirname + '/chat-agent.ui.yaml',
   schema: ChatAgentArgsSchema,
 })
-export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentState> {
+export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
@@ -75,19 +75,18 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: ChatAgentState, ctx: RunContext): Promise<ChatAgentState> {
-    const args = ctx.args as ChatAgentArgs;
-    if (args.context) {
+  async setup(state: ChatAgentState, ctx: RunContext<ChatAgentArgs>): Promise<ChatAgentState> {
+    if (ctx.args.context) {
       await this.documentStore.save(
         LlmMessageDocument,
-        { role: 'user', text: args.context },
+        { role: 'user', text: ctx.args.context },
         { meta: { hidden: true } },
       );
     }
 
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: args.userMessage });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.userMessage });
 
-    return { ...state, ...args };
+    return { ...state, ...ctx.args };
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })

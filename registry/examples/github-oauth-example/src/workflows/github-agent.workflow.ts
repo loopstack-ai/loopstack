@@ -50,7 +50,7 @@ interface GitHubAgentState {
   name: 'github_agent',
   widget: __dirname + '/github-agent.ui.yaml',
 })
-export class GitHubAgentWorkflow extends BaseWorkflow<Record<string, unknown>, GitHubAgentState> {
+export class GitHubAgentWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,

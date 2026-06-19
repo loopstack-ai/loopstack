@@ -49,25 +49,27 @@ interface StructuredOutputState {
   llmResult?: DocumentEntity<FileDocumentType>;
 }
 
+const StructuredOutputSchema = z.object({
+  language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
+});
+type StructuredOutputArgs = z.infer<typeof StructuredOutputSchema>;
+
 @Workflow({
-  schema: z.object({
-    language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
-  }),
+  schema: StructuredOutputSchema,
 })
-export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }, StructuredOutputState> {
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<StructuredOutputArgs> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
   @Transition({ to: 'ready' })
-  async greeting(state: StructuredOutputState, ctx: RunContext): Promise<StructuredOutputState> {
-    const args = ctx.args as { language: string };
+  async greeting(state: StructuredOutputState, ctx: RunContext<StructuredOutputArgs>): Promise<StructuredOutputState> {
     await this.documentStore.save(
       LlmMessageDocument,
-      { role: 'assistant', text: `Creating a Hello World script in ${args.language}...` },
+      { role: 'assistant', text: `Creating a Hello World script in ${ctx.args.language}...` },
       { id: 'status' },
     );
-    return { ...state, language: args.language };
+    return { ...state, language: ctx.args.language };
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })

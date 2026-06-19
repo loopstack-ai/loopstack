@@ -21,7 +21,7 @@ interface SecretsAgentState {
     'An agent workflow where the LLM autonomously manages secrets by calling\ngetSecretKeys and requestSecrets tools. The user can send follow-up messages.',
   widget: __dirname + '/secrets-agent-example.ui.yaml',
 })
-export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, SecretsAgentState> {
+export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,

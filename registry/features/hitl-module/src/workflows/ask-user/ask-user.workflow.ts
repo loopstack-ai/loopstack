@@ -27,11 +27,10 @@ type AskUserState = AskUserArgs;
     'Generic sub-workflow that presents a question to the user and waits for their answer.\nUsed by async tool calls (e.g. askClarification) to interrupt an agent loop for user input.\nSupports three modes: text (default), options (pick from a list), and confirm (yes/no).',
   schema: AskUserArgsSchema,
 })
-export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
+export class AskUserWorkflow extends BaseWorkflow<AskUserArgs> {
   @Transition({ to: 'show_question' })
-  async start(state: AskUserState, ctx: RunContext): Promise<AskUserState> {
-    const args = ctx.args as AskUserArgs;
-    return { ...state, ...args };
+  async start(state: AskUserState, ctx: RunContext<AskUserArgs>): Promise<AskUserState> {
+    return { ...state, ...ctx.args };
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })

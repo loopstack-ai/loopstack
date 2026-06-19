@@ -23,7 +23,7 @@ interface ReviewState {
 }
 
 @Workflow({ widget: __dirname + '/review.ui.yaml' })
-export class ReviewWorkflow extends BaseWorkflow<Record<string, unknown>, ReviewState> {
+export class ReviewWorkflow extends BaseWorkflow {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }

@@ -45,7 +45,7 @@ interface ToolCallState {
 }
 
 @Workflow({})
-export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
+export class ToolCallWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,

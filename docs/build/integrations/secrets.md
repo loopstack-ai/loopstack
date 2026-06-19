@@ -50,7 +50,7 @@ interface SecretsState {
 }
 
 @Workflow({ widget: __dirname + '/secrets-example.ui.yaml' })
-export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>, SecretsState> {
+export class SecretsExampleWorkflow extends BaseWorkflow {
   constructor(
     private readonly requestSecrets: RequestSecretsTool,
     private readonly getSecretKeys: GetSecretKeysTool,

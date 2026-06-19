@@ -30,7 +30,7 @@ interface ConnectGitHubState {
     'Connects your workspace to a GitHub repository.\nAuthenticates with GitHub, lets you create or link a repo, and configures git push access.',
   schema: z.object({}).strict(),
 })
-export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, ConnectGitHubState> {
+export class ConnectGitHubWorkflow extends BaseWorkflow {
   constructor(
     private readonly gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
     private readonly gitHubCreateRepo: GitHubCreateRepoTool,

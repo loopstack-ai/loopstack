@@ -7,7 +7,7 @@ interface ToolResultsState {
 @Workflow({
   title: 'Workflow Tool Result',
 })
-export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {
+export class WorkflowToolResultsWorkflow extends BaseWorkflow {
   @Transition({ to: 'data_created' })
   async createSomeData(state: ToolResultsState): Promise<ToolResultsState> {
     await this.documentStore.save(MessageDocument, {

@@ -105,19 +105,21 @@ interface MeetingNotesState {
   meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
 }
 
+const MeetingNotesArgsSchema = z.object({ inputText: z.string().default('...') });
+type MeetingNotesArgs = z.infer<typeof MeetingNotesArgsSchema>;
+
 @Workflow({
   widget: __dirname + '/meeting-notes.ui.yaml',
-  schema: z.object({ inputText: z.string().default('...') }),
+  schema: MeetingNotesArgsSchema,
 })
-export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, MeetingNotesState> {
+export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
   @Transition({ to: 'waiting_for_response' })
-  async createForm(state: MeetingNotesState, ctx: RunContext): Promise<MeetingNotesState> {
-    const args = ctx.args as { inputText: string };
-    await this.documentStore.save(MeetingNotesDocument, { text: args.inputText }, { id: 'input' });
+  async createForm(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>): Promise<MeetingNotesState> {
+    await this.documentStore.save(MeetingNotesDocument, { text: ctx.args.inputText }, { id: 'input' });
     return state;
   }
 

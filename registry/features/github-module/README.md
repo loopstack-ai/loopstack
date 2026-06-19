@@ -110,7 +110,7 @@ interface State {
   title: 'My GitHub Workflow',
   schema: z.object({}).strict(),
 })
-export class MyGitHubWorkflow extends BaseWorkflow<Record<string, unknown>, State> {
+export class MyGitHubWorkflow extends BaseWorkflow {
   constructor(
     private readonly gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
     private readonly gitHubListRepos: GitHubListReposTool,

@@ -79,7 +79,7 @@ interface DynamicRoutingState {
     })
     .strict(),
 })
-export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }, DynamicRoutingState> {
+export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }> {
   constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
     super();
   }
@@ -219,7 +219,7 @@ interface DynamicRoutingState {
     })
     .strict(),
 })
-export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }, DynamicRoutingState> {
+export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }> {
   constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
     super();
   }

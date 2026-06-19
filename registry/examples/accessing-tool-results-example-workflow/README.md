@@ -61,7 +61,7 @@ interface ToolResultsState {
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
-export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {
+export class WorkflowToolResultsWorkflow extends BaseWorkflow {
   constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
     super();
   }
@@ -120,7 +120,7 @@ interface ToolResultsState {
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
-export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {
+export class WorkflowToolResultsWorkflow extends BaseWorkflow {
   constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
     super();
   }

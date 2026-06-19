@@ -33,8 +33,10 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
   }
 
   @Transition({ to: 'chatting' })
-  async startChat(state: Record<string, unknown>, ctx: RunContext): Promise<Record<string, unknown>> {
-    const args = ctx.args as McpLinearExampleArgs;
+  async startChat(
+    state: Record<string, unknown>,
+    ctx: RunContext<McpLinearExampleArgs>,
+  ): Promise<Record<string, unknown>> {
     const systemPrompt = [
       `You are a Linear assistant connected via MCP at ${LINEAR_MCP_URL} (transport: streamableHttp).`,
       'Use `mcpListTools` to discover the available Linear tools, then `mcpCallTool` to invoke them.',
@@ -45,7 +47,7 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
       {
         system: systemPrompt,
         tools: ['mcp_list_tools', 'mcp_call'],
-        userMessage: args.initialMessage,
+        userMessage: ctx.args.initialMessage,
       },
       { show: 'inline', label: 'Linear Agent Chat' },
     );

@@ -11,28 +11,34 @@ interface PromptStructuredOutputState {
   llmResult?: DocumentEntity<FileDocumentType>;
 }
 
+const PromptStructuredOutputArgsSchema = z.object({
+  language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
+});
+
+type PromptStructuredOutputArgs = z.infer<typeof PromptStructuredOutputArgsSchema>;
+
 @Workflow({
   title: 'Structured Output Example (Hello World Script)',
   description:
     'An example workflow that demonstrates how to generate a structured output in Loopstack on the example of creating a "Hello, World!" script in a specified programming language.',
-  schema: z.object({
-    language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
-  }),
+  schema: PromptStructuredOutputArgsSchema,
 })
-export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }, PromptStructuredOutputState> {
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<PromptStructuredOutputArgs> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
   @Transition({ to: 'ready' })
-  async greeting(state: PromptStructuredOutputState, ctx: RunContext): Promise<PromptStructuredOutputState> {
-    const args = ctx.args as { language: string };
+  async greeting(
+    state: PromptStructuredOutputState,
+    ctx: RunContext<PromptStructuredOutputArgs>,
+  ): Promise<PromptStructuredOutputState> {
     await this.documentStore.save(
       LlmMessageDocument,
-      { role: 'assistant', text: `Creating a 'Hello, World!' script in ${args.language}...` },
+      { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
       { id: 'status' },
     );
-    return { ...state, language: args.language };
+    return { ...state, language: ctx.args.language };
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })

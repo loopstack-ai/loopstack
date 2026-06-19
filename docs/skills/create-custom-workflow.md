@@ -45,7 +45,7 @@ interface MyState {
   schema: MyArgs,
   widget: __dirname + '/my.ui.yaml',
 })
-export class MyWorkflow extends BaseWorkflow<MyArgs, MyState> {
+export class MyWorkflow extends BaseWorkflow<MyArgs> {
   // --- Tool & sub-workflow injection via constructor ---
   constructor(
     private readonly myTool: MyTool,
@@ -56,9 +56,8 @@ export class MyWorkflow extends BaseWorkflow<MyArgs, MyState> {
 
   // --- Initial transition (workflow entry point, from defaults to 'start') ---
   @Transition({ to: 'ready' })
-  async setup(state: MyState, ctx: RunContext): Promise<MyState> {
-    const args = ctx.args as MyArgs;
-    return { ...state, message: `Hello, ${args.name}!` };
+  async setup(state: MyState, ctx: RunContext<MyArgs>): Promise<MyState> {
+    return { ...state, message: `Hello, ${ctx.args.name}!` };
   }
 
   // --- Regular transition ---
@@ -102,7 +101,7 @@ Class decorator. Configures the workflow.
 
 ### `extends BaseWorkflow`
 
-All workflows must extend `BaseWorkflow<TArgs, TState>`. It provides:
+All workflows must extend `BaseWorkflow<TArgs>` (or just `BaseWorkflow` for no input). State is typed per-transition on the `state` parameter. It provides:
 
 - `this.documentStore` — auto-injected, for saving and querying documents
 - `ctx.args` — the validated workflow input arguments (via the `ctx` parameter on transitions)
@@ -194,7 +193,7 @@ interface MyState {
   counter: number;
 }
 
-export class MyWorkflow extends BaseWorkflow<MyArgs, MyState> {
+export class MyWorkflow extends BaseWorkflow<MyArgs> {
   @Transition({ from: 'ready', to: 'processed' })
   async process(state: MyState): Promise<MyState> {
     const result = await this.myTool.call({ ... });
@@ -416,23 +415,25 @@ interface PromptState {
   llmMeta?: LlmResultMeta;
 }
 
+const PromptSchema = z.object({
+  subject: z.string().default('coffee'),
+});
+type PromptArgs = z.infer<typeof PromptSchema>;
+
 @Workflow({
   widget: __dirname + '/prompt.ui.yaml',
-  schema: z.object({
-    subject: z.string().default('coffee'),
-  }),
+  schema: PromptSchema,
 })
-export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
+export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
   @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
-    const args = ctx.args as { subject: string };
+  async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
     const result = await this.llmGenerateText.call(
       {
-        prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+        prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
@@ -456,15 +457,17 @@ interface RoutingState {
   value: number;
 }
 
+const RoutingSchema = z.object({ value: z.number().default(150) }).strict();
+type RoutingArgs = z.infer<typeof RoutingSchema>;
+
 @Workflow({
   widget: __dirname + '/routing.ui.yaml',
-  schema: z.object({ value: z.number().default(150) }).strict(),
+  schema: RoutingSchema,
 })
-export class RoutingWorkflow extends BaseWorkflow<{ value: number }, RoutingState> {
+export class RoutingWorkflow extends BaseWorkflow<RoutingArgs> {
   @Transition({ to: 'prepared' })
-  async setup(state: RoutingState, ctx: RunContext): Promise<RoutingState> {
-    const args = ctx.args as { value: number };
-    return { ...state, value: args.value };
+  async setup(state: RoutingState, ctx: RunContext<RoutingArgs>): Promise<RoutingState> {
+    return { ...state, value: ctx.args.value };
   }
 
   @Transition({ from: 'prepared', to: 'high', priority: 10 })
@@ -517,11 +520,14 @@ interface ChatState {
   delegateResult?: LlmDelegateResult;
 }
 
+const ChatSchema = z.object({ prompt: z.string() });
+type ChatArgs = z.infer<typeof ChatSchema>;
+
 @Workflow({
   widget: __dirname + '/chat.ui.yaml',
-  schema: z.object({ prompt: z.string() }),
+  schema: ChatSchema,
 })
-export class ChatWorkflow extends BaseWorkflow<{ prompt: string }, ChatState> {
+export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
@@ -531,11 +537,10 @@ export class ChatWorkflow extends BaseWorkflow<{ prompt: string }, ChatState> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: ChatState, ctx: RunContext): Promise<ChatState> {
-    const args = ctx.args as { prompt: string };
+  async setup(state: ChatState, ctx: RunContext<ChatArgs>): Promise<ChatState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      text: args.prompt,
+      text: ctx.args.prompt,
     });
     return state;
   }
@@ -596,7 +601,7 @@ export class ChatWorkflow extends BaseWorkflow<{ prompt: string }, ChatState> {
 
 ## Checklist
 
-1. Extend `BaseWorkflow<TArgs, TState>` and add `@Workflow({ widget, schema? })`
+1. Extend `BaseWorkflow<TArgs>` (or just `BaseWorkflow` for no input) and add `@Workflow({ widget, schema? })`
 2. Inject tools and sub-workflows via constructor — call via `await this.tool.call(args)`
 3. Define `@Transition({ to })` method for workflow entry (from defaults to `'start'`) — access args via `ctx.args`
 4. Define `@Transition({ from, to })` methods for intermediate steps

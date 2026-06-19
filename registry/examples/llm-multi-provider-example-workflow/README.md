@@ -88,26 +88,28 @@ interface LlmMultiProviderState {
   prompt: string;
 }
 
+const LlmMultiProviderSchema = z.object({
+  prompt: z.string().default('What is the meaning of life? Answer in one sentence.'),
+});
+type LlmMultiProviderArgs = z.infer<typeof LlmMultiProviderSchema>;
+
 @Workflow({
   title: 'LLM Multi-Provider',
   description: 'Runs the same prompt through Claude and OpenAI side by side',
   widget: __dirname + '/llm-multi-provider.ui.yaml',
-  schema: z.object({
-    prompt: z.string().default('What is the meaning of life? Answer in one sentence.'),
-  }),
+  schema: LlmMultiProviderSchema,
 })
-export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, LlmMultiProviderState> {
+export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs> {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
   @Transition({ to: 'claude_done' })
-  async askClaude(state: LlmMultiProviderState, ctx: RunContext): Promise<LlmMultiProviderState> {
-    const args = ctx.args as { prompt: string };
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: args.prompt });
+  async askClaude(state: LlmMultiProviderState, ctx: RunContext<LlmMultiProviderArgs>): Promise<LlmMultiProviderState> {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.prompt });
 
     const result = await this.llmGenerateText.call(
-      { prompt: args.prompt },
+      { prompt: ctx.args.prompt },
       {
         config: {
           provider: 'claude',
@@ -121,7 +123,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, L
       role: 'assistant',
       text: `**Claude:** ${result.data!.message.text}`,
     });
-    return { ...state, prompt: args.prompt };
+    return { ...state, prompt: ctx.args.prompt };
   }
 
   @Transition({ from: 'claude_done', to: 'openai_done' })

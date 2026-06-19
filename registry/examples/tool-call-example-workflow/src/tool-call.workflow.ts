@@ -14,7 +14,7 @@ interface ToolCallState {
   description:
     'An example workflow that demonstrates how to use an LLM to call external tools and handle their responses.',
 })
-export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
+export class ToolCallWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,

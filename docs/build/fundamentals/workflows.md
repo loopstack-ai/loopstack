@@ -226,7 +226,7 @@ interface MyState {
   llmResult?: LlmGenerateTextResult;
 }
 
-export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
+export class MyWorkflow extends BaseWorkflow {
   @Transition({ from: 'ready', to: 'processed' })
   async process(state: MyState): Promise<MyState> {
     return { ...state, counter: (state.counter ?? 0) + 1 };
@@ -249,9 +249,9 @@ const MyStateSchema = z.object({
 @Workflow({
   stateSchema: MyStateSchema,
 })
-export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, z.infer<typeof MyStateSchema>> {
+export class MyWorkflow extends BaseWorkflow {
   @Transition({ from: 'ready', to: 'processed' })
-  async process(state) {
+  async process(state: z.infer<typeof MyStateSchema>) {
     return { ...state, counter: (state.counter ?? 0) + 1 };
   }
 }

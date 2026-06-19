@@ -37,10 +37,9 @@ The workflow uses a custom tool to fetch calendar events, then checks for auth e
 
 ```typescript
 @Transition({ to: 'calendar_fetched' })
-async fetchEvents(state: CalendarSummaryState, ctx: RunContext): Promise<CalendarSummaryState> {
-  const args = ctx.args as { calendarId: string };
+async fetchEvents(state: CalendarSummaryState, ctx: RunContext<{ calendarId: string }>): Promise<CalendarSummaryState> {
   const result = await this.googleCalendarFetchEvents.call({
-    calendarId: args.calendarId,
+    calendarId: ctx.args.calendarId,
     timeMin: this.now(),
     timeMax: this.endOfWeek(),
   });

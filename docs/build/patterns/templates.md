@@ -43,16 +43,15 @@ Write a haiku about {{subject}}.
 Pass any data as the second argument to `this.render()`:
 
 ```typescript
-// Workflow args (from ctx parameter)
-const args = ctx.args as { subject: string };
-this.render(templatePath, { subject: args.subject });
+// Workflow args (from ctx parameter — typed via RunContext<{ subject: string }>)
+this.render(templatePath, { subject: ctx.args.subject });
 
 // Workflow state (from state parameter)
 this.render(templatePath, { items: state.items, count: state.counter });
 
 // Mixed data
 this.render(templatePath, {
-  prompt: args.prompt,
+  prompt: ctx.args.prompt,
   history: state.conversationHistory,
   timestamp: new Date().toISOString(),
 });

@@ -86,7 +86,7 @@ Tools are injected via standard NestJS constructor injection:
 
 ```typescript
 @Workflow({ ... })
-export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
+export class ToolCallWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
@@ -214,7 +214,7 @@ interface ToolCallState {
   title: 'LLM Tool Calling Example (Berlin Weather)',
   description: 'An example workflow that demonstrates how to use an LLM to call external tools.',
 })
-export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
+export class ToolCallWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,

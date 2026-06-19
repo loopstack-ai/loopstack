@@ -154,7 +154,7 @@ interface CustomToolExampleState {
     })
     .strict(),
 })
-export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }, CustomToolExampleState> {
+export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }> {
   constructor(
     private readonly counterTool: CounterTool,
     private readonly mathTool: MathSumTool,
@@ -283,7 +283,7 @@ interface CustomToolExampleState {
     })
     .strict(),
 })
-export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }, CustomToolExampleState> {
+export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }> {
   constructor(
     private readonly counterTool: CounterTool,
     private readonly mathTool: MathSumTool,

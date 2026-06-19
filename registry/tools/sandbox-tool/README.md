@@ -52,12 +52,15 @@ interface SandboxState {
   containerId?: string;
 }
 
+const MySandboxArgsSchema = z.object({
+  outputDir: z.string().default(process.cwd() + '/out'),
+});
+type MySandboxArgs = z.infer<typeof MySandboxArgsSchema>;
+
 @Workflow({
-  schema: z.object({
-    outputDir: z.string().default(process.cwd() + '/out'),
-  }),
+  schema: MySandboxArgsSchema,
 })
-export class MySandboxWorkflow extends BaseWorkflow<{ outputDir: string }, SandboxState> {
+export class MySandboxWorkflow extends BaseWorkflow<MySandboxArgs> {
   constructor(
     private readonly sandboxInit: SandboxInit,
     private readonly sandboxCommand: SandboxCommand,
@@ -67,13 +70,12 @@ export class MySandboxWorkflow extends BaseWorkflow<{ outputDir: string }, Sandb
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async createSandbox(state: SandboxState, ctx: RunContext): Promise<SandboxState> {
-    const args = ctx.args as { outputDir: string };
+  async createSandbox(state: SandboxState, ctx: RunContext<MySandboxArgs>): Promise<SandboxState> {
     const result: ToolResult<{ containerId: string; dockerId: string }> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
       containerName: 'my-node-sandbox',
-      projectOutPath: args.outputDir,
+      projectOutPath: ctx.args.outputDir,
       rootPath: 'workspace',
     });
     return { ...state, containerId: result.data!.containerId };

@@ -51,22 +51,23 @@ interface GitHubReposOverviewState {
   searchResults?: Array<{ name: string; path: string; repository: string }>;
 }
 
+const GitHubReposOverviewArgsSchema = z
+  .object({
+    owner: z.string().default('octocat'),
+    repo: z.string().default('Hello-World'),
+  })
+  .strict();
+
+type GitHubReposOverviewArgs = z.infer<typeof GitHubReposOverviewArgsSchema>;
+
 @Workflow({
   title: 'GitHub Repository Overview',
   description:
     'Comprehensive GitHub example that exercises every GitHub tool.\nFetches user info, repository details, issues, pull requests, branches,\ndirectory contents, workflow runs, and search results for a given repository.\nIf not authenticated, launches the OAuth sub-workflow and retries.',
   name: 'github_repos_overview',
-  schema: z
-    .object({
-      owner: z.string().default('octocat'),
-      repo: z.string().default('Hello-World'),
-    })
-    .strict(),
+  schema: GitHubReposOverviewArgsSchema,
 })
-export class GitHubReposOverviewWorkflow extends BaseWorkflow<
-  { owner: string; repo: string },
-  GitHubReposOverviewState
-> {
+export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOverviewArgs> {
   constructor(
     private readonly gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
     private readonly gitHubListUserOrgs: GitHubListUserOrgsTool,
@@ -85,13 +86,15 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
   // --- Step 1: Fetch authenticated user ---
 
   @Transition({ to: 'user_fetched' })
-  async fetchUser(state: GitHubReposOverviewState, ctx: RunContext): Promise<GitHubReposOverviewState> {
-    const args = ctx.args as { owner: string; repo: string };
+  async fetchUser(
+    state: GitHubReposOverviewState,
+    ctx: RunContext<GitHubReposOverviewArgs>,
+  ): Promise<GitHubReposOverviewState> {
     const result = await this.gitHubGetAuthenticatedUser.call();
     return {
       ...state,
-      owner: args.owner,
-      repo: args.repo,
+      owner: ctx.args.owner,
+      repo: ctx.args.repo,
       requiresAuthentication: result.data!.error === 'unauthorized',
       user: result.data!.user,
     };

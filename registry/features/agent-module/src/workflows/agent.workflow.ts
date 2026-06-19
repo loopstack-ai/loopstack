@@ -57,7 +57,7 @@ interface AgentState {
   // widget: import.meta.dirname + '/agent.ui.yaml',
   schema: AgentArgsSchema,
 })
-export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
+export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
@@ -68,19 +68,18 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: AgentState, ctx: RunContext): Promise<AgentState> {
-    const args = ctx.args as AgentArgs;
-    if (args.context) {
+  async setup(state: AgentState, ctx: RunContext<AgentArgs>): Promise<AgentState> {
+    if (ctx.args.context) {
       await this.documentStore.save(
         LlmMessageDocument,
-        { role: 'user', text: args.context },
+        { role: 'user', text: ctx.args.context },
         { meta: { hidden: true } },
       );
     }
 
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: args.userMessage });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.userMessage });
 
-    return { ...state, ...args };
+    return { ...state, ...ctx.args };
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })

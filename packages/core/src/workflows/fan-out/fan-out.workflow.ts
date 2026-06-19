@@ -61,7 +61,11 @@ interface FanOutState {
   description: 'Launches multiple sub-workflows in parallel and aggregates their results.',
   schema: FanOutArgsSchema,
 })
-export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
+// The class is typed with FanOutInput (the friendly external API), but at runtime ctx.args
+// is the normalized FanOutArgs (entries-array). The `as unknown as FanOutArgs` casts below
+// bridge that gap. Single-generic BaseWorkflow can't model Input ≠ Args; revisit if we add
+// a second generic later.
+export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     private readonly registry: WorkflowRegistryService,
@@ -69,10 +73,6 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
     super();
   }
 
-  /**
-   * Override `run()` to convert `items` (array OR record) into the persisted ordered-entries
-   * shape and reject duplicate keys before queuing.
-   */
   async run(args?: FanOutInput, options?: RunOptions): Promise<QueueResult> {
     if (!args) {
       throw new Error('FanOutWorkflow requires { items } — see the FanOutInput type.');
@@ -87,8 +87,8 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
   }
 
   @Transition({ to: 'awaiting' })
-  async start(state: FanOutState, ctx: RunContext): Promise<FanOutState> {
-    const args = ctx.args as FanOutArgs;
+  async start(state: FanOutState, ctx: RunContext<FanOutInput>): Promise<FanOutState> {
+    const args = ctx.args as unknown as FanOutArgs;
     const itemKeys = args.entries.map(([key]) => key);
 
     // Resolve all workflow classes up front so a bad name fails before any queueing.
@@ -116,7 +116,11 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
   }
 
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
-  async onChildComplete(state: FanOutState, payload: Record<string, unknown>, ctx: RunContext): Promise<FanOutState> {
+  async onChildComplete(
+    state: FanOutState,
+    payload: Record<string, unknown>,
+    ctx: RunContext<FanOutInput>,
+  ): Promise<FanOutState> {
     const subscriberMetadata = payload._subscriberMetadata as { key?: string } | undefined;
     const key = subscriberMetadata?.key;
     if (!key) {

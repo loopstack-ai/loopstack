@@ -6,27 +6,30 @@ interface DynamicRoutingState {
   value: number;
 }
 
+const DynamicRoutingArgsSchema = z
+  .object({
+    value: z.number().default(150),
+  })
+  .strict();
+
+type DynamicRoutingArgs = z.infer<typeof DynamicRoutingArgsSchema>;
+
 @Workflow({
   title: 'Dynamic Routing',
   description:
     'This workflow demonstrates dynamic routing based on the value of a variable.\nIt uses guards and priority to determine the next transition based on conditions.',
-  schema: z
-    .object({
-      value: z.number().default(150),
-    })
-    .strict(),
+  schema: DynamicRoutingArgsSchema,
 })
-export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }, DynamicRoutingState> {
+export class DynamicRoutingExampleWorkflow extends BaseWorkflow<DynamicRoutingArgs> {
   // --- Initial transition ---
 
   @Transition({ to: 'prepared' })
-  async createMockData(state: DynamicRoutingState, ctx: RunContext): Promise<DynamicRoutingState> {
-    const args = ctx.args as { value: number };
+  async createMockData(state: DynamicRoutingState, ctx: RunContext<DynamicRoutingArgs>): Promise<DynamicRoutingState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Analysing value = ${args.value}`,
+      text: `Analysing value = ${ctx.args.value}`,
     });
-    return { ...state, value: args.value };
+    return { ...state, value: ctx.args.value };
   }
 
   // --- First routing fork (from 'prepared') ---

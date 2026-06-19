@@ -50,7 +50,7 @@ export class MyAppModule {}
 
 #### 1. Defining Workflow State
 
-State is defined as a typed interface and passed as the second generic to `BaseWorkflow`:
+State is defined as a typed interface and applied per-transition on the `state` parameter. The class itself just extends `BaseWorkflow`:
 
 ```typescript
 interface WorkflowStateState {
@@ -60,7 +60,7 @@ interface WorkflowStateState {
 @Workflow({
   title: 'Workflow State',
 })
-export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>, WorkflowStateState> {
+export class WorkflowStateWorkflow extends BaseWorkflow {
 ```
 
 The state object is passed to each transition and persists across transitions automatically.
@@ -122,7 +122,7 @@ interface WorkflowStateState {
 @Workflow({
   title: 'Workflow State',
 })
-export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>, WorkflowStateState> {
+export class WorkflowStateWorkflow extends BaseWorkflow {
   @Transition({ to: 'data_created' })
   async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
     return { ...state, message: 'Hello :)' };

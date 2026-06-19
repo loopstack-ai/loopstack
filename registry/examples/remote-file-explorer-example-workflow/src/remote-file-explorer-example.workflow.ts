@@ -8,7 +8,7 @@ interface RemoteFileExplorerState {
 @Workflow({
   title: 'Remote File Explorer Example',
 })
-export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<string, unknown>, RemoteFileExplorerState> {
+export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow {
   constructor(
     private readonly glob: GlobTool,
     private readonly read: ReadTool,

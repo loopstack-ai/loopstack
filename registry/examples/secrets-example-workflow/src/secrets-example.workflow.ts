@@ -9,7 +9,7 @@ interface SecretsExampleState {
   title: 'Secrets Update Example',
   description: 'A simple workflow that requests secrets from the user and then verifies they were stored.',
 })
-export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>, SecretsExampleState> {
+export class SecretsExampleWorkflow extends BaseWorkflow {
   constructor(
     private readonly requestSecrets: RequestSecretsTool,
     private readonly getSecretKeys: GetSecretKeysTool,

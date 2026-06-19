@@ -80,7 +80,7 @@ Define input parameters directly in the `@Workflow` decorator with a Zod schema:
       ),
   }),
 })
-export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, MeetingNotesState> {
+export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }

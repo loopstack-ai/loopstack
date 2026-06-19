@@ -57,24 +57,27 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 #### 1. Workflow Input Schema
 
-Define input parameters with default values using a Zod schema in the `@Workflow` decorator. The workflow class extends `BaseWorkflow<TArgs, TState>` with matching types:
+Define input parameters with default values using a Zod schema in the `@Workflow` decorator. Extract a named type from the schema and use it on `BaseWorkflow<TArgs>` (state is typed per-transition on the `state` parameter):
 
 ```typescript
+const PromptSchema = z.object({
+  subject: z.string().default('coffee'),
+});
+type PromptArgs = z.infer<typeof PromptSchema>;
+
 @Workflow({
   title: 'Simple Prompt Example (Write a haiku)',
-  schema: z.object({
-    subject: z.string().default('coffee'),
-  }),
+  schema: PromptSchema,
 })
-export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
+export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
 ```
 
-The start `@Transition` method receives the state and context. Access workflow args via `ctx.args`:
+The start `@Transition` method receives the state and context. Type `ctx.args` via `RunContext<PromptArgs>`:
 
 ```typescript
 @Transition({ to: 'prompt_executed' })
-async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
-  const args = ctx.args as { subject: string };
+async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
+  // ctx.args.subject is typed as string
 ```
 
 #### 2. Simple Prompt Pattern
@@ -83,11 +86,10 @@ Use the `prompt` parameter for straightforward LLM calls without conversation hi
 
 ```typescript
 @Transition({ to: 'prompt_executed' })
-async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
-  const args = ctx.args as { subject: string };
+async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
   const result = await this.llmGenerateText.call(
     {
-      prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+      prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
     },
     { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
   );
@@ -138,24 +140,26 @@ interface PromptState {
   llmMeta?: LlmResultMeta;
 }
 
+const PromptSchema = z.object({
+  subject: z.string().default('coffee'),
+});
+type PromptArgs = z.infer<typeof PromptSchema>;
+
 @Workflow({
   title: 'Simple Prompt Example (Write a haiku)',
   description: 'An example workflow that demonstrates how to use a prompt to generate a haiku.',
-  schema: z.object({
-    subject: z.string().default('coffee'),
-  }),
+  schema: PromptSchema,
 })
-export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
+export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
   @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
-    const args = ctx.args as { subject: string };
+  async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
     const result = await this.llmGenerateText.call(
       {
-        prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+        prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );

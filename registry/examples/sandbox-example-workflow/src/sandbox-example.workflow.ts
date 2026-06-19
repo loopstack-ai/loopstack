@@ -79,15 +79,19 @@ interface SandboxExampleState {
   fileList?: FileEntry[];
 }
 
+const SandboxExampleArgsSchema = z.object({
+  outputDir: z.string().default(process.cwd() + '/out'),
+});
+
+type SandboxExampleArgs = z.infer<typeof SandboxExampleArgsSchema>;
+
 @Workflow({
   title: 'Sandbox Filesystem Example',
   description:
     'This workflow demonstrates how to use sandbox containers for isolated filesystem operations. It initializes a Docker container, performs file operations, and cleans up the sandbox.',
-  schema: z.object({
-    outputDir: z.string().default(process.cwd() + '/out'),
-  }),
+  schema: SandboxExampleArgsSchema,
 })
-export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, SandboxExampleState> {
+export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
   constructor(
     // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
     private readonly sandboxInit: SandboxInit,
@@ -105,13 +109,12 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async initSandbox(state: SandboxExampleState, ctx: RunContext): Promise<SandboxExampleState> {
-    const args = ctx.args as { outputDir: string };
+  async initSandbox(state: SandboxExampleState, ctx: RunContext<SandboxExampleArgs>): Promise<SandboxExampleState> {
     const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
       containerName: 'my-filesystem-sandbox',
-      projectOutPath: args.outputDir,
+      projectOutPath: ctx.args.outputDir,
       rootPath: 'workspace',
     });
 

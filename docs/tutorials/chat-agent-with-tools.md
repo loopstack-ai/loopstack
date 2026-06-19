@@ -170,7 +170,7 @@ interface ChatState {
   description: 'A multi-turn chat agent that can look up weather using tool calling.',
   widget: __dirname + '/weather-chat.ui.yaml',
 })
-export class WeatherChatWorkflow extends BaseWorkflow<Record<string, unknown>, ChatState> {
+export class WeatherChatWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,

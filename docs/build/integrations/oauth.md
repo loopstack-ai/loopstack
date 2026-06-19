@@ -72,8 +72,10 @@ interface CalendarState {
   requiresAuthentication?: boolean;
 }
 
+type CalendarArgs = { calendarId: string };
+
 @Workflow({ widget: __dirname + '/calendar.ui.yaml' })
-export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, CalendarState> {
+export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   constructor(
     private readonly calendarFetchEvents: CalendarFetchEventsTool,
     private readonly oAuth: OAuthWorkflow,
@@ -82,10 +84,9 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   }
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarState, ctx: RunContext): Promise<CalendarState> {
-    const args = ctx.args as { calendarId: string };
+  async fetchEvents(state: CalendarState, ctx: RunContext<CalendarArgs>): Promise<CalendarState> {
     const result = await this.calendarFetchEvents.call({
-      calendarId: args.calendarId,
+      calendarId: ctx.args.calendarId,
     });
     return {
       ...state,

@@ -126,11 +126,14 @@ interface AgentState {
   delegateResult?: LlmDelegateResult;
 }
 
+const MyAgentSchema = z.object({ instructions: z.string() });
+type MyAgentArgs = z.infer<typeof MyAgentSchema>;
+
 @Workflow({
   widget: __dirname + '/my-agent.ui.yaml',
-  schema: z.object({ instructions: z.string() }),
+  schema: MyAgentSchema,
 })
-export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, AgentState> {
+export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
@@ -141,11 +144,10 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: AgentState, ctx: RunContext): Promise<AgentState> {
-    const args = ctx.args as { instructions: string };
+  async setup(state: AgentState, ctx: RunContext<MyAgentArgs>): Promise<AgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      text: args.instructions,
+      text: ctx.args.instructions,
     });
     return state;
   }

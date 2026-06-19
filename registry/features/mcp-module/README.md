@@ -99,14 +99,15 @@ export class McpLinearWorkflow extends BaseWorkflow<z.infer<typeof ArgsSchema>> 
   }
 
   @Transition({ to: 'chatting' })
-  async startChat(state: Record<string, unknown>, ctx: RunContext): Promise<Record<string, unknown>> {
-    const args = ctx.args as z.infer<typeof ArgsSchema>;
-
+  async startChat(
+    state: Record<string, unknown>,
+    ctx: RunContext<z.infer<typeof ArgsSchema>>,
+  ): Promise<Record<string, unknown>> {
     await this.chatAgentWorkflow.run(
       {
         system: 'You are a Linear assistant. Use mcp_list_tools to discover tools, then mcp_call to invoke them.',
         tools: ['mcp_list_tools', 'mcp_call'],
-        userMessage: args.initialMessage,
+        userMessage: ctx.args.initialMessage,
       },
       { show: 'inline', label: 'Linear Agent Chat' },
     );

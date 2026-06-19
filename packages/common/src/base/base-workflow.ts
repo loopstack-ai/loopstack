@@ -54,15 +54,16 @@ export const CallbackSchema = z.object({
 /**
  * Abstract base class for workflows.
  *
- * Generic parameters:
- * - `TArgs` — per-invocation input, validated against `@Workflow({ schema })`
- * - `TState` — explicit state object passed into and returned from transitions
+ * Generic parameter:
+ * - `TArgs` — per-invocation input, validated against `@Workflow({ schema })`.
+ *   Used to type `run()` at sub-workflow call sites and `ctx.args` inside transitions
+ *   (via `ctx: RunContext<TArgs>`). State is typed per-transition on the `state` parameter.
  *
  * Workflows are singletons. State flows explicitly through parameters:
- * - All transitions receive `(state, ctx)` and return `Promise<TState>`
- * - Wait transitions receive `(state, payload, ctx)` and return `Promise<TState>`
+ * - All transitions receive `(state, ctx)` and return `Promise<State>`
+ * - Wait transitions receive `(state, payload, ctx)` and return `Promise<State>`
  * - `ctx` is optional (trailing param can be omitted)
- * - Args are available via `ctx.args`
+ * - Args are available via `ctx.args` — type with `RunContext<TArgs>` to drop the cast
  * - Use `from: 'start'` (or omit `from`) for initial, `to: 'end'` for final
  *
  * Launch sub-workflows via `run()`:
@@ -78,7 +79,7 @@ export const CallbackSchema = z.object({
  * ```
  */
 @Injectable()
-export abstract class BaseWorkflow<TArgs = Record<string, unknown>, _TState = Record<string, unknown>> {
+export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {
   /** @internal — injected by the framework. Routes run() through the orchestrator. */
   @Inject(WORKFLOW_ORCHESTRATOR) private readonly __orchestrator!: WorkflowOrchestrator;
 

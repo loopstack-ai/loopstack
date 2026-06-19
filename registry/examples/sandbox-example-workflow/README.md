@@ -55,13 +55,16 @@ export class MyAppModule {}
 The workflow class declares inputs, state, and injects tools via the constructor:
 
 ```typescript
+const SandboxExampleSchema = z.object({
+  outputDir: z.string().default(process.cwd() + '/out'),
+});
+type SandboxExampleArgs = z.infer<typeof SandboxExampleSchema>;
+
 @Workflow({
   title: 'Sandbox Filesystem Example',
-  schema: z.object({
-    outputDir: z.string().default(process.cwd() + '/out'),
-  }),
+  schema: SandboxExampleSchema,
 })
-export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, SandboxExampleState> {
+export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
   constructor(
     // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
     private readonly sandboxInit: SandboxInit,
@@ -91,13 +94,12 @@ Initialize a Docker container before performing filesystem operations. The conta
 
 ```typescript
 @Transition({ to: 'sandbox_ready' })
-async initSandbox(state: SandboxExampleState, ctx: RunContext): Promise<SandboxExampleState> {
-  const args = ctx.args as { outputDir: string };
+async initSandbox(state: SandboxExampleState, ctx: RunContext<SandboxExampleArgs>): Promise<SandboxExampleState> {
   const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
     containerId: 'my-sandbox',
     imageName: 'node:18',
     containerName: 'my-filesystem-sandbox',
-    projectOutPath: args.outputDir,
+    projectOutPath: ctx.args.outputDir,
     rootPath: 'workspace',
   });
 

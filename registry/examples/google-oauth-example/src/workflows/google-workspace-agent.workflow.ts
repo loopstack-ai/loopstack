@@ -36,7 +36,7 @@ interface GoogleWorkspaceAgentState {
   name: 'google_workspace_agent',
   widget: __dirname + '/google-workspace-agent.ui.yaml',
 })
-export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, unknown>, GoogleWorkspaceAgentState> {
+export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,

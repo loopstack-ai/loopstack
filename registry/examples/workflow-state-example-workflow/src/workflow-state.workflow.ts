@@ -7,7 +7,7 @@ interface WorkflowStateState {
 @Workflow({
   title: 'Workflow State',
 })
-export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>, WorkflowStateState> {
+export class WorkflowStateWorkflow extends BaseWorkflow {
   @Transition({ to: 'data_created' })
   async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
     return { ...state, message: 'Hello :)' };

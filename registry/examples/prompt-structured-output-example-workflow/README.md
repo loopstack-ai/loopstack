@@ -94,7 +94,7 @@ Use Zod enums to provide a dropdown selection in the UI. The schema is defined i
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),
 })
-export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }, PromptStructuredOutputState> {
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }> {
 ```
 
 #### 3. Storing Arguments in State
@@ -103,14 +103,13 @@ The start `@Transition` method receives the state and context. Arguments are acc
 
 ```typescript
 @Transition({ to: 'ready' })
-async greeting(state: PromptStructuredOutputState, ctx: RunContext): Promise<PromptStructuredOutputState> {
-  const args = ctx.args as { language: string };
+async greeting(state: PromptStructuredOutputState, ctx: RunContext<{ language: string }>): Promise<PromptStructuredOutputState> {
   await this.documentStore.save(
     LlmMessageDocument,
-    { role: 'assistant', text: `Creating a 'Hello, World!' script in ${args.language}...` },
+    { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
     { id: 'status' },
   );
-  return { ...state, language: args.language };
+  return { ...state, language: ctx.args.language };
 }
 ```
 
@@ -182,20 +181,22 @@ interface PromptStructuredOutputState {
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),
 })
-export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }, PromptStructuredOutputState> {
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
   @Transition({ to: 'ready' })
-  async greeting(state: PromptStructuredOutputState, ctx: RunContext): Promise<PromptStructuredOutputState> {
-    const args = ctx.args as { language: string };
+  async greeting(
+    state: PromptStructuredOutputState,
+    ctx: RunContext<{ language: string }>,
+  ): Promise<PromptStructuredOutputState> {
     await this.documentStore.save(
       LlmMessageDocument,
-      { role: 'assistant', text: `Creating a 'Hello, World!' script in ${args.language}...` },
+      { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
       { id: 'status' },
     );
-    return { ...state, language: args.language };
+    return { ...state, language: ctx.args.language };
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })

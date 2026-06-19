@@ -1,6 +1,6 @@
 ---
 title: State Management
-description: Defining, reading, and updating typed workflow state. Covers state interfaces, BaseWorkflow generics, state persistence across transitions, and state access patterns.
+description: Defining, reading, and updating typed workflow state. Covers state interfaces, per-transition state typing, state persistence across transitions, and state access patterns.
 ---
 
 # State Management
@@ -9,7 +9,7 @@ Workflow state is managed through a typed state interface and passed as the firs
 
 ## Defining State
 
-Define a state interface and pass it as a generic to `BaseWorkflow`:
+Define a state interface and reference it on each transition's `state` parameter:
 
 ```typescript
 interface MyState {
@@ -18,8 +18,8 @@ interface MyState {
   items?: string[];
 }
 
-export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
-  // ...
+export class MyWorkflow extends BaseWorkflow {
+  // State is typed per-transition via the `state` parameter — see below.
 }
 ```
 
@@ -97,14 +97,16 @@ async onResume(state: MyState): Promise<unknown> {
 Input arguments are available via `ctx.args`:
 
 ```typescript
+const MyArgsSchema = z.object({ value: z.number().default(150) });
+type MyArgs = z.infer<typeof MyArgsSchema>;
+
 @Workflow({
-  schema: z.object({ value: z.number().default(150) }),
+  schema: MyArgsSchema,
 })
-export class MyWorkflow extends BaseWorkflow<{ value: number }, MyState> {
+export class MyWorkflow extends BaseWorkflow<MyArgs> {
   @Transition({ to: 'ready' })
-  async setup(state: MyState, ctx: RunContext): Promise<MyState> {
-    const args = ctx.args as { value: number };
-    console.log(args.value); // 150
+  async setup(state: MyState, ctx: RunContext<MyArgs>): Promise<MyState> {
+    console.log(ctx.args.value); // 150
     return state;
   }
 }
@@ -115,7 +117,7 @@ export class MyWorkflow extends BaseWorkflow<{ value: number }, MyState> {
 Use regular private methods for reusable logic — no special decorator needed:
 
 ```typescript
-export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
+export class MyWorkflow extends BaseWorkflow {
   @Transition({ from: 'data_created', to: 'end' })
   async showResults(state: MyState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {

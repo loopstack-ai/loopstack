@@ -43,10 +43,13 @@ import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loop
 import type { RunContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
+const CalendarSchema = z.object({ calendarId: z.string().default('primary') }).strict();
+type CalendarArgs = z.infer<typeof CalendarSchema>;
+
 @Workflow({
-  schema: z.object({ calendarId: z.string().default('primary') }).strict(),
+  schema: CalendarSchema,
 })
-export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, CalendarState> {
+export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   constructor(
     private readonly calendarFetchEvents: CalendarFetchEventsTool,
     private readonly oAuth: OAuthWorkflow,
@@ -55,9 +58,8 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   }
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarState, ctx: RunContext): Promise<CalendarState> {
-    const args = ctx.args as { calendarId: string };
-    const result = await this.calendarFetchEvents.call({ calendarId: args.calendarId });
+  async fetchEvents(state: CalendarState, ctx: RunContext<CalendarArgs>): Promise<CalendarState> {
+    const result = await this.calendarFetchEvents.call({ calendarId: ctx.args.calendarId });
     return {
       ...state,
       requiresAuthentication: result.data!.error === 'unauthorized',

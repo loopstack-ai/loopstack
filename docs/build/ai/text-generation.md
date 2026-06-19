@@ -38,22 +38,24 @@ interface PromptState {
   llmMeta?: LlmResultMeta;
 }
 
+const PromptSchema = z.object({
+  subject: z.string().default('coffee'),
+});
+type PromptArgs = z.infer<typeof PromptSchema>;
+
 @Workflow({
-  schema: z.object({
-    subject: z.string().default('coffee'),
-  }),
+  schema: PromptSchema,
 })
-export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
+export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
   @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
-    const args = ctx.args as { subject: string };
+  async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
     const result = await this.llmGenerateText.call(
       {
-        prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+        prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
@@ -112,7 +114,7 @@ Render Handlebars templates for complex prompts (`this.render()` is available fr
 
 ```typescript
 const rendered = this.render(__dirname + '/templates/prompt.md', {
-  subject: args.subject,
+  subject: ctx.args.subject,
 });
 
 const result = await this.llmGenerateText.call(

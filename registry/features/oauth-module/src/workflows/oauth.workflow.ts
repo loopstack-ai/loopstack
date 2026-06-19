@@ -28,7 +28,7 @@ interface OAuthState {
     })
     .strict(),
 })
-export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
+export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
   constructor(
     private readonly buildOAuthUrl: BuildOAuthUrlTool,
     private readonly exchangeOAuthToken: ExchangeOAuthTokenTool,
@@ -37,11 +37,10 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
   }
 
   @Transition({ to: 'awaiting_auth' })
-  async initiateOAuth(state: OAuthState, ctx: RunContext): Promise<OAuthState> {
-    const args = ctx.args as OAuthArgs;
+  async initiateOAuth(state: OAuthState, ctx: RunContext<OAuthArgs>): Promise<OAuthState> {
     const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
-      provider: args.provider,
-      scopes: args.scopes,
+      provider: ctx.args.provider,
+      scopes: ctx.args.scopes,
     });
 
     const oauthState = result.data!.state;
@@ -50,7 +49,7 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
     await this.documentStore.save(
       OAuthPromptDocument,
       {
-        provider: args.provider,
+        provider: ctx.args.provider,
         authUrl,
         state: oauthState,
         status: 'pending' as const,
@@ -58,7 +57,7 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
       { id: 'oauthPrompt' },
     );
 
-    return { ...state, provider: args.provider, scopes: args.scopes, oauthState, authUrl };
+    return { ...state, provider: ctx.args.provider, scopes: ctx.args.scopes, oauthState, authUrl };
   }
 
   @Transition({
