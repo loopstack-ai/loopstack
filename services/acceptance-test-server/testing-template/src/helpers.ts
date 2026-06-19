@@ -169,6 +169,15 @@ export async function getDocuments(workflowId: string): Promise<DocumentResult[]
   return result.data;
 }
 
+export async function getDocumentNames(workflowId: string): Promise<string[]> {
+  const docs = await getDocuments(workflowId);
+  return docs.map((d) => d.documentName);
+}
+
+export async function hasDocument(workflowId: string, name: string): Promise<boolean> {
+  return (await getDocumentNames(workflowId)).includes(name);
+}
+
 export interface Message {
   role: string;
   text?: string;
