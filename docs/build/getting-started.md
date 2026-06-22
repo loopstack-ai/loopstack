@@ -85,7 +85,7 @@ Create `src/hello/hello.workflow.ts`:
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 
 const InputSchema = z.object({
   name: z.string().default('World'),
@@ -105,10 +105,9 @@ export class HelloWorkflow extends BaseWorkflow<InputArgs> {
 
   @Transition({ to: 'end' })
   async greet(_state: unknown, ctx: RunContext<InputArgs>) {
-    const result = await this.llmGenerateText.call({
+    await this.llmGenerateText.call({
       prompt: `Say hello to ${ctx.args.name} in a fun way in one sentence.`,
     });
-    await this.documentStore.save(LlmMessageDocument, result.data!.message);
   }
 }
 ```

@@ -165,22 +165,16 @@ then retry. Be concise and format results using markdown.`,
       },
     },
   );
-  return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+  return { ...state, llmResult: result.data };
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
 async executeToolCalls(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
+  const result = await this.llmDelegateToolCalls.call({
+    message: state.llmResult!.message,
+    callback: { transition: 'toolResultReceived' },
   });
-  const result = await this.llmDelegateToolCalls.call(
-    {
-      message: state.llmResult!.message,
-      callback: { transition: 'toolResultReceived' },
-    },
-    { config: { provider: 'claude' } },
-  );
   return { ...state, delegateResult: result.data };
 }
 

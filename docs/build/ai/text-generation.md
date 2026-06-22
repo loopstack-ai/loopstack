@@ -30,13 +30,7 @@ export class PromptModule {}
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
-
-interface PromptState {
-  llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
-}
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 
 const PromptSchema = z.object({
   subject: z.string().default('coffee'),
@@ -51,22 +45,14 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
     super();
   }
 
-  @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
-    const result = await this.llmGenerateText.call(
+  @Transition({ to: 'end' })
+  async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>): Promise<unknown> {
+    await this.llmGenerateText.call(
       {
         prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    return { llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
-  }
-
-  @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: PromptState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
     return {};
   }
 }
@@ -108,6 +94,23 @@ await this.llmGenerateText.call(
 );
 ```
 
+## Persisting the Response
+
+The tool saves the assistant message as an `LlmMessageDocument` automatically — no manual `documentStore.save()` is required. Two config knobs control this:
+
+- `config: { save: false }` — opt out entirely. Use this when you want to inspect, transform, or persist the response yourself (see [llm-multi-provider-example-workflow](https://loopstack.ai/registry/loopstack-llm-multi-provider-example-workflow) for a worked case).
+- `config: { meta: {...} }` — merge extra metadata into the auto-saved document. The most common use is `{ meta: { hidden: true } }` to keep the response in the LLM's conversation history while hiding it from the Studio UI.
+
+```typescript
+// Run a "silent" turn the LLM remembers but the user doesn't see
+await this.llmGenerateText.call(
+  { prompt: 'Summarize the previous turn in one sentence for internal reasoning.' },
+  { config: { provider: 'claude', meta: { hidden: true } } },
+);
+```
+
+Other documents (user inputs, seed system messages, structured outputs) stay manual — see [Chat Flows](./chat-flows.md) for the two halves side by side.
+
 ## Using Templates
 
 Render Handlebars templates for complex prompts (`this.render()` is available from `BaseWorkflow`):
@@ -132,7 +135,7 @@ LLM responses stream to Studio automatically — no opt-in, no code changes. Whe
 1. Tool dispatches `llm.response.start` with a fresh `streamMessageId`.
 2. Provider emits `text_delta`, `thinking_delta`, and `tool_call` events as content arrives. Studio renders an in-flight message keyed by `streamMessageId`.
 3. Tool dispatches `llm.response.done` with the final normalized message; the result is returned to the workflow.
-4. The workflow persists the response via `documentStore.save(LlmMessageDocument, result.data.message, ...)`. The saved document inherits `streamMessageId` as its `id`, so Studio **replaces** the in-flight streamed message with the final document — same ID, same slot. No duplicate bubble.
+4. The tool persists an `LlmMessageDocument` for the assistant turn automatically. The saved document inherits `streamMessageId` as its `id`, so Studio **replaces** the in-flight streamed message with the final document — same ID, same slot. No duplicate bubble. Pass `config: { save: false }` if you want to handle persistence yourself.
 
 This is why you don't need to do anything special to "finalize" the stream: the document save naturally takes over from the stream because they share the same `id`.
 

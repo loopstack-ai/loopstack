@@ -30,9 +30,8 @@ State is loaded from the latest checkpoint before each transition and saved afte
 Documents are data that a workflow explicitly publishes for external consumption. They're saved to the database and rendered in the Studio UI:
 
 ```typescript
-await this.documentStore.save(LlmMessageDocument, {
-  role: 'assistant',
-  text: result.data!.message.text,
+await this.documentStore.save(MarkdownDocument, {
+  text: '# Summary\n\n' + summary,
 });
 ```
 

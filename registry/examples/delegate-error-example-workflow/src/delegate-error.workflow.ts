@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { BaseWorkflow, Guard, MessageDocument, Transition, WORKFLOW_ORCHESTRATOR, Workflow } from '@loopstack/common';
 import type { RunContext, WorkflowOrchestrator } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
@@ -14,7 +14,6 @@ import { StrictSchemaTool } from './tools/strict-schema.tool';
 
 interface DelegateErrorState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
   turnCount: number;
 }
@@ -82,17 +81,12 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
       ...state,
       turnCount: state.turnCount + 1,
       llmResult: result.data,
-      llmMeta: result.metadata as LlmResultMeta | undefined,
     };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: DelegateErrorState): Promise<DelegateErrorState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
@@ -102,28 +96,16 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
   async toolResultReceived(state: DelegateErrorState, payload: unknown): Promise<DelegateErrorState> {
-    const result = await this.llmUpdateToolResult.call(
-      {
-        delegateResult: state.delegateResult!,
-        completedTool: payload,
-      },
-      { config: { provider: 'claude' } },
-    );
+    const result = await this.llmUpdateToolResult.call({
+      delegateResult: state.delegateResult!,
+      completedTool: payload,
+    });
     return { ...state, delegateResult: result.data as LlmDelegateResult };
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
   async toolsComplete(state: DelegateErrorState): Promise<DelegateErrorState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
     return state;
   }
 
@@ -135,10 +117,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
-  async respond(state: DelegateErrorState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
+  async respond(_state: DelegateErrorState): Promise<unknown> {
     return {};
   }
 

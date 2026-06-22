@@ -28,14 +28,13 @@ export class ReviewWorkflow extends BaseWorkflow {
     super();
   }
 
-  // Step 1: Call the LLM, save the result, move to waiting state
+  // Step 1: Call the LLM, move to waiting state
   @Transition({ to: 'waiting_for_approval' })
   async generate(state: ReviewState): Promise<ReviewState> {
     const result = await this.llmGenerateText.call(
       { prompt: 'Write a one-paragraph product description for a coffee subscription.' },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    await this.documentStore.save(LlmMessageDocument, result.data!.message);
     return { ...state, draft: result.data!.message.text };
   }
 

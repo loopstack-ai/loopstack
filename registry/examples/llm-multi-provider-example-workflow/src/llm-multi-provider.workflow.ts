@@ -12,6 +12,12 @@ import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider
  * Key concepts:
  * - Each provider/model combo is passed via config at call time
  * - The same tool class (LlmGenerateTextTool) works with any registered provider
+ *
+ * Why `save: false`: this workflow renders each provider's response with a
+ * `**Claude:**` / `**OpenAI:**` prefix for side-by-side comparison in Studio.
+ * `LlmGenerateTextTool` would otherwise auto-save the raw assistant message,
+ * which would duplicate the prefixed manual save we do below. Opting out of
+ * the default save leaves us in full control of how the response is persisted.
  */
 
 interface LlmMultiProviderState {
@@ -43,6 +49,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
       { prompt: ctx.args.prompt },
       {
         config: {
+          save: false,
           provider: 'claude',
           model: 'claude-sonnet-4-6',
           system: 'You are a helpful assistant. Keep your response brief.',
@@ -63,6 +70,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
       { prompt: state.prompt },
       {
         config: {
+          save: false,
           provider: 'openai',
           model: 'gpt-4o-mini',
           system: 'You are a helpful assistant. Keep your response brief.',

@@ -38,10 +38,7 @@ export class ChatWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
   async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-    await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-      meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
-    });
+    await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
     return state;
   }
 }
@@ -117,15 +114,13 @@ setup → waiting_for_user → [user sends message] → ready → llmTurn → wa
 Add tool calling to a chat flow by combining the patterns from [AI Tool Calling](./tool-calling.md):
 
 ```typescript
-import type { LlmResultMeta } from '@loopstack/llm-provider-module';
-
 @Transition({ from: 'ready', to: 'prompt_executed' })
 async llmTurn(state: ChatState): Promise<ChatState> {
   const result = await this.llmGenerateText.call(
     {},
     { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather', 'search_database'] } },
   );
-  return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+  return { ...state, llmResult: result.data };
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
@@ -134,9 +129,6 @@ async executeToolCalls(state: ChatState): Promise<ChatState> { ... }
 
 @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
 async respond(state: ChatState): Promise<ChatState> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-  });
   return state;
 }
 ```

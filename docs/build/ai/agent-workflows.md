@@ -112,7 +112,7 @@ The built-in `AgentWorkflow` is a regular workflow. When you need custom behavio
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
@@ -122,7 +122,6 @@ import {
 
 interface AgentState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
 }
 
@@ -165,16 +164,12 @@ export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
         },
       },
     );
-    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+    return { ...state, llmResult: result.data };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: AgentState): Promise<AgentState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
@@ -194,24 +189,12 @@ export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
   async toolsComplete(state: AgentState): Promise<AgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
     return state;
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
-  async respond(state: AgentState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
+  async respond(_state: AgentState): Promise<unknown> {
     return {};
   }
 
@@ -229,6 +212,8 @@ export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
 }
 ```
 
+`LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, and `LlmUpdateToolResultTool` all persist their messages automatically — the assistant turn after `llmGenerateText`, and the `tool_result` user turn when all delegated tools complete (sync or async). Pass `config: { save: false }` on any of them if you want to take over persistence.
+
 ### Adding User Interaction
 
 Pause for user input between LLM turns:
@@ -238,9 +223,6 @@ Pause for user input between LLM turns:
 @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
 @Guard('isEndTurn')
 async respondToUser(state: AgentState): Promise<AgentState> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-  });
   return state;
 }
 

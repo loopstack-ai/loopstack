@@ -9,7 +9,7 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
@@ -51,7 +51,6 @@ interface ChatAgentState {
   context?: string;
   taskMode?: boolean;
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
   finishResult?: unknown;
 }
@@ -104,17 +103,12 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
       },
     );
 
-    return { ...state, llmResult: result.data, llmMeta: result.metadata };
+    return { ...state, llmResult: result.data };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10, timeout: 120_000 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: ChatAgentState): Promise<ChatAgentState> {
-    // Save assistant message immediately (before tools run)
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
@@ -148,16 +142,6 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })
   @Guard('allToolsComplete')
   async toolsComplete(state: ChatAgentState): Promise<ChatAgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
-
     return state;
   }
 
@@ -171,13 +155,6 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
   async respond(state: ChatAgentState): Promise<ChatAgentState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: {
-        response: state.llmResult!.response,
-        provider: state.llmMeta!.provider,
-      },
-    });
-
     return state;
   }
 

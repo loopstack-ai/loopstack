@@ -9,7 +9,7 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
@@ -43,7 +43,6 @@ interface AgentState {
   userMessage: string;
   context?: string;
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
 }
 
@@ -95,17 +94,12 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
       },
     );
 
-    return { ...state, llmResult: result.data, llmMeta: result.metadata };
+    return { ...state, llmResult: result.data };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10, timeout: 120_000 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: AgentState): Promise<AgentState> {
-    // Save assistant message immediately (before tools run)
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
@@ -127,16 +121,6 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })
   @Guard('allToolsComplete')
   async toolsComplete(state: AgentState): Promise<AgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
-
     return state;
   }
 
@@ -151,12 +135,6 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
   async respond(state: AgentState): Promise<AgentRunResult> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: {
-        response: state.llmResult!.response,
-        provider: state.llmMeta!.provider,
-      },
-    });
     return { response: state.llmResult?.message.text ?? '' };
   }
 

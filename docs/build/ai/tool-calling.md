@@ -34,13 +34,12 @@ export class GetWeather extends BaseTool<{ location: string }, object, string> {
 
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { GetWeather } from './tools/get-weather.tool';
 
 interface ToolCallState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
 }
 
@@ -69,15 +68,12 @@ export class ToolCallWorkflow extends BaseWorkflow {
       {},
       { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
     );
-    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+    return { ...state, llmResult: result.data };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
     });
@@ -91,15 +87,6 @@ export class ToolCallWorkflow extends BaseWorkflow {
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
   async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
     return state;
   }
 
@@ -108,14 +95,13 @@ export class ToolCallWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: ToolCallState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
+  async respond(_state: ToolCallState): Promise<unknown> {
     return {};
   }
 }
 ```
+
+Both `LlmGenerateTextTool` and `LlmDelegateToolCallsTool` persist their messages automatically — the assistant turn and the `tool_result` user turn appear in the document store and conversation history without any explicit `documentStore.save()` call. Pass `config: { save: false }` on either tool if you need to handle persistence yourself.
 
 ## How the Loop Works
 

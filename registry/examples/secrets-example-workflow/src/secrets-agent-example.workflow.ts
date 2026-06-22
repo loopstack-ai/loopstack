@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BaseWorkflow, DocumentEntity, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
@@ -11,7 +11,6 @@ import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@
 
 interface SecretsAgentState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
 }
 
@@ -56,22 +55,16 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
         },
       },
     );
-    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+    return { ...state, llmResult: result.data };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: SecretsAgentState): Promise<SecretsAgentState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
+    const result = await this.llmDelegateToolCalls.call({
+      message: state.llmResult!.message,
+      callback: { transition: 'toolResultReceived' },
     });
-    const result = await this.llmDelegateToolCalls.call(
-      {
-        message: state.llmResult!.message,
-        callback: { transition: 'toolResultReceived' },
-      },
-      { config: { provider: 'claude' } },
-    );
     return { ...state, delegateResult: result.data };
   }
 
@@ -81,28 +74,16 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
   async toolResultReceived(state: SecretsAgentState, payload: Record<string, unknown>): Promise<SecretsAgentState> {
-    const result = await this.llmUpdateToolResult.call(
-      {
-        delegateResult: state.delegateResult!,
-        completedTool: payload,
-      },
-      { config: { provider: 'claude' } },
-    );
+    const result = await this.llmUpdateToolResult.call({
+      delegateResult: state.delegateResult!,
+      completedTool: payload,
+    });
     return { ...state, delegateResult: result.data };
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
   async allToolsCompleteTransition(state: SecretsAgentState): Promise<SecretsAgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
     return state;
   }
 
@@ -117,9 +98,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: SecretsAgentState): Promise<DocumentEntity> {
-    return this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
+  async respond(_state: SecretsAgentState): Promise<unknown> {
+    return {};
   }
 }

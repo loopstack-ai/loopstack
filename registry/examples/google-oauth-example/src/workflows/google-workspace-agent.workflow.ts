@@ -13,7 +13,7 @@ import {
   GoogleDriveListFilesTool,
   GoogleDriveUploadFileTool,
 } from '@loopstack/google-workspace-module';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
@@ -25,7 +25,6 @@ import { AuthenticateGoogleTask } from '../tools/authenticate-google-task.tool';
 
 interface GoogleWorkspaceAgentState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
 }
 
@@ -105,22 +104,16 @@ then retry. Be concise and format results using markdown.`,
         },
       },
     );
-    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+    return { ...state, llmResult: result.data };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
+    const result = await this.llmDelegateToolCalls.call({
+      message: state.llmResult!.message,
+      callback: { transition: 'toolResultReceived' },
     });
-    const result = await this.llmDelegateToolCalls.call(
-      {
-        message: state.llmResult!.message,
-        callback: { transition: 'toolResultReceived' },
-      },
-      { config: { provider: 'claude' } },
-    );
     return { ...state, delegateResult: result.data };
   }
 
@@ -133,28 +126,16 @@ then retry. Be concise and format results using markdown.`,
     state: GoogleWorkspaceAgentState,
     payload: Record<string, unknown>,
   ): Promise<GoogleWorkspaceAgentState> {
-    const result = await this.llmUpdateToolResult.call(
-      {
-        delegateResult: state.delegateResult!,
-        completedTool: payload,
-      },
-      { config: { provider: 'claude' } },
-    );
+    const result = await this.llmUpdateToolResult.call({
+      delegateResult: state.delegateResult!,
+      completedTool: payload,
+    });
     return { ...state, delegateResult: result.data };
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
   async allToolsCompleteTransition(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
     return state;
   }
 
@@ -164,9 +145,6 @@ then retry. Be concise and format results using markdown.`,
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
   async respond(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
     return state;
   }
 }

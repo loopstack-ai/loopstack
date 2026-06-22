@@ -24,11 +24,9 @@ export class HelloWorkflow extends BaseWorkflow<InputArgs> {
 
   @Transition({ from: 'start', to: 'message_received' })
   async greet(_state: unknown, ctx: RunContext<InputArgs>) {
-    const result = await this.llmGenerateText.call({
+    await this.llmGenerateText.call({
       prompt: `Say hello to ${ctx.args.name} in a fun way in one sentence.`,
     });
-
-    await this.documentStore.save(LlmMessageDocument, result.data!.message);
   }
 
   @Transition({ from: 'message_received', to: 'end' })

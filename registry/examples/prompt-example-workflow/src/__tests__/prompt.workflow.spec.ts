@@ -69,13 +69,10 @@ describe('PromptWorkflow', () => {
         { config: { model: 'claude-sonnet-4-6', provider: 'claude' } },
       );
 
-      expect(result.documents).toHaveLength(1);
-      expect(result.documents[0]).toEqual(
-        expect.objectContaining({
-          documentName: 'llm_message',
-          content: expect.objectContaining({ role: 'assistant' }),
-        }),
-      );
+      // The assistant message is persisted by LlmGenerateTextTool itself;
+      // with the tool mocked here, that side effect doesn't fire, so the
+      // workflow's own document output is empty.
+      expect(result.documents).toHaveLength(0);
     });
 
     it('should use default subject when not provided', async () => {

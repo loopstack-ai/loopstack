@@ -18,8 +18,7 @@ By using this workflow as a reference, you'll learn how to:
 - Define workflow input arguments with a Zod schema and default values
 - Use the `prompt` parameter for simple LLM calls
 - Render Handlebars template files with dynamic variables
-- Manage workflow state via the state object passed through transitions
-- Save LLM responses as documents using `this.documentStore.save`
+- Rely on `LlmGenerateTextTool` to persist the assistant message automatically
 
 This example is the ideal starting point for developers new to LLM integration in Loopstack.
 
@@ -75,8 +74,8 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
 The start `@Transition` method receives the state and context. Type `ctx.args` via `RunContext<PromptArgs>`:
 
 ```typescript
-@Transition({ to: 'prompt_executed' })
-async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
+@Transition({ to: 'end' })
+async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>): Promise<unknown> {
   // ctx.args.subject is typed as string
 ```
 
@@ -85,44 +84,23 @@ async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptSta
 Use the `prompt` parameter for straightforward LLM calls without conversation history. The prompt content is rendered from a Handlebars template file with variables. Provider and model are passed at call time via `{ config: { ... } }`:
 
 ```typescript
-@Transition({ to: 'prompt_executed' })
-async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
-  const result = await this.llmGenerateText.call(
+@Transition({ to: 'end' })
+async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>): Promise<unknown> {
+  await this.llmGenerateText.call(
     {
       prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
     },
     { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
   );
-  return { llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+  return {};
 }
 ```
 
 The `this.render()` method loads a Handlebars template and interpolates the provided variables.
 
-#### 3. Storing Results in State
+#### 3. Automatic Message Persistence
 
-Tool results are stored in the state object returned from transitions, making them available in subsequent transitions:
-
-```typescript
-interface PromptState {
-  llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
-}
-```
-
-#### 4. Saving Documents in a Final Transition
-
-The terminal `@Transition` saves the stored LLM result as a `LlmMessageDocument`:
-
-```typescript
-@Transition({ from: 'prompt_executed', to: 'end' })
-async respond(state: PromptState): Promise<unknown> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-  });
-  return {};
-}
-```
+`LlmGenerateTextTool` saves the assistant message to the document store automatically, so the conversation history is built up across transitions without any manual `documentStore.save()` call. Pass `config: { save: false }` if you want to handle persistence yourself.
 
 ### Workflow Class
 
@@ -132,13 +110,7 @@ The complete workflow class:
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
-
-interface PromptState {
-  llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
-}
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 
 const PromptSchema = z.object({
   subject: z.string().default('coffee'),
@@ -155,22 +127,14 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
     super();
   }
 
-  @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
-    const result = await this.llmGenerateText.call(
+  @Transition({ to: 'end' })
+  async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>): Promise<unknown> {
+    await this.llmGenerateText.call(
       {
         prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    return { llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
-  }
-
-  @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: PromptState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
     return {};
   }
 }

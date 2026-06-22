@@ -54,6 +54,15 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ## How It Works
 
+### Two Ways Messages Enter the Document Store
+
+This example shows both halves of the picture, side by side:
+
+- **Manual saves** for messages the workflow constructs — the hidden system prompt in `setup` and the user's text in `userMessage`. You explicitly call `this.documentStore.save(LlmMessageDocument, ...)` for these.
+- **Automatic save** for the assistant's reply — `LlmGenerateTextTool` persists it on its own when `.call()` returns. That's why `llmTurn` has nothing to do after the call. Pass `config: { save: false }` if you ever want to take over.
+
+Both paths produce `LlmMessageDocument` records that the LLM sees as conversation history on the next turn.
+
 ### Key Concepts
 
 #### 1. System Prompt Setup
@@ -93,19 +102,12 @@ When the workflow reaches the `ready` state, it calls the LLM to generate a resp
 ```typescript
 @Transition({ from: 'ready', to: 'waiting_for_user' })
 async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-  const result = await this.llmGenerateText.call(
-    {},
-    { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
-  );
-
-  await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-    meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
-  });
+  await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
   return state;
 }
 ```
 
-The LLM response is saved as a `LlmMessageDocument` and the workflow loops back to `waiting_for_user`.
+`LlmGenerateTextTool` persists the assistant message automatically, then the workflow loops back to `waiting_for_user`. Pass `config: { save: false }` if you want to handle persistence yourself.
 
 #### 4. Custom UI Widgets
 
@@ -161,11 +163,7 @@ export class ChatWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
   async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-
-    await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-      meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
-    });
+    await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
     return state;
   }
 }

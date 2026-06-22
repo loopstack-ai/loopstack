@@ -48,10 +48,7 @@ export class ChatWorkflow extends BaseWorkflow {
     to: 'waiting_for_user',
   })
   async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-    await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-      meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
-    });
+    await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
     return state;
   }
 }
@@ -204,8 +201,7 @@ async executeToolCalls(state: MyState): Promise<MyState> {
 }
 
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond(state: MyState): Promise<unknown> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message);
+async respond(_state: MyState): Promise<unknown> {
   return {};
 }
 

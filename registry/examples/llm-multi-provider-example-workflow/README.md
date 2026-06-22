@@ -112,6 +112,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
       { prompt: ctx.args.prompt },
       {
         config: {
+          save: false,
           provider: 'claude',
           model: 'claude-sonnet-4-6',
           system: 'You are a helpful assistant. Keep your response brief.',
@@ -132,6 +133,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
       { prompt: state.prompt },
       {
         config: {
+          save: false,
           provider: 'openai',
           model: 'gpt-4o-mini',
           system: 'You are a helpful assistant. Keep your response brief.',

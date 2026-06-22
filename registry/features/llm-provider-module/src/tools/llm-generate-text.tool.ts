@@ -6,6 +6,7 @@ import type { RunContext } from '@loopstack/common';
 import type { ToolRegistry } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
 import type { LlmContext } from '../contracts/index.js';
+import { LlmMessageDocument } from '../documents/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
@@ -37,6 +38,8 @@ export const LlmGenerateTextConfigSchema = z.object({
   messagesSearchTag: z.string().optional(),
   providerConfig: z.record(z.string(), z.unknown()).optional(),
   tools: z.array(z.string()).optional(),
+  save: z.boolean().optional(),
+  meta: z.record(z.string(), z.unknown()).optional(),
 });
 
 type LlmGenerateTextArgs = z.infer<typeof LlmGenerateTextArgsSchema>;
@@ -119,6 +122,12 @@ export class LlmGenerateTextTool extends BaseTool<
     if (streamMessageId) {
       result.message.id = streamMessageId;
       this.dispatchStreamEvent(ctx, { type: 'done', messageId: streamMessageId, message: result.message });
+    }
+
+    if (config?.save !== false) {
+      await this.documentStore.save(LlmMessageDocument, result.message, {
+        meta: { response: result.response, provider: provider.providerId, ...(config?.meta ?? {}) },
+      });
     }
 
     return {

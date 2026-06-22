@@ -107,92 +107,53 @@ async llmTurn(state: ToolCallState): Promise<ToolCallState> {
     {},
     { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
   );
-  return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+  return { ...state, llmResult: result.data };
 }
 ```
 
-The `provider`, `model`, `tools`, and other config fields are passed via `{ config: { ... } }` at call time. The result is stored in the state object for use in routing and subsequent transitions.
+The `provider`, `model`, `tools`, and other config fields are passed via `{ config: { ... } }` at call time. The result is stored in the state object for use in routing and subsequent transitions. The assistant message is persisted to the document store automatically — pass `config: { save: false }` if you want to handle persistence yourself.
 
 #### 4. Guard-Based Conditional Routing
 
-Use the `@Guard` decorator to conditionally enable transitions. Guards reference methods on the workflow class that return a boolean:
+Use the `@Guard` decorator to conditionally enable transitions. Guards reference methods on the workflow class that return a boolean. From `prompt_executed`, the workflow either loops back for another LLM turn (if tools were requested) or ends:
 
 ```typescript
-@Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
+@Transition({ from: 'prompt_executed', to: 'ready', priority: 10 })
 @Guard('hasToolCalls')
 async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-  });
-  const result = await this.llmDelegateToolCalls.call({
-    message: state.llmResult!.message,
-  });
-  return { ...state, delegateResult: result.data };
+  await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
+  return state;
 }
 
 hasToolCalls(state: ToolCallState): boolean {
   return state.llmResult?.message.stopReason === 'tool_use';
 }
-```
 
-The `priority: 10` ensures this transition is evaluated before the terminal `@Transition` when both could match.
-
-#### 5. Delegating Tool Execution
-
-The `LlmDelegateToolCallsTool` tool executes the tool calls from the LLM response message:
-
-```typescript
-const result = await this.llmDelegateToolCalls.call({
-  message: state.llmResult!.message,
-});
-return { ...state, delegateResult: result.data };
-```
-
-#### 6. Waiting for Tool Completion
-
-A guard checks whether all delegated tool calls have completed before looping back for another LLM turn:
-
-```typescript
-@Transition({ from: 'awaiting_tools', to: 'ready' })
-@Guard('allToolsComplete')
-async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
-  await this.documentStore.save(LlmMessageDocument, {
-    role: 'user',
-    blocks: state.delegateResult!.toolResults.map((tr) => ({
-      type: 'tool_result' as const,
-      toolCallId: tr.toolCallId,
-      content: tr.content ?? '',
-      isError: tr.isError ?? false,
-    })),
-  });
-  return state;
-}
-
-allToolsComplete(state: ToolCallState): boolean {
-  return state.delegateResult?.allCompleted ?? false;
-}
-```
-
-#### 7. Agentic Loop Pattern
-
-The workflow implements an agentic loop:
-
-1. **LLM Turn** (`ready` -> `prompt_executed`) -- The LLM processes messages and may request tool calls
-2. **Execute Tool Calls** (`prompt_executed` -> `awaiting_tools`) -- If `message.stopReason === 'tool_use'`, delegate tool execution
-3. **Tools Complete** (`awaiting_tools` -> `ready`) -- When all tools finish, loop back for another LLM turn
-4. **Final Response** (`prompt_executed` -> end) -- If no tool calls, save the final response
-
-```typescript
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond(state: ToolCallState): Promise<unknown> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-  });
+async respond(_state: ToolCallState): Promise<unknown> {
   return {};
 }
 ```
 
-This pattern allows the LLM to make multiple tool calls before providing a final response.
+The `priority: 10` ensures `executeToolCalls` is evaluated before `respond` when both could match.
+
+#### 5. Delegating Tool Execution
+
+`LlmDelegateToolCallsTool` runs the tool calls from the LLM response message and persists the resulting `tool_result` user-role message automatically — the next LLM turn sees it as conversation history:
+
+```typescript
+await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
+```
+
+#### 6. Agentic Loop Pattern
+
+The workflow implements an agentic loop:
+
+1. **LLM Turn** (`ready` → `prompt_executed`) — the LLM processes messages and may request tool calls.
+2. **Execute Tool Calls** (`prompt_executed` → `ready`, guarded by `hasToolCalls`) — if `message.stopReason === 'tool_use'`, delegate runs the tools and loops back for another LLM turn.
+3. **Final Response** (`prompt_executed` → `end`) — if no tool calls, the workflow finishes.
+
+This pattern lets the LLM make multiple tool calls before producing a final response. For tools that complete asynchronously (sub-workflows, HITL pauses), pass `callback: { transition: '...' }` to `llmDelegateToolCalls.call` and add an intermediate `awaiting_tools` state with a `wait: true` re-entry transition — see [@loopstack/agent](https://loopstack.ai/registry/loopstack-agent) for the full async pattern.
 
 ### Workflow Class
 
@@ -200,14 +161,12 @@ The complete workflow class:
 
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { GetWeather } from './tools/get-weather.tool';
 
 interface ToolCallState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
-  delegateResult?: LlmDelegateResult;
 }
 
 @Workflow({
@@ -235,49 +194,22 @@ export class ToolCallWorkflow extends BaseWorkflow {
       {},
       { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
     );
-    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+    return { ...state, llmResult: result.data };
   }
 
-  @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
+  @Transition({ from: 'prompt_executed', to: 'ready', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-    const result = await this.llmDelegateToolCalls.call({
-      message: state.llmResult!.message,
-    });
-    return { ...state, delegateResult: result.data };
+    await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
+    return state;
   }
 
   hasToolCalls(state: ToolCallState): boolean {
     return state.llmResult?.message.stopReason === 'tool_use';
   }
 
-  @Transition({ from: 'awaiting_tools', to: 'ready' })
-  @Guard('allToolsComplete')
-  async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
-    return state;
-  }
-
-  allToolsComplete(state: ToolCallState): boolean {
-    return state.delegateResult?.allCompleted ?? false;
-  }
-
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: ToolCallState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
+  async respond(_state: ToolCallState): Promise<unknown> {
     return {};
   }
 }

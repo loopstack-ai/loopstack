@@ -2,6 +2,19 @@ import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
+/**
+ * Chat example. Demonstrates two complementary ways messages enter the document store:
+ *
+ * 1. Manual saves — for messages this workflow constructs itself:
+ *    - the hidden system prompt in `setup`
+ *    - the user's text input in `userMessage`
+ *
+ * 2. Automatic save — `llmGenerateText.call()` persists the assistant's reply
+ *    on its own, so `llmTurn` has nothing to do beyond making the call.
+ *
+ * Both kinds end up as `LlmMessageDocument` and form the conversation history
+ * the LLM sees on the next turn.
+ */
 @Workflow({
   title: 'LLM Chat Example (Assistant Bob)',
   description:
@@ -13,6 +26,7 @@ export class ChatWorkflow extends BaseWorkflow {
     super();
   }
 
+  // Manual save (1/2): seed the conversation with a hidden system prompt.
   @Transition({ to: 'waiting_for_user' })
   async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     await this.documentStore.save(
@@ -23,19 +37,17 @@ export class ChatWorkflow extends BaseWorkflow {
     return state;
   }
 
+  // Manual save (2/2): persist what the user typed.
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
     return state;
   }
 
+  // No manual save needed — the tool persists the assistant message itself.
   @Transition({ from: 'ready', to: 'waiting_for_user' })
   async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-
-    await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-      meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
-    });
+    await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
     return state;
   }
 }

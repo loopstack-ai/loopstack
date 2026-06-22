@@ -157,12 +157,11 @@ Create `src/weather-chat/weather-chat.workflow.ts`:
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 interface ChatState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
 }
 
 @Workflow({
@@ -203,34 +202,14 @@ export class WeatherChatWorkflow extends BaseWorkflow {
       {},
       { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
     );
-    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+    return { ...state, llmResult: result.data };
   }
 
-  // Step 4a: LLM requested tools — execute them and loop back to generate again
+  // Step 4a: LLM requested tools — delegate runs them and saves the tool_result message
   @Transition({ from: 'response_received', to: 'generating', priority: 10 })
   @Guard('hasToolCalls')
   async executeTools(state: ChatState): Promise<ChatState> {
-    // Save the LLM's tool-call message so it's part of the conversation history
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta?.provider },
-    });
-
-    // Delegate: Loopstack finds the matching tool instance and calls handle()
-    const result = await this.llmDelegateToolCalls.call({
-      message: state.llmResult!.message,
-    });
-
-    // Save tool results as a user-role message — this feeds back into the LLM on the next turn
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: result.data!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
-
+    await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
     return state;
   }
 
@@ -238,12 +217,9 @@ export class WeatherChatWorkflow extends BaseWorkflow {
     return state.llmResult?.message.stopReason === 'tool_use';
   }
 
-  // Step 4b: LLM produced a final text response — save it and wait for the next user message
+  // Step 4b: LLM produced a final text response — auto-saved by llmGenerateText
   @Transition({ from: 'response_received', to: 'waiting_for_user' })
   async saveResponse(state: ChatState): Promise<ChatState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta?.provider },
-    });
     return state;
   }
 }

@@ -407,13 +407,7 @@ export class MyFeatureModule {}
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
-
-interface PromptState {
-  llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
-}
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 
 const PromptSchema = z.object({
   subject: z.string().default('coffee'),
@@ -429,22 +423,14 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
     super();
   }
 
-  @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: RunContext<PromptArgs>): Promise<PromptState> {
-    const result = await this.llmGenerateText.call(
+  @Transition({ to: 'end' })
+  async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>): Promise<unknown> {
+    await this.llmGenerateText.call(
       {
         prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    return { llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
-  }
-
-  @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: PromptState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
     return {};
   }
 }
@@ -516,7 +502,6 @@ export class RoutingWorkflow extends BaseWorkflow<RoutingArgs> {
 ```typescript
 interface ChatState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
 }
 
@@ -552,7 +537,7 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
       {},
       { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
     );
-    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+    return { ...state, llmResult: result.data };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
@@ -579,10 +564,7 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: ChatState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
+  async respond(_state: ChatState): Promise<unknown> {
     return {};
   }
 }

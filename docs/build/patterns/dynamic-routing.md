@@ -136,9 +136,9 @@ prepared → [value > 100?]
 Route based on LLM response (see [AI Tool Calling](../ai/tool-calling.md)):
 
 ```typescript
-@Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
+@Transition({ from: 'prompt_executed', to: 'ready', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: MyState): Promise<MyState> { ... }
+async executeToolCalls(state: MyState): Promise<MyState> { ... }  // Run tools, loop back
 
 @Transition({ from: 'prompt_executed', to: 'end' })
 async respond(state: MyState): Promise<unknown> { ... }  // Fallback: no tool calls
@@ -147,6 +147,8 @@ hasToolCalls(state: MyState): boolean {
   return state.llmResult?.message.stopReason === 'tool_use';
 }
 ```
+
+For async tools that complete via callback (sub-workflows, HITL), insert an `awaiting_tools` intermediate state with a `wait: true` re-entry transition — see [Agent Workflows](../ai/agent-workflows.md).
 
 ### Error-Based Routing
 

@@ -110,16 +110,14 @@ describe('ChatWorkflow', () => {
         { config: { model: 'claude-sonnet-4-6', provider: 'claude' } },
       );
 
-      // User message and LLM response should be saved as documents
+      // The user message is saved by the workflow. The assistant reply is
+      // persisted by LlmGenerateTextTool itself; with the tool mocked here,
+      // that side effect doesn't fire, so only the user message appears.
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             documentName: 'llm_message',
             content: expect.objectContaining({ role: 'user', text: 'Hello, how are you?' }),
-          }),
-          expect.objectContaining({
-            documentName: 'llm_message',
-            content: expect.objectContaining({ role: 'assistant' }),
           }),
         ]),
       );
