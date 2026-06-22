@@ -1,6 +1,6 @@
 ---
 title: Code Agent Module
-description: AI-powered codebase exploration for Loopstack — ExploreTask tool launches AgentWorkflow sub-agent with glob/grep/read tools, CodeAgentModule registration, forFeature() LLM config, CallbackSchema for sub-workflow completion
+description: AI-powered codebase exploration for Loopstack — ExploreTask tool launches AgentWorkflow sub-agent with glob/grep/read tools, CodeAgentModule registration, forFeature() LLM config, TransitionInput envelope for sub-workflow completion
 ---
 
 # @loopstack/code-agent
@@ -54,13 +54,9 @@ import { Module } from '@nestjs/common';
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
 import { CodeAgentModule } from '@loopstack/code-agent';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
-const ExploreCallbackSchema = CallbackSchema.extend({
-  data: z.object({ response: z.string() }),
-});
-
-type ExploreCallback = z.infer<typeof ExploreCallbackSchema>;
+const ExploreResponseSchema = z.object({ response: z.string() });
 
 @Workflow({ title: 'Code Agent Example' })
 export class MyWorkflow extends BaseWorkflow {
@@ -82,11 +78,14 @@ export class MyWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Transition({ from: 'exploring', to: 'end', wait: true, schema: ExploreCallbackSchema })
-  async onExploreComplete(state: Record<string, unknown>, payload: ExploreCallback): Promise<unknown> {
+  @Transition({ from: 'exploring', to: 'end', wait: true, schema: ExploreResponseSchema })
+  async onExploreComplete(
+    state: Record<string, unknown>,
+    input: TransitionInput<{ response: string }>,
+  ): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: payload.data.response,
+      text: input.data.response,
     });
 
     return {};
@@ -152,20 +151,22 @@ Second argument (options):
 
 **Returns:** `QueueResult` with `{ workflowId: string }`
 
-### Callback Payload
+### Callback Envelope
 
-Extend `CallbackSchema` to type the completion payload:
+The parent's wait transition receives a `TransitionInput<TData>`. Pass only the `data` shape as the schema — the framework wraps it:
 
 ```ts
-const ExploreCallbackSchema = CallbackSchema.extend({
-  data: z.object({ response: z.string() }),
-});
+const ExploreResponseSchema = z.object({ response: z.string() });
+// Receiver: input: TransitionInput<{ response: string }>
 ```
 
-| Field           | Type     | Description                         |
-| --------------- | -------- | ----------------------------------- |
-| `workflowId`    | `string` | ID of the completed sub-workflow    |
-| `data.response` | `string` | The agent's synthesized text answer |
+| Field                 | Type             | Description                                               |
+| --------------------- | ---------------- | --------------------------------------------------------- |
+| `input.workflowId`    | `string`         | ID of the completed sub-workflow                          |
+| `input.status`        | enum             | `'completed'` / `'failed'` / `'canceled'`                 |
+| `input.hasError`      | `boolean`        | Whether the sub-agent terminated in failure               |
+| `input.errorMessage`  | `string \| null` | Error description when `hasError`                         |
+| `input.data.response` | `string`         | The agent's synthesized text answer (validated by schema) |
 
 ## Tools Reference
 

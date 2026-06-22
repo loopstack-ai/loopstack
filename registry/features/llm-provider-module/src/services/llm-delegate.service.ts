@@ -73,12 +73,10 @@ export class LlmDelegateService {
   async updateToolResult(delegateResult: LlmDelegateResult, completedTool: unknown): Promise<LlmDelegateResult> {
     const completedToolRecord = completedTool as Record<string, unknown>;
 
-    const subscriberMetadata = completedToolRecord._subscriberMetadata as
-      | { toolUseId: string; toolName: string }
-      | undefined;
+    const subscriberMetadata = completedToolRecord.meta as { toolUseId: string; toolName: string } | undefined;
     if (!subscriberMetadata?.toolUseId || !subscriberMetadata?.toolName) {
       throw new Error(
-        'Callback payload is missing _subscriberMetadata with toolUseId and toolName. ' +
+        'Callback payload is missing TransitionInput.meta with toolUseId and toolName. ' +
           'Ensure the event subscriber was registered with metadata by delegateToolCalls.',
       );
     }

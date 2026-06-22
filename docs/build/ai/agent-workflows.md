@@ -111,7 +111,7 @@ The built-in `AgentWorkflow` is a regular workflow. When you need custom behavio
 
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -178,10 +178,10 @@ export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
-  async toolResultReceived(state: AgentState, payload: unknown): Promise<AgentState> {
+  async toolResultReceived(state: AgentState, input: TransitionInput): Promise<AgentState> {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
-      completedTool: payload,
+      completedTool: input,
     });
     return { ...state, delegateResult: result.data };
   }
@@ -227,10 +227,10 @@ async respondToUser(state: AgentState): Promise<AgentState> {
 }
 
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-async userMessage(state: AgentState, payload: string): Promise<AgentState> {
+async userMessage(state: AgentState, input: TransitionInput<string>): Promise<AgentState> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload,
+    text: input.data,
   });
   return state;
 }

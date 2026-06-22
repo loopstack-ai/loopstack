@@ -65,16 +65,17 @@ needsAuth(state: CalendarSummaryState): boolean {
 }
 ```
 
-The auth callback uses `wait: true` with `CallbackSchema` and transitions back to `start` to retry:
+The auth callback uses `wait: true` and transitions back to `start` to retry. The transition method receives a `TransitionInput` envelope; no `data` schema is needed because the parent only cares that the child finished:
 
 ```typescript
+import type { TransitionInput } from '@loopstack/common';
+
 @Transition({
   from: 'awaiting_auth',
   to: 'start',
   wait: true,
-  schema: CallbackSchema,
 })
-async authCompleted(state: CalendarSummaryState, _payload: { workflowId: string }): Promise<CalendarSummaryState> {
+async authCompleted(state: CalendarSummaryState, _input: TransitionInput): Promise<CalendarSummaryState> {
   return state;
 }
 ```
@@ -229,7 +230,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 
 ## Dependencies
 
-- `@loopstack/common` - Core workflow/runtime types and documents (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `CallbackSchema`, `MarkdownDocument`)
+- `@loopstack/common` - Core workflow/runtime types and documents (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `TransitionInput`, `MarkdownDocument`)
 - `@loopstack/claude-module` - Claude provider registration used by LLM tools
 - `@loopstack/llm-provider-module` - LLM adapter tools (`LlmGenerateTextTool`, `LlmMessageDocument`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`, `OAuthTokenStore`)

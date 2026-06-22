@@ -62,8 +62,8 @@ export class MyModule {}
 The simplest approach: launch the built-in `OAuthWorkflow` when authentication is needed.
 
 ```typescript
-import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { MarkdownDocument } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -111,8 +111,8 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   }
 
   // After auth -> retry from start
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true, schema: CallbackSchema })
-  async authCompleted(state: CalendarState, _payload: { workflowId: string }): Promise<CalendarState> {
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
+  async authCompleted(state: CalendarState, _input: TransitionInput): Promise<CalendarState> {
     return state;
   }
 

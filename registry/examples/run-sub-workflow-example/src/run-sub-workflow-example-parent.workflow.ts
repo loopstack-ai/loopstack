@@ -1,12 +1,8 @@
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
-const SubWorkflowCallbackSchema = CallbackSchema.extend({
-  data: z.object({ message: z.string() }),
-});
-
-type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
+const SubWorkflowMessageSchema = z.object({ message: z.string() });
 
 @Workflow({
   title: 'Run Sub Workflow Example',
@@ -29,15 +25,15 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     from: 'sub_workflow_started',
     to: 'sub_workflow_ended',
     wait: true,
-    schema: SubWorkflowCallbackSchema,
+    schema: SubWorkflowMessageSchema,
   })
   async subWorkflowCallback(
     state: Record<string, unknown>,
-    payload: SubWorkflowCallback,
+    input: TransitionInput<{ message: string }>,
   ): Promise<Record<string, unknown>> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `A message from sub workflow 1: ${payload.data.message}`,
+      text: `A message from sub workflow 1: ${input.data.message}`,
     });
     return state;
   }
@@ -55,12 +51,15 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     from: 'sub_workflow2_started',
     to: 'end',
     wait: true,
-    schema: SubWorkflowCallbackSchema,
+    schema: SubWorkflowMessageSchema,
   })
-  async subWorkflow2Callback(state: Record<string, unknown>, payload: SubWorkflowCallback): Promise<unknown> {
+  async subWorkflow2Callback(
+    state: Record<string, unknown>,
+    input: TransitionInput<{ message: string }>,
+  ): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `A message from sub workflow 2: ${payload.data.message}`,
+      text: `A message from sub workflow 2: ${input.data.message}`,
     });
     return {};
   }

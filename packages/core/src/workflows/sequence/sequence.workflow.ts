@@ -9,7 +9,7 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import {
   type SequenceArgs,
@@ -113,7 +113,7 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
   async onChildComplete(
     state: SequenceState,
-    payload: Record<string, unknown>,
+    input: TransitionInput,
     ctx: RunContext<SequenceInput>,
   ): Promise<SequenceState> {
     const args = ctx.args as unknown as SequenceArgs;
@@ -122,12 +122,12 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
       throw new Error('Sequence received a child callback with no matching active item.');
     }
 
-    const status = (payload.status as SequenceResultEntry['status']) ?? 'failed';
-    const isError = status === 'failed' || status === 'canceled';
+    const status = input.status as SequenceResultEntry['status'];
+    const isError = input.hasError;
 
     const entry: SequenceResultEntry = isError
       ? { status, error: `Child workflow ${status}.` }
-      : { status, data: payload.data };
+      : { status, data: input.data };
 
     const newResults = { ...state.results, [key]: entry };
     const nextIndex = state.currentIndex + 1;

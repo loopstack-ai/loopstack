@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { CallbackSchema } from '@loopstack/common';
 
 export type FanOutMode = 'all' | 'allSettled';
 
@@ -48,22 +47,19 @@ export interface FanOutResult {
 }
 
 /**
- * Use to type the parent's callback transition payload.
+ * Schema for the `data` field of the `TransitionInput` delivered to a parent's callback
+ * after `FanOutWorkflow` settles.
  *
  * ```ts
- * @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutCallbackSchema })
- * async onAllDone(state, payload: FanOutCallbackPayload) { ... }
+ * @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutResultSchema })
+ * async onAllDone(state, input: TransitionInput<FanOutResult>) { input.data.results }
  * ```
  */
-export const FanOutCallbackSchema = CallbackSchema.extend({
-  data: z.object({
-    results: z.union([
-      z.array(FanOutResultEntrySchema.extend({ key: z.string() })),
-      z.record(z.string(), FanOutResultEntrySchema),
-    ]),
-    hasErrors: z.boolean(),
-    errorCount: z.number(),
-  }),
+export const FanOutResultSchema = z.object({
+  results: z.union([
+    z.array(FanOutResultEntrySchema.extend({ key: z.string() })),
+    z.record(z.string(), FanOutResultEntrySchema),
+  ]),
+  hasErrors: z.boolean(),
+  errorCount: z.number(),
 });
-
-export type FanOutCallbackPayload = z.infer<typeof FanOutCallbackSchema>;

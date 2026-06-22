@@ -49,13 +49,9 @@ Launch an agent from any workflow:
 ```typescript
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
-const AgentCallbackSchema = CallbackSchema.extend({
-  data: z.object({ response: z.string() }),
-});
-
-type AgentCallback = z.infer<typeof AgentCallbackSchema>;
+const AgentResponseSchema = z.object({ response: z.string() });
 
 @Workflow({ title: 'My Workflow' })
 export class MyWorkflow extends BaseWorkflow {
@@ -76,11 +72,11 @@ export class MyWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentCallbackSchema })
-  async agentDone(state: Record<string, unknown>, payload: AgentCallback): Promise<unknown> {
+  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentResponseSchema })
+  async agentDone(state: Record<string, unknown>, input: TransitionInput<{ response: string }>): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: payload.data.response,
+      text: input.data.response,
     });
     return {};
   }

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { RunContext } from '@loopstack/common';
-import { BaseWorkflow, CallbackSchema, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
+import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
 import {
   GitConfigUserTool,
@@ -13,6 +13,8 @@ import { GitHubCreateRepoTool, GitHubGetAuthenticatedUserTool, GitHubListReposTo
 import { AskUserWorkflow } from '@loopstack/hitl';
 import { OAuthTokenStore, OAuthWorkflow } from '@loopstack/oauth-module';
 import { BashTool } from '@loopstack/remote-client';
+
+const AnswerSchema = z.object({ answer: z.string() });
 
 interface ConnectGitHubState {
   requiresAuth?: boolean;
@@ -81,8 +83,8 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     return !!state.requiresAuth;
   }
 
-  @Transition({ from: 'awaiting_auth', to: 'check_auth', wait: true, schema: CallbackSchema })
-  async authCompleted(state: ConnectGitHubState, _payload: { workflowId: string }): Promise<ConnectGitHubState> {
+  @Transition({ from: 'awaiting_auth', to: 'check_auth', wait: true })
+  async authCompleted(state: ConnectGitHubState, _input: TransitionInput): Promise<ConnectGitHubState> {
     const result = await this.gitHubGetAuthenticatedUser.call();
     return { ...state, user: result.data!.user, requiresAuth: false };
   }
@@ -102,9 +104,12 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Transition({ from: 'awaiting_choice', to: 'route_choice', wait: true, schema: CallbackSchema })
-  async choiceReceived(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
-    if (payload.data.answer === 'Connect existing repository') {
+  @Transition({ from: 'awaiting_choice', to: 'route_choice', wait: true, schema: AnswerSchema })
+  async choiceReceived(
+    state: ConnectGitHubState,
+    input: TransitionInput<{ answer: string }>,
+  ): Promise<ConnectGitHubState> {
+    if (input.data.answer === 'Connect existing repository') {
       const listResult = await this.gitHubListRepos.call({
         visibility: 'all',
         sort: 'updated',
@@ -130,9 +135,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
   // ── Step 3a: Create new repo ────────────────────────────────────────
 
-  @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: CallbackSchema })
-  async createRepo(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
-    const repoName = payload.data.answer.trim();
+  @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: AnswerSchema })
+  async createRepo(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>): Promise<ConnectGitHubState> {
+    const repoName = input.data.answer.trim();
     const createResult = await this.gitHubCreateRepo.call({
       name: repoName,
       private: true,
@@ -144,9 +149,12 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
   // ── Step 3b: Link existing repo ─────────────────────────────────────
 
-  @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: CallbackSchema })
-  async repoSelected(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
-    const fullName = payload.data.answer;
+  @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: AnswerSchema })
+  async repoSelected(
+    state: ConnectGitHubState,
+    input: TransitionInput<{ answer: string }>,
+  ): Promise<ConnectGitHubState> {
+    const fullName = input.data.answer;
     const [, name] = fullName.split('/');
 
     return {
@@ -213,12 +221,12 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Transition({ from: 'awaiting_commit_confirm', to: 'setup_remote', wait: true, schema: CallbackSchema })
+  @Transition({ from: 'awaiting_commit_confirm', to: 'setup_remote', wait: true, schema: AnswerSchema })
   async uncommittedChangesHandled(
     state: ConnectGitHubState,
-    payload: { data: { answer: string } },
+    input: TransitionInput<{ answer: string }>,
   ): Promise<ConnectGitHubState> {
-    if (payload.data.answer === 'Cancel') {
+    if (input.data.answer === 'Cancel') {
       return { ...state, repo: undefined };
     }
 
@@ -319,13 +327,13 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Transition({ from: 'awaiting_sync_choice', to: 'done', wait: true, schema: CallbackSchema })
+  @Transition({ from: 'awaiting_sync_choice', to: 'done', wait: true, schema: AnswerSchema })
   async syncStrategyChosen(
     state: ConnectGitHubState,
-    payload: { data: { answer: string } },
+    input: TransitionInput<{ answer: string }>,
     ctx: RunContext,
   ): Promise<ConnectGitHubState> {
-    const answer = payload.data.answer;
+    const answer = input.data.answer;
     const statusResult = await this.gitStatus.call();
     const branch = statusResult.data!.branch ?? 'main';
 

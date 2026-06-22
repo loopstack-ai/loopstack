@@ -483,9 +483,19 @@ export class WorkflowProcessorService implements Processor {
           await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
         }
 
-        const waitData = waitTransition.schema
-          ? waitTransition.schema.parse(pendingTransition.payload)
-          : pendingTransition.payload;
+        const rawPayload = (pendingTransition.payload ?? {}) as Record<string, unknown>;
+        const rawData = 'data' in rawPayload ? rawPayload.data : undefined;
+        const validatedData = waitTransition.schema ? waitTransition.schema.parse(rawData) : rawData;
+
+        const status = (rawPayload.status as 'completed' | 'failed' | 'canceled' | undefined) ?? 'completed';
+        const transitionInput = {
+          workflowId: (rawPayload.workflowId as string | undefined) ?? pendingTransition.workflowId,
+          status,
+          hasError: typeof rawPayload.hasError === 'boolean' ? rawPayload.hasError : status !== 'completed',
+          errorMessage: (rawPayload.errorMessage as string | null | undefined) ?? null,
+          data: validatedData,
+          ...(rawPayload.meta !== undefined ? { meta: rawPayload.meta } : {}),
+        };
 
         try {
           const result = await this.executeTransition(
@@ -494,7 +504,7 @@ export class WorkflowProcessorService implements Processor {
             workflow,
             waitTransition.methodName,
             waitTransition.to,
-            waitData,
+            transitionInput,
             state,
             workflowEntity,
             workflowName,

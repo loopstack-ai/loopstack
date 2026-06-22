@@ -89,12 +89,12 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }> {
 
 #### 2. Waiting Transitions
 
-Use `wait: true` with a `schema` to pause the workflow and wait for user interaction. The schema validates the payload submitted by the user:
+Use `wait: true` with a `schema` to pause the workflow and wait for user interaction. The schema validates the `data` submitted by the user; the method receives a `TransitionInput<TData>` envelope:
 
 ```typescript
 @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
-async userResponse(payload: z.infer<typeof MeetingNotesDocumentSchema>) {
-  const result = await this.documentStore.save(MeetingNotesDocument, payload, { id: 'input' });
+async userResponse(state, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
+  const result = await this.documentStore.save(MeetingNotesDocument, input.data, { id: 'input' });
   this.meetingNotes = result.content as z.infer<typeof MeetingNotesDocumentSchema>;
 }
 ```
@@ -223,8 +223,8 @@ Use terminal `@Transition` with `wait: true` to create a review step before the 
 
 ```typescript
 @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
-async confirm(payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>) {
-  const result = await this.documentStore.save(OptimizedNotesDocument, payload, { id: 'final' });
+async confirm(state, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
+  const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { id: 'final' });
   this.optimizedNotes = result.content as z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
 }
 ```

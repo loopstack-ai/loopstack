@@ -40,7 +40,7 @@ export class MyAppModule {}
 ## How It Works
 
 1. `start` queues `AgentWorkflow` with a system prompt and selected tools, with `show: 'inline'` so the child is embedded in the parent's run view.
-2. When the child workflow finishes, `agentComplete` receives the callback payload data.
+2. When the child workflow finishes, `agentComplete` receives a `TransitionInput<{ response: string }>` envelope whose `data` is the agent's response.
 3. The workflow saves the final assistant message.
 
 ## Public API

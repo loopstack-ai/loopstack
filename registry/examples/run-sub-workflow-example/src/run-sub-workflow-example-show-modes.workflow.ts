@@ -1,11 +1,8 @@
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
-const ShowCallbackSchema = CallbackSchema.extend({
-  data: z.object({ message: z.string() }),
-});
-type ShowCallback = z.infer<typeof ShowCallbackSchema>;
+const ShowMessageSchema = z.object({ message: z.string() });
 
 /**
  * Demonstrates every `RunOptions.show` mode in one chained flow:
@@ -38,12 +35,15 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
     from: 'inline_started',
     to: 'link_started',
     wait: true,
-    schema: ShowCallbackSchema,
+    schema: ShowMessageSchema,
   })
-  async onInlineDone(state: Record<string, unknown>, payload: ShowCallback): Promise<Record<string, unknown>> {
+  async onInlineDone(
+    state: Record<string, unknown>,
+    input: TransitionInput<{ message: string }>,
+  ): Promise<Record<string, unknown>> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Inline child returned: ${payload.data.message}`,
+      text: `Inline child returned: ${input.data.message}`,
     });
     await this.sub.run({}, { callback: { transition: 'onLinkDone' }, show: 'link', label: 'Status link card' });
     return state;
@@ -53,12 +53,15 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
     from: 'link_started',
     to: 'hidden_started',
     wait: true,
-    schema: ShowCallbackSchema,
+    schema: ShowMessageSchema,
   })
-  async onLinkDone(state: Record<string, unknown>, payload: ShowCallback): Promise<Record<string, unknown>> {
+  async onLinkDone(
+    state: Record<string, unknown>,
+    input: TransitionInput<{ message: string }>,
+  ): Promise<Record<string, unknown>> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Link child returned: ${payload.data.message}`,
+      text: `Link child returned: ${input.data.message}`,
     });
     await this.sub.run({}, { callback: { transition: 'onHiddenDone' }, show: 'hidden', label: 'Background child' });
     return state;
@@ -68,12 +71,12 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
     from: 'hidden_started',
     to: 'end',
     wait: true,
-    schema: ShowCallbackSchema,
+    schema: ShowMessageSchema,
   })
-  async onHiddenDone(_state: Record<string, unknown>, payload: ShowCallback): Promise<unknown> {
+  async onHiddenDone(_state: Record<string, unknown>, input: TransitionInput<{ message: string }>): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Hidden child returned: ${payload.data.message} — no LinkCard was rendered for it.`,
+      text: `Hidden child returned: ${input.data.message} — no LinkCard was rendered for it.`,
     });
     return {};
   }

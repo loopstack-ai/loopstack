@@ -11,7 +11,7 @@ Build multi-turn conversational workflows where users exchange messages with an 
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({ widget: __dirname + '/chat.ui.yaml' })
@@ -31,8 +31,8 @@ export class ChatWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>): Promise<Record<string, unknown>> {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
     return state;
   }
 

@@ -13,7 +13,7 @@ A simple chat workflow: wait for a user message, call LLM, display the response,
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
@@ -37,8 +37,8 @@ export class ChatWorkflow extends BaseWorkflow {
     wait: true,
     schema: z.string(),
   })
-  async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>): Promise<Record<string, unknown>> {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
     return state;
   }
 
@@ -153,7 +153,7 @@ async llmTurn(state: MyState): Promise<MyState> { ... }
 
 ### Wait Transition — Pause for Input
 
-Add `wait: true` to pause the workflow until externally triggered — by user input, a button click, or a sub-workflow callback. Use `schema` to validate and type the incoming payload.
+Add `wait: true` to pause the workflow until externally triggered — by user input, a button click, or a sub-workflow callback. Use `schema` to validate and type the incoming `data`; the transition method receives a `TransitionInput<TData>` envelope with `data` plus failure info (`hasError`, `errorMessage`, `status`).
 
 ```typescript
 @Transition({
@@ -162,10 +162,10 @@ Add `wait: true` to pause the workflow until externally triggered — by user in
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async userMessage(state: MyState, payload: { message: string }): Promise<MyState> {
+async userMessage(state: MyState, input: TransitionInput<{ message: string }>): Promise<MyState> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload.message,
+    text: input.data.message,
   });
   return state;
 }

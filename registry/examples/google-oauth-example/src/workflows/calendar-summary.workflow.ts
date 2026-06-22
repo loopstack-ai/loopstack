@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
@@ -68,9 +68,8 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<CalendarSummaryArgs> {
     from: 'awaiting_auth',
     to: 'start',
     wait: true,
-    schema: CallbackSchema,
   })
-  async authCompleted(state: CalendarSummaryState, _payload: { workflowId: string }): Promise<CalendarSummaryState> {
+  async authCompleted(state: CalendarSummaryState, _input: TransitionInput): Promise<CalendarSummaryState> {
     return state;
   }
 

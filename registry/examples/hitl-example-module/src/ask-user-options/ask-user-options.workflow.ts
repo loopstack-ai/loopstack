@@ -1,12 +1,8 @@
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
-const AnswerCallbackSchema = CallbackSchema.extend({
-  data: z.object({ answer: z.string() }),
-});
-
-type AnswerCallback = z.infer<typeof AnswerCallbackSchema>;
+const AnswerSchema = z.object({ answer: z.string() });
 
 const ENV_OPTIONS = ['staging', 'production'];
 
@@ -39,10 +35,10 @@ export class AskUserOptionsWorkflow extends BaseWorkflow {
     from: 'waiting_for_choice',
     to: 'end',
     wait: true,
-    schema: AnswerCallbackSchema,
+    schema: AnswerSchema,
   })
-  async choiceReceived(state: Record<string, unknown>, payload: AnswerCallback): Promise<unknown> {
-    const choice = payload.data.answer;
+  async choiceReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>): Promise<unknown> {
+    const choice = input.data.answer;
     const isCustom = !ENV_OPTIONS.includes(choice);
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

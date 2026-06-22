@@ -95,8 +95,8 @@ For full control over the auth flow, inject the individual tools and `OAuthWorkf
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { GitHubGetAuthenticatedUserTool, GitHubListReposTool } from '@loopstack/github-module';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -139,8 +139,8 @@ export class MyGitHubWorkflow extends BaseWorkflow {
     return !!state.requiresAuth;
   }
 
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true, schema: CallbackSchema })
-  async authCompleted(state: State): Promise<State> {
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
+  async authCompleted(state: State, _input: TransitionInput): Promise<State> {
     return state;
   }
 

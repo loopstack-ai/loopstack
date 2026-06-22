@@ -195,7 +195,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
           hasError: workflowEntity.hasError ?? false,
           errorMessage: workflowEntity.errorMessage ?? null,
           data: workflowEntity.result ?? null,
-          ...(workflowEntity.callbackMetadata ? { _subscriberMetadata: workflowEntity.callbackMetadata } : {}),
+          ...(workflowEntity.callbackMetadata ? { meta: workflowEntity.callbackMetadata } : {}),
         },
         { transition: workflowEntity.callbackTransition },
       );

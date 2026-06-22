@@ -1,12 +1,9 @@
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 
-const ConfirmCallbackSchema = CallbackSchema.extend({
-  data: z.object({ confirmed: z.boolean(), markdown: z.string() }),
-});
-
-type ConfirmCallback = z.infer<typeof ConfirmCallbackSchema>;
+const ConfirmSchema = z.object({ confirmed: z.boolean(), markdown: z.string() });
+type ConfirmData = z.infer<typeof ConfirmSchema>;
 
 const DEPLOY_SUMMARY = `## Ready to deploy?
 
@@ -41,13 +38,13 @@ export class ConfirmContentWorkflow extends BaseWorkflow {
     from: 'waiting_for_confirmation',
     to: 'end',
     wait: true,
-    schema: ConfirmCallbackSchema,
+    schema: ConfirmSchema,
   })
-  async decisionReceived(state: Record<string, unknown>, payload: ConfirmCallback): Promise<unknown> {
+  async decisionReceived(state: Record<string, unknown>, input: TransitionInput<ConfirmData>): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: payload.data.confirmed ? 'User confirmed — proceeding with deploy.' : 'User denied — aborting deploy.',
+      text: input.data.confirmed ? 'User confirmed — proceeding with deploy.' : 'User denied — aborting deploy.',
     });
-    return { confirmed: payload.data.confirmed };
+    return { confirmed: input.data.confirmed };
   }
 }

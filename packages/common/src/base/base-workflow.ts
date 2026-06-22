@@ -1,5 +1,4 @@
 import { Inject, Injectable, Type } from '@nestjs/common';
-import { z } from 'zod';
 import type { DocumentStore } from '../interfaces/document-store.interface.js';
 import type { WorkflowOrchestrator } from '../interfaces/workflow-orchestrator.interface.js';
 import { DOCUMENT_STORE, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
@@ -38,18 +37,25 @@ export interface QueueResult {
 }
 
 /**
- * Base Zod schema for sub-workflow callback payloads. Extend with `.extend({ data: ... })` to type the result.
+ * Shape delivered to every `@Transition({ wait: true })` method, regardless of trigger source
+ * (sub-workflow completion or frontend / API resume).
  *
- * `hasError` / `errorMessage` reflect the child's terminal state so the parent can branch
- * on failure without having to introspect `status` strings.
+ * The `schema` option on `@Transition` validates `data` only — the framework constructs the
+ * surrounding envelope. `meta` carries whatever the parent passed to `callback.metadata`
+ * (used by `FanOut`/`Sequence` for per-child correlation, by the LLM tool loop for
+ * `toolUseId`, etc.); it is `undefined` for user-driven resumes.
+ *
+ * `hasError` / `errorMessage` / `status` reflect the terminal state of the trigger so the
+ * receiver can branch on failure without separate lookups.
  */
-export const CallbackSchema = z.object({
-  workflowId: z.string(),
-  status: z.string(),
-  hasError: z.boolean(),
-  errorMessage: z.string().nullable(),
-  data: z.unknown(),
-});
+export interface TransitionInput<TData = unknown, TMeta = unknown> {
+  workflowId: string;
+  status: 'completed' | 'failed' | 'canceled';
+  hasError: boolean;
+  errorMessage: string | null;
+  data: TData;
+  meta?: TMeta;
+}
 
 /**
  * Abstract base class for workflows.

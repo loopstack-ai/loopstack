@@ -99,7 +99,14 @@ describe('FanOutWorkflow', () => {
 
       const next = await workflow.onChildComplete(
         state,
-        { status: 'completed', data: { v: 1 }, _subscriberMetadata: { key: 'a' } },
+        {
+          workflowId: 'child-a',
+          status: 'completed',
+          hasError: false,
+          errorMessage: null,
+          data: { v: 1 },
+          meta: { key: 'a' },
+        },
         ctx({ entries: [], itemsWereArray: false, mode: 'all' }),
       );
 
@@ -119,7 +126,14 @@ describe('FanOutWorkflow', () => {
 
       const next = await workflow.onChildComplete(
         state,
-        { status: 'failed', _subscriberMetadata: { key: 'a' } },
+        {
+          workflowId: 'child-a',
+          status: 'failed',
+          hasError: true,
+          errorMessage: 'Child failed.',
+          data: null,
+          meta: { key: 'a' },
+        },
         ctx({ entries: [], itemsWereArray: false, mode: 'all' }, 'parent-99'),
       );
 
@@ -139,7 +153,14 @@ describe('FanOutWorkflow', () => {
 
       await workflow.onChildComplete(
         state,
-        { status: 'failed', _subscriberMetadata: { key: 'a' } },
+        {
+          workflowId: 'child-a',
+          status: 'failed',
+          hasError: true,
+          errorMessage: 'Child failed.',
+          data: null,
+          meta: { key: 'a' },
+        },
         ctx({ entries: [], itemsWereArray: false, mode: 'allSettled' }),
       );
 
@@ -159,7 +180,13 @@ describe('FanOutWorkflow', () => {
       await expect(
         workflow.onChildComplete(
           state,
-          { status: 'completed', data: {} },
+          {
+            workflowId: 'child-x',
+            status: 'completed',
+            hasError: false,
+            errorMessage: null,
+            data: {},
+          },
           ctx({ entries: [], itemsWereArray: false, mode: 'all' }),
         ),
       ).rejects.toThrow(/correlation key/);

@@ -221,7 +221,7 @@ Create `src/meeting-notes/meeting-notes.workflow.ts`:
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
@@ -257,14 +257,14 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
     return state;
   }
 
-  // Step 2: User clicks "Optimize Notes" — payload is the edited form content
+  // Step 2: User clicks "Optimize Notes" — input.data is the edited form content
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
   async userResponse(
     state: MeetingNotesState,
-    payload: z.infer<typeof MeetingNotesDocumentSchema>,
+    input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>,
   ): Promise<MeetingNotesState> {
     // Persist whatever the user may have edited before clicking the button
-    const result = await this.documentStore.save(MeetingNotesDocument, payload, { id: 'input' });
+    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { id: 'input' });
     return { ...state, meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> };
   }
 
@@ -293,10 +293,10 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
   async confirm(
     state: MeetingNotesState,
-    payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+    input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>,
   ): Promise<unknown> {
     // Save final confirmed version — the return value becomes the workflow output
-    const result = await this.documentStore.save(OptimizedNotesDocument, payload, { id: 'final' });
+    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { id: 'final' });
     return { optimizedNotes: result.content };
   }
 }
@@ -304,7 +304,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
 
 **Why `validate: 'skip'` when saving the LLM result:** LLM output can occasionally deviate from the schema in minor ways (empty strings, null values). Using `validate: 'skip'` saves it anyway so the user can review and correct it in the form before confirming.
 
-**Why the final transition returns the payload:** The return value of the `to: 'end'` transition becomes the workflow's output. If this workflow is later used as a sub-workflow, the parent receives `payload.data.optimizedNotes` in its callback.
+**Why the final transition returns the payload:** The return value of the `to: 'end'` transition becomes the workflow's output. If this workflow is later used as a sub-workflow, the parent receives `input.data.optimizedNotes` in its callback envelope.
 
 ---
 
@@ -372,10 +372,10 @@ Let's trace the state flow:
 start
   → showNotes        saves raw notes, moves to waiting_for_response
   → [PAUSE]          workflow waits — user reads and optionally edits
-  → userResponse     user clicks "Optimize Notes", payload = form content
+  → userResponse     user clicks "Optimize Notes", input.data = form content
   → optimizeNotes    calls LLM with structured output schema, saves result
   → [PAUSE]          workflow waits — user reviews AI output
-  → confirm          user clicks "Confirm", payload = confirmed content
+  → confirm          user clicks "Confirm", input.data = confirmed content
   → end              workflow completes, output = confirmed notes
 ```
 

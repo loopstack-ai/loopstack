@@ -17,10 +17,10 @@ By using this example as a reference, you'll learn how to:
 
 - Use constructor injection and `.run()` to start child workflows asynchronously
 - Set up callback transitions to handle sub-workflow completion
-- Define callback schemas with `CallbackSchema.extend()` to type callback payloads
+- Type the wait transition's `data` via the `schema:` option and receive the full `TransitionInput<TData>` envelope on the method
 - Return structured data from sub-workflows via the return value of the final `@Transition` method
 - Control how a child appears in the parent's run view via the `show` option (`'inline'`, `'link'`, `'hidden'`)
-- Handle failed sub-workflows in the parent via the `status` field on the callback payload
+- Handle failed sub-workflows in the parent via `input.hasError` / `input.status` on the envelope
 - Compose complex workflows from smaller, reusable workflow components
 - Chain multiple sequential sub-workflow executions
 - Run sub-workflows in parallel (`FanOutWorkflow`) or in series (`SequenceWorkflow`)
@@ -116,27 +116,26 @@ async runWorkflow() {
 
 This example uses `show: 'link'` because the sub-workflows run autonomously without needing user interaction.
 
-#### 3. Defining Callback Schemas
+#### 3. Defining the Callback `data` Schema
 
-Extend `CallbackSchema` to type the callback payload. The base schema includes `workflowId`, and you add your custom `data` shape:
+The `schema:` on a `wait: true` transition describes only the `data` field of the envelope. The framework wraps it with `workflowId`, `status`, `hasError`, `errorMessage`:
 
 ```typescript
-const SubWorkflowCallbackSchema = CallbackSchema.extend({
-  data: z.object({ message: z.string() }),
-});
-type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
+const SubWorkflowMessageSchema = z.object({ message: z.string() });
 ```
 
 #### 4. Handling the Callback
 
-Define a transition with `wait: true` and the callback schema. The payload contains both the `workflowId` and the `data` returned by the sub-workflow:
+Define a transition with `wait: true` and the data schema. The method receives a `TransitionInput<TData>` containing both the envelope fields and the validated `data`:
 
 ```typescript
-@Transition({ from: 'sub_workflow_started', to: 'sub_workflow_ended', wait: true, schema: SubWorkflowCallbackSchema })
-async subWorkflowCallback(payload: SubWorkflowCallback) {
+import type { TransitionInput } from '@loopstack/common';
+
+@Transition({ from: 'sub_workflow_started', to: 'sub_workflow_ended', wait: true, schema: SubWorkflowMessageSchema })
+async subWorkflowCallback(state, input: TransitionInput<{ message: string }>) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    text: `A message from sub workflow 1: ${payload.data.message}`,
+    text: `A message from sub workflow 1: ${input.data.message}`,
   });
 }
 ```
@@ -159,7 +158,7 @@ await this.sub.run({}, { callback: { transition: 'onHiddenDone' }, show: 'hidden
 
 #### 6. Handling Failed Sub-Workflows (`RunSubWorkflowExampleErrorHandlingWorkflow`)
 
-When a child throws, the parent's callback is still triggered — with `payload.status === 'failed'`. The parent decides whether to recover, retry, or terminate:
+When a child throws, the parent's callback is still triggered — with `input.hasError === true` and `input.status === 'failed'`. The parent decides whether to recover, retry, or terminate:
 
 ```typescript
 @Transition({ to: 'awaiting' })
@@ -170,13 +169,13 @@ async launch() {
   );
 }
 
-@Transition({ from: 'awaiting', to: 'end', wait: true, schema: CallbackSchema })
-async onFinished(state, payload) {
+@Transition({ from: 'awaiting', to: 'end', wait: true })
+async onFinished(state, input: TransitionInput) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    text: `Child finished with status="${payload.status}". The parent recovered gracefully.`,
+    text: `Child finished with status="${input.status}". The parent recovered gracefully.`,
   });
-  return { childStatus: payload.status };
+  return { childStatus: input.status, errorMessage: input.errorMessage };
 }
 ```
 
@@ -189,7 +188,7 @@ For dynamic fan-out and ordered sequencing, use the dedicated helpers from `@loo
 - `FanOutWorkflow` (see `RunSubWorkflowExampleFanOutWorkflow`) — launches a map of children concurrently and aggregates their results into a single callback.
 - `SequenceWorkflow` (see `RunSubWorkflowExampleSequenceWorkflow`) — runs children one at a time and aggregates their results.
 
-Both surface a single callback payload with `hasErrors` / `errorCount` plus per-child results, so the parent doesn't need a transition per child.
+Both surface a single envelope where `input.data` carries `hasErrors` / `errorCount` plus per-child results, so the parent doesn't need a transition per child.
 
 #### 8. Chaining Multiple Sub-Workflows
 
@@ -204,11 +203,11 @@ async runWorkflow2() {
   );
 }
 
-@Transition({ from: 'sub_workflow2_started', to: 'end', wait: true, schema: SubWorkflowCallbackSchema })
-async subWorkflow2Callback(payload: SubWorkflowCallback) {
+@Transition({ from: 'sub_workflow2_started', to: 'end', wait: true, schema: SubWorkflowMessageSchema })
+async subWorkflow2Callback(state, input: TransitionInput<{ message: string }>) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    text: `A message from sub workflow 2: ${payload.data.message}`,
+    text: `A message from sub workflow 2: ${input.data.message}`,
   });
 }
 ```
@@ -217,7 +216,7 @@ async subWorkflow2Callback(payload: SubWorkflowCallback) {
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `CallbackSchema`, `MessageDocument`)
+- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `TransitionInput`, `MessageDocument`)
 
 ## About
 

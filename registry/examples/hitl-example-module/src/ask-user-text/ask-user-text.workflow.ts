@@ -1,12 +1,8 @@
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
-const AnswerCallbackSchema = CallbackSchema.extend({
-  data: z.object({ answer: z.string() }),
-});
-
-type AnswerCallback = z.infer<typeof AnswerCallbackSchema>;
+const AnswerSchema = z.object({ answer: z.string() });
 
 @Workflow({
   title: 'Ask User — Free Text',
@@ -32,13 +28,13 @@ export class AskUserTextWorkflow extends BaseWorkflow {
     from: 'waiting_for_answer',
     to: 'end',
     wait: true,
-    schema: AnswerCallbackSchema,
+    schema: AnswerSchema,
   })
-  async answerReceived(state: Record<string, unknown>, payload: AnswerCallback): Promise<unknown> {
+  async answerReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Hello, ${payload.data.answer}!`,
+      text: `Hello, ${input.data.answer}!`,
     });
-    return { name: payload.data.answer };
+    return { name: input.data.answer };
   }
 }

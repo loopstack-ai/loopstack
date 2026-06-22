@@ -52,16 +52,17 @@ needsAuth(state: GitHubReposOverviewState): boolean {
 }
 ```
 
-The auth callback uses `wait: true` with `CallbackSchema` to receive the OAuth completion signal:
+The auth callback uses `wait: true` to receive the OAuth completion signal. The transition method receives a `TransitionInput` envelope (`workflowId`, `status`, `hasError`, …); no `data` schema is needed here:
 
 ```typescript
+import type { TransitionInput } from '@loopstack/common';
+
 @Transition({
   from: 'awaiting_auth',
   to: 'start',
   wait: true,
-  schema: CallbackSchema,
 })
-async authCompleted(state: GitHubReposOverviewState, _payload: { workflowId: string }): Promise<GitHubReposOverviewState> {
+async authCompleted(state: GitHubReposOverviewState, _input: TransitionInput): Promise<GitHubReposOverviewState> {
   return state;
 }
 ```
@@ -208,7 +209,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 
 ## Dependencies
 
-- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `CallbackSchema`, `ToolResult`, `MarkdownDocument`, `MessageDocument`)
+- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `TransitionInput`, `ToolResult`, `MarkdownDocument`, `MessageDocument`)
 - `@loopstack/llm-provider-module` - LLM adapter tools (`LlmGenerateTextTool`, `LlmMessageDocument`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`)
 - `@loopstack/github-module` - All 25 GitHub tools

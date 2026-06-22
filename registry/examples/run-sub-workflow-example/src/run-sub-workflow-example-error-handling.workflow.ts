@@ -1,13 +1,10 @@
-import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { RunSubWorkflowExampleFailingSubWorkflow } from './run-sub-workflow-example-failing-sub.workflow';
-
-type FailingCallback = z.infer<typeof CallbackSchema>;
 
 /**
  * Launches the failing sub-workflow in both `show: 'inline'` and `show: 'link'` modes so the
- * error UI can be inspected in each. The parent branches on `payload.hasError` and surfaces
- * `payload.errorMessage` to demonstrate that the callback carries the failure context — no
+ * error UI can be inspected in each. The parent branches on `input.hasError` and surfaces
+ * `input.errorMessage` to demonstrate that the envelope carries the failure context — no
  * need to query the child entity separately.
  */
 @Workflow({
@@ -31,14 +28,13 @@ export class RunSubWorkflowExampleErrorHandlingWorkflow extends BaseWorkflow {
     from: 'inline_awaiting',
     to: 'link_awaiting',
     wait: true,
-    schema: CallbackSchema,
   })
-  async onInlineFinished(state: Record<string, unknown>, payload: FailingCallback): Promise<Record<string, unknown>> {
+  async onInlineFinished(state: Record<string, unknown>, input: TransitionInput): Promise<Record<string, unknown>> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: payload.hasError
-        ? `Inline child failed (status="${payload.status}"): ${payload.errorMessage ?? 'unknown error'}. Trying the same failing child with show: 'link' next.`
-        : `Inline child finished normally (status="${payload.status}").`,
+      text: input.hasError
+        ? `Inline child failed (status="${input.status}"): ${input.errorMessage ?? 'unknown error'}. Trying the same failing child with show: 'link' next.`
+        : `Inline child finished normally (status="${input.status}").`,
     });
     await this.failingSub.run(
       {},
@@ -51,15 +47,14 @@ export class RunSubWorkflowExampleErrorHandlingWorkflow extends BaseWorkflow {
     from: 'link_awaiting',
     to: 'end',
     wait: true,
-    schema: CallbackSchema,
   })
-  async onLinkFinished(_state: Record<string, unknown>, payload: FailingCallback): Promise<unknown> {
+  async onLinkFinished(_state: Record<string, unknown>, input: TransitionInput): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: payload.hasError
-        ? `Link child failed (status="${payload.status}"): ${payload.errorMessage ?? 'unknown error'}. The parent recovered gracefully.`
-        : `Link child finished normally (status="${payload.status}").`,
+      text: input.hasError
+        ? `Link child failed (status="${input.status}"): ${input.errorMessage ?? 'unknown error'}. The parent recovered gracefully.`
+        : `Link child finished normally (status="${input.status}").`,
     });
-    return { childStatus: payload.status, childErrorMessage: payload.errorMessage };
+    return { childStatus: input.status, childErrorMessage: input.errorMessage };
   }
 }

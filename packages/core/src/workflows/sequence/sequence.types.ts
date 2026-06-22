@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { CallbackSchema } from '@loopstack/common';
 
 export type SequenceMode = 'all' | 'allSettled';
 
@@ -47,15 +46,20 @@ export interface SequenceResult {
   errorCount: number;
 }
 
-export const SequenceCallbackSchema = CallbackSchema.extend({
-  data: z.object({
-    results: z.union([
-      z.array(SequenceResultEntrySchema.extend({ key: z.string() })),
-      z.record(z.string(), SequenceResultEntrySchema),
-    ]),
-    hasErrors: z.boolean(),
-    errorCount: z.number(),
-  }),
+/**
+ * Schema for the `data` field of the `TransitionInput` delivered to a parent's callback
+ * after `SequenceWorkflow` settles.
+ *
+ * ```ts
+ * @Transition({ from: 'awaiting', to: 'end', wait: true, schema: SequenceResultSchema })
+ * async onComplete(state, input: TransitionInput<SequenceResult>) { input.data.results }
+ * ```
+ */
+export const SequenceResultSchema = z.object({
+  results: z.union([
+    z.array(SequenceResultEntrySchema.extend({ key: z.string() })),
+    z.record(z.string(), SequenceResultEntrySchema),
+  ]),
+  hasErrors: z.boolean(),
+  errorCount: z.number(),
 });
-
-export type SequenceCallbackPayload = z.infer<typeof SequenceCallbackSchema>;

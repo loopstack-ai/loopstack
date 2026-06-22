@@ -84,16 +84,16 @@ The `{ meta: { hidden: true } }` option ensures the system message is included i
 
 #### 2. Waiting for User Input
 
-The `userMessage` transition uses `wait: true` to pause the workflow and wait for external input. A Zod schema defines the expected payload type:
+The `userMessage` transition uses `wait: true` to pause the workflow and wait for external input. A Zod schema defines the expected `data` shape; the method receives a `TransitionInput<TData>` envelope:
 
 ```typescript
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-async userMessage(payload: string) {
-  await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+async userMessage(state, input: TransitionInput<string>) {
+  await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
 }
 ```
 
-When the user sends a message, the payload is saved as a `LlmMessageDocument` and the workflow transitions to the `ready` state.
+When the user sends a message, the text in `input.data` is saved as a `LlmMessageDocument` and the workflow transitions to the `ready` state.
 
 #### 3. LLM Response Generation
 
@@ -132,7 +132,7 @@ The complete workflow class uses constructor injection to access the `LlmGenerat
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
@@ -156,8 +156,8 @@ export class ChatWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>): Promise<Record<string, unknown>> {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
     return state;
   }
 

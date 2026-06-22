@@ -1,5 +1,8 @@
-import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import { type SequenceCallbackPayload, SequenceCallbackSchema, SequenceWorkflow } from '@loopstack/core';
+import { z } from 'zod';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
+import { SequenceResultSchema, SequenceWorkflow } from '@loopstack/core';
+
+type SequenceResultData = z.infer<typeof SequenceResultSchema>;
 
 /**
  * Demonstrates `SequenceWorkflow` — runs three sub-workflows one at a time and
@@ -32,10 +35,10 @@ export class RunSubWorkflowExampleSequenceWorkflow extends BaseWorkflow {
     from: 'awaiting',
     to: 'end',
     wait: true,
-    schema: SequenceCallbackSchema,
+    schema: SequenceResultSchema,
   })
-  async onComplete(state: Record<string, unknown>, payload: SequenceCallbackPayload): Promise<unknown> {
-    const results = payload.data.results as Array<{ key: string; data?: unknown }>;
+  async onComplete(state: Record<string, unknown>, input: TransitionInput<SequenceResultData>): Promise<unknown> {
+    const results = input.data.results as Array<{ key: string; data?: unknown }>;
 
     for (const entry of results) {
       const data = (entry.data ?? {}) as { message?: string };
@@ -45,6 +48,6 @@ export class RunSubWorkflowExampleSequenceWorkflow extends BaseWorkflow {
       });
     }
 
-    return { hasErrors: payload.data.hasErrors, errorCount: payload.data.errorCount };
+    return { hasErrors: input.data.hasErrors, errorCount: input.data.errorCount };
   }
 }

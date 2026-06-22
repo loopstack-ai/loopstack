@@ -1,12 +1,8 @@
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
-const ExploreCallbackSchema = CallbackSchema.extend({
-  data: z.object({ response: z.string() }),
-});
-
-type ExploreCallback = z.infer<typeof ExploreCallbackSchema>;
+const ExploreResponseSchema = z.object({ response: z.string() });
 
 const EXPLORE_INSTRUCTIONS = `Find the entry-point module of this project and list the
 top-level providers it registers. Return a short bulleted summary.`;
@@ -36,12 +32,15 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
     from: 'exploring',
     to: 'end',
     wait: true,
-    schema: ExploreCallbackSchema,
+    schema: ExploreResponseSchema,
   })
-  async exploreComplete(state: Record<string, unknown>, payload: ExploreCallback): Promise<unknown> {
+  async exploreComplete(
+    state: Record<string, unknown>,
+    input: TransitionInput<{ response: string }>,
+  ): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: payload.data.response,
+      text: input.data.response,
     });
     return {};
   }

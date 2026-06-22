@@ -11,8 +11,8 @@ Quick-reference for all import paths.
 
 ```typescript
 // Workflows
-import { BaseWorkflow, CallbackSchema, Guard, QueueResult, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, QueueResult, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 // Tools
 import { BaseTool, ServerTool, Tool, ToolResult } from '@loopstack/common';
 import type { ToolCallOptions } from '@loopstack/common';

@@ -1,12 +1,8 @@
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
-const AgentCallbackSchema = CallbackSchema.extend({
-  data: z.object({ response: z.string() }),
-});
-
-type AgentCallback = z.infer<typeof AgentCallbackSchema>;
+const AgentResponseSchema = z.object({ response: z.string() });
 
 @Workflow({
   title: 'Agent Example',
@@ -34,12 +30,12 @@ export class AgentExampleWorkflow extends BaseWorkflow {
     from: 'running',
     to: 'end',
     wait: true,
-    schema: AgentCallbackSchema,
+    schema: AgentResponseSchema,
   })
-  async agentComplete(state: Record<string, unknown>, payload: AgentCallback): Promise<unknown> {
+  async agentComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: payload.data.response,
+      text: input.data.response,
     });
     return {};
   }

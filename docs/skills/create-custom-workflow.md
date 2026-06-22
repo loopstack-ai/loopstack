@@ -148,7 +148,7 @@ async finish(state: MyState): Promise<MyState> { ... }
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async onCallback(state: MyState, payload: { message: string }): Promise<MyState> { ... }
+async onCallback(state: MyState, input: TransitionInput<{ message: string }>): Promise<MyState> { ... }
 
 // Multiple source places
 @Transition({ from: 'ready', to: 'prompt_executed' })
@@ -161,7 +161,7 @@ Options:
 - `from` — source place (defaults to `'start'` if omitted — making it the initial transition)
 - `to` — target place (use `'end'` for final transitions)
 - `wait` — if `true`, workflow pauses until externally triggered
-- `schema` — Zod schema to validate the callback payload (used with `wait: true`)
+- `schema` — Zod schema that validates the `data` payload arriving on the resume (used with `wait: true`). The transition method receives the full `TransitionInput<TData>` envelope; `schema` describes only its `data` field.
 - `priority` — evaluation order when multiple transitions share the same `from` (higher = checked first)
 
 ### `@Guard('methodName')`
@@ -312,6 +312,8 @@ isHigh(state: MyState): boolean {
 Use `wait: true` to pause the workflow until an external trigger (user input, sub-workflow callback, API call).
 
 ```typescript
+import type { TransitionInput } from '@loopstack/common';
+
 @Transition({ from: 'responded', to: 'waiting_for_user' })
 async waitForUser(state: MyState): Promise<MyState> {
   return state; // Moves to waiting_for_user, where the wait transition pauses
@@ -323,16 +325,16 @@ async waitForUser(state: MyState): Promise<MyState> {
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async userMessage(state: MyState, payload: { message: string }): Promise<MyState> {
+async userMessage(state: MyState, input: TransitionInput<{ message: string }>): Promise<MyState> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload.message,
+    text: input.data.message,
   });
   return state;
 }
 ```
 
-Best practice: add a `schema` to validate the callback payload and receive it as a typed method parameter.
+Best practice: add a `schema` (describing only `data`) and type the parameter with `TransitionInput<TData>` so `input.data` is fully typed alongside `input.hasError` / `input.errorMessage` / `input.status` for failure branches.
 
 ## Sub-Workflows
 
@@ -354,10 +356,11 @@ async start(state: MyState): Promise<MyState> {
   from: 'sub_started',
   to: 'sub_done',
   wait: true,
-  schema: CallbackSchema.extend({ data: z.object({ message: z.string() }) }),
+  schema: z.object({ message: z.string() }),
 })
-async onSubComplete(state: MyState, payload: { workflowId: string; status: string; data: { message: string } }): Promise<MyState> {
-  // payload.data contains the sub-workflow's final transition return value
+async onSubComplete(state: MyState, input: TransitionInput<{ message: string }>): Promise<MyState> {
+  // input.data contains the sub-workflow's final transition return value
+  // input.hasError / input.errorMessage are populated if the child failed
   return state;
 }
 ```

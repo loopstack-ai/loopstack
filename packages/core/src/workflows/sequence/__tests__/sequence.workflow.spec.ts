@@ -108,7 +108,11 @@ describe('SequenceWorkflow', () => {
         aborted: false,
       };
 
-      const next = await workflow.onChildComplete(state, { status: 'completed', data: { v: 1 } }, ctx(args));
+      const next = await workflow.onChildComplete(
+        state,
+        { workflowId: 'child-a', status: 'completed', hasError: false, errorMessage: null, data: { v: 1 } },
+        ctx(args),
+      );
 
       expect(orchestrator.queue).toHaveBeenCalledWith(
         FakeWorkflowB,
@@ -141,7 +145,11 @@ describe('SequenceWorkflow', () => {
         aborted: false,
       };
 
-      const next = await workflow.onChildComplete(state, { status: 'failed' }, ctx(args));
+      const next = await workflow.onChildComplete(
+        state,
+        { workflowId: 'child-a', status: 'failed', hasError: true, errorMessage: 'boom', data: null },
+        ctx(args),
+      );
 
       expect(orchestrator.queue).not.toHaveBeenCalled();
       expect(next.currentIndex).toBe(3);
@@ -170,7 +178,11 @@ describe('SequenceWorkflow', () => {
         aborted: false,
       };
 
-      const next = await workflow.onChildComplete(state, { status: 'failed' }, ctx(args));
+      const next = await workflow.onChildComplete(
+        state,
+        { workflowId: 'child-a', status: 'failed', hasError: true, errorMessage: 'boom', data: null },
+        ctx(args),
+      );
 
       expect(orchestrator.queue).toHaveBeenCalledWith(FakeWorkflowB, {}, expect.anything());
       expect(next.currentIndex).toBe(1);

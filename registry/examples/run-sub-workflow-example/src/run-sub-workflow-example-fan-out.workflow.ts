@@ -1,5 +1,8 @@
-import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import { type FanOutCallbackPayload, FanOutCallbackSchema, FanOutWorkflow } from '@loopstack/core';
+import { z } from 'zod';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
+import { FanOutResultSchema, FanOutWorkflow } from '@loopstack/core';
+
+type FanOutResultData = z.infer<typeof FanOutResultSchema>;
 
 /**
  * Demonstrates `FanOutWorkflow` — launches three sub-workflows in parallel and
@@ -32,10 +35,10 @@ export class RunSubWorkflowExampleFanOutWorkflow extends BaseWorkflow {
     from: 'awaiting',
     to: 'end',
     wait: true,
-    schema: FanOutCallbackSchema,
+    schema: FanOutResultSchema,
   })
-  async onAllDone(state: Record<string, unknown>, payload: FanOutCallbackPayload): Promise<unknown> {
-    const results = payload.data.results as Record<string, { data?: unknown }>;
+  async onAllDone(state: Record<string, unknown>, input: TransitionInput<FanOutResultData>): Promise<unknown> {
+    const results = input.data.results as Record<string, { data?: unknown }>;
 
     for (const key of Object.keys(results)) {
       const child = results[key];
@@ -46,6 +49,6 @@ export class RunSubWorkflowExampleFanOutWorkflow extends BaseWorkflow {
       });
     }
 
-    return { hasErrors: payload.data.hasErrors, errorCount: payload.data.errorCount };
+    return { hasErrors: input.data.hasErrors, errorCount: input.data.errorCount };
   }
 }

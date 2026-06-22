@@ -9,7 +9,7 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import {
   type FanOutArgs,
@@ -118,21 +118,20 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
   async onChildComplete(
     state: FanOutState,
-    payload: Record<string, unknown>,
+    input: TransitionInput<unknown, { key?: string }>,
     ctx: RunContext<FanOutInput>,
   ): Promise<FanOutState> {
-    const subscriberMetadata = payload._subscriberMetadata as { key?: string } | undefined;
-    const key = subscriberMetadata?.key;
+    const key = input.meta?.key;
     if (!key) {
-      throw new Error('FanOut child completion missing correlation key in _subscriberMetadata.');
+      throw new Error('FanOut child completion missing correlation key in TransitionInput.meta.');
     }
 
-    const status = (payload.status as FanOutResultEntry['status']) ?? 'failed';
-    const isError = status === 'failed' || status === 'canceled';
+    const status = input.status as FanOutResultEntry['status'];
+    const isError = input.hasError;
 
     const entry: FanOutResultEntry = isError
       ? { status, error: status === 'canceled' ? 'Sibling failure canceled this child.' : `Child workflow ${status}.` }
-      : { status, data: payload.data };
+      : { status, data: input.data };
 
     const newResults = { ...state.results, [key]: entry };
     const newPending = state.pendingCount - 1;

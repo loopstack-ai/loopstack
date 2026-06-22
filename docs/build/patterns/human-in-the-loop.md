@@ -22,16 +22,18 @@ The custom-document pattern is the **default for predefined workflows**: the for
 A transition with `wait: true` pauses the workflow until externally triggered by user interaction:
 
 ```typescript
+import type { TransitionInput } from '@loopstack/common';
+
 @Transition({
   from: 'waiting_for_user',
   to: 'ready',
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async userMessage(state: Record<string, unknown>, payload: { message: string }): Promise<Record<string, unknown>> {
+async userMessage(state: Record<string, unknown>, input: TransitionInput<{ message: string }>): Promise<Record<string, unknown>> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload.message,
+    text: input.data.message,
   });
   return state;
 }
@@ -81,10 +83,10 @@ ui:
   wait: true,
   schema: z.string(),
 })
-async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
+async userMessage(state: Record<string, unknown>, input: TransitionInput<string>): Promise<Record<string, unknown>> {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload,
+    text: input.data,
   });
   return state;
 }
@@ -127,9 +129,9 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
   async userResponse(
     state: MeetingNotesState,
-    payload: z.infer<typeof MeetingNotesDocumentSchema>,
+    input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>,
   ): Promise<MeetingNotesState> {
-    const result = await this.documentStore.save(MeetingNotesDocument, payload, { id: 'input' });
+    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { id: 'input' });
     return { ...state, meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> };
   }
 
@@ -157,9 +159,9 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
   async confirm(
     state: MeetingNotesState,
-    payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+    input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>,
   ): Promise<unknown> {
-    await this.documentStore.save(OptimizedNotesDocument, payload, { id: 'final' });
+    await this.documentStore.save(OptimizedNotesDocument, input.data, { id: 'final' });
     return {};
   }
 }
@@ -193,18 +195,16 @@ The widget only appears when the workflow is at the `review` or `editing` place.
 
 The `wait: true` pattern above is for workflows that own their own UI. For generic prompts you don't want to design a form for, run `AskUserWorkflow` or `ConfirmUserWorkflow` from `@loopstack/hitl` as a sub-workflow and receive the answer through a callback.
 
-The callback payload is the standard sub-workflow envelope — extend `CallbackSchema` with the child's return shape so `payload.data` is typed. See [Sub-Workflows → Typing the Callback Payload](./sub-workflows.md#typing-the-callback-payload) for the full reference.
+The callback delivers the standard `TransitionInput<TData>` envelope — the `schema` on the transition describes only `data`, and `input.data` is fully typed. See [Sub-Workflows → Typing the Callback Envelope](./sub-workflows.md#typing-the-callback-envelope) for the full reference.
 
 ### `AskUserWorkflow` — free text
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
-const AnswerCallback = CallbackSchema.extend({
-  data: z.object({ answer: z.string() }),
-});
+const AnswerSchema = z.object({ answer: z.string() });
 
 @Workflow({ title: 'Ask Then Continue' })
 export class AskThenContinueWorkflow extends BaseWorkflow {
@@ -218,9 +218,9 @@ export class AskThenContinueWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerCallback })
-  async onAnswer(state: Record<string, unknown>, payload: z.infer<typeof AnswerCallback>): Promise<unknown> {
-    return { name: payload.data.answer };
+  @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerSchema })
+  async onAnswer(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>): Promise<unknown> {
+    return { name: input.data.answer };
   }
 }
 ```
@@ -241,11 +241,11 @@ await this.askUser.run(
 );
 ```
 
-The callback payload shape is the same as the free-text case (`data: { answer: string }`).
+The envelope shape is the same as the free-text case (`input.data: { answer: string }`).
 
 ### `AskUserWorkflow` — yes / no
 
-Pass `mode: 'confirm'`. The answer comes back as the literal string `'yes'` or `'no'` in `payload.data.answer` — compare directly.
+Pass `mode: 'confirm'`. The answer comes back as the literal string `'yes'` or `'no'` in `input.data.answer` — compare directly.
 
 ```typescript
 await this.askUser.run(
@@ -256,14 +256,12 @@ await this.askUser.run(
 
 ### `ConfirmUserWorkflow` — markdown review
 
-For showing a pre-rendered markdown blob (a release plan, a summary, a code diff) and receiving an explicit approve/deny, use `ConfirmUserWorkflow`. The callback `data` carries both the user's decision and the original markdown:
+For showing a pre-rendered markdown blob (a release plan, a summary, a code diff) and receiving an explicit approve/deny, use `ConfirmUserWorkflow`. The callback `input.data` carries both the user's decision and the original markdown:
 
 ```typescript
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 
-const ConfirmCallback = CallbackSchema.extend({
-  data: z.object({ confirmed: z.boolean(), markdown: z.string() }),
-});
+const ConfirmSchema = z.object({ confirmed: z.boolean(), markdown: z.string() });
 
 @Transition({ to: 'awaiting' })
 async showSummary(state: Record<string, unknown>): Promise<Record<string, unknown>> {
@@ -274,12 +272,12 @@ async showSummary(state: Record<string, unknown>): Promise<Record<string, unknow
   return state;
 }
 
-@Transition({ from: 'awaiting', to: 'end', wait: true, schema: ConfirmCallback })
+@Transition({ from: 'awaiting', to: 'end', wait: true, schema: ConfirmSchema })
 async decisionReceived(
   state: Record<string, unknown>,
-  payload: z.infer<typeof ConfirmCallback>,
+  input: TransitionInput<z.infer<typeof ConfirmSchema>>,
 ): Promise<unknown> {
-  return { confirmed: payload.data.confirmed };
+  return { confirmed: input.data.confirmed };
 }
 ```
 
@@ -294,11 +292,9 @@ Register the tool in your module and add it to the agent's tool list. A system p
 ```typescript
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
-const AgentCallback = CallbackSchema.extend({
-  data: z.object({ response: z.string() }),
-});
+const AgentResponseSchema = z.object({ response: z.string() });
 
 const SYSTEM_PROMPT = `You are a trip-planning assistant.
 - Before recommending a destination, you MUST know BOTH the user's budget AND climate preference.
@@ -323,10 +319,10 @@ export class TripPlannerWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentCallback })
-  async onComplete(state: Record<string, unknown>, payload: z.infer<typeof AgentCallback>): Promise<unknown> {
-    await this.documentStore.save(MessageDocument, { role: 'assistant', text: payload.data.response });
-    return { response: payload.data.response };
+  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentResponseSchema })
+  async onComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, { role: 'assistant', text: input.data.response });
+    return { response: input.data.response };
   }
 }
 ```

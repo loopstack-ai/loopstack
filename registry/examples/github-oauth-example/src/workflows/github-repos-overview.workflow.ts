@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import {
   GitHubGetAuthenticatedUserTool,
   GitHubGetRepoTool,
@@ -120,12 +120,8 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
     from: 'awaiting_auth',
     to: 'start',
     wait: true,
-    schema: CallbackSchema,
   })
-  async authCompleted(
-    state: GitHubReposOverviewState,
-    _payload: { workflowId: string },
-  ): Promise<GitHubReposOverviewState> {
+  async authCompleted(state: GitHubReposOverviewState, _input: TransitionInput): Promise<GitHubReposOverviewState> {
     return state;
   }
 

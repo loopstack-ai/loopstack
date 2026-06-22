@@ -156,7 +156,7 @@ Create `src/weather-chat/weather-chat.workflow.ts`:
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
@@ -190,8 +190,8 @@ export class WeatherChatWorkflow extends BaseWorkflow {
 
   // Step 2: User sends a message — save it and move to LLM generation
   @Transition({ from: 'waiting_for_user', to: 'generating', wait: true, schema: z.string() })
-  async userMessage(state: ChatState, payload: string): Promise<ChatState> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+  async userMessage(state: ChatState, input: TransitionInput<string>): Promise<ChatState> {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
     return state;
   }
 

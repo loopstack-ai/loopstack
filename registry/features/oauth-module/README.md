@@ -39,8 +39,8 @@ export class AppModule {}
 Inject `OAuthWorkflow` into your workflow and launch it as a sub-workflow when authentication is needed:
 
 ```typescript
-import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const CalendarSchema = z.object({ calendarId: z.string().default('primary') }).strict();
@@ -81,8 +81,8 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
     return !!state.requiresAuthentication;
   }
 
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true, schema: CallbackSchema })
-  async authCompleted(state: CalendarState, _payload: { workflowId: string }): Promise<CalendarState> {
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
+  async authCompleted(state: CalendarState, _input: TransitionInput): Promise<CalendarState> {
     return state;
   }
 
