@@ -22,18 +22,18 @@ type ConfirmUserArgs = z.infer<typeof ConfirmUserArgsSchema>;
 })
 export class ConfirmUserWorkflow extends BaseWorkflow<ConfirmUserArgs> {
   @Transition({ to: 'waiting_for_confirmation' })
-  async showContent(state: ConfirmUserState, ctx: RunContext<ConfirmUserArgs>): Promise<ConfirmUserState> {
+  async showContent(state: ConfirmUserState, ctx: RunContext<ConfirmUserArgs>) {
     await this.documentStore.save(ConfirmUserDocument, { markdown: ctx.args.markdown }, { id: 'content' });
-    return { ...state, markdown: ctx.args.markdown };
+    this.assignState({ markdown: ctx.args.markdown });
   }
 
   @Transition({ from: 'waiting_for_confirmation', to: 'end', wait: true })
-  async userConfirmed(state: ConfirmUserState): Promise<{ confirmed: boolean; markdown: string }> {
-    return Promise.resolve({ confirmed: true, markdown: state.markdown });
+  userConfirmed(state: ConfirmUserState) {
+    this.setResult({ confirmed: true, markdown: state.markdown } as unknown as Record<string, unknown>);
   }
 
   @Transition({ from: 'waiting_for_confirmation', to: 'end', wait: true })
-  async userDenied(state: ConfirmUserState): Promise<{ confirmed: boolean; markdown: string }> {
-    return Promise.resolve({ confirmed: false, markdown: state.markdown });
+  userDenied(state: ConfirmUserState) {
+    this.setResult({ confirmed: false, markdown: state.markdown } as unknown as Record<string, unknown>);
   }
 }

@@ -37,27 +37,25 @@ The workflow uses a custom tool to fetch calendar events, then checks for auth e
 
 ```typescript
 @Transition({ to: 'calendar_fetched' })
-async fetchEvents(state: CalendarSummaryState, ctx: RunContext<{ calendarId: string }>): Promise<CalendarSummaryState> {
+async fetchEvents(state: CalendarSummaryState, ctx: RunContext<{ calendarId: string }>) {
   const result = await this.googleCalendarFetchEvents.call({
     calendarId: ctx.args.calendarId,
     timeMin: this.now(),
     timeMax: this.endOfWeek(),
   });
-  return {
-    ...state,
+  this.assignState({
     requiresAuthentication: result.data!.error === 'unauthorized',
     events: result.data!.events,
-  };
+  });
 }
 
 @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
 @Guard('needsAuth')
-async authRequired(state: CalendarSummaryState): Promise<CalendarSummaryState> {
+async authRequired(state: CalendarSummaryState) {
   await this.oAuthWorkflow.run(
     { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
     { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
   );
-  return state;
 }
 
 needsAuth(state: CalendarSummaryState): boolean {
@@ -75,8 +73,7 @@ import type { TransitionInput } from '@loopstack/common';
   to: 'start',
   wait: true,
 })
-async authCompleted(state: CalendarSummaryState, _input: TransitionInput): Promise<CalendarSummaryState> {
-  return state;
+authCompleted(state: CalendarSummaryState, _input: TransitionInput) {
 }
 ```
 
@@ -84,11 +81,10 @@ On success, the workflow renders a markdown summary using a template:
 
 ```typescript
 @Transition({ from: 'calendar_fetched', to: 'end' })
-async displayResults(state: CalendarSummaryState): Promise<unknown> {
+async displayResults(state: CalendarSummaryState) {
   await this.documentStore.save(MarkdownDocument, {
     markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: state.events }),
   });
-  return {};
 }
 ```
 
@@ -139,7 +135,7 @@ constructor(
 }
 
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+async llmTurn(state: GoogleWorkspaceAgentState) {
   const result = await this.llmGenerateText.call(
     {},
     {
@@ -166,17 +162,17 @@ then retry. Be concise and format results using markdown.`,
       },
     },
   );
-  return { ...state, llmResult: result.data };
+  this.assignState({ llmResult: result.data });
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+async executeToolCalls(state: GoogleWorkspaceAgentState) {
   const result = await this.llmDelegateToolCalls.call({
     message: state.llmResult!.message,
     callback: { transition: 'toolResultReceived' },
   });
-  return { ...state, delegateResult: result.data };
+  this.assignState({ delegateResult: result.data });
 }
 
 hasToolCalls(state: GoogleWorkspaceAgentState): boolean {

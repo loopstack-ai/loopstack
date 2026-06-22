@@ -109,7 +109,7 @@ Transitions can access the current retry count through `ctx.execution.retryCount
 
 ```typescript
 @Transition({ from: 'fetching', to: 'done', retry: 3 })
-async fetchData(state: MyState, ctx: RunContext): Promise<MyState> {
+async fetchData(state: MyState, ctx: RunContext) {
   const attempt = (ctx.execution?.retryCount ?? 0) + 1;
   this.logger.log(`Fetch attempt ${attempt}`);
   // ...

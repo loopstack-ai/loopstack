@@ -102,12 +102,12 @@ Provide tools to the LLM via the `tools` array in the `config` option at call ti
 
 ```typescript
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn(state: ToolCallState): Promise<ToolCallState> {
+async llmTurn(state: ToolCallState) {
   const result = await this.llmGenerateText.call(
     {},
     { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
   );
-  return { ...state, llmResult: result.data };
+  this.assignState({ llmResult: result.data });
 }
 ```
 
@@ -120,9 +120,8 @@ Use the `@Guard` decorator to conditionally enable transitions. Guards reference
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'ready', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
+async executeToolCalls(state: ToolCallState) {
   await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
-  return state;
 }
 
 hasToolCalls(state: ToolCallState): boolean {
@@ -130,8 +129,7 @@ hasToolCalls(state: ToolCallState): boolean {
 }
 
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond(_state: ToolCallState): Promise<unknown> {
-  return {};
+respond(_state: ToolCallState) {
 }
 ```
 
@@ -183,25 +181,23 @@ export class ToolCallWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: ToolCallState): Promise<ToolCallState> {
+  async setup(state: ToolCallState) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'How is the weather in Berlin?' });
-    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(state: ToolCallState): Promise<ToolCallState> {
+  async llmTurn(state: ToolCallState) {
     const result = await this.llmGenerateText.call(
       {},
       { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
     );
-    return { ...state, llmResult: result.data };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'ready', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
+  async executeToolCalls(state: ToolCallState) {
     await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
-    return state;
   }
 
   hasToolCalls(state: ToolCallState): boolean {
@@ -209,9 +205,7 @@ export class ToolCallWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(_state: ToolCallState): Promise<unknown> {
-    return {};
-  }
+  respond(_state: ToolCallState) {}
 }
 ```
 

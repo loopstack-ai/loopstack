@@ -67,7 +67,7 @@ export class SandboxWorkflow extends BaseWorkflow<SandboxArgs> {
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async initSandbox(state: SandboxState, ctx: RunContext<SandboxArgs>): Promise<SandboxState> {
+  async initSandbox(state: SandboxState, ctx: RunContext<SandboxArgs>) {
     const result: ToolResult = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
@@ -75,11 +75,11 @@ export class SandboxWorkflow extends BaseWorkflow<SandboxArgs> {
       projectOutPath: ctx.args.outputDir,
       rootPath: 'workspace',
     });
-    return { ...state, containerId: result.data.containerId };
+    this.assignState({ containerId: result.data.containerId });
   }
 
   @Transition({ from: 'sandbox_ready', to: 'file_written' })
-  async writeFile(state: SandboxState): Promise<SandboxState> {
+  async writeFile(state: SandboxState) {
     await this.sandboxCreateDirectory.call({
       containerId: state.containerId!,
       path: '/workspace/src',
@@ -93,26 +93,23 @@ export class SandboxWorkflow extends BaseWorkflow<SandboxArgs> {
       encoding: 'utf8',
       createParentDirs: true,
     });
-    return state;
   }
 
   @Transition({ from: 'file_written', to: 'file_read' })
-  async readFile(state: SandboxState): Promise<SandboxState> {
+  async readFile(state: SandboxState) {
     await this.sandboxReadFile.call({
       containerId: state.containerId!,
       path: '/workspace/src/hello.js',
       encoding: 'utf8',
     });
-    return state;
   }
 
   @Transition({ from: 'file_read', to: 'end' })
-  async destroySandbox(state: SandboxState): Promise<unknown> {
+  async destroySandbox(state: SandboxState) {
     await this.sandboxDestroy.call({
       containerId: state.containerId!,
       removeContainer: true,
     });
-    return {};
   }
 }
 ```

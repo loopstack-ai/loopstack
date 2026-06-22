@@ -54,7 +54,7 @@ export class MyWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'ready', to: 'done' })
-  async bumpVersion(state: unknown, ctx: RunContext): Promise<void> {
+  async bumpVersion(state: unknown, ctx: RunContext) {
     const { data } = await this.read.call({ file_path: 'package.json' });
 
     await this.edit.call({

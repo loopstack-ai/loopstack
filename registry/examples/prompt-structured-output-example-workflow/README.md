@@ -103,13 +103,13 @@ The start `@Transition` method receives the state and context. Arguments are acc
 
 ```typescript
 @Transition({ to: 'ready' })
-async greeting(state: PromptStructuredOutputState, ctx: RunContext<{ language: string }>): Promise<PromptStructuredOutputState> {
+async greeting(state: PromptStructuredOutputState, ctx: RunContext<{ language: string }>) {
   await this.documentStore.save(
     LlmMessageDocument,
     { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
     { id: 'status' },
   );
-  return { ...state, language: ctx.args.language };
+  this.assignState({ language: ctx.args.language });
 }
 ```
 
@@ -121,7 +121,7 @@ Use `LlmGenerateObjectTool` with an `outputSchema` (converted via `toJSONSchema`
 
 ```typescript
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async prompt(state: PromptStructuredOutputState): Promise<PromptStructuredOutputState> {
+async prompt(state: PromptStructuredOutputState) {
   const result = await this.llmGenerateObject.call(
     {
       outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
@@ -134,7 +134,7 @@ async prompt(state: PromptStructuredOutputState): Promise<PromptStructuredOutput
   const llmResult = await this.documentStore.save(FileDocument, objectResult.data as FileDocumentType, {
     validate: 'skip',
   });
-  return { ...state, llmResult };
+  this.assignState({ llmResult });
 }
 ```
 
@@ -146,13 +146,12 @@ The terminal `@Transition` method updates the status message saved earlier using
 
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond(state: PromptStructuredOutputState): Promise<unknown> {
+async respond(state: PromptStructuredOutputState) {
   await this.documentStore.save(
     LlmMessageDocument,
     { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
     { id: 'status' },
   );
-  return {};
 }
 ```
 
@@ -187,20 +186,17 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   }
 
   @Transition({ to: 'ready' })
-  async greeting(
-    state: PromptStructuredOutputState,
-    ctx: RunContext<{ language: string }>,
-  ): Promise<PromptStructuredOutputState> {
+  async greeting(state: PromptStructuredOutputState, ctx: RunContext<{ language: string }>) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
       { id: 'status' },
     );
-    return { ...state, language: ctx.args.language };
+    this.assignState({ language: ctx.args.language });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async prompt(state: PromptStructuredOutputState): Promise<PromptStructuredOutputState> {
+  async prompt(state: PromptStructuredOutputState) {
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
@@ -213,17 +209,16 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     const llmResult = await this.documentStore.save(FileDocument, objectResult.data as FileDocumentType, {
       validate: 'skip',
     });
-    return { ...state, llmResult };
+    this.assignState({ llmResult });
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: PromptStructuredOutputState): Promise<unknown> {
+  async respond(state: PromptStructuredOutputState) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
       { id: 'status' },
     );
-    return {};
   }
 }
 ```

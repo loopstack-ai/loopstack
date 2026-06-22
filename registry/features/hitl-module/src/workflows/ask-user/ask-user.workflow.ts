@@ -29,36 +29,33 @@ type AskUserState = AskUserArgs;
 })
 export class AskUserWorkflow extends BaseWorkflow<AskUserArgs> {
   @Transition({ to: 'show_question' })
-  async start(state: AskUserState, ctx: RunContext<AskUserArgs>): Promise<AskUserState> {
-    return { ...state, ...ctx.args };
+  start(state: AskUserState, ctx: RunContext<AskUserArgs>) {
+    this.assignState({ ...ctx.args });
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isOptionsMode')
-  async showQuestionOptions(state: AskUserState): Promise<AskUserState> {
+  async showQuestionOptions(state: AskUserState) {
     await this.documentStore.save(
       AskUserOptionsDocument,
       { question: state.question, options: state.options ?? [], allowCustomAnswer: state.allowCustomAnswer },
       { id: 'question' },
     );
-    return state;
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isConfirmMode')
-  async showQuestionConfirm(state: AskUserState): Promise<AskUserState> {
+  async showQuestionConfirm(state: AskUserState) {
     await this.documentStore.save(AskUserConfirmDocument, { question: state.question }, { id: 'question' });
-    return state;
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user' })
-  async showQuestionText(state: AskUserState): Promise<AskUserState> {
+  async showQuestionText(state: AskUserState) {
     await this.documentStore.save(AskUserDocument, { question: state.question }, { id: 'question' });
-    return state;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'end', wait: true, schema: AskUserAnswerSchema })
-  async userAnswered(state: AskUserState, payload: { answer: string }): Promise<{ answer: string }> {
+  async userAnswered(state: AskUserState, payload: { answer: string }) {
     if (state.mode === 'options') {
       await this.documentStore.save(
         AskUserOptionsDocument,
@@ -84,7 +81,7 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs> {
       );
     }
 
-    return { answer: payload.answer };
+    this.setResult({ answer: payload.answer } as unknown as Record<string, unknown>);
   }
 
   private isOptionsMode(state: AskUserState): boolean {

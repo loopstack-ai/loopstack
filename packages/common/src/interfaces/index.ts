@@ -20,3 +20,4 @@ export * from './run-context.interface.js';
 export * from './tool-pipeline.interface.js';
 export * from './workflow-payload.interface.js';
 export * from './tool-registry.interface.js';
+export * from './execution-scope.interface.js';

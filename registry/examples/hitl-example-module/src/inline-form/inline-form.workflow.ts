@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { TransitionInput } from '@loopstack/common';
 import { FeedbackFormDocument, FeedbackFormDocumentSchema } from './feedback-form-document.js';
 
 type FeedbackPayload = z.infer<typeof FeedbackFormDocumentSchema>;
@@ -12,9 +13,8 @@ type FeedbackPayload = z.infer<typeof FeedbackFormDocumentSchema>;
 })
 export class InlineFormWorkflow extends BaseWorkflow {
   @Transition({ to: 'waiting_for_feedback' })
-  async showForm(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async showForm(_state: Record<string, unknown>) {
     await this.documentStore.save(FeedbackFormDocument, { rating: 3, comment: '' }, { id: 'feedback' });
-    return state;
   }
 
   @Transition({
@@ -23,7 +23,8 @@ export class InlineFormWorkflow extends BaseWorkflow {
     wait: true,
     schema: FeedbackFormDocumentSchema,
   })
-  async submitFeedback(state: Record<string, unknown>, payload: FeedbackPayload): Promise<unknown> {
+  async submitFeedback(state: Record<string, unknown>, input: TransitionInput<FeedbackPayload>) {
+    const payload = input.data;
     await this.documentStore.save(FeedbackFormDocument, payload, { id: 'feedback' });
 
     await this.documentStore.save(MessageDocument, {
@@ -31,6 +32,6 @@ export class InlineFormWorkflow extends BaseWorkflow {
       text: `Thanks for your feedback! Rating: ${payload.rating}/5. Comment: ${payload.comment}`,
     });
 
-    return { feedback: payload };
+    this.setResult({ feedback: payload } as unknown as Record<string, unknown>);
   }
 }

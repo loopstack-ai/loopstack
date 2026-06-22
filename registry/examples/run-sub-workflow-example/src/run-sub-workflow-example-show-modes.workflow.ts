@@ -23,12 +23,11 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'inline_started' })
-  async runInline(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async runInline(_state: Record<string, unknown>) {
     await this.sub.run(
       {},
       { callback: { transition: 'onInlineDone' }, show: 'inline', label: 'Inline embed (iframe)' },
     );
-    return state;
   }
 
   @Transition({
@@ -37,16 +36,12 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
     wait: true,
     schema: ShowMessageSchema,
   })
-  async onInlineDone(
-    state: Record<string, unknown>,
-    input: TransitionInput<{ message: string }>,
-  ): Promise<Record<string, unknown>> {
+  async onInlineDone(state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Inline child returned: ${input.data.message}`,
     });
     await this.sub.run({}, { callback: { transition: 'onLinkDone' }, show: 'link', label: 'Status link card' });
-    return state;
   }
 
   @Transition({
@@ -55,16 +50,12 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
     wait: true,
     schema: ShowMessageSchema,
   })
-  async onLinkDone(
-    state: Record<string, unknown>,
-    input: TransitionInput<{ message: string }>,
-  ): Promise<Record<string, unknown>> {
+  async onLinkDone(state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Link child returned: ${input.data.message}`,
     });
     await this.sub.run({}, { callback: { transition: 'onHiddenDone' }, show: 'hidden', label: 'Background child' });
-    return state;
   }
 
   @Transition({
@@ -73,11 +64,10 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
     wait: true,
     schema: ShowMessageSchema,
   })
-  async onHiddenDone(_state: Record<string, unknown>, input: TransitionInput<{ message: string }>): Promise<unknown> {
+  async onHiddenDone(_state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Hidden child returned: ${input.data.message} — no LinkCard was rendered for it.`,
     });
-    return {};
   }
 }

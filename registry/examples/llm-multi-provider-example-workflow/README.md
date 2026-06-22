@@ -105,7 +105,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
   }
 
   @Transition({ to: 'claude_done' })
-  async askClaude(state: LlmMultiProviderState, ctx: RunContext<LlmMultiProviderArgs>): Promise<LlmMultiProviderState> {
+  async askClaude(state: LlmMultiProviderState, ctx: RunContext<LlmMultiProviderArgs>) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.prompt });
 
     const result = await this.llmGenerateText.call(
@@ -124,11 +124,11 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
       role: 'assistant',
       text: `**Claude:** ${result.data!.message.text}`,
     });
-    return { ...state, prompt: ctx.args.prompt };
+    this.assignState({ prompt: ctx.args.prompt });
   }
 
   @Transition({ from: 'claude_done', to: 'openai_done' })
-  async askOpenAi(state: LlmMultiProviderState): Promise<LlmMultiProviderState> {
+  async askOpenAi(state: LlmMultiProviderState) {
     const result = await this.llmGenerateText.call(
       { prompt: state.prompt },
       {
@@ -145,13 +145,10 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
       role: 'assistant',
       text: `**OpenAI:** ${result.data!.message.text}`,
     });
-    return state;
   }
 
   @Transition({ from: 'openai_done', to: 'end' })
-  async done(_state: LlmMultiProviderState): Promise<unknown> {
-    return {};
-  }
+  done(_state: LlmMultiProviderState) {}
 }
 ```
 

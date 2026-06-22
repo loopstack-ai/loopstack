@@ -30,19 +30,17 @@ export class ReviewWorkflow extends BaseWorkflow {
 
   // Step 1: Call the LLM, move to waiting state
   @Transition({ to: 'waiting_for_approval' })
-  async generate(state: ReviewState): Promise<ReviewState> {
+  async generate(state: ReviewState) {
     const result = await this.llmGenerateText.call(
       { prompt: 'Write a one-paragraph product description for a coffee subscription.' },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    return { ...state, draft: result.data!.message.text };
+    this.assignState({ draft: result.data!.message.text });
   }
 
   // Step 2: Workflow pauses here until the user clicks Approve in the Studio UI
   @Transition({ from: 'waiting_for_approval', to: 'end', wait: true })
-  async approve(state: ReviewState): Promise<ReviewState> {
-    return state;
-  }
+  approve(state: ReviewState) {}
 }
 ```
 

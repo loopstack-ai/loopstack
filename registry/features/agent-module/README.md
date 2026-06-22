@@ -60,7 +60,7 @@ export class MyWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'running' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(state: Record<string, unknown>) {
     await this.agent.run(
       {
         system: 'You are a helpful assistant with access to search and summarize tools.',
@@ -69,16 +69,14 @@ export class MyWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'agentDone' }, show: 'inline', label: 'Agent working...' },
     );
-    return state;
   }
 
   @Transition({ from: 'running', to: 'end', wait: true, schema: AgentResponseSchema })
-  async agentDone(state: Record<string, unknown>, input: TransitionInput<{ response: string }>): Promise<unknown> {
+  async agentDone(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: input.data.response,
     });
-    return {};
   }
 }
 ```
@@ -140,7 +138,7 @@ export class MyChatWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'chatting' })
-  async startChat(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async startChat(state: Record<string, unknown>) {
     await this.chatAgent.run(
       {
         system: 'You are a helpful assistant.',
@@ -149,7 +147,6 @@ export class MyChatWorkflow extends BaseWorkflow {
       },
       { show: 'inline', label: 'Chat Agent' },
     );
-    return state;
   }
 }
 ```

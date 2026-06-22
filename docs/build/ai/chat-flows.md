@@ -21,25 +21,22 @@ export class ChatWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async setup(state: Record<string, unknown>) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
-    return state;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>): Promise<Record<string, unknown>> {
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
-    return state;
   }
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
-  async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async llmTurn(state: Record<string, unknown>) {
     await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-    return state;
   }
 }
 ```
@@ -115,22 +112,20 @@ Add tool calling to a chat flow by combining the patterns from [AI Tool Calling]
 
 ```typescript
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn(state: ChatState): Promise<ChatState> {
+async llmTurn(state: ChatState) {
   const result = await this.llmGenerateText.call(
     {},
     { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather', 'search_database'] } },
   );
-  return { ...state, llmResult: result.data };
+  this.assignState({ llmResult: result.data });
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: ChatState): Promise<ChatState> { ... }
+async executeToolCalls(state: ChatState) { ... }
 
 @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-async respond(state: ChatState): Promise<ChatState> {
-  return state;
-}
+respond(state: ChatState) {}
 ```
 
 ## Registry References

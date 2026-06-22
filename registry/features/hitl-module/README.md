@@ -53,21 +53,19 @@ export class MyWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(state: Record<string, unknown>) {
     await this.askUser.run(
       { question: 'What is your name?' },
       { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },
     );
-    return state;
   }
 
   @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerSchema })
-  async answerReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>): Promise<unknown> {
+  async answerReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Hello, ${input.data.answer}!`,
     });
-    return {};
   }
 }
 ```

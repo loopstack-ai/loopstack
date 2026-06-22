@@ -179,38 +179,35 @@ export class WeatherChatWorkflow extends BaseWorkflow {
 
   // Step 1: Save the system prompt (hidden from UI), then wait for first user message
   @Transition({ to: 'waiting_for_user' })
-  async setup(state: ChatState): Promise<ChatState> {
+  async setup(state: ChatState) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', text: this.render(__dirname + '/templates/system.md') },
       { meta: { hidden: true } },
     );
-    return state;
   }
 
   // Step 2: User sends a message — save it and move to LLM generation
   @Transition({ from: 'waiting_for_user', to: 'generating', wait: true, schema: z.string() })
-  async userMessage(state: ChatState, input: TransitionInput<string>): Promise<ChatState> {
+  async userMessage(state: ChatState, input: TransitionInput<string>) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
-    return state;
   }
 
   // Step 3: Call the LLM with tool access — store the result for routing
   @Transition({ from: 'generating', to: 'response_received' })
-  async llmTurn(state: ChatState): Promise<ChatState> {
+  async llmTurn(state: ChatState) {
     const result = await this.llmGenerateText.call(
       {},
       { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
     );
-    return { ...state, llmResult: result.data };
+    this.assignState({ llmResult: result.data });
   }
 
   // Step 4a: LLM requested tools — delegate runs them and saves the tool_result message
   @Transition({ from: 'response_received', to: 'generating', priority: 10 })
   @Guard('hasToolCalls')
-  async executeTools(state: ChatState): Promise<ChatState> {
+  async executeTools(state: ChatState) {
     await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
-    return state;
   }
 
   hasToolCalls(state: ChatState): boolean {
@@ -219,9 +216,7 @@ export class WeatherChatWorkflow extends BaseWorkflow {
 
   // Step 4b: LLM produced a final text response — auto-saved by llmGenerateText
   @Transition({ from: 'response_received', to: 'waiting_for_user' })
-  async saveResponse(state: ChatState): Promise<ChatState> {
-    return state;
-  }
+  saveResponse(state: ChatState) {}
 }
 ```
 

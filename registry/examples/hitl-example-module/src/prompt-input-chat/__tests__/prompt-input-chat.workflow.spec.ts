@@ -48,7 +48,7 @@ describe('PromptInputChatWorkflow', () => {
         transition: {
           id: 'userMessage',
           workflowId,
-          payload: 'Hello there',
+          payload: { data: 'Hello there' },
         },
       },
     });

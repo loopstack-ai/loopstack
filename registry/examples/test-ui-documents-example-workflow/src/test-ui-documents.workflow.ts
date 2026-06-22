@@ -14,7 +14,7 @@ import {
 })
 export class TestUiDocumentsWorkflow extends BaseWorkflow {
   @Transition({ to: 'rendered' })
-  async renderAll(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async renderAll(_state: Record<string, unknown>) {
     // Message
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -35,11 +35,8 @@ export class TestUiDocumentsWorkflow extends BaseWorkflow {
     await this.documentStore.save(PlainDocument, {
       text: 'This is plain text',
     });
-    return state;
   }
 
   @Transition({ from: 'rendered', to: 'end' })
-  async done(_state: Record<string, unknown>): Promise<unknown> {
-    return {};
-  }
+  done(_state: Record<string, unknown>) {}
 }

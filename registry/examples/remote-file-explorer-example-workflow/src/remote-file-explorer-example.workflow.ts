@@ -17,7 +17,7 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'listed' })
-  async listFiles(state: RemoteFileExplorerState): Promise<RemoteFileExplorerState> {
+  async listFiles(_state: RemoteFileExplorerState) {
     const result = await this.glob.call({ pattern: '**/*.md' });
     const files = (result.data as { files?: string[] })?.files ?? [];
 
@@ -28,17 +28,17 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow {
         .map((f) => `- ${f}`)
         .join('\n')}`,
     });
-    return { ...state, firstMatch: files[0] };
+    this.assignState({ firstMatch: files[0] });
   }
 
   @Transition({ from: 'listed', to: 'end' })
-  async readFirst(state: RemoteFileExplorerState): Promise<unknown> {
+  async readFirst(state: RemoteFileExplorerState) {
     if (!state.firstMatch) {
       await this.documentStore.save(MessageDocument, {
         role: 'assistant',
         text: 'No markdown files to read.',
       });
-      return {};
+      return;
     }
 
     const result = await this.read.call({ file_path: state.firstMatch });
@@ -48,6 +48,5 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow {
       role: 'assistant',
       text: `# ${state.firstMatch}\n\n${content.slice(0, 500)}`,
     });
-    return {};
   }
 }

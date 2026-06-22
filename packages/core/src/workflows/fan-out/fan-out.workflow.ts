@@ -87,7 +87,7 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
   }
 
   @Transition({ to: 'awaiting' })
-  async start(state: FanOutState, ctx: RunContext<FanOutInput>): Promise<FanOutState> {
+  async start(state: FanOutState, ctx: RunContext<FanOutInput>) {
     const args = ctx.args as unknown as FanOutArgs;
     const itemKeys = args.entries.map(([key]) => key);
 
@@ -106,13 +106,13 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
       });
     }
 
-    return {
+    this.assignState({
       pendingCount: itemKeys.length,
       results: {},
       itemKeys,
       itemsWereArray: args.itemsWereArray,
       mode: args.mode,
-    };
+    });
   }
 
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
@@ -120,7 +120,7 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
     state: FanOutState,
     input: TransitionInput<unknown, { key?: string }>,
     ctx: RunContext<FanOutInput>,
-  ): Promise<FanOutState> {
+  ) {
     const key = input.meta?.key;
     if (!key) {
       throw new Error('FanOut child completion missing correlation key in TransitionInput.meta.');
@@ -140,13 +140,13 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }
 
-    return { ...state, pendingCount: newPending, results: newResults };
+    this.assignState({ pendingCount: newPending, results: newResults });
   }
 
   @Transition({ from: 'awaiting', to: 'end' })
   @Guard('allComplete')
-  async done(state: FanOutState): Promise<FanOutResult> {
-    return this.buildResult(state);
+  done(state: FanOutState) {
+    this.setResult(this.buildResult(state) as unknown as Record<string, unknown>);
   }
 
   private allComplete(state: FanOutState): boolean {

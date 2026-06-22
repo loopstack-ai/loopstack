@@ -35,7 +35,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'step1_done' })
-  async setup(_state: ErrorRetryState): Promise<ErrorRetryState> {
+  async setup(_state: ErrorRetryState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: '# Error Retry Example\n\nThis workflow tests five retry/error modes in sequence.',
@@ -48,24 +48,24 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
         '(1s, then 2s). On the 3rd attempt it succeeds.\n\n' +
         '**No action required — just watch.**',
     });
-    return { autoRetryAttempts: 0, manualRetryAttempts: 0, timeoutAttempts: 0 };
+    this.assignState({ autoRetryAttempts: 0, manualRetryAttempts: 0, timeoutAttempts: 0 });
   }
 
   // -- Step 1: Auto-retry --
   @Transition({ from: 'step1_done', to: 'step2_done', retry: 2 })
-  async autoRetryStep(state: ErrorRetryState, ctx: RunContext): Promise<ErrorRetryState> {
+  async autoRetryStep(state: ErrorRetryState, ctx: RunContext) {
     const attempt = ctx.execution!.retryCount + 1;
     await this.step2Tool.call({ shouldFail: attempt <= 2 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Auto-retry succeeded on attempt ${attempt}.`,
     });
-    return { ...state, autoRetryAttempts: attempt };
+    this.assignState({ autoRetryAttempts: attempt });
   }
 
   // -- Bridge: instructions for step 2 --
   @Transition({ from: 'step2_done', to: 'step2_ready' })
-  async step2Instructions(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async step2Instructions(_state: ErrorRetryState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -73,24 +73,23 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
         'The next step will fail once. The workflow stays at the current place and shows an error.\n\n' +
         '**Click the Retry button next to the error message to re-run the failed step.**',
     });
-    return state;
   }
 
   // -- Step 2: Manual retry --
   @Transition({ from: 'step2_ready', to: 'step3_done' })
-  async manualRetryStep(state: ErrorRetryState, ctx: RunContext): Promise<ErrorRetryState> {
+  async manualRetryStep(_state: ErrorRetryState, ctx: RunContext) {
     const attempt = ctx.execution!.retryCount + 1;
     await this.step2Tool.call({ shouldFail: attempt <= 1 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Manual retry succeeded on attempt ${attempt}.`,
     });
-    return { ...state, manualRetryAttempts: attempt };
+    this.assignState({ manualRetryAttempts: attempt });
   }
 
   // -- Bridge: instructions for step 3 --
   @Transition({ from: 'step3_done', to: 'step3_ready' })
-  async step3Instructions(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async step3Instructions(_state: ErrorRetryState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -98,28 +97,25 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
         'The next step always fails and transitions to a custom error place (`error_custom`).\n\n' +
         '**Click the "Recover" button that appears below to trigger the recovery transition.**',
     });
-    return state;
   }
 
   // -- Step 3: Custom error place --
   @Transition({ from: 'step3_ready', to: 'step4_done', retry: { place: 'error_custom' } })
-  async customErrorStep(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async customErrorStep(_state: ErrorRetryState) {
     await this.step2Tool.call({ shouldFail: true });
-    return state;
   }
 
   @Transition({ from: 'error_custom', to: 'step4_done', wait: true })
-  async handleCustomError(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async handleCustomError(_state: ErrorRetryState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Recovered via custom error handler!',
     });
-    return state;
   }
 
   // -- Bridge: instructions for step 4 --
   @Transition({ from: 'step4_done', to: 'step4_ready' })
-  async step4Instructions(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async step4Instructions(_state: ErrorRetryState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -127,12 +123,11 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
         'The next step has a 2-second timeout but takes 5 seconds. It will be killed by the timeout.\n\n' +
         '**Click the Retry button — the second attempt will be fast and succeed.**',
     });
-    return state;
   }
 
   // -- Step 4: Timeout --
   @Transition({ from: 'step4_ready', to: 'step5_done', timeout: 2000 })
-  async timeoutStep(state: ErrorRetryState, ctx: RunContext): Promise<ErrorRetryState> {
+  async timeoutStep(_state: ErrorRetryState, ctx: RunContext) {
     const attempt = ctx.execution!.retryCount + 1;
     // First attempt: 5s (exceeds 2s timeout). Second attempt: instant.
     await this.slowTool.call({ delayMs: attempt <= 1 ? 5000 : 0 });
@@ -140,12 +135,12 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
       role: 'assistant',
       text: `Timeout step succeeded on attempt ${attempt}.`,
     });
-    return { ...state, timeoutAttempts: attempt };
+    this.assignState({ timeoutAttempts: attempt });
   }
 
   // -- Bridge: instructions for step 5 --
   @Transition({ from: 'step5_done', to: 'step5_ready' })
-  async step5Instructions(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async step5Instructions(_state: ErrorRetryState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -153,31 +148,27 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
         'The next step always fails. It auto-retries once, then transitions to `error_hybrid`.\n\n' +
         '**Click the "Recover" button that appears below.**',
     });
-    return state;
   }
 
   // -- Step 5: Hybrid --
   @Transition({ from: 'step5_ready', to: 'done', retry: { attempts: 1, place: 'error_hybrid' } })
-  async hybridStep(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async hybridStep(_state: ErrorRetryState) {
     await this.step2Tool.call({ shouldFail: true });
-    return state;
   }
 
   @Transition({ from: 'error_hybrid', to: 'done', wait: true })
-  async handleHybridError(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async handleHybridError(_state: ErrorRetryState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Recovered via hybrid error handler!',
     });
-    return state;
   }
 
   @Transition({ from: 'done', to: 'end' })
-  async showResult(_state: ErrorRetryState): Promise<unknown> {
+  async showResult(_state: ErrorRetryState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'All five retry modes completed successfully!',
     });
-    return {};
   }
 }

@@ -16,12 +16,11 @@ export class RunSubWorkflowExampleErrorHandlingWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'inline_awaiting' })
-  async launchInline(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launchInline(_state: Record<string, unknown>) {
     await this.failingSub.run(
       {},
       { callback: { transition: 'onInlineFinished' }, show: 'inline', label: 'Failing sub-workflow (inline)' },
     );
-    return state;
   }
 
   @Transition({
@@ -29,7 +28,7 @@ export class RunSubWorkflowExampleErrorHandlingWorkflow extends BaseWorkflow {
     to: 'link_awaiting',
     wait: true,
   })
-  async onInlineFinished(state: Record<string, unknown>, input: TransitionInput): Promise<Record<string, unknown>> {
+  async onInlineFinished(state: Record<string, unknown>, input: TransitionInput) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: input.hasError
@@ -40,7 +39,6 @@ export class RunSubWorkflowExampleErrorHandlingWorkflow extends BaseWorkflow {
       {},
       { callback: { transition: 'onLinkFinished' }, show: 'link', label: 'Failing sub-workflow (link)' },
     );
-    return state;
   }
 
   @Transition({
@@ -48,13 +46,16 @@ export class RunSubWorkflowExampleErrorHandlingWorkflow extends BaseWorkflow {
     to: 'end',
     wait: true,
   })
-  async onLinkFinished(_state: Record<string, unknown>, input: TransitionInput): Promise<unknown> {
+  async onLinkFinished(_state: Record<string, unknown>, input: TransitionInput) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: input.hasError
         ? `Link child failed (status="${input.status}"): ${input.errorMessage ?? 'unknown error'}. The parent recovered gracefully.`
         : `Link child finished normally (status="${input.status}").`,
     });
-    return { childStatus: input.status, childErrorMessage: input.errorMessage };
+    this.setResult({ childStatus: input.status, childErrorMessage: input.errorMessage } as unknown as Record<
+      string,
+      unknown
+    >);
   }
 }

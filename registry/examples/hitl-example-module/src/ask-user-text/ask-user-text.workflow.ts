@@ -16,12 +16,11 @@ export class AskUserTextWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_answer' })
-  async askName(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async askName(_state: Record<string, unknown>) {
     await this.askUserWorkflow.run(
       { question: 'What is your name?' },
       { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },
     );
-    return state;
   }
 
   @Transition({
@@ -30,11 +29,11 @@ export class AskUserTextWorkflow extends BaseWorkflow {
     wait: true,
     schema: AnswerSchema,
   })
-  async answerReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>): Promise<unknown> {
+  async answerReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Hello, ${input.data.answer}!`,
     });
-    return { name: input.data.answer };
+    this.setResult({ name: input.data.answer } as unknown as Record<string, unknown>);
   }
 }

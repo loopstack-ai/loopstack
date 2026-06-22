@@ -28,6 +28,13 @@ export interface ExecutionScopeData {
   documents: DocumentEntity[];
   persistenceState: { documentsUpdated: boolean };
   transition?: HistoryTransition;
+
+  // Per-transition state/result drafts mutated by BaseWorkflow setters
+  // (assignState / setState / assignResult / setResult). The processor seeds
+  // these before invoking the transition method and commits them on success.
+  stateDraft: Record<string, unknown>;
+  resultDraft: Record<string, unknown>;
+  resultDirty: boolean;
 }
 
 /**

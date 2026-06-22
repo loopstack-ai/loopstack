@@ -28,26 +28,23 @@ export class ChatWorkflow extends BaseWorkflow {
 
   // Manual save (1/2): seed the conversation with a hidden system prompt.
   @Transition({ to: 'waiting_for_user' })
-  async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async setup(_state: Record<string, unknown>) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
-    return state;
   }
 
   // Manual save (2/2): persist what the user typed.
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>): Promise<Record<string, unknown>> {
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
-    return state;
   }
 
   // No manual save needed — the tool persists the assistant message itself.
   @Transition({ from: 'ready', to: 'waiting_for_user' })
-  async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async llmTurn(_state: Record<string, unknown>) {
     await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-    return state;
   }
 }

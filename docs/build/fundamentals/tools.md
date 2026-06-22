@@ -247,9 +247,9 @@ constructor(private readonly myTool: SearchTool) {
 }
 
 @Transition({ from: 'ready', to: 'done' })
-async process(state: MyState): Promise<MyState> {
+async process(state: MyState) {
   const result = await this.myTool.call({ query: 'hello', limit: 5 });
-  return { ...state, searchResults: result.data };
+  this.assignState({ searchResults: result.data });
 }
 ```
 

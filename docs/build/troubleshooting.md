@@ -79,7 +79,7 @@ In your workflow:
 
 ```typescript
 @Transition({ from: 'reviewing', to: 'end', wait: true })
-async confirm(state: MyState, input: TransitionInput): Promise<unknown> {
+confirm(state: MyState, input: TransitionInput) {
   //     ↑ must match the transition: value above
 }
 ```

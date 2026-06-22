@@ -33,17 +33,16 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: SecretsAgentState): Promise<SecretsAgentState> {
+  async setup(_state: SecretsAgentState) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
-    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(state: SecretsAgentState): Promise<SecretsAgentState> {
+  async llmTurn(_state: SecretsAgentState) {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -55,17 +54,17 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
         },
       },
     );
-    return { ...state, llmResult: result.data };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: SecretsAgentState): Promise<SecretsAgentState> {
+  async executeToolCalls(state: SecretsAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   hasToolCalls(state: SecretsAgentState): boolean {
@@ -73,32 +72,27 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(state: SecretsAgentState, payload: Record<string, unknown>): Promise<SecretsAgentState> {
+  async toolResultReceived(state: SecretsAgentState, payload: Record<string, unknown>) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: payload,
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async allToolsCompleteTransition(state: SecretsAgentState): Promise<SecretsAgentState> {
-    return state;
-  }
+  allToolsCompleteTransition(_state: SecretsAgentState) {}
 
   allToolsComplete(state: SecretsAgentState): boolean {
     return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: SecretsAgentState, payload: string): Promise<SecretsAgentState> {
+  async userMessage(state: SecretsAgentState, payload: string) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
-    return state;
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(_state: SecretsAgentState): Promise<unknown> {
-    return {};
-  }
+  respond(_state: SecretsAgentState) {}
 }

@@ -98,12 +98,12 @@ async createMockData(
   ctx: WorkflowContext,
   args: { value: number },
   state: DynamicRoutingState,
-): Promise<DynamicRoutingState> {
+) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     text: `Analysing value = ${args.value}`,
   });
-  return { ...state, value: args.value };
+  this.assignState({ value: args.value });
 }
 ```
 
@@ -114,8 +114,7 @@ A guard is a method that returns a boolean. It receives workflow state as its fi
 ```typescript
 @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
 @Guard('isAbove100')
-async routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-  return state;
+routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState) {
 }
 
 isAbove100(state: DynamicRoutingState): boolean {
@@ -135,14 +134,12 @@ When multiple transitions share the same `from` state, `priority` controls evalu
 // Evaluated first (priority: 10). Taken if value > 100.
 @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
 @Guard('isAbove100')
-async routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-  return state;
+routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState) {
 }
 
 // Evaluated last (no priority). Fallback when value <= 100.
 @Transition({ from: 'prepared', to: 'placeB' })
-async routeToPlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-  return state;
+routeToPlaceB(ctx: WorkflowContext, state: DynamicRoutingState) {
 }
 ```
 
@@ -155,8 +152,7 @@ Chain conditional transitions to create decision trees. After reaching `placeA`,
 ```typescript
 @Transition({ from: 'placeA', to: 'placeC', priority: 10 })
 @Guard('isAbove200')
-async routeToPlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-  return state;
+routeToPlaceC(ctx: WorkflowContext, state: DynamicRoutingState) {
 }
 
 isAbove200(state: DynamicRoutingState): boolean {
@@ -164,8 +160,7 @@ isAbove200(state: DynamicRoutingState): boolean {
 }
 
 @Transition({ from: 'placeA', to: 'placeD' })
-async routeToPlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-  return state;
+routeToPlaceD(ctx: WorkflowContext, state: DynamicRoutingState) {
 }
 ```
 
@@ -181,12 +176,11 @@ Terminal terminal `@Transition`s save the result message:
 
 ```typescript
 @Transition({ from: 'placeB', to: 'end' })
-async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     text: 'Value is less or equal 100',
   });
-  return {};
 }
 ```
 
@@ -225,73 +219,58 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   }
 
   @Transition({ to: 'prepared' })
-  async createMockData(
-    ctx: WorkflowContext,
-    args: { value: number },
-    state: DynamicRoutingState,
-  ): Promise<DynamicRoutingState> {
+  async createMockData(ctx: WorkflowContext, args: { value: number }, state: DynamicRoutingState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Analysing value = ${args.value}`,
     });
-    return { ...state, value: args.value };
+    this.assignState({ value: args.value });
   }
 
   @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
   @Guard('isAbove100')
-  async routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-    return state;
-  }
+  routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState) {}
 
   isAbove100(state: DynamicRoutingState): boolean {
     return state.value > 100;
   }
 
   @Transition({ from: 'prepared', to: 'placeB' })
-  async routeToPlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-    return state;
-  }
+  routeToPlaceB(ctx: WorkflowContext, state: DynamicRoutingState) {}
 
   @Transition({ from: 'placeA', to: 'placeC', priority: 10 })
   @Guard('isAbove200')
-  async routeToPlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-    return state;
-  }
+  routeToPlaceC(ctx: WorkflowContext, state: DynamicRoutingState) {}
 
   isAbove200(state: DynamicRoutingState): boolean {
     return state.value > 200;
   }
 
   @Transition({ from: 'placeA', to: 'placeD' })
-  async routeToPlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
-    return state;
-  }
+  routeToPlaceD(ctx: WorkflowContext, state: DynamicRoutingState) {}
 
   @Transition({ from: 'placeB', to: 'end' })
-  async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+  async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Value is less or equal 100',
     });
-    return {};
   }
 
   @Transition({ from: 'placeC', to: 'end' })
-  async showMessagePlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+  async showMessagePlaceC(ctx: WorkflowContext, state: DynamicRoutingState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Value is greater than 200',
     });
-    return {};
   }
 
   @Transition({ from: 'placeD', to: 'end' })
-  async showMessagePlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+  async showMessagePlaceD(ctx: WorkflowContext, state: DynamicRoutingState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Value is less or equal 200, but greater than 100',
     });
-    return {};
   }
 }
 ```

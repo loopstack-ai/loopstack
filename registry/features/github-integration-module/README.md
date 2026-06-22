@@ -58,17 +58,16 @@ export class SetupProjectWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting_github' })
-  async start(state: Record<string, never>): Promise<unknown> {
+  async start(state: Record<string, never>) {
     await this.connectGitHub.run(
       {},
       { callback: { transition: 'onGitHubConnected' }, show: 'inline', label: 'Connect to GitHub' },
     );
-    return state;
   }
 
   @Transition({ from: 'awaiting_github', to: 'end', wait: true })
-  async onGitHubConnected(state: Record<string, never>, input: TransitionInput): Promise<unknown> {
-    return { github: input.data };
+  async onGitHubConnected(state: Record<string, never>, input: TransitionInput) {
+    this.setResult({ github: input.data });
   }
 }
 ```

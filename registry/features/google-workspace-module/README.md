@@ -61,7 +61,7 @@ export class GoogleAssistantWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'chatting' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(state: Record<string, unknown>) {
     await this.agent.run(
       {
         system: 'You are a Google Workspace assistant with access to Calendar, Gmail, and Drive.',
@@ -82,7 +82,6 @@ export class GoogleAssistantWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'agentDone' }, show: 'inline', label: 'Working...' },
     );
-    return state;
   }
 }
 ```

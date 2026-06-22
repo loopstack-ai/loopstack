@@ -16,12 +16,11 @@ export class AskUserConfirmWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_yes_no' })
-  async askToSend(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async askToSend(_state: Record<string, unknown>) {
     await this.askUserWorkflow.run(
       { question: 'Send the email now?', mode: 'confirm' },
       { callback: { transition: 'decisionReceived' }, show: 'inline', label: 'Waiting for yes/no...' },
     );
-    return state;
   }
 
   @Transition({
@@ -30,12 +29,12 @@ export class AskUserConfirmWorkflow extends BaseWorkflow {
     wait: true,
     schema: AnswerSchema,
   })
-  async decisionReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>): Promise<unknown> {
+  async decisionReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>) {
     const accepted = input.data.answer === 'yes';
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: accepted ? 'Sending the email now.' : 'Skipping — email was not sent.',
     });
-    return { sent: accepted };
+    this.setResult({ sent: accepted } as unknown as Record<string, unknown>);
   }
 }

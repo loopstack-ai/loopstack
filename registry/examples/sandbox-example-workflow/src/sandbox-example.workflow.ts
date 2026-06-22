@@ -109,7 +109,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async initSandbox(state: SandboxExampleState, ctx: RunContext<SandboxExampleArgs>): Promise<SandboxExampleState> {
+  async initSandbox(state: SandboxExampleState, ctx: RunContext<SandboxExampleArgs>) {
     const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
@@ -122,11 +122,11 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
     });
-    return { ...state, containerId: initResult.data!.containerId };
+    this.assignState({ containerId: initResult.data!.containerId });
   }
 
   @Transition({ from: 'sandbox_ready', to: 'dir_created' })
-  async createDir(state: SandboxExampleState): Promise<SandboxExampleState> {
+  async createDir(state: SandboxExampleState) {
     const mkdirResult: ToolResult<SandboxCreateDirectoryResult> = await this.sandboxCreateDirectory.call({
       containerId: state.containerId!,
       path: '/workspace',
@@ -137,11 +137,10 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `Directory created: ${mkdirResult.data!.path} (created: ${mkdirResult.data!.created})`,
     });
-    return state;
   }
 
   @Transition({ from: 'dir_created', to: 'file_written' })
-  async writeFile(state: SandboxExampleState): Promise<SandboxExampleState> {
+  async writeFile(state: SandboxExampleState) {
     const writeResult: ToolResult<SandboxWriteFileResult> = await this.sandboxWriteFile.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -154,11 +153,10 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
     });
-    return state;
   }
 
   @Transition({ from: 'file_written', to: 'file_read' })
-  async readFile(state: SandboxExampleState): Promise<SandboxExampleState> {
+  async readFile(state: SandboxExampleState) {
     const readResult: ToolResult<SandboxReadFileResult> = await this.sandboxReadFile.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -169,11 +167,11 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
     });
-    return { ...state, fileContent: readResult.data!.content };
+    this.assignState({ fileContent: readResult.data!.content });
   }
 
   @Transition({ from: 'file_read', to: 'dir_listed' })
-  async listDir(state: SandboxExampleState): Promise<SandboxExampleState> {
+  async listDir(state: SandboxExampleState) {
     const listResult: ToolResult<SandboxListDirectoryResult> = await this.sandboxListDirectory.call({
       containerId: state.containerId!,
       path: '/workspace',
@@ -184,11 +182,11 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
     });
-    return { ...state, fileList: listResult.data!.entries };
+    this.assignState({ fileList: listResult.data!.entries });
   }
 
   @Transition({ from: 'dir_listed', to: 'existence_checked' })
-  async checkExists(state: SandboxExampleState): Promise<SandboxExampleState> {
+  async checkExists(state: SandboxExampleState) {
     const existsResult: ToolResult<SandboxExistsResult> = await this.sandboxExists.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -198,11 +196,10 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `File existence check: ${existsResult.data!.path} exists=${existsResult.data!.exists}, type=${existsResult.data!.type}`,
     });
-    return state;
   }
 
   @Transition({ from: 'existence_checked', to: 'info_retrieved' })
-  async getInfo(state: SandboxExampleState): Promise<SandboxExampleState> {
+  async getInfo(state: SandboxExampleState) {
     const infoResult: ToolResult<SandboxFileInfoResult> = await this.sandboxFileInfo.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -212,11 +209,10 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `File info for ${infoResult.data!.name}: type=${infoResult.data!.type}, size=${infoResult.data!.size} bytes, permissions=${infoResult.data!.permissions}, owner=${infoResult.data!.owner}`,
     });
-    return state;
   }
 
   @Transition({ from: 'info_retrieved', to: 'file_deleted' })
-  async deleteFile(state: SandboxExampleState): Promise<SandboxExampleState> {
+  async deleteFile(state: SandboxExampleState) {
     const deleteResult: ToolResult<SandboxDeleteResult> = await this.sandboxDelete.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -228,11 +224,10 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `File deleted: ${deleteResult.data!.path} (deleted: ${deleteResult.data!.deleted})`,
     });
-    return state;
   }
 
   @Transition({ from: 'file_deleted', to: 'end' })
-  async destroySandbox(state: SandboxExampleState): Promise<unknown> {
+  async destroySandbox(state: SandboxExampleState) {
     const destroyResult: ToolResult<SandboxDestroyResult> = await this.sandboxDestroy.call({
       containerId: state.containerId!,
       removeContainer: true,
@@ -242,7 +237,6 @@ export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
       role: 'assistant',
       text: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
     });
-    return {};
   }
 
   private formatEntries(entries: FileEntry[]): string {

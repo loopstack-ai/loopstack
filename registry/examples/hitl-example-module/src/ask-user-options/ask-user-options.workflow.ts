@@ -18,7 +18,7 @@ export class AskUserOptionsWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_choice' })
-  async askEnvironment(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async askEnvironment(_state: Record<string, unknown>) {
     await this.askUserWorkflow.run(
       {
         question: 'Which environment should we deploy to?',
@@ -28,7 +28,6 @@ export class AskUserOptionsWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'choiceReceived' }, show: 'inline', label: 'Waiting for choice...' },
     );
-    return state;
   }
 
   @Transition({
@@ -37,13 +36,13 @@ export class AskUserOptionsWorkflow extends BaseWorkflow {
     wait: true,
     schema: AnswerSchema,
   })
-  async choiceReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>): Promise<unknown> {
+  async choiceReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>) {
     const choice = input.data.answer;
     const isCustom = !ENV_OPTIONS.includes(choice);
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: isCustom ? `Custom environment selected: ${choice}` : `Deploying to ${choice}.`,
     });
-    return { environment: choice, custom: isCustom };
+    this.setResult({ environment: choice, custom: isCustom } as unknown as Record<string, unknown>);
   }
 }

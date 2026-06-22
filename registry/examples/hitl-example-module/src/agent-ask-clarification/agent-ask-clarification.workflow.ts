@@ -24,7 +24,7 @@ export class AgentAskClarificationWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'running' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(_state: Record<string, unknown>) {
     await this.agentWorkflow.run(
       {
         system: SYSTEM_PROMPT,
@@ -33,7 +33,6 @@ export class AgentAskClarificationWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'agentComplete' }, show: 'inline', label: 'Trip planner working...' },
     );
-    return state;
   }
 
   @Transition({
@@ -42,11 +41,11 @@ export class AgentAskClarificationWorkflow extends BaseWorkflow {
     wait: true,
     schema: AgentResponseSchema,
   })
-  async agentComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>): Promise<unknown> {
+  async agentComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: input.data.response,
     });
-    return { response: input.data.response };
+    this.setResult({ response: input.data.response } as unknown as Record<string, unknown>);
   }
 }

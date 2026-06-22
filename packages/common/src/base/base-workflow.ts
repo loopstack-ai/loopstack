@@ -1,7 +1,8 @@
 import { Inject, Injectable, Type } from '@nestjs/common';
 import type { DocumentStore } from '../interfaces/document-store.interface.js';
+import type { ExecutionScopeAccessor } from '../interfaces/execution-scope.interface.js';
 import type { WorkflowOrchestrator } from '../interfaces/workflow-orchestrator.interface.js';
-import { DOCUMENT_STORE, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
+import { DOCUMENT_STORE, EXECUTION_SCOPE, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
 import type { TemplateRenderFn } from './workflow-templates.js';
 
 /**
@@ -65,9 +66,20 @@ export interface TransitionInput<TData = unknown, TMeta = unknown> {
  *   Used to type `run()` at sub-workflow call sites and `ctx.args` inside transitions
  *   (via `ctx: RunContext<TArgs>`). State is typed per-transition on the `state` parameter.
  *
- * Workflows are singletons. State flows explicitly through parameters:
- * - All transitions receive `(state, ctx)` and return `Promise<State>`
- * - Wait transitions receive `(state, payload, ctx)` and return `Promise<State>`
+ * State and result are mutated via setters, never via the return value:
+ * - `this.assignState(partial)` — shallow-merge into state
+ * - `this.setState(full)` — replace state
+ * - `this.assignResult(partial)` — shallow-merge into result
+ * - `this.setResult(full)` — replace result
+ *
+ * Transitions return nothing. Returning a non-undefined value throws at runtime.
+ * Use `async` only when the body awaits. Setters are immediately visible to
+ * subsequent code in the same transition; on error, the framework discards the
+ * draft as part of the transition rollback.
+ *
+ * Workflows are singletons. State flows through the `state` parameter:
+ * - All transitions receive `(state, ctx)` and return nothing
+ * - Wait transitions receive `(state, payload, ctx)` and return nothing
  * - `ctx` is optional (trailing param can be omitted)
  * - Args are available via `ctx.args` — type with `RunContext<TArgs>` to drop the cast
  * - Use `from: 'start'` (or omit `from`) for initial, `to: 'end'` for final
@@ -89,6 +101,9 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {
   /** @internal — injected by the framework. Routes run() through the orchestrator. */
   @Inject(WORKFLOW_ORCHESTRATOR) private readonly __orchestrator!: WorkflowOrchestrator;
 
+  /** @internal — injected by the framework. Provides per-transition draft access. */
+  @Inject(EXECUTION_SCOPE) private readonly __executionScope!: ExecutionScopeAccessor;
+
   /** Document store for saving and retrieving workflow documents. */
   @Inject(DOCUMENT_STORE) protected readonly documentStore!: DocumentStore;
 
@@ -103,5 +118,43 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {
    */
   async run(args?: TArgs, options?: RunOptions): Promise<QueueResult> {
     return this.__orchestrator.queue(this.constructor as Type, args as Record<string, unknown>, options);
+  }
+
+  /**
+   * Shallow-merge `partial` into the workflow's state. The change is visible
+   * to subsequent code in the same transition and committed on transition success.
+   */
+  protected assignState(partial: Record<string, unknown>): void {
+    Object.assign(this.__executionScope.get().stateDraft, partial);
+  }
+
+  /**
+   * Replace the workflow's state with `next`. Use for an explicit full-reset;
+   * prefer `assignState` for incremental changes.
+   */
+  protected setState(next: Record<string, unknown>): void {
+    const draft = this.__executionScope.get();
+    draft.stateDraft = { ...next };
+  }
+
+  /**
+   * Shallow-merge `partial` into the workflow's result. The result can be built
+   * up incrementally across any transitions; the final value is persisted to
+   * `WorkflowEntity.result` and returned via the API.
+   */
+  protected assignResult(partial: Record<string, unknown>): void {
+    const draft = this.__executionScope.get();
+    Object.assign(draft.resultDraft, partial);
+    draft.resultDirty = true;
+  }
+
+  /**
+   * Replace the workflow's result with `next`. Use for an explicit full-reset;
+   * prefer `assignResult` for incremental changes.
+   */
+  protected setResult(next: Record<string, unknown>): void {
+    const draft = this.__executionScope.get();
+    draft.resultDraft = { ...next };
+    draft.resultDirty = true;
   }
 }

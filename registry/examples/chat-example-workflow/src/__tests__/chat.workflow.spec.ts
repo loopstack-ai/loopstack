@@ -92,7 +92,7 @@ describe('ChatWorkflow', () => {
           transition: {
             id: 'userMessage',
             workflowId,
-            payload: 'Hello, how are you?',
+            payload: { data: 'Hello, how are you?' },
           },
         },
       });

@@ -18,7 +18,7 @@ By using this example as a reference, you'll learn how to:
 - Use constructor injection and `.run()` to start child workflows asynchronously
 - Set up callback transitions to handle sub-workflow completion
 - Type the wait transition's `data` via the `schema:` option and receive the full `TransitionInput<TData>` envelope on the method
-- Return structured data from sub-workflows via the return value of the final `@Transition` method
+- Return structured data from sub-workflows by calling `this.setResult(...)` in the final `@Transition` method
 - Control how a child appears in the parent's run view via the `show` option (`'inline'`, `'link'`, `'hidden'`)
 - Handle failed sub-workflows in the parent via `input.hasError` / `input.status` on the envelope
 - Compose complex workflows from smaller, reusable workflow components
@@ -74,18 +74,18 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
 
 #### Sub-Workflow
 
-The sub-workflow returns structured data from its final `@Transition` method. This data is delivered to the parent workflow via the callback payload:
+The sub-workflow publishes structured data via `this.setResult(...)` in its final `@Transition` method. This data is delivered to the parent workflow via the callback payload:
 
 ```typescript
 @Workflow({ uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml' })
 export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  async message(): Promise<{ message: string }> {
+  async message() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Sub workflow completed.',
     });
-    return { message: 'Hi mom!' };
+    this.setResult({ message: 'Hi mom!' });
   }
 }
 ```
@@ -175,7 +175,7 @@ async onFinished(state, input: TransitionInput) {
     role: 'assistant',
     text: `Child finished with status="${input.status}". The parent recovered gracefully.`,
   });
-  return { childStatus: input.status, errorMessage: input.errorMessage };
+  this.setResult({ childStatus: input.status, errorMessage: input.errorMessage });
 }
 ```
 

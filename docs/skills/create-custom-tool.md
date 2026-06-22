@@ -299,10 +299,9 @@ export class MyWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'end' })
-  async run(state: unknown): Promise<unknown> {
+  async run(state: unknown) {
     const result = await this.myTool.call({ query: 'hello', limit: 5 });
     // result.data contains the tool's return value
-    return state;
   }
 }
 ```

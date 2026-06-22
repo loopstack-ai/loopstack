@@ -101,9 +101,8 @@ When the workflow reaches the `ready` state, it calls the LLM to generate a resp
 
 ```typescript
 @Transition({ from: 'ready', to: 'waiting_for_user' })
-async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+async llmTurn(state: Record<string, unknown>) {
   await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-  return state;
 }
 ```
 
@@ -146,25 +145,22 @@ export class ChatWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async setup(state: Record<string, unknown>) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
-    return state;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>): Promise<Record<string, unknown>> {
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
-    return state;
   }
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
-  async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async llmTurn(state: Record<string, unknown>) {
     await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-    return state;
   }
 }
 ```

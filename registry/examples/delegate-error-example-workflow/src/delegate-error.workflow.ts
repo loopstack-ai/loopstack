@@ -46,7 +46,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: DelegateErrorState): Promise<DelegateErrorState> {
+  async setup(_state: DelegateErrorState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -61,11 +61,11 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
         'Follow the instructions in your system prompt exactly. ' +
         'Start with step 1: call strictSchema with no arguments.',
     });
-    return { ...state, turnCount: 0 };
+    this.assignState({ turnCount: 0 });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(state: DelegateErrorState): Promise<DelegateErrorState> {
+  async llmTurn(state: DelegateErrorState) {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -77,49 +77,43 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
         },
       },
     );
-    return {
-      ...state,
+    this.assignState({
       turnCount: state.turnCount + 1,
       llmResult: result.data,
-    };
+    });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: DelegateErrorState): Promise<DelegateErrorState> {
+  async executeToolCalls(state: DelegateErrorState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
-  async toolResultReceived(state: DelegateErrorState, payload: unknown): Promise<DelegateErrorState> {
+  async toolResultReceived(state: DelegateErrorState, payload: unknown) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: payload,
     });
-    return { ...state, delegateResult: result.data as LlmDelegateResult };
+    this.assignState({ delegateResult: result.data as LlmDelegateResult });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async toolsComplete(state: DelegateErrorState): Promise<DelegateErrorState> {
-    return state;
-  }
+  toolsComplete(_state: DelegateErrorState) {}
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: DelegateErrorState, ctx: RunContext): Promise<DelegateErrorState> {
+  async cancelPendingTools(state: DelegateErrorState, ctx: RunContext) {
     await this.orchestrator.cancelChildren(ctx.workflowId);
-    return state;
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
-  async respond(_state: DelegateErrorState): Promise<unknown> {
-    return {};
-  }
+  respond(_state: DelegateErrorState) {}
 
   private hasToolCalls(state: DelegateErrorState): boolean {
     return state.llmResult?.message.stopReason === 'tool_use';

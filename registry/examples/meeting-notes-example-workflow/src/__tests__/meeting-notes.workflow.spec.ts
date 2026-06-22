@@ -92,7 +92,7 @@ describe('MeetingNotesWorkflow', () => {
           transition: {
             id: 'userResponse',
             workflowId,
-            payload: { text: 'Cleaned up meeting notes from user' },
+            payload: { data: { text: 'Cleaned up meeting notes from user' } },
           },
         },
       });
@@ -144,7 +144,7 @@ describe('MeetingNotesWorkflow', () => {
           transition: {
             id: 'confirm',
             workflowId,
-            payload: optimizedPayload,
+            payload: { data: optimizedPayload },
           },
         },
       });

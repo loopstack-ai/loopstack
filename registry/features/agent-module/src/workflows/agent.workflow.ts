@@ -16,7 +16,6 @@ import {
   LlmMessageDocument,
   LlmUpdateToolResultTool,
 } from '@loopstack/llm-provider-module';
-import type { AgentRunResult } from '../types/index.js';
 
 /**
  * Generic LLM agent workflow.
@@ -67,7 +66,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: AgentState, ctx: RunContext<AgentArgs>): Promise<AgentState> {
+  async setup(state: AgentState, ctx: RunContext<AgentArgs>) {
     if (ctx.args.context) {
       await this.documentStore.save(
         LlmMessageDocument,
@@ -78,11 +77,11 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
 
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.userMessage });
 
-    return { ...state, ...ctx.args };
+    this.assignState({ ...ctx.args });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
-  async llmTurn(state: AgentState): Promise<AgentState> {
+  async llmTurn(state: AgentState) {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -94,48 +93,45 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
       },
     );
 
-    return { ...state, llmResult: result.data };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10, timeout: 120_000 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: AgentState): Promise<AgentState> {
+  async executeToolCalls(state: AgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
 
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
-  async toolResultReceived(state: AgentState, payload: unknown): Promise<AgentState> {
+  async toolResultReceived(state: AgentState, payload: unknown) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: payload,
     });
 
-    return { ...state, delegateResult: result.data as LlmDelegateResult };
+    this.assignState({ delegateResult: result.data as LlmDelegateResult });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })
   @Guard('allToolsComplete')
-  async toolsComplete(state: AgentState): Promise<AgentState> {
-    return state;
-  }
+  toolsComplete(_state: AgentState) {}
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: AgentState, ctx: RunContext): Promise<AgentState> {
+  async cancelPendingTools(state: AgentState, ctx: RunContext) {
     if (ctx.workflowId) {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }
-    return state;
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
-  async respond(state: AgentState): Promise<AgentRunResult> {
-    return { response: state.llmResult?.message.text ?? '' };
+  respond(state: AgentState) {
+    this.setResult({ response: state.llmResult?.message.text ?? '' } as unknown as Record<string, unknown>);
   }
 
   private hasToolCalls(state: AgentState): boolean {

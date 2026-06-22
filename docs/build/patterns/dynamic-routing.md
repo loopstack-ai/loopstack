@@ -12,14 +12,10 @@ Route workflows conditionally using `@Guard` decorators and `priority` to contro
 ```typescript
 @Transition({ from: 'check', to: 'high', priority: 10 })
 @Guard('isHigh')
-async routeHigh(state: MyState): Promise<MyState> {
-  return state;
-}
+routeHigh(state: MyState) {}
 
 @Transition({ from: 'check', to: 'low' })
-async routeLow(state: MyState): Promise<MyState> {
-  return state;
-}  // Fallback — no guard
+routeLow(state: MyState) {}  // Fallback — no guard
 
 isHigh(state: MyState): boolean {
   return state.value > 100;
@@ -55,25 +51,21 @@ type RoutingArgs = z.infer<typeof RoutingSchema>;
 })
 export class DynamicRoutingExampleWorkflow extends BaseWorkflow<RoutingArgs> {
   @Transition({ to: 'prepared' })
-  async createMockData(state: RoutingState, ctx: RunContext<RoutingArgs>): Promise<RoutingState> {
+  async createMockData(state: RoutingState, ctx: RunContext<RoutingArgs>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Analysing value = ${ctx.args.value}`,
     });
-    return { ...state, value: ctx.args.value };
+    this.assignState({ value: ctx.args.value });
   }
 
   // First fork: value > 100?
   @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
   @Guard('isAbove100')
-  async routeToPlaceA(state: RoutingState): Promise<RoutingState> {
-    return state;
-  }
+  routeToPlaceA(state: RoutingState) {}
 
   @Transition({ from: 'prepared', to: 'placeB' })
-  async routeToPlaceB(state: RoutingState): Promise<RoutingState> {
-    return state;
-  } // Fallback: value <= 100
+  routeToPlaceB(state: RoutingState) {} // Fallback: value <= 100
 
   isAbove100(state: RoutingState): boolean {
     return (state.value ?? 0) > 100;
@@ -82,14 +74,10 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<RoutingArgs> {
   // Second fork: value > 200?
   @Transition({ from: 'placeA', to: 'placeC', priority: 10 })
   @Guard('isAbove200')
-  async routeToPlaceC(state: RoutingState): Promise<RoutingState> {
-    return state;
-  }
+  routeToPlaceC(state: RoutingState) {}
 
   @Transition({ from: 'placeA', to: 'placeD' })
-  async routeToPlaceD(state: RoutingState): Promise<RoutingState> {
-    return state;
-  } // Fallback: 100 < value <= 200
+  routeToPlaceD(state: RoutingState) {} // Fallback: 100 < value <= 200
 
   isAbove200(state: RoutingState): boolean {
     return (state.value ?? 0) > 200;
@@ -97,24 +85,21 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<RoutingArgs> {
 
   // Terminal transitions
   @Transition({ from: 'placeB', to: 'end' })
-  async showMessagePlaceB(state: RoutingState): Promise<unknown> {
+  async showMessagePlaceB(state: RoutingState) {
     await this.documentStore.save(MessageDocument, { role: 'assistant', text: 'Value is less or equal 100' });
-    return {};
   }
 
   @Transition({ from: 'placeC', to: 'end' })
-  async showMessagePlaceC(state: RoutingState): Promise<unknown> {
+  async showMessagePlaceC(state: RoutingState) {
     await this.documentStore.save(MessageDocument, { role: 'assistant', text: 'Value is greater than 200' });
-    return {};
   }
 
   @Transition({ from: 'placeD', to: 'end' })
-  async showMessagePlaceD(state: RoutingState): Promise<unknown> {
+  async showMessagePlaceD(state: RoutingState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Value is less or equal 200, but greater than 100',
     });
-    return {};
   }
 }
 ```
@@ -138,10 +123,10 @@ Route based on LLM response (see [AI Tool Calling](../ai/tool-calling.md)):
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'ready', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: MyState): Promise<MyState> { ... }  // Run tools, loop back
+async executeToolCalls(state: MyState) { ... }  // Run tools, loop back
 
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond(state: MyState): Promise<unknown> { ... }  // Fallback: no tool calls
+async respond(state: MyState) { ... }  // Fallback: no tool calls
 
 hasToolCalls(state: MyState): boolean {
   return state.llmResult?.message.stopReason === 'tool_use';
@@ -157,10 +142,10 @@ Route based on a tool's error response:
 ```typescript
 @Transition({ from: 'fetched', to: 'auth_needed', priority: 10 })
 @Guard('needsAuth')
-async startAuth(state: MyState): Promise<MyState> { ... }
+async startAuth(state: MyState) { ... }
 
 @Transition({ from: 'fetched', to: 'end' })
-async displayResults(state: MyState): Promise<unknown> { ... }
+async displayResults(state: MyState) { ... }
 
 needsAuth(state: MyState): boolean {
   return state.fetchResult?.error === 'unauthorized';

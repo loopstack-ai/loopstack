@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
@@ -33,26 +33,22 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   }
 
   @Transition({ to: 'waiting_for_response' })
-  async createForm(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>): Promise<MeetingNotesState> {
+  async createForm(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>) {
     await this.documentStore.save(
       MeetingNotesDocument,
       { text: `Unstructured Notes:\n\n${ctx.args.inputText}` },
       { id: 'input' },
     );
-    return state;
   }
 
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
-  async userResponse(
-    state: MeetingNotesState,
-    payload: z.infer<typeof MeetingNotesDocumentSchema>,
-  ): Promise<MeetingNotesState> {
-    const result = await this.documentStore.save(MeetingNotesDocument, payload, { id: 'input' });
-    return { ...state, meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> };
+  async userResponse(state: MeetingNotesState, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
+    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { id: 'input' });
+    this.assignState({ meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> });
   }
 
   @Transition({ from: 'response_received', to: 'notes_optimized' })
-  async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
+  async optimizeNotes(state: MeetingNotesState) {
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
@@ -72,15 +68,13 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
         validate: 'skip',
       },
     );
-    return state;
   }
 
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
-  async confirm(
-    state: MeetingNotesState,
-    payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-  ): Promise<unknown> {
-    const result = await this.documentStore.save(OptimizedNotesDocument, payload, { id: 'final' });
-    return { optimizedNotes: result.content as z.infer<typeof OptimizedMeetingNotesDocumentSchema> };
+  async confirm(state: MeetingNotesState, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
+    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { id: 'final' });
+    this.setResult({
+      optimizedNotes: result.content as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+    } as unknown as Record<string, unknown>);
   }
 }

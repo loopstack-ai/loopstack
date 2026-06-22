@@ -179,7 +179,7 @@ async calculate(
   ctx: WorkflowContext,
   args: { a: number; b: number },
   state: CustomToolExampleState,
-): Promise<CustomToolExampleState> {
+) {
   const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
   const total = calcResult.data as number;
 
@@ -193,7 +193,7 @@ async calculate(
     text: `Alternatively, using workflow method:\n${args.a} + ${args.b} = ${this.sum(args.a, args.b)}`,
   });
 
-  return { ...state, total };
+  this.assignState({ total });
 }
 ```
 
@@ -220,8 +220,7 @@ Use `wait: true` on a transition to pause the workflow until it is manually trig
 
 ```typescript
 @Transition({ from: 'waiting_for_user', to: 'resumed', wait: true })
-async userContinue(ctx: WorkflowContext, state: CustomToolExampleState): Promise<CustomToolExampleState> {
-  return state;
+userContinue(ctx: WorkflowContext, state: CustomToolExampleState) {
 }
 ```
 
@@ -233,7 +232,7 @@ A terminal `@Transition` method can return data as the workflow output:
 
 ```typescript
 @Transition({ from: 'resumed', to: 'end' })
-async continueCount(ctx: WorkflowContext, state: CustomToolExampleState): Promise<{ total: number | undefined }> {
+async continueCount(ctx: WorkflowContext, state: CustomToolExampleState) {
   const c4 = await this.counterTool.call();
   const c5 = await this.counterTool.call();
   const c6 = await this.counterTool.call();
@@ -243,7 +242,7 @@ async continueCount(ctx: WorkflowContext, state: CustomToolExampleState): Promis
     text: `Counter after resume: ${c4.data}, ${c5.data}, ${c6.data}\n\nIf state persisted, this should be 4, 5, 6.`,
   });
 
-  return { total: state.total };
+  this.setResult({ total: state.total });
 }
 ```
 
@@ -293,11 +292,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async calculate(
-    ctx: WorkflowContext,
-    args: { a: number; b: number },
-    state: CustomToolExampleState,
-  ): Promise<CustomToolExampleState> {
+  async calculate(ctx: WorkflowContext, args: { a: number; b: number }, state: CustomToolExampleState) {
     const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
     const total = calcResult.data as number;
 
@@ -319,16 +314,14 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
       role: 'assistant',
       text: `Counter before pause: ${c1.data}, ${c2.data}, ${c3.data}\n\nPress Next to continue...`,
     });
-    return { ...state, total };
+    this.assignState({ total });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'resumed', wait: true })
-  async userContinue(ctx: WorkflowContext, state: CustomToolExampleState): Promise<CustomToolExampleState> {
-    return state;
-  }
+  userContinue(ctx: WorkflowContext, state: CustomToolExampleState) {}
 
   @Transition({ from: 'resumed', to: 'end' })
-  async continueCount(ctx: WorkflowContext, state: CustomToolExampleState): Promise<{ total: number | undefined }> {
+  async continueCount(ctx: WorkflowContext, state: CustomToolExampleState) {
     const c4 = await this.counterTool.call();
     const c5 = await this.counterTool.call();
     const c6 = await this.counterTool.call();
@@ -338,7 +331,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
       text: `Counter after resume: ${c4.data}, ${c5.data}, ${c6.data}\n\nIf state persisted, this should be 4, 5, 6.`,
     });
 
-    return { total: state.total };
+    this.setResult({ total: state.total });
   }
 
   private sum(a: number, b: number) {

@@ -16,7 +16,7 @@ The Workflow State Example Workflow shows how to pass data through a typed state
 By using this workflow as a reference, you'll learn how to:
 
 - Define a typed state interface for your workflow
-- Return updated state from transitions
+- Publish updated state from transitions via `this.assignState(...)`
 - Access state in subsequent transitions
 - Create private helper methods to transform state data
 
@@ -67,16 +67,16 @@ The state object is passed to each transition and persists across transitions au
 
 #### 2. Storing Data in State
 
-Return updated state from a transition method:
+Use `this.assignState(...)` to shallow-merge updates into the workflow state:
 
 ```typescript
 @Transition({ to: 'data_created' })
-async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
-  return { ...state, message: 'Hello :)' };
+createSomeData(state: WorkflowStateState) {
+  this.assignState({ message: 'Hello :)' });
 }
 ```
 
-The returned state is passed to the next transition.
+The updated state is passed to the next transition.
 
 #### 3. Accessing State in Later Transitions
 
@@ -84,7 +84,7 @@ State is available as the first parameter in any subsequent transition method:
 
 ```typescript
 @Transition({ from: 'data_created', to: 'end' })
-async showResults(state: WorkflowStateState): Promise<unknown> {
+async showResults(state: WorkflowStateState) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     text: `Data from state: ${state.message}`,
@@ -94,7 +94,6 @@ async showResults(state: WorkflowStateState): Promise<unknown> {
     role: 'assistant',
     text: `Use workflow helper method: ${this.messageInUpperCase(state.message!)}`,
   });
-  return {};
 }
 ```
 
@@ -124,12 +123,12 @@ interface WorkflowStateState {
 })
 export class WorkflowStateWorkflow extends BaseWorkflow {
   @Transition({ to: 'data_created' })
-  async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
-    return { ...state, message: 'Hello :)' };
+  createSomeData(state: WorkflowStateState) {
+    this.assignState({ message: 'Hello :)' });
   }
 
   @Transition({ from: 'data_created', to: 'end' })
-  async showResults(state: WorkflowStateState): Promise<unknown> {
+  async showResults(state: WorkflowStateState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Data from state: ${state.message}`,
@@ -139,7 +138,6 @@ export class WorkflowStateWorkflow extends BaseWorkflow {
       role: 'assistant',
       text: `Use workflow helper method: ${this.messageInUpperCase(state.message!)}`,
     });
-    return {};
   }
 
   private messageInUpperCase(message: string): string {

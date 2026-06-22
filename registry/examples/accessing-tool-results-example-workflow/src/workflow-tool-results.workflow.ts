@@ -9,20 +9,19 @@ interface ToolResultsState {
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow {
   @Transition({ to: 'data_created' })
-  async createSomeData(state: ToolResultsState): Promise<ToolResultsState> {
+  async createSomeData(_state: ToolResultsState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Stored in initial transition: Hello World.`,
     });
-    return { ...state, storedMessage: 'Hello World.' };
+    this.assignState({ storedMessage: 'Hello World.' });
   }
 
   @Transition({ from: 'data_created', to: 'end' })
-  async accessData(state: ToolResultsState): Promise<unknown> {
+  async accessData(state: ToolResultsState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Accessed from previous transition: ${state.storedMessage}`,
     });
-    return {};
   }
 }

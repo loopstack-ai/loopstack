@@ -17,7 +17,7 @@ export class RunSubWorkflowExampleFanOutWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launch(_state: Record<string, unknown>) {
     await this.fanOut.run(
       {
         items: {
@@ -28,7 +28,6 @@ export class RunSubWorkflowExampleFanOutWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'onAllDone' }, label: 'Fan-out children', show: 'link' },
     );
-    return state;
   }
 
   @Transition({
@@ -37,7 +36,7 @@ export class RunSubWorkflowExampleFanOutWorkflow extends BaseWorkflow {
     wait: true,
     schema: FanOutResultSchema,
   })
-  async onAllDone(state: Record<string, unknown>, input: TransitionInput<FanOutResultData>): Promise<unknown> {
+  async onAllDone(state: Record<string, unknown>, input: TransitionInput<FanOutResultData>) {
     const results = input.data.results as Record<string, { data?: unknown }>;
 
     for (const key of Object.keys(results)) {
@@ -49,6 +48,9 @@ export class RunSubWorkflowExampleFanOutWorkflow extends BaseWorkflow {
       });
     }
 
-    return { hasErrors: input.data.hasErrors, errorCount: input.data.errorCount };
+    this.setResult({ hasErrors: input.data.hasErrors, errorCount: input.data.errorCount } as unknown as Record<
+      string,
+      unknown
+    >);
   }
 }

@@ -32,13 +32,12 @@ Launch the agent from any workflow:
 
 ```typescript
 @Transition({ from: 'planning', to: 'implementing' })
-async runAgent(state: MyState): Promise<MyState> {
+async runAgent(state: MyState) {
   await this.agent.run({
     system: 'You are a code exploration agent. Summarize your findings.',
     tools: ['glob', 'grep', 'read'],
     userMessage: 'Find all API endpoints in the codebase.',
   }, { callback: { transition: 'agentDone' } });
-  return state;
 }
 ```
 
@@ -143,16 +142,15 @@ export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: AgentState, ctx: RunContext<MyAgentArgs>): Promise<AgentState> {
+  async setup(state: AgentState, ctx: RunContext<MyAgentArgs>) {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       text: ctx.args.instructions,
     });
-    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(state: AgentState): Promise<AgentState> {
+  async llmTurn(state: AgentState) {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -164,39 +162,35 @@ export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
         },
       },
     );
-    return { ...state, llmResult: result.data };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: AgentState): Promise<AgentState> {
+  async executeToolCalls(state: AgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
-  async toolResultReceived(state: AgentState, input: TransitionInput): Promise<AgentState> {
+  async toolResultReceived(state: AgentState, input: TransitionInput) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: input,
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async toolsComplete(state: AgentState): Promise<AgentState> {
-    return state;
-  }
+  toolsComplete(state: AgentState) {}
 
   @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
-  async respond(_state: AgentState): Promise<unknown> {
-    return {};
-  }
+  respond(_state: AgentState) {}
 
   private hasToolCalls(state: AgentState): boolean {
     return state.llmResult?.message.stopReason === 'tool_use';
@@ -222,17 +216,14 @@ Pause for user input between LLM turns:
 // Instead of final transition, go to waiting_for_user
 @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
 @Guard('isEndTurn')
-async respondToUser(state: AgentState): Promise<AgentState> {
-  return state;
-}
+respondToUser(state: AgentState) {}
 
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-async userMessage(state: AgentState, input: TransitionInput<string>): Promise<AgentState> {
+async userMessage(state: AgentState, input: TransitionInput<string>) {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
     text: input.data,
   });
-  return state;
 }
 ```
 

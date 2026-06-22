@@ -59,6 +59,15 @@ start transaction
 commit (or rollback on error)
 ```
 
+Transitions return nothing — mutate state via `this.assignState(...)`. Use `async` when the body awaits. State is mutated through four setters on `BaseWorkflow`:
+
+- `this.assignState(partial)` — shallow-merge `partial` into the current state. The most common form: `this.assignState({ counter: 1 })` leaves every other field untouched.
+- `this.setState(full)` — replace the state object outright.
+- `this.assignResult(partial)` — shallow-merge `partial` into the run's published `result` field. Use this on the final transition (or any earlier transition that wants to surface partial output) to build the value returned to callers and parent workflows.
+- `this.setResult(full)` — replace the published `result` outright.
+
+Returning a value from a transition is a runtime error — the engine throws when it sees one. Every write goes through `assignState` / `setState` / `assignResult` / `setResult`.
+
 If your transition method throws an error:
 
 1. The database transaction is **rolled back** — neither the new state nor the checkpoint is written
@@ -106,7 +115,7 @@ To configure automatic retries:
     maxDelay: 30000,   // cap at 30 seconds
   },
 })
-async callExternalApi(state: MyState): Promise<MyState> {
+async callExternalApi(state: MyState) {
   // ...
 }
 ```
@@ -164,7 +173,7 @@ Override the default for specific transitions:
   to: 'done',
   timeout: 60000,  // 1 minute for this transition
 })
-async processData(state: MyState): Promise<MyState> {
+async processData(state: MyState) {
   // ...
 }
 ```
@@ -177,15 +186,15 @@ Set `timeout: 0` to disable the timeout entirely for a specific transition.
 
 Each workflow run has a `status` from the `WorkflowState` enum, persisted on the workflow entity. The engine sets it as the run progresses.
 
-| State       | Description                                                                                                       | Set by                                                                                    |
-| ----------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `pending`   | Run created, not yet picked up by a worker (or re-queued after a wait/error).                                     | Initial value when a run is created, and again when a wait transition is resumed.         |
-| `running`   | A worker is currently executing a transition for this run.                                                        | Root processor at the start of each job.                                                  |
-| `waiting`   | Run is paused — either waiting for an external trigger (wait transition) or waiting for a retry/sub-workflow.     | Processor when a job ends without reaching `end` and without an error that fails the run. |
-| `completed` | Final transition reached `to: 'end'`. The `result` field holds the return value.                                  | Processor when a transition moves to `end`.                                               |
-| `failed`    | A transition errored and retries are exhausted (or the error has no retry).                                       | Processor on terminal failure.                                                            |
-| `canceled`  | Cancellation was requested — recursively applied to all child runs. Parent callback fires with `canceled` status. | `WorkflowOrchestrationService.cancel()`.                                                  |
-| `paused`    | Reserved — currently not set by the engine. Treated like `waiting` in queries (e.g. dashboard "action required"). | —                                                                                         |
+| State       | Description                                                                                                             | Set by                                                                                    |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `pending`   | Run created, not yet picked up by a worker (or re-queued after a wait/error).                                           | Initial value when a run is created, and again when a wait transition is resumed.         |
+| `running`   | A worker is currently executing a transition for this run.                                                              | Root processor at the start of each job.                                                  |
+| `waiting`   | Run is paused — either waiting for an external trigger (wait transition) or waiting for a retry/sub-workflow.           | Processor when a job ends without reaching `end` and without an error that fails the run. |
+| `completed` | Final transition reached `to: 'end'`. The `result` field holds whatever was published via `assignResult` / `setResult`. | Processor when a transition moves to `end`.                                               |
+| `failed`    | A transition errored and retries are exhausted (or the error has no retry).                                             | Processor on terminal failure.                                                            |
+| `canceled`  | Cancellation was requested — recursively applied to all child runs. Parent callback fires with `canceled` status.       | `WorkflowOrchestrationService.cancel()`.                                                  |
+| `paused`    | Reserved — currently not set by the engine. Treated like `waiting` in queries (e.g. dashboard "action required").       | —                                                                                         |
 
 Terminal states are `completed`, `failed`, and `canceled` — no further work is scheduled for them, and any parent sub-workflow callback fires once the terminal state is reached.
 

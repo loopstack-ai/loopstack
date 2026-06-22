@@ -70,7 +70,7 @@ export class MySandboxWorkflow extends BaseWorkflow<MySandboxArgs> {
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async createSandbox(state: SandboxState, ctx: RunContext<MySandboxArgs>): Promise<SandboxState> {
+  async createSandbox(state: SandboxState, ctx: RunContext<MySandboxArgs>) {
     const result: ToolResult<{ containerId: string; dockerId: string }> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
@@ -78,11 +78,11 @@ export class MySandboxWorkflow extends BaseWorkflow<MySandboxArgs> {
       projectOutPath: ctx.args.outputDir,
       rootPath: 'workspace',
     });
-    return { ...state, containerId: result.data!.containerId };
+    this.assignState({ containerId: result.data!.containerId });
   }
 
   @Transition({ from: 'sandbox_ready', to: 'code_executed' })
-  async runCode(state: SandboxState): Promise<SandboxState> {
+  async runCode(state: SandboxState) {
     await this.sandboxCommand.call({
       containerId: state.containerId!,
       executable: 'node',
@@ -90,16 +90,14 @@ export class MySandboxWorkflow extends BaseWorkflow<MySandboxArgs> {
       workingDirectory: '/workspace',
       timeout: 30000,
     });
-    return state;
   }
 
   @Transition({ from: 'code_executed', to: 'end' })
-  async cleanup(state: SandboxState): Promise<unknown> {
+  async cleanup(state: SandboxState) {
     await this.sandboxDestroy.call({
       containerId: state.containerId!,
       removeContainer: true,
     });
-    return {};
   }
 }
 ```

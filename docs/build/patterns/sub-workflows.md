@@ -21,12 +21,11 @@ constructor(private readonly subWorkflow: SubWorkflow) {
 
 ```typescript
 @Transition({ to: 'sub_started' })
-async start(state: MyState): Promise<MyState> {
+async start(state: MyState) {
   await this.subWorkflow.run(
     { prompt: 'Hello' },                          // Args passed to the sub-workflow
     { callback: { transition: 'onSubComplete' } }, // Method to call when done
   );
-  return state;
 }
 ```
 
@@ -63,7 +62,7 @@ The link card's status is read live from the child workflow's actual state — i
 
 ## Receiving the Callback
 
-The sub-workflow's final transition return value is passed as `input.data`:
+The sub-workflow's published `result` (built via `assignResult` / `setResult`) is passed as `input.data`:
 
 ```typescript
 import type { TransitionInput } from '@loopstack/common';
@@ -77,12 +76,11 @@ import type { TransitionInput } from '@loopstack/common';
 async onSubComplete(
   state: MyState,
   input: TransitionInput<{ message: string }>,
-): Promise<MyState> {
+) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     text: `Sub-workflow said: ${input.data.message}`,
   });
-  return state;
 }
 ```
 
@@ -107,7 +105,7 @@ interface TransitionInput<TData = unknown, TMeta = unknown> {
 | `status`       | enum             | `'completed'` / `'failed'` / `'canceled'`.                                                                 |
 | `hasError`     | `boolean`        | `true` if the trigger source ended in failure — branch on this, not on `status`.                           |
 | `errorMessage` | `string \| null` | Error message if `hasError`, otherwise `null`.                                                             |
-| `data`         | `TData`          | The validated payload (the child's final transition return value, or the user's form data).                |
+| `data`         | `TData`          | The validated payload (the child's published `result`, or the user's form data).                           |
 | `meta`         | `TMeta?`         | Optional correlation metadata passed via `callback.metadata`. Undefined for user-driven resumes.           |
 
 The `schema` on `@Transition({ wait: true })` describes **only `data`** — the framework constructs the surrounding envelope. Type the parameter via `TransitionInput<TData>`:
@@ -124,10 +122,10 @@ const AnswerSchema = z.object({ answer: z.string() });
   wait: true,
   schema: AnswerSchema,
 })
-async onAnswer(state: MyState, input: TransitionInput<{ answer: string }>): Promise<unknown> {
+onAnswer(state: MyState, input: TransitionInput<{ answer: string }>) {
   // input.workflowId, input.status, input.hasError available at the top level
   // input.data.answer is fully typed against AnswerSchema
-  return { answer: input.data.answer };
+  this.setResult({ answer: input.data.answer });
 }
 ```
 
@@ -145,21 +143,21 @@ export class RecoveringParentWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launch(state: Record<string, unknown>) {
     await this.failingSub.run({}, { callback: { transition: 'onFinished' }, show: 'link', label: 'Failing child' });
-    return state;
   }
 
   @Transition({ from: 'awaiting', to: 'end', wait: true })
-  async onFinished(state: Record<string, unknown>, input: TransitionInput): Promise<unknown> {
+  async onFinished(state: Record<string, unknown>, input: TransitionInput) {
     if (input.hasError) {
       await this.documentStore.save(MessageDocument, {
         role: 'assistant',
         text: `Child failed: ${input.errorMessage ?? 'unknown error'} — continuing with a fallback.`,
       });
-      return { recovered: true };
+      this.setResult({ recovered: true });
+      return;
     }
-    return { recovered: false };
+    this.setResult({ recovered: false });
   }
 }
 ```
@@ -173,14 +171,14 @@ For `FanOutWorkflow` and `SequenceWorkflow` the same idea applies one level deep
 
 ## Sub-Workflow Output
 
-The sub-workflow defines its output as the return value of its final transition:
+The sub-workflow defines its output by writing to the run's `result` field via `this.assignResult(...)` or `this.setResult(...)`:
 
 ```typescript
 @Workflow({ widget: __dirname + '/sub.ui.yaml' })
 export class SubWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  async start(): Promise<{ message: string }> {
-    return { message: 'Hi mom!' };
+  start() {
+    this.setResult({ message: 'Hi mom!' });
   }
 }
 ```
@@ -195,12 +193,11 @@ export class ParentWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'sub_started' })
-  async runWorkflow(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async runWorkflow(state: Record<string, unknown>) {
     await this.subWorkflow.run(
       {},
       { callback: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
     );
-    return state;
   }
 
   @Transition({
@@ -209,15 +206,11 @@ export class ParentWorkflow extends BaseWorkflow {
     wait: true,
     schema: z.object({ message: z.string() }),
   })
-  async subWorkflowCallback(
-    state: Record<string, unknown>,
-    input: TransitionInput<{ message: string }>,
-  ): Promise<unknown> {
+  async subWorkflowCallback(state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Message from sub-workflow: ${input.data.message}`,
     });
-    return {};
   }
 }
 ```
@@ -240,7 +233,7 @@ export class ParallelWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launch(state: Record<string, unknown>) {
     await this.fanOut.run(
       {
         items: {
@@ -250,14 +243,13 @@ export class ParallelWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'onAllDone' } },
     );
-    return state;
   }
 
   @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutResultSchema })
-  async onAllDone(state: Record<string, unknown>, input: TransitionInput<FanOutResultData>): Promise<unknown> {
+  onAllDone(state: Record<string, unknown>, input: TransitionInput<FanOutResultData>) {
     const user = (input.data.results as Record<string, { data?: unknown }>).user.data;
     const orders = (input.data.results as Record<string, { data?: unknown }>).orders.data;
-    return { user, orders };
+    this.setResult({ user, orders });
   }
 }
 ```
@@ -289,7 +281,7 @@ export class SequentialWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launch(state: Record<string, unknown>) {
     await this.sequence.run(
       {
         items: [
@@ -300,12 +292,11 @@ export class SequentialWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'onComplete' } },
     );
-    return state;
   }
 
   @Transition({ from: 'awaiting', to: 'end', wait: true, schema: SequenceResultSchema })
-  async onComplete(state: Record<string, unknown>, input: TransitionInput<SequenceResultData>): Promise<unknown> {
-    return { results: input.data.results };
+  onComplete(state: Record<string, unknown>, input: TransitionInput<SequenceResultData>) {
+    this.setResult({ results: input.data.results });
   }
 }
 ```

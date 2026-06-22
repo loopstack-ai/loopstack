@@ -89,7 +89,7 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
   }
 
   @Transition({ to: 'awaiting' })
-  async start(state: SequenceState, ctx: RunContext<SequenceInput>): Promise<SequenceState> {
+  async start(state: SequenceState, ctx: RunContext<SequenceInput>) {
     const args = ctx.args as unknown as SequenceArgs;
     const itemKeys = args.entries.map(([key]) => key);
 
@@ -100,22 +100,18 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
       await this.queueAt(args, 0);
     }
 
-    return {
+    this.assignState({
       currentIndex: 0,
       results: {},
       itemKeys,
       itemsWereArray: args.itemsWereArray,
       mode: args.mode,
       aborted: false,
-    };
+    });
   }
 
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
-  async onChildComplete(
-    state: SequenceState,
-    input: TransitionInput,
-    ctx: RunContext<SequenceInput>,
-  ): Promise<SequenceState> {
+  async onChildComplete(state: SequenceState, input: TransitionInput, ctx: RunContext<SequenceInput>) {
     const args = ctx.args as unknown as SequenceArgs;
     const key = state.itemKeys[state.currentIndex];
     if (!key) {
@@ -135,7 +131,8 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
 
     if (shouldContinue && nextIndex < state.itemKeys.length) {
       await this.queueAt(args, nextIndex);
-      return { ...state, currentIndex: nextIndex, results: newResults };
+      this.assignState({ currentIndex: nextIndex, results: newResults });
+      return;
     }
 
     // Either done, or aborting in mode 'all' — mark remaining as skipped.
@@ -148,18 +145,17 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
       }
     }
 
-    return {
-      ...state,
+    this.assignState({
       currentIndex: state.itemKeys.length,
       results: newResults,
       aborted: !shouldContinue,
-    };
+    });
   }
 
   @Transition({ from: 'awaiting', to: 'end' })
   @Guard('allComplete')
-  async done(state: SequenceState): Promise<SequenceResult> {
-    return this.buildResult(state);
+  done(state: SequenceState) {
+    this.setResult(this.buildResult(state) as unknown as Record<string, unknown>);
   }
 
   private allComplete(state: SequenceState): boolean {

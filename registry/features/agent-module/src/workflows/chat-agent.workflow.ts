@@ -74,7 +74,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: ChatAgentState, ctx: RunContext<ChatAgentArgs>): Promise<ChatAgentState> {
+  async setup(state: ChatAgentState, ctx: RunContext<ChatAgentArgs>) {
     if (ctx.args.context) {
       await this.documentStore.save(
         LlmMessageDocument,
@@ -85,11 +85,11 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
 
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.userMessage });
 
-    return { ...state, ...ctx.args };
+    this.assignState({ ...ctx.args });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
-  async llmTurn(state: ChatAgentState): Promise<ChatAgentState> {
+  async llmTurn(state: ChatAgentState) {
     const tools = state.taskMode ? [...state.tools, 'agent_finish'] : state.tools;
 
     const result = await this.llmGenerateText.call(
@@ -103,12 +103,12 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
       },
     );
 
-    return { ...state, llmResult: result.data };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10, timeout: 120_000 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: ChatAgentState): Promise<ChatAgentState> {
+  async executeToolCalls(state: ChatAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
@@ -117,11 +117,11 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
     const delegateResult = result.data;
     const finishResult = this.extractFinishResult(delegateResult);
 
-    return { ...state, delegateResult, finishResult };
+    this.assignState({ delegateResult, finishResult });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
-  async toolResultReceived(state: ChatAgentState, payload: unknown): Promise<ChatAgentState> {
+  async toolResultReceived(state: ChatAgentState, payload: unknown) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: payload,
@@ -130,38 +130,32 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
     const delegateResult = result.data as LlmDelegateResult;
     const finishResult = this.extractFinishResult(delegateResult);
 
-    return { ...state, delegateResult, finishResult };
+    this.assignState({ delegateResult, finishResult });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'end', priority: 20 })
   @Guard('isFinished')
-  async finished(state: ChatAgentState): Promise<unknown> {
-    return Promise.resolve(state.finishResult);
+  finished(state: ChatAgentState) {
+    this.setResult(state.finishResult as unknown as Record<string, unknown>);
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })
   @Guard('allToolsComplete')
-  async toolsComplete(state: ChatAgentState): Promise<ChatAgentState> {
-    return state;
-  }
+  toolsComplete(_state: ChatAgentState) {}
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: ChatAgentState, ctx: RunContext): Promise<ChatAgentState> {
+  async cancelPendingTools(state: ChatAgentState, ctx: RunContext) {
     if (ctx.workflowId) {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }
-    return state;
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond(state: ChatAgentState): Promise<ChatAgentState> {
-    return state;
-  }
+  respond(_state: ChatAgentState) {}
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: ChatAgentState, payload: string): Promise<ChatAgentState> {
+  async userMessage(state: ChatAgentState, payload: string) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
-    return state;
   }
 
   private hasToolCalls(state: ChatAgentState): boolean {

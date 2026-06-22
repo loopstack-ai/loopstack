@@ -69,25 +69,23 @@ export class CommitWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'staged' })
-  async checkAndStage(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async checkAndStage(state: Record<string, unknown>) {
     const status = await this.gitStatus.call();
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Status: ${JSON.stringify(status.data, null, 2)}`,
     });
     await this.gitAdd.call({ files: ['.'] });
-    return state;
   }
 
   @Transition({ from: 'staged', to: 'end' })
-  async commitAndLog(_state: Record<string, unknown>): Promise<unknown> {
+  async commitAndLog(_state: Record<string, unknown>) {
     await this.gitCommit.call({ message: 'chore: automated commit' });
     const log = await this.gitLog.call({ limit: 1 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Committed: ${JSON.stringify(log.data, null, 2)}`,
     });
-    return {};
   }
 }
 ```

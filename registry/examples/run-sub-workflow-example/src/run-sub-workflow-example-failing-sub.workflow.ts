@@ -11,7 +11,7 @@ import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/
 })
 export class RunSubWorkflowExampleFailingSubWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  async fail(_state: Record<string, unknown>): Promise<unknown> {
+  async fail(_state: Record<string, unknown>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'About to throw — this child always fails on purpose.',

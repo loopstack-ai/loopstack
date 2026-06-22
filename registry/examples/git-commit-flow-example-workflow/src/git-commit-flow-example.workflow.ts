@@ -17,34 +17,30 @@ export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'status_checked' })
-  async checkStatus(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async checkStatus(_state: Record<string, unknown>) {
     const status = await this.gitStatus.call();
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Status before commit:\n\`\`\`json\n${JSON.stringify(status.data, null, 2)}\n\`\`\``,
     });
-    return state;
   }
 
   @Transition({ from: 'status_checked', to: 'staged' })
-  async stageAll(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async stageAll(_state: Record<string, unknown>) {
     await this.gitAdd.call({ files: ['.'] });
-    return state;
   }
 
   @Transition({ from: 'staged', to: 'committed' })
-  async commit(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async commit(_state: Record<string, unknown>) {
     await this.gitCommit.call({ message: COMMIT_MESSAGE });
-    return state;
   }
 
   @Transition({ from: 'committed', to: 'end' })
-  async readBack(_state: Record<string, unknown>): Promise<unknown> {
+  async readBack(_state: Record<string, unknown>) {
     const log = await this.gitLog.call({ limit: 1 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Latest commit:\n\`\`\`json\n${JSON.stringify(log.data, null, 2)}\n\`\`\``,
     });
-    return {};
   }
 }

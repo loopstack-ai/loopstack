@@ -56,21 +56,21 @@ export class MyWorkflow extends BaseWorkflow<MyArgs> {
 
   // --- Initial transition (workflow entry point, from defaults to 'start') ---
   @Transition({ to: 'ready' })
-  async setup(state: MyState, ctx: RunContext<MyArgs>): Promise<MyState> {
-    return { ...state, message: `Hello, ${ctx.args.name}!` };
+  setup(state: MyState, ctx: RunContext<MyArgs>) {
+    this.assignState({ message: `Hello, ${ctx.args.name}!` });
   }
 
   // --- Regular transition ---
   @Transition({ from: 'ready', to: 'processed' })
-  async process(state: MyState): Promise<MyState> {
+  async process(state: MyState) {
     const result = await this.myTool.call({ query: state.message! });
-    return { ...state, total: result.data };
+    this.assignState({ total: result.data });
   }
 
   // --- Final transition (to: 'end' completes the workflow) ---
   @Transition({ from: 'processed', to: 'end' })
-  async finish(state: MyState): Promise<MyState> {
-    return state;
+  finish(state: MyState) {
+    this.setResult({ total: state.total });
   }
 
   // --- Regular helper method ---
@@ -131,15 +131,15 @@ Defines a state transition. All transitions use this single decorator.
 ```typescript
 // Initial transition (from defaults to 'start')
 @Transition({ to: 'ready' })
-async setup(state: MyState, ctx: RunContext): Promise<MyState> { ... }
+async setup(state: MyState, ctx: RunContext) { ... }
 
 // Regular transition
 @Transition({ from: 'ready', to: 'processed' })
-async doWork(state: MyState): Promise<MyState> { ... }
+async doWork(state: MyState) { ... }
 
 // Final transition (to: 'end' completes the workflow)
 @Transition({ from: 'done', to: 'end' })
-async finish(state: MyState): Promise<MyState> { ... }
+async finish(state: MyState) { ... }
 
 // Wait for external callback
 @Transition({
@@ -148,12 +148,12 @@ async finish(state: MyState): Promise<MyState> { ... }
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async onCallback(state: MyState, input: TransitionInput<{ message: string }>): Promise<MyState> { ... }
+async onCallback(state: MyState, input: TransitionInput<{ message: string }>) { ... }
 
 // Multiple source places
 @Transition({ from: 'ready', to: 'prompt_executed' })
 @Transition({ from: 'tools_done', to: 'prompt_executed' })
-async llmTurn(state: MyState): Promise<MyState> { ... }
+async llmTurn(state: MyState) { ... }
 ```
 
 Options:
@@ -171,11 +171,11 @@ Conditional routing. The referenced method must return a boolean. Use with `prio
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: MyState): Promise<MyState> { ... }
+async executeToolCalls(state: MyState) { ... }
 
 // Fallback — no guard, lower/no priority
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond(state: MyState): Promise<unknown> { ... }
+async respond(state: MyState) { ... }
 
 hasToolCalls(state: MyState): boolean {
   return state.llmResult?.message.stopReason === 'tool_use';
@@ -184,7 +184,16 @@ hasToolCalls(state: MyState): boolean {
 
 ## State Management
 
-State is managed through a typed interface, passed as the first parameter to transitions and returned from each one. State is automatically persisted across transitions.
+Transitions return nothing — mutate state via `this.assignState(...)`. Use `async` when the body awaits. Read state via the `state` parameter; write it through setters on `BaseWorkflow`:
+
+| Setter                       | Effect                                                                                                            |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `this.assignState(partial)`  | Shallow-merge `partial` into the current state. Most common.                                                      |
+| `this.setState(full)`        | Replace state outright.                                                                                           |
+| `this.assignResult(partial)` | Shallow-merge `partial` into the workflow's published `result` (returned to parent callbacks / `WorkflowRunner`). |
+| `this.setResult(full)`       | Replace the published `result` outright.                                                                          |
+
+Returning a value from a transition is a runtime error.
 
 ```typescript
 interface MyState {
@@ -195,9 +204,9 @@ interface MyState {
 
 export class MyWorkflow extends BaseWorkflow<MyArgs> {
   @Transition({ from: 'ready', to: 'processed' })
-  async process(state: MyState): Promise<MyState> {
+  async process(state: MyState) {
     const result = await this.myTool.call({ ... });
-    return { ...state, llmResult: result.data, counter: state.counter + 1 };
+    this.assignState({ llmResult: result.data, counter: state.counter + 1 });
   }
 }
 ```
@@ -297,10 +306,10 @@ When multiple transitions share the same `from` place:
 ```typescript
 @Transition({ from: 'check', to: 'high', priority: 10 })
 @Guard('isHigh')
-async routeHigh(state: MyState): Promise<MyState> { return state; }
+routeHigh(state: MyState) {}
 
 @Transition({ from: 'check', to: 'low' })
-async routeLow(state: MyState): Promise<MyState> { return state; }  // fallback — no guard
+routeLow(state: MyState) {}  // fallback — no guard
 
 isHigh(state: MyState): boolean {
   return state.value > 100;
@@ -315,8 +324,8 @@ Use `wait: true` to pause the workflow until an external trigger (user input, su
 import type { TransitionInput } from '@loopstack/common';
 
 @Transition({ from: 'responded', to: 'waiting_for_user' })
-async waitForUser(state: MyState): Promise<MyState> {
-  return state; // Moves to waiting_for_user, where the wait transition pauses
+waitForUser(state: MyState) {
+  // Moves to waiting_for_user, where the wait transition pauses
 }
 
 @Transition({
@@ -325,12 +334,11 @@ async waitForUser(state: MyState): Promise<MyState> {
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async userMessage(state: MyState, input: TransitionInput<{ message: string }>): Promise<MyState> {
+async userMessage(state: MyState, input: TransitionInput<{ message: string }>) {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
     text: input.data.message,
   });
-  return state;
 }
 ```
 
@@ -344,12 +352,11 @@ Inject sub-workflows via the constructor and use `.run()` to execute them asynch
 constructor(private readonly subWorkflow: SubWorkflow) { super(); }
 
 @Transition({ to: 'sub_started' })
-async start(state: MyState): Promise<MyState> {
+async start(state: MyState) {
   await this.subWorkflow.run(
     { prompt: 'Hello' },                                                       // args
     { callback: { transition: 'onSubComplete' }, show: 'inline', label: 'Running sub-workflow...' },
   );
-  return state;
 }
 
 @Transition({
@@ -358,10 +365,9 @@ async start(state: MyState): Promise<MyState> {
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async onSubComplete(state: MyState, input: TransitionInput<{ message: string }>): Promise<MyState> {
-  // input.data contains the sub-workflow's final transition return value
+onSubComplete(state: MyState, input: TransitionInput<{ message: string }>) {
+  // input.data contains the sub-workflow's published result
   // input.hasError / input.errorMessage are populated if the child failed
-  return state;
 }
 ```
 
@@ -369,12 +375,12 @@ async onSubComplete(state: MyState, input: TransitionInput<{ message: string }>)
 
 ## Workflow Output
 
-The return value from the final transition (`to: 'end'`) is the workflow's output. This is automatically passed to the parent workflow's callback when used as a sub-workflow.
+Publish the workflow's output via `this.assignResult(...)` or `this.setResult(...)` — that value is what `WorkflowRunner` callers receive and what flows into a parent workflow's callback when this workflow runs as a sub-workflow.
 
 ```typescript
 @Transition({ from: 'done', to: 'end' })
-async finish(state: MyState): Promise<{ concept: string }> {
-  return { concept: state.confirmedConcept! };
+finish(state: MyState) {
+  this.setResult({ concept: state.confirmedConcept! });
 }
 ```
 
@@ -427,14 +433,13 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
   }
 
   @Transition({ to: 'end' })
-  async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>): Promise<unknown> {
+  async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>) {
     await this.llmGenerateText.call(
       {
         prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    return {};
   }
 }
 ```
@@ -455,26 +460,20 @@ type RoutingArgs = z.infer<typeof RoutingSchema>;
 })
 export class RoutingWorkflow extends BaseWorkflow<RoutingArgs> {
   @Transition({ to: 'prepared' })
-  async setup(state: RoutingState, ctx: RunContext<RoutingArgs>): Promise<RoutingState> {
-    return { ...state, value: ctx.args.value };
+  setup(state: RoutingState, ctx: RunContext<RoutingArgs>) {
+    this.assignState({ value: ctx.args.value });
   }
 
   @Transition({ from: 'prepared', to: 'high', priority: 10 })
   @Guard('isAbove200')
-  async routeHigh(state: RoutingState): Promise<RoutingState> {
-    return state;
-  }
+  routeHigh(state: RoutingState) {}
 
   @Transition({ from: 'prepared', to: 'medium', priority: 5 })
   @Guard('isAbove100')
-  async routeMedium(state: RoutingState): Promise<RoutingState> {
-    return state;
-  }
+  routeMedium(state: RoutingState) {}
 
   @Transition({ from: 'prepared', to: 'low' })
-  async routeLow(state: RoutingState): Promise<RoutingState> {
-    return state;
-  }
+  routeLow(state: RoutingState) {}
 
   isAbove200(state: RoutingState): boolean {
     return state.value > 200;
@@ -484,19 +483,13 @@ export class RoutingWorkflow extends BaseWorkflow<RoutingArgs> {
   }
 
   @Transition({ from: 'high', to: 'end' })
-  async showHigh(state: RoutingState): Promise<unknown> {
-    return {};
-  }
+  showHigh(state: RoutingState) {}
 
   @Transition({ from: 'medium', to: 'end' })
-  async showMedium(state: RoutingState): Promise<unknown> {
-    return {};
-  }
+  showMedium(state: RoutingState) {}
 
   @Transition({ from: 'low', to: 'end' })
-  async showLow(state: RoutingState): Promise<unknown> {
-    return {};
-  }
+  showLow(state: RoutingState) {}
 }
 ```
 
@@ -525,31 +518,30 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: ChatState, ctx: RunContext<ChatArgs>): Promise<ChatState> {
+  async setup(state: ChatState, ctx: RunContext<ChatArgs>) {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       text: ctx.args.prompt,
     });
-    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   @Transition({ from: 'tools_done', to: 'prompt_executed' })
-  async llmTurn(state: ChatState): Promise<ChatState> {
+  async llmTurn(state: ChatState) {
     const result = await this.llmGenerateText.call(
       {},
       { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
     );
-    return { ...state, llmResult: result.data };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: ChatState): Promise<ChatState> {
+  async executeToolCalls(state: ChatState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   hasToolCalls(state: ChatState): boolean {
@@ -558,28 +550,24 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
 
   @Transition({ from: 'awaiting_tools', to: 'tools_done' })
   @Guard('allToolsComplete')
-  async toolsComplete(state: ChatState): Promise<ChatState> {
-    return state;
-  }
+  toolsComplete(state: ChatState) {}
 
   allToolsComplete(state: ChatState): boolean {
     return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(_state: ChatState): Promise<unknown> {
-    return {};
-  }
+  respond(_state: ChatState) {}
 }
 ```
 
 ## Workflow Lifecycle
 
 1. Workflow starts — initial transition (from `'start'`) fires, args available via `ctx.args`
-2. Transitions fire automatically in sequence
+2. Transitions fire automatically in sequence — each writes state via `this.assignState(...)` / `this.setState(...)` (use `async` when the body awaits)
 3. Tool calls execute via `await this.tool.call(args)` in transition methods
-4. State is the return value of each transition, passed to the next
-5. If a transition targets `'end'`, workflow completes and returns its state
+4. The published `result` (built via `this.assignResult(...)` / `this.setResult(...)`) is the workflow's output
+5. If a transition targets `'end'`, workflow completes and exposes its published `result`
 6. If a `wait: true` transition is reached, workflow pauses until externally triggered
 7. `@Guard` methods control routing when multiple transitions share a `from` place
 8. On error, the workflow fails (or use try/catch in method bodies)
@@ -590,10 +578,10 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
 2. Inject tools and sub-workflows via constructor — call via `await this.tool.call(args)`
 3. Define `@Transition({ to })` method for workflow entry (from defaults to `'start'`) — access args via `ctx.args`
 4. Define `@Transition({ from, to })` methods for intermediate steps
-5. Define `@Transition({ from, to: 'end' })` method for completion
+5. Define `@Transition({ from, to: 'end' })` method for completion — publish output via `this.setResult(...)`
 6. Use `wait: true` + `schema` for callback/user-input transitions
 7. Use `@Guard('methodName')` + `priority` for conditional routing
-8. State is passed as the first parameter and returned from each transition
+8. Transitions return nothing — mutate state via `this.assignState(...)` / `this.setState(...)`. Use `async` when the body awaits.
 9. Write YAML config with UI widgets only (no transitions)
 10. Register workflow as provider in a NestJS `@Module()`
 11. Add `@StudioApp({ title, workflows: [MyWorkflow] })` to the module so workflows appear in Studio

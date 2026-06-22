@@ -30,12 +30,11 @@ import type { TransitionInput } from '@loopstack/common';
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async userMessage(state: Record<string, unknown>, input: TransitionInput<{ message: string }>): Promise<Record<string, unknown>> {
+async userMessage(state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
     text: input.data.message,
   });
-  return state;
 }
 ```
 
@@ -83,12 +82,11 @@ ui:
   wait: true,
   schema: z.string(),
 })
-async userMessage(state: Record<string, unknown>, input: TransitionInput<string>): Promise<Record<string, unknown>> {
+async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
     text: input.data,
   });
-  return state;
 }
 ```
 
@@ -120,24 +118,20 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   }
 
   @Transition({ to: 'waiting_for_response' })
-  async createForm(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>): Promise<MeetingNotesState> {
+  async createForm(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>) {
     await this.documentStore.save(MeetingNotesDocument, { text: ctx.args.inputText }, { id: 'input' });
-    return state;
   }
 
   // Wait for user to edit and submit
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
-  async userResponse(
-    state: MeetingNotesState,
-    input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>,
-  ): Promise<MeetingNotesState> {
+  async userResponse(state: MeetingNotesState, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
     const result = await this.documentStore.save(MeetingNotesDocument, input.data, { id: 'input' });
-    return { ...state, meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> };
+    this.assignState({ meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> });
   }
 
   // AI generates structured output
   @Transition({ from: 'response_received', to: 'notes_optimized' })
-  async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
+  async optimizeNotes(state: MeetingNotesState) {
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
@@ -152,17 +146,12 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
       objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
       { id: 'final', validate: 'skip' },
     );
-    return state;
   }
 
   // Wait for user to confirm
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
-  async confirm(
-    state: MeetingNotesState,
-    input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>,
-  ): Promise<unknown> {
+  async confirm(state: MeetingNotesState, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
     await this.documentStore.save(OptimizedNotesDocument, input.data, { id: 'final' });
-    return {};
   }
 }
 ```
@@ -213,14 +202,13 @@ export class AskThenContinueWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting' })
-  async ask(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async ask(state: Record<string, unknown>) {
     await this.askUser.run({ question: 'What is your name?' }, { callback: { transition: 'onAnswer' } });
-    return state;
   }
 
   @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerSchema })
-  async onAnswer(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>): Promise<unknown> {
-    return { name: input.data.answer };
+  onAnswer(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>) {
+    this.setResult({ name: input.data.answer });
   }
 }
 ```
@@ -264,20 +252,19 @@ import { ConfirmUserWorkflow } from '@loopstack/hitl';
 const ConfirmSchema = z.object({ confirmed: z.boolean(), markdown: z.string() });
 
 @Transition({ to: 'awaiting' })
-async showSummary(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+async showSummary(state: Record<string, unknown>) {
   await this.confirmUser.run(
     { markdown: '## Ready to deploy v1.2.3?\n\n- 3 commits since last release\n- Smoke tests passing' },
     { callback: { transition: 'decisionReceived' } },
   );
-  return state;
 }
 
 @Transition({ from: 'awaiting', to: 'end', wait: true, schema: ConfirmSchema })
-async decisionReceived(
+decisionReceived(
   state: Record<string, unknown>,
   input: TransitionInput<z.infer<typeof ConfirmSchema>>,
-): Promise<unknown> {
-  return { confirmed: input.data.confirmed };
+) {
+  this.setResult({ confirmed: input.data.confirmed });
 }
 ```
 
@@ -307,7 +294,7 @@ export class TripPlannerWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'running' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(state: Record<string, unknown>) {
     await this.agent.run(
       {
         system: SYSTEM_PROMPT,
@@ -316,13 +303,12 @@ export class TripPlannerWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'onComplete' } },
     );
-    return state;
   }
 
   @Transition({ from: 'running', to: 'end', wait: true, schema: AgentResponseSchema })
-  async onComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>): Promise<unknown> {
+  async onComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
     await this.documentStore.save(MessageDocument, { role: 'assistant', text: input.data.response });
-    return { response: input.data.response };
+    this.setResult({ response: input.data.response });
   }
 }
 ```

@@ -9,12 +9,12 @@ interface WorkflowStateState {
 })
 export class WorkflowStateWorkflow extends BaseWorkflow {
   @Transition({ to: 'data_created' })
-  async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
-    return { ...state, message: 'Hello :)' };
+  createSomeData(_state: WorkflowStateState) {
+    this.assignState({ message: 'Hello :)' });
   }
 
   @Transition({ from: 'data_created', to: 'end' })
-  async showResults(state: WorkflowStateState): Promise<unknown> {
+  async showResults(state: WorkflowStateState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Data from state: ${state.message}`,
@@ -24,7 +24,6 @@ export class WorkflowStateWorkflow extends BaseWorkflow {
       role: 'assistant',
       text: `Use workflow helper method: ${this.messageInUpperCase(state.message!)}`,
     });
-    return {};
   }
 
   private messageInUpperCase(message: string): string {

@@ -26,16 +26,16 @@ interface SecretsRequestState {
 })
 export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs> {
   @Transition({ to: 'requesting_secrets' })
-  async showForm(state: SecretsRequestState, ctx: RunContext<SecretsRequestArgs>): Promise<SecretsRequestState> {
+  async showForm(state: SecretsRequestState, ctx: RunContext<SecretsRequestArgs>) {
     await this.documentStore.save(SecretRequestDocument, {
       variables: ctx.args.variables,
     });
 
-    return { ...state, variables: ctx.args.variables };
+    this.assignState({ variables: ctx.args.variables });
   }
 
   @Transition({ from: 'requesting_secrets', to: 'end', wait: true })
-  async secretsSubmitted(_state: SecretsRequestState): Promise<{ success: boolean }> {
-    return Promise.resolve({ success: true });
+  secretsSubmitted(_state: SecretsRequestState) {
+    this.setResult({ success: true } as unknown as Record<string, unknown>);
   }
 }

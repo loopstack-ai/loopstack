@@ -17,7 +17,7 @@ export class RunSubWorkflowExampleSequenceWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launch(_state: Record<string, unknown>) {
     await this.sequence.run(
       {
         items: [
@@ -28,7 +28,6 @@ export class RunSubWorkflowExampleSequenceWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'onComplete' }, label: 'Sequence children', show: 'link' },
     );
-    return state;
   }
 
   @Transition({
@@ -37,7 +36,7 @@ export class RunSubWorkflowExampleSequenceWorkflow extends BaseWorkflow {
     wait: true,
     schema: SequenceResultSchema,
   })
-  async onComplete(state: Record<string, unknown>, input: TransitionInput<SequenceResultData>): Promise<unknown> {
+  async onComplete(state: Record<string, unknown>, input: TransitionInput<SequenceResultData>) {
     const results = input.data.results as Array<{ key: string; data?: unknown }>;
 
     for (const entry of results) {
@@ -48,6 +47,9 @@ export class RunSubWorkflowExampleSequenceWorkflow extends BaseWorkflow {
       });
     }
 
-    return { hasErrors: input.data.hasErrors, errorCount: input.data.errorCount };
+    this.setResult({ hasErrors: input.data.hasErrors, errorCount: input.data.errorCount } as unknown as Record<
+      string,
+      unknown
+    >);
   }
 }

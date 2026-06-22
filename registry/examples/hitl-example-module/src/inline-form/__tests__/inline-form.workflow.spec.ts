@@ -52,7 +52,7 @@ describe('InlineFormWorkflow', () => {
         transition: {
           id: 'submitFeedback',
           workflowId,
-          payload: { rating: 5, comment: 'Loved it' },
+          payload: { data: { rating: 5, comment: 'Loved it' } },
         },
       },
     });

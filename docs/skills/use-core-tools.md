@@ -48,25 +48,24 @@ const SubWorkflowMessageSchema = z.object({ message: z.string() });
   wait: true,
   schema: SubWorkflowMessageSchema,
 })
-async onSubComplete(state: MyState, input: TransitionInput<{ message: string }>): Promise<MyState> {
+onSubComplete(state: MyState, input: TransitionInput<{ message: string }>) {
   // input.workflowId — the sub-workflow's ID
   // input.status — 'completed' | 'failed' | 'canceled'
   // input.hasError / input.errorMessage — populated if the child failed
-  // input.data — the sub-workflow's final transition return value (validated against schema)
+  // input.data — the sub-workflow's published result (validated against schema)
   const message = input.data.message;
-  return state;
 }
 ```
 
 ### Sub-workflow output
 
-The sub-workflow's final transition (`to: 'end'`) return value is passed as `input.data` in the parent's callback:
+The sub-workflow's published `result` (written via `this.assignResult(...)` / `this.setResult(...)`) is passed as `input.data` in the parent's callback:
 
 ```typescript
 // In the sub-workflow:
 @Transition({ from: 'done', to: 'end' })
-async finish(state: SubState): Promise<{ message: string }> {
-  return { message: 'Hi mom!' };
+finish(state: SubState) {
+  this.setResult({ message: 'Hi mom!' });
 }
 ```
 

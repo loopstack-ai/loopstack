@@ -71,15 +71,15 @@ interface PromptState {
 }
 
 @Transition({ to: 'prompt_executed' })
-async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
+async prompt(state: PromptState, ctx: RunContext) {
   const result = await this.llmGenerateText.call(
     { prompt: 'Write a haiku' },
     { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
   );
-  return {
+  this.assignState({
     llmResult: result.data,
     llmMeta: result.metadata as LlmResultMeta | undefined,
-  };
+  });
 }
 ```
 

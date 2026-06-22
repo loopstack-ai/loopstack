@@ -39,12 +39,11 @@ The workflow uses `@Guard` to check if authentication is needed and routes to th
 ```typescript
 @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
 @Guard('needsAuth')
-async authRequired(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
+async authRequired(state: GitHubReposOverviewState) {
   await this.oAuthWorkflow.run(
     { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
     { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
   );
-  return state;
 }
 
 needsAuth(state: GitHubReposOverviewState): boolean {
@@ -62,8 +61,7 @@ import type { TransitionInput } from '@loopstack/common';
   to: 'start',
   wait: true,
 })
-async authCompleted(state: GitHubReposOverviewState, _input: TransitionInput): Promise<GitHubReposOverviewState> {
-  return state;
+authCompleted(state: GitHubReposOverviewState, _input: TransitionInput) {
 }
 ```
 
@@ -129,7 +127,7 @@ constructor(
 }
 
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn(state: GitHubAgentState): Promise<GitHubAgentState> {
+async llmTurn(state: GitHubAgentState) {
   const result = await this.llmGenerateText.call(
     {},
     {
@@ -153,17 +151,17 @@ to let the user sign in, then retry. Be concise and format results using markdow
       },
     },
   );
-  return { ...state, llmResult: result.data };
+  this.assignState({ llmResult: result.data });
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: GitHubAgentState): Promise<GitHubAgentState> {
+async executeToolCalls(state: GitHubAgentState) {
   const result = await this.llmDelegateToolCalls.call({
     message: state.llmResult!.message,
     callback: { transition: 'toolResultReceived' },
   });
-  return { ...state, delegateResult: result.data };
+  this.assignState({ delegateResult: result.data });
 }
 
 hasToolCalls(state: GitHubAgentState): boolean {

@@ -145,6 +145,10 @@ export class WorkflowProcessorService implements Processor {
       documents: meta.documents,
       persistenceState: meta.persistenceState,
       transition: undefined,
+      // Re-seeded before each transition; initial values never read
+      stateDraft: {},
+      resultDraft: {},
+      resultDirty: false,
     };
 
     this.logger.debug(`Process state machine for workflow ${workflow.constructor.name}`);
@@ -206,8 +210,13 @@ export class WorkflowProcessorService implements Processor {
   /**
    * Invoke a transition method with the (state, ...rest, ctx) calling convention.
    *
-   * - Auto transitions (including initial and final): method(state, ctx) → Promise<TState>
-   * - Wait transitions: method(state, payload, ctx) → Promise<TState>
+   * - Auto transitions (including initial and final): `method(state, ctx)`
+   * - Wait transitions: `method(state, payload, ctx)`
+   *
+   * Transitions return nothing — they mutate state/result via `this.assignState` /
+   * `this.setState` / `this.assignResult` / `this.setResult`. A non-undefined
+   * return throws via `assertVoidReturn`. `await` works on both Promises and
+   * plain values, so transitions may be `async` or sync depending on their body.
    */
   private invokeTransition(
     workflow: WorkflowInterface,
@@ -232,8 +241,8 @@ export class WorkflowProcessorService implements Processor {
 
   /**
    * Validates the workflow state against the `@Workflow({ stateSchema })` Zod schema, if defined.
-   * Runs after each transition's return value is computed and before persistence.
-   * Throws a ConfigTraceError-wrapped error if validation fails — this becomes the transition error.
+   * Runs after the transition's state draft is committed and before persistence.
+   * Throws if validation fails — caught by the executeTransition try/catch as a transition error.
    */
   private validateState(
     workflow: WorkflowInterface,
@@ -256,24 +265,17 @@ export class WorkflowProcessorService implements Processor {
   }
 
   /**
-   * Resolve the new state from a transition's return value.
-   *
-   * - `undefined` (including no `return` statement) preserves the previous state unchanged.
-   * - Any other value becomes the new state. If `@Workflow({ stateSchema })` is defined,
-   *   the value is validated against the schema and the transition throws on mismatch — so
-   *   `return null`, a primitive, or an object that doesn't satisfy the schema all error.
+   * Enforces the void-return contract on transition methods. Transitions mutate
+   * state and result via `this.assignState` / `this.setState` / `this.assignResult` /
+   * `this.setResult`; a non-undefined return is a programming error.
    */
-  private resolveNewState(
-    workflow: WorkflowInterface,
-    methodName: string,
-    to: string,
-    returnValue: unknown,
-    state: Record<string, unknown>,
-  ): Record<string, unknown> {
-    if (returnValue === undefined) return state;
-
-    this.validateState(workflow, methodName, to, returnValue as Record<string, unknown>);
-    return returnValue as Record<string, unknown>;
+  private assertVoidReturn(workflow: WorkflowInterface, methodName: string, returnValue: unknown): void {
+    if (returnValue === undefined) return;
+    throw new Error(
+      `Transition '${methodName}' on ${workflow.constructor.name} returned a value. ` +
+        `Transitions must return void — use this.assignState() / this.setState() / ` +
+        `this.assignResult() / this.setResult() instead.`,
+    );
   }
 
   /**
@@ -311,6 +313,12 @@ export class WorkflowProcessorService implements Processor {
     const workflowCtx = this.buildWorkflowContext(scopeData, meta);
 
     const invokeMethod = () => {
+      // Seed per-transition drafts from current state/result. assignState/setState/
+      // assignResult/setResult on BaseWorkflow mutate these drafts via the ALS scope.
+      scopeData.stateDraft = { ...state };
+      scopeData.resultDraft = meta.result ? { ...meta.result } : {};
+      scopeData.resultDirty = false;
+
       const methodPromise = this.executionScope.run(scopeData, () =>
         this.invokeTransition(workflow, methodName, workflowCtx, state, data),
       );
@@ -320,7 +328,13 @@ export class WorkflowProcessorService implements Processor {
     // Stateless workflows skip transactions
     if (!workflowEntity) {
       const returnValue = await invokeMethod();
-      const newState = this.resolveNewState(workflow, methodName, to, returnValue, state);
+      this.assertVoidReturn(workflow, methodName, returnValue);
+
+      const newState = scopeData.stateDraft;
+      this.validateState(workflow, methodName, to, newState);
+      if (scopeData.resultDirty) {
+        meta.result = scopeData.resultDraft;
+      }
 
       meta.place = to;
       meta.version++;
@@ -332,6 +346,7 @@ export class WorkflowProcessorService implements Processor {
     // Snapshot in-memory documents for rollback on failure
     const documentsSnapshot = structuredClone(scopeData.documents);
     const persistenceStateSnapshot = structuredClone(scopeData.persistenceState);
+    const resultSnapshot = meta.result;
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -343,11 +358,12 @@ export class WorkflowProcessorService implements Processor {
       this.logger.debug(`Applying transition: ${methodName} (${meta.place} → ${to})`);
 
       const returnValue = await invokeMethod();
-      const newState = this.resolveNewState(workflow, methodName, to, returnValue, state);
+      this.assertVoidReturn(workflow, methodName, returnValue);
 
-      // Capture result for @Final transitions
-      if (to === 'end' && returnValue !== undefined && returnValue !== null) {
-        meta.result = returnValue as Record<string, unknown>;
+      const newState = scopeData.stateDraft;
+      this.validateState(workflow, methodName, to, newState);
+      if (scopeData.resultDirty) {
+        meta.result = scopeData.resultDraft;
       }
 
       // Advance place + bump version
@@ -370,6 +386,7 @@ export class WorkflowProcessorService implements Processor {
       // Restore in-memory cache to pre-transition state
       scopeData.documents = documentsSnapshot;
       scopeData.persistenceState = persistenceStateSnapshot;
+      meta.result = resultSnapshot;
 
       throw error;
     } finally {

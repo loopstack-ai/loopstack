@@ -35,28 +35,26 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<CalendarSummaryArgs> {
   // --- Fetch events from Google Calendar ---
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarSummaryState, ctx: RunContext<CalendarSummaryArgs>): Promise<CalendarSummaryState> {
+  async fetchEvents(state: CalendarSummaryState, ctx: RunContext<CalendarSummaryArgs>) {
     const result = await this.googleCalendarFetchEvents.call({
       calendarId: ctx.args.calendarId,
       timeMin: this.now(),
       timeMax: this.endOfWeek(),
     });
-    return {
-      ...state,
+    this.assignState({
       requiresAuthentication: result.data!.error === 'unauthorized',
       events: result.data!.events,
-    };
+    });
   }
 
   // If unauthorized -> launch OAuth as sub-workflow
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(state: CalendarSummaryState): Promise<CalendarSummaryState> {
+  async authRequired(_state: CalendarSummaryState) {
     await this.oAuthWorkflow.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
-    return state;
   }
 
   needsAuth(state: CalendarSummaryState): boolean {
@@ -69,17 +67,14 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<CalendarSummaryArgs> {
     to: 'start',
     wait: true,
   })
-  async authCompleted(state: CalendarSummaryState, _input: TransitionInput): Promise<CalendarSummaryState> {
-    return state;
-  }
+  authCompleted(_state: CalendarSummaryState, _input: TransitionInput) {}
 
   // Success -> display summary
   @Transition({ from: 'calendar_fetched', to: 'end' })
-  async displayResults(state: CalendarSummaryState): Promise<unknown> {
+  async displayResults(state: CalendarSummaryState) {
     await this.documentStore.save(MarkdownDocument, {
       markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: state.events }),
     });
-    return {};
   }
 
   private now(): string {

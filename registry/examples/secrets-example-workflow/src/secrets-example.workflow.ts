@@ -18,7 +18,7 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'requesting_secrets' })
-  async requestSecretsFromUser(state: SecretsExampleState): Promise<SecretsExampleState> {
+  async requestSecretsFromUser(_state: SecretsExampleState) {
     await this.requestSecrets.call({
       variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
     });
@@ -26,22 +26,20 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
     await this.documentStore.save(SecretRequestDocument, {
       variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
     });
-    return state;
   }
 
   @Transition({ from: 'requesting_secrets', to: 'verifying', wait: true })
-  async secretsSubmitted(state: SecretsExampleState): Promise<SecretsExampleState> {
+  async secretsSubmitted(_state: SecretsExampleState) {
     const result = await this.getSecretKeys.call();
-    return { ...state, secretKeys: result.data };
+    this.assignState({ secretKeys: result.data });
   }
 
   @Transition({ from: 'verifying', to: 'end' })
-  async showResult(state: SecretsExampleState): Promise<unknown> {
+  async showResult(state: SecretsExampleState) {
     await this.documentStore.save(MarkdownDocument, {
       markdown: this.render(__dirname + '/templates/secretsVerified.md', {
         secretKeys: state.secretKeys,
       }),
     });
-    return {};
   }
 }

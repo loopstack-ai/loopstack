@@ -84,26 +84,24 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   }
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarState, ctx: RunContext<CalendarArgs>): Promise<CalendarState> {
+  async fetchEvents(state: CalendarState, ctx: RunContext<CalendarArgs>) {
     const result = await this.calendarFetchEvents.call({
       calendarId: ctx.args.calendarId,
     });
-    return {
-      ...state,
+    this.assignState({
       requiresAuthentication: result.data!.error === 'unauthorized',
       events: result.data!.events,
-    };
+    });
   }
 
   // If unauthorized -> launch OAuth sub-workflow
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(state: CalendarState): Promise<CalendarState> {
+  async authRequired(state: CalendarState) {
     await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
-    return state;
   }
 
   needsAuth(state: CalendarState): boolean {
@@ -112,17 +110,14 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
 
   // After auth -> retry from start
   @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
-  async authCompleted(state: CalendarState, _input: TransitionInput): Promise<CalendarState> {
-    return state;
-  }
+  authCompleted(state: CalendarState, _input: TransitionInput) {}
 
   // Success -> display results
   @Transition({ from: 'calendar_fetched', to: 'end' })
-  async displayResults(state: CalendarState): Promise<unknown> {
+  async displayResults(state: CalendarState) {
     await this.documentStore.save(MarkdownDocument, {
       markdown: this.render(__dirname + '/templates/summary.md', { events: state.events }),
     });
-    return {};
   }
 }
 ```

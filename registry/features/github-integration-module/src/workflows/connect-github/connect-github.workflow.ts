@@ -58,25 +58,23 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   // ── Step 1: Check if already authenticated ──────────────────────────
 
   @Transition({ to: 'check_auth' })
-  async start(state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async start(_state: ConnectGitHubState) {
     const result = await this.gitHubGetAuthenticatedUser.call();
-    return {
-      ...state,
+    this.assignState({
       requiresAuth: result.data!.error === 'unauthorized',
       user: result.data!.user,
-    };
+    });
   }
 
   // ── Step 2a: OAuth if needed ────────────────────────────────────────
 
   @Transition({ from: 'check_auth', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async launchOAuth(state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async launchOAuth(_state: ConnectGitHubState) {
     await this.oAuth.run(
       { provider: 'github', scopes: ['repo', 'user'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Sign in with GitHub' },
     );
-    return state;
   }
 
   private needsAuth(state: ConnectGitHubState): boolean {
@@ -84,15 +82,15 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'awaiting_auth', to: 'check_auth', wait: true })
-  async authCompleted(state: ConnectGitHubState, _input: TransitionInput): Promise<ConnectGitHubState> {
+  async authCompleted(_state: ConnectGitHubState, _input: TransitionInput) {
     const result = await this.gitHubGetAuthenticatedUser.call();
-    return { ...state, user: result.data!.user, requiresAuth: false };
+    this.assignState({ user: result.data!.user, requiresAuth: false });
   }
 
   // ── Step 2b: Ask create or link ─────────────────────────────────────
 
   @Transition({ from: 'check_auth', to: 'awaiting_choice' })
-  async askCreateOrLink(state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async askCreateOrLink(_state: ConnectGitHubState) {
     await this.askUser.run(
       {
         question: 'Would you like to create a new GitHub repository or connect an existing one?',
@@ -101,14 +99,10 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'choiceReceived' }, show: 'inline', label: 'Create or connect repository' },
     );
-    return state;
   }
 
   @Transition({ from: 'awaiting_choice', to: 'route_choice', wait: true, schema: AnswerSchema })
-  async choiceReceived(
-    state: ConnectGitHubState,
-    input: TransitionInput<{ answer: string }>,
-  ): Promise<ConnectGitHubState> {
+  async choiceReceived(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>) {
     if (input.data.answer === 'Connect existing repository') {
       const listResult = await this.gitHubListRepos.call({
         visibility: 'all',
@@ -129,14 +123,12 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
         { callback: { transition: 'createRepo' }, show: 'inline', label: 'Repository name' },
       );
     }
-
-    return state;
   }
 
   // ── Step 3a: Create new repo ────────────────────────────────────────
 
   @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: AnswerSchema })
-  async createRepo(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>): Promise<ConnectGitHubState> {
+  async createRepo(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>) {
     const repoName = input.data.answer.trim();
     const createResult = await this.gitHubCreateRepo.call({
       name: repoName,
@@ -144,21 +136,17 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       autoInit: false,
     });
 
-    return { ...state, repo: createResult.data!.repo, isNewRepo: true };
+    this.assignState({ repo: createResult.data!.repo, isNewRepo: true });
   }
 
   // ── Step 3b: Link existing repo ─────────────────────────────────────
 
   @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: AnswerSchema })
-  async repoSelected(
-    state: ConnectGitHubState,
-    input: TransitionInput<{ answer: string }>,
-  ): Promise<ConnectGitHubState> {
+  repoSelected(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>) {
     const fullName = input.data.answer;
     const [, name] = fullName.split('/');
 
-    return {
-      ...state,
+    this.assignState({
       repo: {
         fullName,
         name,
@@ -167,13 +155,13 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
         defaultBranch: 'main',
       },
       isNewRepo: false,
-    };
+    });
   }
 
   // ── Step 4a: Check for uncommitted changes ───────────────────────────
 
   @Transition({ from: 'configure_remote', to: 'check_uncommitted' })
-  async checkForUncommittedChanges(state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async checkForUncommittedChanges(state: ConnectGitHubState) {
     const user = state.user;
 
     // Configure git user identity early
@@ -192,15 +180,13 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       status.untracked.length > 0 ||
       status.deleted.length > 0;
 
-    return { ...state, hasUncommittedChanges };
+    this.assignState({ hasUncommittedChanges });
   }
 
   // Clean workspace — skip straight to remote setup
   @Transition({ from: 'check_uncommitted', to: 'setup_remote' })
   @Guard('isCleanWorkspace')
-  async skipCommitCheck(state: ConnectGitHubState): Promise<ConnectGitHubState> {
-    return state;
-  }
+  skipCommitCheck(_state: ConnectGitHubState) {}
 
   private isCleanWorkspace(state: ConnectGitHubState): boolean {
     return !state.hasUncommittedChanges;
@@ -208,7 +194,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
   // Uncommitted changes — ask user
   @Transition({ from: 'check_uncommitted', to: 'awaiting_commit_confirm' })
-  async askCommitChanges(state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async askCommitChanges(_state: ConnectGitHubState) {
     await this.askUser.run(
       {
         question:
@@ -218,31 +204,27 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'uncommittedChangesHandled' }, show: 'inline', label: 'Uncommitted changes' },
     );
-    return state;
   }
 
   @Transition({ from: 'awaiting_commit_confirm', to: 'setup_remote', wait: true, schema: AnswerSchema })
-  async uncommittedChangesHandled(
-    state: ConnectGitHubState,
-    input: TransitionInput<{ answer: string }>,
-  ): Promise<ConnectGitHubState> {
+  async uncommittedChangesHandled(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>) {
     if (input.data.answer === 'Cancel') {
-      return { ...state, repo: undefined };
+      this.assignState({ repo: undefined });
+      return;
     }
 
     await this.bash.call({ command: 'git add -A' });
     await this.bash.call({ command: 'git commit -m "Auto-commit before connecting to GitHub"' });
-
-    return state;
   }
 
   // ── Step 4b: Configure remote and check for divergence ──────────────
 
   @Transition({ from: 'setup_remote', to: 'check_divergence' })
-  async setupRemote(state: ConnectGitHubState, ctx: RunContext): Promise<ConnectGitHubState> {
+  async setupRemote(state: ConnectGitHubState, ctx: RunContext) {
     // If cancelled during commit confirmation, skip to done
     if (!state.repo) {
-      return { ...state, divergenceState: 'none' };
+      this.assignState({ divergenceState: 'none' });
+      return;
     }
 
     const repo = state.repo;
@@ -271,12 +253,12 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       });
       const divergeState = checkResult.data!.stdout.trim().split('\n').pop()!.trim();
       if (divergeState === 'same' || divergeState === 'no_remote') {
-        return { ...state, divergenceState: 'none' };
+        this.assignState({ divergenceState: 'none' });
       } else {
-        return { ...state, divergenceState: divergeState as 'local_ahead' | 'remote_ahead' | 'diverged' };
+        this.assignState({ divergenceState: divergeState as 'local_ahead' | 'remote_ahead' | 'diverged' });
       }
     } else {
-      return { ...state, divergenceState: 'none' };
+      this.assignState({ divergenceState: 'none' });
     }
   }
 
@@ -284,17 +266,16 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'check_divergence', to: 'done' })
   @Guard('canPushDirectly')
-  async pushDirectly(state: ConnectGitHubState, ctx: RunContext): Promise<ConnectGitHubState> {
+  async pushDirectly(state: ConnectGitHubState, ctx: RunContext) {
     if (state.divergenceState === 'none') {
       // Already in sync — nothing to push
-      return state;
+      return;
     }
     // local_ahead — fast-forward push
     const statusResult = await this.gitStatus.call();
     const branch = statusResult.data!.branch ?? 'main';
     const token = await this.getGitHubToken(ctx);
     await this.gitPush.call({ remote: 'origin', branch, token });
-    return state;
   }
 
   private canPushDirectly(state: ConnectGitHubState): boolean {
@@ -304,7 +285,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   // ── Step 5b: Divergence detected — ask user how to resolve ──────────
 
   @Transition({ from: 'check_divergence', to: 'awaiting_sync_choice' })
-  async askSyncStrategy(state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async askSyncStrategy(state: ConnectGitHubState) {
     const isRemoteAhead = state.divergenceState === 'remote_ahead';
     const question = isRemoteAhead
       ? 'The remote repository has newer commits than your workspace. How would you like to proceed?'
@@ -323,16 +304,10 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       { question, mode: 'options', options },
       { callback: { transition: 'syncStrategyChosen' }, show: 'inline', label: 'Resolve differences' },
     );
-
-    return state;
   }
 
   @Transition({ from: 'awaiting_sync_choice', to: 'done', wait: true, schema: AnswerSchema })
-  async syncStrategyChosen(
-    state: ConnectGitHubState,
-    input: TransitionInput<{ answer: string }>,
-    ctx: RunContext,
-  ): Promise<ConnectGitHubState> {
+  async syncStrategyChosen(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>, ctx: RunContext) {
     const answer = input.data.answer;
     const statusResult = await this.gitStatus.call();
     const branch = statusResult.data!.branch ?? 'main';
@@ -348,21 +323,20 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       await this.gitPush.call({ remote: 'origin', branch, force: true, token });
     } else {
       await this.bash.call({ command: 'git remote remove origin' });
-      return { ...state, repo: undefined };
+      this.assignState({ repo: undefined });
     }
-
-    return state;
   }
 
   // ── Final: Show result ──────────────────────────────────────────────
 
   @Transition({ from: 'done', to: 'end' })
-  async showSuccess(state: ConnectGitHubState, ctx: RunContext): Promise<unknown> {
+  async showSuccess(state: ConnectGitHubState, ctx: RunContext) {
     if (!state.repo) {
       await this.documentStore.save(MarkdownDocument, {
         markdown: '### Cancelled\n\nThe remote connection was removed. No changes were made.',
       });
-      return { cancelled: true };
+      this.setResult({ cancelled: true } as unknown as Record<string, unknown>);
+      return;
     }
 
     const repo = state.repo;
@@ -372,6 +346,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
     this.clientMessageService.dispatchWorkspaceEvent('git.updated', ctx.workspaceId, ctx.userId);
 
-    return { repo: repo.fullName, url: repo.htmlUrl };
+    this.setResult({ repo: repo.fullName, url: repo.htmlUrl } as unknown as Record<string, unknown>);
   }
 }

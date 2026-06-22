@@ -86,29 +86,24 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
   // --- Step 1: Fetch authenticated user ---
 
   @Transition({ to: 'user_fetched' })
-  async fetchUser(
-    state: GitHubReposOverviewState,
-    ctx: RunContext<GitHubReposOverviewArgs>,
-  ): Promise<GitHubReposOverviewState> {
+  async fetchUser(state: GitHubReposOverviewState, ctx: RunContext<GitHubReposOverviewArgs>) {
     const result = await this.gitHubGetAuthenticatedUser.call();
-    return {
-      ...state,
+    this.assignState({
       owner: ctx.args.owner,
       repo: ctx.args.repo,
       requiresAuthentication: result.data!.error === 'unauthorized',
       user: result.data!.user,
-    };
+    });
   }
 
   // If unauthorized -> launch OAuth
   @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
+  async authRequired(_state: GitHubReposOverviewState) {
     await this.oAuthWorkflow.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
     );
-    return state;
   }
 
   needsAuth(state: GitHubReposOverviewState): boolean {
@@ -121,22 +116,20 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
     to: 'start',
     wait: true,
   })
-  async authCompleted(state: GitHubReposOverviewState, _input: TransitionInput): Promise<GitHubReposOverviewState> {
-    return state;
-  }
+  authCompleted(_state: GitHubReposOverviewState, _input: TransitionInput) {}
 
   // --- Step 2: Fetch user orgs ---
 
   @Transition({ from: 'user_fetched', to: 'orgs_fetched' })
-  async fetchOrgs(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
+  async fetchOrgs(_state: GitHubReposOverviewState) {
     const result = await this.gitHubListUserOrgs.call({ perPage: 10 });
-    return { ...state, orgs: result.data!.orgs };
+    this.assignState({ orgs: result.data!.orgs });
   }
 
   // --- Step 3: Fetch repo details and branches ---
 
   @Transition({ from: 'orgs_fetched', to: 'repo_fetched' })
-  async fetchRepoDetails(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
+  async fetchRepoDetails(state: GitHubReposOverviewState) {
     const repoResult = await this.gitHubGetRepo.call({
       owner: state.owner,
       repo: state.repo,
@@ -146,13 +139,13 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
       owner: state.owner,
       repo: state.repo,
     });
-    return { ...state, repoDetails: repoResult.data!.repo, branches: branchesResult.data!.branches };
+    this.assignState({ repoDetails: repoResult.data!.repo, branches: branchesResult.data!.branches });
   }
 
   // --- Step 4: Fetch issues and PRs ---
 
   @Transition({ from: 'repo_fetched', to: 'issues_prs_fetched' })
-  async fetchIssuesPrs(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
+  async fetchIssuesPrs(state: GitHubReposOverviewState) {
     const issuesResult = await this.gitHubListIssues.call({
       owner: state.owner,
       repo: state.repo,
@@ -166,13 +159,13 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
       state: 'open',
       perPage: 10,
     });
-    return { ...state, issues: issuesResult.data!.issues, pullRequests: prsResult.data!.pullRequests };
+    this.assignState({ issues: issuesResult.data!.issues, pullRequests: prsResult.data!.pullRequests });
   }
 
   // --- Step 5: Fetch directory listing and workflow runs ---
 
   @Transition({ from: 'issues_prs_fetched', to: 'content_actions_fetched' })
-  async fetchContentActions(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
+  async fetchContentActions(state: GitHubReposOverviewState) {
     const dirResult = await this.gitHubListDirectory.call({
       owner: state.owner,
       repo: state.repo,
@@ -183,24 +176,24 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
       repo: state.repo,
       perPage: 5,
     });
-    return { ...state, directoryEntries: dirResult.data!.entries, workflowRuns: runsResult.data!.runs };
+    this.assignState({ directoryEntries: dirResult.data!.entries, workflowRuns: runsResult.data!.runs });
   }
 
   // --- Step 6: Search code in the repo ---
 
   @Transition({ from: 'content_actions_fetched', to: 'search_done' })
-  async fetchSearch(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
+  async fetchSearch(state: GitHubReposOverviewState) {
     const result = await this.gitHubSearchCode.call({
       query: `repo:${state.owner}/${state.repo}`,
       perPage: 5,
     });
-    return { ...state, searchResults: result.data!.results };
+    this.assignState({ searchResults: result.data!.results });
   }
 
   // --- Display all results ---
 
   @Transition({ from: 'search_done', to: 'end' })
-  async displayResults(state: GitHubReposOverviewState): Promise<unknown> {
+  async displayResults(state: GitHubReposOverviewState) {
     await this.documentStore.save(MarkdownDocument, {
       markdown: this.render(__dirname + '/templates/repoOverview.md', {
         user: state.user,
@@ -214,6 +207,5 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
         searchResults: state.searchResults,
       }),
     });
-    return {};
   }
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { TransitionInput } from '@loopstack/common';
 
 @Workflow({
   title: 'Prompt Input Chat',
@@ -10,23 +11,20 @@ import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/
 })
 export class PromptInputChatWorkflow extends BaseWorkflow {
   @Transition({ to: 'waiting_for_user' })
-  async greet(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async greet(_state: Record<string, unknown>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Hi! Send me a message and I will echo it back.',
     });
-    return state;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'reply_sent', wait: true, schema: z.string() })
-  async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
+    const payload = input.data;
     await this.documentStore.save(MessageDocument, { role: 'user', text: payload });
     await this.documentStore.save(MessageDocument, { role: 'assistant', text: `You said: ${payload}` });
-    return state;
   }
 
   @Transition({ from: 'reply_sent', to: 'waiting_for_user' })
-  async loop(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    return state;
-  }
+  loop(_state: Record<string, unknown>) {}
 }

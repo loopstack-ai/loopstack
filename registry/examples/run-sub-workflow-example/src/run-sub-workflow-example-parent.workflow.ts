@@ -13,12 +13,11 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'sub_workflow_started' })
-  async runWorkflow(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async runWorkflow(_state: Record<string, unknown>) {
     await this.subWorkflow.run(
       {},
       { callback: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
     );
-    return state;
   }
 
   @Transition({
@@ -27,24 +26,19 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     wait: true,
     schema: SubWorkflowMessageSchema,
   })
-  async subWorkflowCallback(
-    state: Record<string, unknown>,
-    input: TransitionInput<{ message: string }>,
-  ): Promise<Record<string, unknown>> {
+  async subWorkflowCallback(state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `A message from sub workflow 1: ${input.data.message}`,
     });
-    return state;
   }
 
   @Transition({ from: 'sub_workflow_ended', to: 'sub_workflow2_started' })
-  async runWorkflow2(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async runWorkflow2(_state: Record<string, unknown>) {
     await this.subWorkflow.run(
       {},
       { callback: { transition: 'subWorkflow2Callback' }, show: 'link', label: 'Sub-Workflow 2' },
     );
-    return state;
   }
 
   @Transition({
@@ -53,14 +47,10 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     wait: true,
     schema: SubWorkflowMessageSchema,
   })
-  async subWorkflow2Callback(
-    state: Record<string, unknown>,
-    input: TransitionInput<{ message: string }>,
-  ): Promise<unknown> {
+  async subWorkflow2Callback(state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `A message from sub workflow 2: ${input.data.message}`,
     });
-    return {};
   }
 }

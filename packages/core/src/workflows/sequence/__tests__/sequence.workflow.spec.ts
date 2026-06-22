@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RunContext, WorkflowOrchestrator } from '@loopstack/common';
+import { runTransition } from '@loopstack/testing';
 import type { WorkflowRegistryService } from '../../../workflow-processor/services/workflow-registry.service.js';
 import type { SequenceArgs, SequenceResult } from '../sequence.types.js';
 import { SequenceWorkflow } from '../sequence.workflow.js';
@@ -62,7 +63,7 @@ describe('SequenceWorkflow', () => {
         mode: 'all',
       };
 
-      const state = await workflow.start({} as never, ctx(args));
+      const { state } = await runTransition(workflow, () => workflow.start({} as never, ctx(args)), { state: {} });
 
       expect(orchestrator.queue).toHaveBeenCalledTimes(1);
       expect(orchestrator.queue).toHaveBeenCalledWith(
@@ -80,7 +81,7 @@ describe('SequenceWorkflow', () => {
       const { workflow, orchestrator } = makeWorkflow();
       const args: SequenceArgs = { entries: [], itemsWereArray: true, mode: 'all' };
 
-      const state = await workflow.start({} as never, ctx(args));
+      const { state } = await runTransition(workflow, () => workflow.start({} as never, ctx(args)), { state: {} });
 
       expect(orchestrator.queue).not.toHaveBeenCalled();
       expect(state.currentIndex).toBe(0);
@@ -108,10 +109,15 @@ describe('SequenceWorkflow', () => {
         aborted: false,
       };
 
-      const next = await workflow.onChildComplete(
-        state,
-        { workflowId: 'child-a', status: 'completed', hasError: false, errorMessage: null, data: { v: 1 } },
-        ctx(args),
+      const { state: next } = await runTransition(
+        workflow,
+        () =>
+          workflow.onChildComplete(
+            state,
+            { workflowId: 'child-a', status: 'completed', hasError: false, errorMessage: null, data: { v: 1 } },
+            ctx(args),
+          ),
+        { state },
       );
 
       expect(orchestrator.queue).toHaveBeenCalledWith(
@@ -145,10 +151,15 @@ describe('SequenceWorkflow', () => {
         aborted: false,
       };
 
-      const next = await workflow.onChildComplete(
-        state,
-        { workflowId: 'child-a', status: 'failed', hasError: true, errorMessage: 'boom', data: null },
-        ctx(args),
+      const { state: next } = await runTransition(
+        workflow,
+        () =>
+          workflow.onChildComplete(
+            state,
+            { workflowId: 'child-a', status: 'failed', hasError: true, errorMessage: 'boom', data: null },
+            ctx(args),
+          ),
+        { state },
       );
 
       expect(orchestrator.queue).not.toHaveBeenCalled();
@@ -178,10 +189,15 @@ describe('SequenceWorkflow', () => {
         aborted: false,
       };
 
-      const next = await workflow.onChildComplete(
-        state,
-        { workflowId: 'child-a', status: 'failed', hasError: true, errorMessage: 'boom', data: null },
-        ctx(args),
+      const { state: next } = await runTransition(
+        workflow,
+        () =>
+          workflow.onChildComplete(
+            state,
+            { workflowId: 'child-a', status: 'failed', hasError: true, errorMessage: 'boom', data: null },
+            ctx(args),
+          ),
+        { state },
       );
 
       expect(orchestrator.queue).toHaveBeenCalledWith(FakeWorkflowB, {}, expect.anything());
@@ -205,7 +221,8 @@ describe('SequenceWorkflow', () => {
         aborted: false,
       };
 
-      const result = (await workflow.done(state)) as SequenceResult;
+      const { result: rawResult } = await runTransition(workflow, () => workflow.done(state), { state });
+      const result = rawResult as unknown as SequenceResult;
       expect(result.hasErrors).toBe(false);
       expect(result.results).toEqual([
         { key: 'a', status: 'completed', data: 1 },
@@ -227,7 +244,8 @@ describe('SequenceWorkflow', () => {
         aborted: true,
       };
 
-      const result = (await workflow.done(state)) as SequenceResult;
+      const { result: rawResult } = await runTransition(workflow, () => workflow.done(state), { state });
+      const result = rawResult as unknown as SequenceResult;
       expect(result.hasErrors).toBe(true);
       expect(result.errorCount).toBe(1);
       expect(result.results).toEqual({

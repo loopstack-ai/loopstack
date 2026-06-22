@@ -196,7 +196,7 @@ Use `LlmGenerateObjectTool` to extract structured data from unstructured text. T
 
 ```typescript
 @Transition({ from: 'response_received', to: 'notes_optimized' })
-async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
+async optimizeNotes(state: MeetingNotesState) {
   const result = await this.llmGenerateObject.call(
     {
       outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
@@ -213,7 +213,6 @@ async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
     objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
     { id: 'final', validate: 'skip' },
   );
-  return state;
 }
 ```
 

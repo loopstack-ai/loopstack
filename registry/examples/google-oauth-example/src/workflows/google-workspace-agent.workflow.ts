@@ -61,23 +61,21 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async setup(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+  async setup(_state: GoogleWorkspaceAgentState) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
-    return state;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: GoogleWorkspaceAgentState, payload: string): Promise<GoogleWorkspaceAgentState> {
+  async userMessage(_state: GoogleWorkspaceAgentState, payload: string) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
-    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+  async llmTurn(_state: GoogleWorkspaceAgentState) {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -104,17 +102,17 @@ then retry. Be concise and format results using markdown.`,
         },
       },
     );
-    return { ...state, llmResult: result.data };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+  async executeToolCalls(state: GoogleWorkspaceAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   hasToolCalls(state: GoogleWorkspaceAgentState): boolean {
@@ -122,29 +120,22 @@ then retry. Be concise and format results using markdown.`,
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(
-    state: GoogleWorkspaceAgentState,
-    payload: Record<string, unknown>,
-  ): Promise<GoogleWorkspaceAgentState> {
+  async toolResultReceived(state: GoogleWorkspaceAgentState, payload: Record<string, unknown>) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: payload,
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async allToolsCompleteTransition(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
-    return state;
-  }
+  allToolsCompleteTransition(_state: GoogleWorkspaceAgentState) {}
 
   allToolsComplete(state: GoogleWorkspaceAgentState): boolean {
     return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
-    return state;
-  }
+  respond(_state: GoogleWorkspaceAgentState) {}
 }

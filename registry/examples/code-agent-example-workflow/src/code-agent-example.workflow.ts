@@ -16,7 +16,7 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'exploring' })
-  async startExploration(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async startExploration(_state: Record<string, unknown>) {
     await this.agentWorkflow.run(
       {
         system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',
@@ -25,7 +25,6 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'exploreComplete' }, show: 'inline', label: 'Exploring codebase...' },
     );
-    return state;
   }
 
   @Transition({
@@ -34,14 +33,10 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
     wait: true,
     schema: ExploreResponseSchema,
   })
-  async exploreComplete(
-    state: Record<string, unknown>,
-    input: TransitionInput<{ response: string }>,
-  ): Promise<unknown> {
+  async exploreComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: input.data.response,
     });
-    return {};
   }
 }
