@@ -8,8 +8,6 @@ export type DocumentMessageType = z.infer<typeof DocumentMessageSchema>;
 
 /** Static document meta — defined on the @Document() decorator, served via config endpoint. */
 export interface StaticDocumentMeta {
-  /** Hide every instance of this document type from the Studio UI by default. */
-  hidden?: boolean;
   /** MIME type hint used by Studio when rendering or downloading the document. */
   mimeType?: MimeType;
   /** Log-level-style severity. Studio may style documents based on this. */
@@ -23,9 +21,9 @@ export interface StaticDocumentMeta {
 /** Dynamic document meta — set per-instance at save time, persisted on the document entity. */
 export interface DynamicDocumentMeta {
   /**
-   * Opt-out of replacement. When `false`, saving a new document with the same `id` does NOT
+   * Opt-out of replacement. When `false`, saving a new document with the same `key` does NOT
    * invalidate this one — both rows survive. Default behavior (omitted/true) is to invalidate
-   * the previous version when the same ID is reused.
+   * the previous version when the same key is reused.
    */
   invalidate?: boolean;
   /**

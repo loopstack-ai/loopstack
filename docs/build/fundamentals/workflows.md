@@ -285,15 +285,15 @@ await this.documentStore.save(LlmMessageDocument, {
   text: 'Hello!',
 });
 
-// Update an existing document by ID
+// Update an existing document by key (upsert in place)
 await this.documentStore.save(
   LlmMessageDocument,
   { role: 'assistant', text: 'Updated response' },
-  { id: 'response-1' },
+  { key: 'response-1' },
 );
 
-// Hidden document (not shown in UI)
-await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'System prompt' }, { meta: { hidden: true } });
+// Hidden context (not shown in UI — LLM still sees it as conversation history)
+await this.documentStore.save(LlmContextDocument, { role: 'user', text: 'System prompt' });
 ```
 
 ## Templates

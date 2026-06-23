@@ -224,12 +224,12 @@ await this.documentStore.save(LlmMessageDocument, {
   text: 'Hello!',
 });
 
-// Save with options (id for updates, meta for visibility)
-await this.documentStore.save(
-  LlmMessageDocument,
-  { role: 'assistant', text: 'Hi!' },
-  { id: 'greeting', meta: { hidden: true } },
-);
+// Save with a stable upsert key — saving twice with the same key replaces the previous row in place
+await this.documentStore.save(LlmMessageDocument, { role: 'assistant', text: 'Hi!' }, { key: 'greeting' });
+
+// To hide a message from the UI (still picked up by the LLM as conversation history),
+// use LlmContextDocument — its @Document decorator declares { internal: true, tags: ['message'] }
+await this.documentStore.save(LlmContextDocument, { role: 'user', text: 'System prompt text' });
 ```
 
 ## Handlebars Templates

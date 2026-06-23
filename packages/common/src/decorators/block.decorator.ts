@@ -41,6 +41,8 @@ export interface BlockOptions {
   tags?: string[];
   /** Static document meta — served via config endpoint, not persisted per instance. */
   meta?: StaticDocumentMeta;
+  /** Document-only: marks the type as framework-internal — excluded from API responses/live updates. */
+  internal?: boolean;
 }
 
 /** Options for @Tool() decorator */
@@ -91,6 +93,13 @@ export interface DocumentOptions {
   tags?: string[];
   /** Static document meta — served via config endpoint, not persisted per instance. */
   meta?: StaticDocumentMeta;
+  /**
+   * Marks this document type as framework-internal. Internal documents are persisted and
+   * readable server-side (e.g. by LLM providers building conversation history) but excluded
+   * from the document API responses and live updates that Studio consumes. Use for context
+   * messages, system prompts, or any plumbing the user shouldn't see in the UI.
+   */
+  internal?: boolean;
 }
 
 export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {

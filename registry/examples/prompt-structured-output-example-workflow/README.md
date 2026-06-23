@@ -107,13 +107,13 @@ async greeting(state: PromptStructuredOutputState, ctx: RunContext<{ language: s
   await this.documentStore.save(
     LlmMessageDocument,
     { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
-    { id: 'status' },
+    { key: 'status' },
   );
   this.assignState({ language: ctx.args.language });
 }
 ```
 
-The `{ id: 'status' }` option saves the document with a stable ID so it can be updated later.
+The `{ key: 'status' }` option saves the document with a stable upsert key so the same row can be replaced in place later — useful for status messages that update as the workflow progresses.
 
 #### 4. Generating Structured Output
 
@@ -140,9 +140,9 @@ async prompt(state: PromptStructuredOutputState) {
 
 The LLM response is automatically parsed and saved as a `FileDocument`. The result is stored in the state for use in the final transition.
 
-#### 5. Updating a Document by ID
+#### 5. Updating a Document by Key
 
-The terminal `@Transition` method updates the status message saved earlier using the same `{ id: 'status' }`:
+The terminal `@Transition` method updates the status message saved earlier using the same `{ key: 'status' }`:
 
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'end' })
@@ -150,7 +150,7 @@ async respond(state: PromptStructuredOutputState) {
   await this.documentStore.save(
     LlmMessageDocument,
     { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
-    { id: 'status' },
+    { key: 'status' },
   );
 }
 ```
@@ -190,7 +190,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
-      { id: 'status' },
+      { key: 'status' },
     );
     this.assignState({ language: ctx.args.language });
   }
@@ -217,7 +217,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
-      { id: 'status' },
+      { key: 'status' },
     );
   }
 }

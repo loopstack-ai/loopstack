@@ -101,7 +101,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
         embed: show === 'inline',
         expanded: show === 'inline',
       },
-      { id: `link_${childWorkflowId}` },
+      { key: `link_${childWorkflowId}` },
     );
   }
 

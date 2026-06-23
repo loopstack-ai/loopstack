@@ -33,7 +33,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<PromptStructure
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
-      { id: 'status' },
+      { key: 'status' },
     );
     this.assignState({ language: ctx.args.language });
   }
@@ -60,7 +60,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<PromptStructure
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
-      { id: 'status' },
+      { key: 'status' },
     );
   }
 }

@@ -67,20 +67,19 @@ Both paths produce `LlmMessageDocument` records that the LLM sees as conversatio
 
 #### 1. System Prompt Setup
 
-The workflow begins with an start `@Transition` method that saves a hidden system message. The message content is rendered from a Handlebars template file:
+The workflow begins with a start `@Transition` method that saves a hidden system message as an `LlmContextDocument`. The message content is rendered from a Handlebars template file:
 
 ```typescript
 @Transition({ to: 'waiting_for_user' })
 async setup() {
-  await this.documentStore.save(
-    LlmMessageDocument,
-    { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
-    { meta: { hidden: true } },
-  );
+  await this.documentStore.save(LlmContextDocument, {
+    role: 'user',
+    text: this.render(__dirname + '/templates/systemMessage.md'),
+  });
 }
 ```
 
-The `{ meta: { hidden: true } }` option ensures the system message is included in the LLM context but not displayed in the chat UI.
+`LlmContextDocument` is declared `@Document({ internal: true, tags: ['message'] })`. The `internal: true` flag tells the framework to exclude these rows from API responses (Studio never sees them), while `tags: ['message']` keeps them in the conversation history that the LLM provider reads.
 
 #### 2. Waiting for User Input
 
@@ -132,7 +131,7 @@ The complete workflow class uses constructor injection to access the `LlmGenerat
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmContextDocument, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
   title: 'LLM Chat Example (Assistant Bob)',
@@ -146,11 +145,10 @@ export class ChatWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'waiting_for_user' })
   async setup(state: Record<string, unknown>) {
-    await this.documentStore.save(
-      LlmMessageDocument,
-      { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
-      { meta: { hidden: true } },
-    );
+    await this.documentStore.save(LlmContextDocument, {
+      role: 'user',
+      text: this.render(__dirname + '/templates/systemMessage.md'),
+    });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })

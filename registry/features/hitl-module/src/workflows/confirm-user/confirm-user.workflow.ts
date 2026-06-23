@@ -23,7 +23,7 @@ type ConfirmUserArgs = z.infer<typeof ConfirmUserArgsSchema>;
 export class ConfirmUserWorkflow extends BaseWorkflow<ConfirmUserArgs> {
   @Transition({ to: 'waiting_for_confirmation' })
   async showContent(state: ConfirmUserState, ctx: RunContext<ConfirmUserArgs>) {
-    await this.documentStore.save(ConfirmUserDocument, { markdown: ctx.args.markdown }, { id: 'content' });
+    await this.documentStore.save(ConfirmUserDocument, { markdown: ctx.args.markdown }, { key: 'content' });
     this.assignState({ markdown: ctx.args.markdown });
   }
 

@@ -78,7 +78,9 @@ describe('PromptWorkflow', () => {
     it('should use default subject when not provided', async () => {
       mockLlmGenerateText.call.mockResolvedValue(mockLlmResult);
 
-      const result = await processor.process(workflow, {}, context);
+      // processor.process expects already-parsed args; in production runStateless/CreateWorkflowService
+      // run the schema first. Mirror that here so the workflow's default value flows through.
+      const result = await processor.process(workflow, { subject: 'coffee' }, context);
 
       expect(result.hasError).toBe(false);
 

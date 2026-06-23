@@ -51,15 +51,16 @@ ui:
 
 All options are optional.
 
-| Option        | Type                       | Default                                                 | Description                                                                                                |
-| ------------- | -------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `name`        | `string`                   | class name with `Document` suffix stripped, snake_cased | Explicit snake_case identifier. E.g. `AskUserDocument` → `ask_user`, `LlmMessageDocument` → `llm_message`. |
-| `title`       | `string`                   | —                                                       | Human-readable display title shown in Studio UI.                                                           |
-| `description` | `string`                   | —                                                       | Human-readable description shown in Studio UI.                                                             |
-| `widget`      | `WidgetRef \| WidgetRef[]` | —                                                       | Path(s) to YAML file(s) — or inline widget object(s) — defining how the document renders in Studio.        |
-| `schema`      | `z.ZodType`                | —                                                       | Zod schema validating document content on `documentStore.save()`.                                          |
-| `tags`        | `string[]`                 | —                                                       | Default tags assigned to every instance of this document. Useful for filtering and querying.               |
-| `meta`        | `StaticDocumentMeta`       | —                                                       | Static document metadata — served via the config endpoint, not persisted per instance.                     |
+| Option        | Type                       | Default                                                 | Description                                                                                                                                                                                                |
+| ------------- | -------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | `string`                   | class name with `Document` suffix stripped, snake_cased | Explicit snake_case identifier. E.g. `AskUserDocument` → `ask_user`, `LlmMessageDocument` → `llm_message`.                                                                                                 |
+| `title`       | `string`                   | —                                                       | Human-readable display title shown in Studio UI.                                                                                                                                                           |
+| `description` | `string`                   | —                                                       | Human-readable description shown in Studio UI.                                                                                                                                                             |
+| `widget`      | `WidgetRef \| WidgetRef[]` | —                                                       | Path(s) to YAML file(s) — or inline widget object(s) — defining how the document renders in Studio.                                                                                                        |
+| `schema`      | `z.ZodType`                | —                                                       | Zod schema validating document content on `documentStore.save()`.                                                                                                                                          |
+| `tags`        | `string[]`                 | —                                                       | Default tags assigned to every instance of this document. Useful for filtering and querying.                                                                                                               |
+| `meta`        | `StaticDocumentMeta`       | —                                                       | Static document metadata — served via the config endpoint, not persisted per instance.                                                                                                                     |
+| `internal`    | `boolean`                  | `false`                                                 | When `true`, instances are persisted server-side (still readable by LLM providers) but excluded from API responses and live updates — Studio never sees them. Use for framework plumbing like LLM context. |
 
 > **Documents are plain DTOs, not NestJS providers.** Unlike `@Tool` and `@Workflow`, `@Document` does **not** apply `@Injectable()`. Don't add document classes to a module's `providers` array and don't try to inject them — reference the class directly when calling `documentStore.save(MyDocument, ...)`.
 
@@ -71,11 +72,11 @@ Use `this.documentStore.save()` inside workflow transition methods. Reference do
 // Create a new document
 await this.documentStore.save(NotesDocument, { text: 'Hello!' });
 
-// Create/update with a specific ID
-await this.documentStore.save(NotesDocument, { text: 'Updated content' }, { id: 'notes-1' });
+// Create/update with a specific key (upsert — invalidates the previous version)
+await this.documentStore.save(NotesDocument, { text: 'Updated content' }, { key: 'notes-1' });
 
-// With meta options
-await this.documentStore.save(NotesDocument, { text: 'Hidden note' }, { id: 'hidden', meta: { hidden: true } });
+// With meta options (free-form extension data on the document row)
+await this.documentStore.save(NotesDocument, { text: 'Tagged note' }, { meta: { source: 'import' } });
 ```
 
 ### Saving an Instance
@@ -88,7 +89,7 @@ draft.text += '\n\nAddendum.';
 await this.documentStore.save(draft);
 
 // With save options
-await this.documentStore.save(draft, { id: 'notes-1' });
+await this.documentStore.save(draft, { key: 'notes-1' });
 ```
 
 `create()` returns a class instance (typed as `NotesDocument`) populated with the data; it does not persist anything. Persistence only happens on `save()`.
@@ -97,10 +98,10 @@ await this.documentStore.save(draft, { id: 'notes-1' });
 
 | Option            | Type                           | Description                                                                                                                                                                                      |
 | ----------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`              | `string`                       | Custom ID — use for updating existing documents.                                                                                                                                                 |
+| `key`             | `string`                       | Stable upsert key — saving twice with the same `key` invalidates the previous row in place. Use for documents that update over time (status tickers, form state, transcripts).                   |
 | `validate`        | `'strict' \| 'safe' \| 'skip'` | Validation mode. Default `'strict'` — throws on invalid content. `'safe'` stores partial data + error. `'skip'` bypasses validation. See [Validation](../../learn/document-store.md#validation). |
-| `meta.hidden`     | `boolean`                      | Hide this row from the Studio UI.                                                                                                                                                                |
-| `meta.invalidate` | `boolean`                      | When `false`, prevents the previous version with the same `id` from being invalidated. Default behavior replaces the old version.                                                                |
+| `meta`            | `Record<string, unknown>`      | Free-form extension data persisted on the document row. Use for ad-hoc payload that downstream readers need. For framework concerns (hide from UI, etc.), use decorator options instead.         |
+| `meta.invalidate` | `boolean`                      | When `false`, prevents the previous version with the same `key` from being invalidated. Default behavior replaces the old version.                                                               |
 
 ## Querying Documents
 
@@ -135,6 +136,7 @@ These are available without creating custom documents:
 | Document             | Source                           | Key Fields                                 |
 | -------------------- | -------------------------------- | ------------------------------------------ |
 | `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `text`, `blocks`                   |
+| `LlmContextDocument` | `@loopstack/llm-provider-module` | `role`, `text`                             |
 | `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `embed`, `expanded` |
 | `MessageDocument`    | `@loopstack/common`              | `role`, `text`                             |
 | `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                 |
@@ -143,7 +145,8 @@ These are available without creating custom documents:
 
 ### Choosing the right built-in type
 
-- **`LlmMessageDocument`** — assistant/user conversation turns. Extends `MessageDocument` with structured `blocks` (tool calls, thinking, tool results) and an LLM `stopReason`. Tagged `'message'`, so it's automatically collected into LLM conversation history. Save manually to seed system messages or inject synthetic turns; the LLM provider tools save these for you in normal use.
+- **`LlmMessageDocument`** — visible assistant/user conversation turns. Extends `MessageDocument` with structured `blocks` (tool calls, thinking, tool results) and an LLM `stopReason`. Tagged `'message'`, so it's automatically collected into LLM conversation history. The LLM provider tools save these for you in normal use.
+- **`LlmContextDocument`** — hidden conversation context. Declared `@Document({ internal: true, tags: ['message'] })`. The LLM provider picks these up as conversation history just like `LlmMessageDocument`, but Studio doesn't show them. Use to seed system prompts, prior steps, or background info without polluting the user-facing chat.
 - **`MessageDocument`** — plain `{ role, text }` UI bubbles for non-LLM flows (status updates, narrative output, logging a `system` note). Tagged `'ui-message'` — **not** collected into LLM history. Use this when you want a chat-style message in Studio without polluting the LLM's context.
 - **`MarkdownDocument`** — formatted prose, headings, lists, links. Use when you want Studio to render rich text.
 - **`PlainDocument`** — unformatted text output: raw command output, log dumps, plain blob. Use when Markdown rendering would interpret characters you want shown literally.

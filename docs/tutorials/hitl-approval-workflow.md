@@ -253,14 +253,14 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   // Step 1: Display raw notes as an editable form and wait
   @Transition({ to: 'waiting_for_response' })
   async showNotes(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>) {
-    await this.documentStore.save(MeetingNotesDocument, { text: ctx.args.inputText }, { id: 'input' });
+    await this.documentStore.save(MeetingNotesDocument, { text: ctx.args.inputText }, { key: 'input' });
   }
 
   // Step 2: User clicks "Optimize Notes" — input.data is the edited form content
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
   async userResponse(state: MeetingNotesState, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
     // Persist whatever the user may have edited before clicking the button
-    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { id: 'input' });
+    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { key: 'input' });
     this.assignState({ meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> });
   }
 
@@ -280,7 +280,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
     await this.documentStore.save(
       OptimizedNotesDocument,
       objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-      { id: 'final', validate: 'skip' },
+      { key: 'final', validate: 'skip' },
     );
   }
 
@@ -288,7 +288,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
   async confirm(state: MeetingNotesState, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
     // Save final confirmed version and publish it as the workflow output
-    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { id: 'final' });
+    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { key: 'final' });
     this.setResult({ optimizedNotes: result.content });
   }
 }

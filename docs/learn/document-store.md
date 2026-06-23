@@ -68,14 +68,14 @@ This is why document output is always consistent with workflow state: you can't 
 
 ### Replacing a Document
 
-By default, each `save()` call creates a new document row at the end of the feed. To replace an existing document at its current position, pass a stable `id`:
+By default, each `save()` call creates a new document row at the end of the feed. To replace an existing document at its current position, pass a stable `key`:
 
 ```typescript
-// First save — creates document with ID 'output-1'
-await this.documentStore.save(ResultDocument, { text: 'Draft...' }, { id: 'output-1' });
+// First save — creates document with key 'output-1'
+await this.documentStore.save(ResultDocument, { text: 'Draft...' }, { key: 'output-1' });
 
-// Later save — creates a new row with the same ID, invalidates the old one
-await this.documentStore.save(ResultDocument, { text: 'Final version' }, { id: 'output-1' });
+// Later save — creates a new row with the same key, invalidates the old one
+await this.documentStore.save(ResultDocument, { text: 'Final version' }, { key: 'output-1' });
 ```
 
 Under the hood: the old document row is marked `isInvalidated: true`, and a new row is inserted at the same display position. Studio shows only the latest version. The effect is that the document appears to update in place, while keeping an immutable document history.
@@ -94,13 +94,13 @@ Documents have a Zod schema (from the `@Document` decorator). When you call `sav
 
 ```typescript
 // Strict (default) — throws if invalid
-await this.documentStore.save(NotesDocument, content, { id: 'notes' });
+await this.documentStore.save(NotesDocument, content, { key: 'notes' });
 
 // Safe — keeps partial data, attaches the ZodError for inspection
-await this.documentStore.save(NotesDocument, content, { id: 'notes', validate: 'safe' });
+await this.documentStore.save(NotesDocument, content, { key: 'notes', validate: 'safe' });
 
 // Skip — raw write, no Zod check
-await this.documentStore.save(OptimizedNotesDocument, llmResult.data, { id: 'notes', validate: 'skip' });
+await this.documentStore.save(OptimizedNotesDocument, llmResult.data, { key: 'notes', validate: 'skip' });
 ```
 
 `'safe'` and `'skip'` are most useful for LLM-generated content where the model's output may have minor deviations (empty strings, missing optional fields) that you want the user to review and correct in the UI before confirming.
@@ -130,14 +130,18 @@ const result = await this.llmGenerateText.call({}, { config: { provider: 'claude
 
 This is why multi-turn chat works without manually managing a messages array. The document store is the messages array.
 
-### Hidden Documents
+### Hidden LLM Context
 
-Documents with `{ meta: { hidden: true } }` are saved to the database and visible to the LLM but not shown in the Studio UI:
+Sometimes you want to seed the LLM with context — a system prompt, prior steps, background info — without showing it as a chat bubble in Studio. Save it as an `LlmContextDocument` instead of an `LlmMessageDocument`:
 
 ```typescript
-// System prompt — LLM reads it, users don't see it
-await this.documentStore.save(LlmMessageDocument, { role: 'user', text: systemPromptText }, { meta: { hidden: true } });
+// System prompt — LLM reads it as conversation history, Studio doesn't show it
+await this.documentStore.save(LlmContextDocument, { role: 'user', text: systemPromptText });
 ```
+
+`LlmContextDocument` is declared with `@Document({ internal: true, tags: ['message'] })`. The `internal: true` flag tells the framework to exclude these rows from API responses and live updates (so Studio never sees them), while `tags: ['message']` ensures the LLM provider still picks them up when building conversation history.
+
+For any document type that's pure framework plumbing — never user-facing — declare `internal: true` on its `@Document` decorator to apply the same filter.
 
 ---
 
@@ -147,7 +151,8 @@ You don't always need to create custom documents. The built-in types cover the m
 
 | Document             | Source                           | Use case                                                                                                                                                             |
 | -------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LlmMessageDocument` | `@loopstack/llm-provider-module` | Chat messages — user and assistant turns, tool calls, tool results. Collected into LLM history by default.                                                           |
+| `LlmMessageDocument` | `@loopstack/llm-provider-module` | Visible chat messages — user and assistant turns, tool calls, tool results. Collected into LLM history by default.                                                   |
+| `LlmContextDocument` | `@loopstack/llm-provider-module` | Internal LLM context — system prompts, background info. Picked up by the LLM provider as conversation history but excluded from Studio's document responses.         |
 | `MessageDocument`    | `@loopstack/common`              | UI-only role/text bubbles (status updates, narrative). Not collected into LLM history.                                                                               |
 | `MarkdownDocument`   | `@loopstack/common`              | Rich text output rendered as formatted markdown                                                                                                                      |
 | `PlainDocument`      | `@loopstack/common`              | Plain text output                                                                                                                                                    |

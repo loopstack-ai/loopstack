@@ -15,6 +15,7 @@ import {
 } from '@loopstack/google-workspace-module';
 import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
+  LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
@@ -62,11 +63,10 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'waiting_for_user' })
   async setup(_state: GoogleWorkspaceAgentState) {
-    await this.documentStore.save(
-      LlmMessageDocument,
-      { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
-      { meta: { hidden: true } },
-    );
+    await this.documentStore.save(LlmContextDocument, {
+      role: 'user',
+      text: this.render(__dirname + '/templates/systemMessage.md'),
+    });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })

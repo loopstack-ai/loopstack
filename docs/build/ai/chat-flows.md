@@ -12,7 +12,7 @@ Build multi-turn conversational workflows where users exchange messages with an 
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmContextDocument, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({ widget: __dirname + '/chat.ui.yaml' })
 export class ChatWorkflow extends BaseWorkflow {
@@ -22,11 +22,10 @@ export class ChatWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'waiting_for_user' })
   async setup(state: Record<string, unknown>) {
-    await this.documentStore.save(
-      LlmMessageDocument,
-      { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
-      { meta: { hidden: true } },
-    );
+    await this.documentStore.save(LlmContextDocument, {
+      role: 'user',
+      text: this.render(__dirname + '/templates/systemMessage.md'),
+    });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })

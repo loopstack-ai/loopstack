@@ -37,13 +37,13 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
     await this.documentStore.save(
       MeetingNotesDocument,
       { text: `Unstructured Notes:\n\n${ctx.args.inputText}` },
-      { id: 'input' },
+      { key: 'input' },
     );
   }
 
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
   async userResponse(state: MeetingNotesState, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
-    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { id: 'input' });
+    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { key: 'input' });
     this.assignState({ meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> });
   }
 
@@ -64,7 +64,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
       OptimizedNotesDocument,
       objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
       {
-        id: 'final',
+        key: 'final',
         validate: 'skip',
       },
     );
@@ -72,7 +72,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
 
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
   async confirm(state: MeetingNotesState, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
-    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { id: 'final' });
+    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { key: 'final' });
     this.setResult({
       optimizedNotes: result.content as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
     } as unknown as Record<string, unknown>);

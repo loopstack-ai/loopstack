@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
+  LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
@@ -34,11 +35,10 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'ready' })
   async setup(_state: SecretsAgentState) {
-    await this.documentStore.save(
-      LlmMessageDocument,
-      { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
-      { meta: { hidden: true } },
-    );
+    await this.documentStore.save(LlmContextDocument, {
+      role: 'user',
+      text: this.render(__dirname + '/templates/systemMessage.md'),
+    });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })

@@ -11,6 +11,7 @@ import {
 } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
+  LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
@@ -76,11 +77,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   @Transition({ to: 'ready' })
   async setup(state: ChatAgentState, ctx: RunContext<ChatAgentArgs>) {
     if (ctx.args.context) {
-      await this.documentStore.save(
-        LlmMessageDocument,
-        { role: 'user', text: ctx.args.context },
-        { meta: { hidden: true } },
-      );
+      await this.documentStore.save(LlmContextDocument, { role: 'user', text: ctx.args.context });
     }
 
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.userMessage });

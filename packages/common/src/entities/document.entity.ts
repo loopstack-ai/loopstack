@@ -18,9 +18,9 @@ export class DocumentEntity<T = any> {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', name: 'message_id' })
+  @Column({ type: 'varchar', name: 'key' })
   @Index()
-  messageId!: string;
+  key!: string;
 
   @Column({ type: 'varchar', name: 'document_name' })
   @Index()
@@ -44,6 +44,10 @@ export class DocumentEntity<T = any> {
 
   @Column({ name: 'is_invalidated', default: false })
   isInvalidated!: boolean;
+
+  @Column({ default: false })
+  @Index()
+  internal!: boolean;
 
   @Column({ default: 0 })
   index!: number;

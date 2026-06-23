@@ -98,14 +98,20 @@ await this.llmGenerateText.call(
 The tool saves the assistant message as an `LlmMessageDocument` automatically — no manual `documentStore.save()` is required. Two config knobs control this:
 
 - `config: { save: false }` — opt out entirely. Use this when you want to inspect, transform, or persist the response yourself (see [llm-multi-provider-example-workflow](https://loopstack.ai/registry/loopstack-llm-multi-provider-example-workflow) for a worked case).
-- `config: { meta: {...} }` — merge extra metadata into the auto-saved document. The most common use is `{ meta: { hidden: true } }` to keep the response in the LLM's conversation history while hiding it from the Studio UI.
+- `config: { meta: {...} }` — merge extra metadata into the auto-saved document. Free-form payload that downstream readers can pick up off `document.meta`.
+
+To run a "silent" turn the LLM remembers but the user doesn't see, opt out of auto-save and persist the result as `LlmContextDocument` (declared `internal: true`, so Studio never sees it):
 
 ```typescript
-// Run a "silent" turn the LLM remembers but the user doesn't see
-await this.llmGenerateText.call(
+const result = await this.llmGenerateText.call(
   { prompt: 'Summarize the previous turn in one sentence for internal reasoning.' },
-  { config: { provider: 'claude', meta: { hidden: true } } },
+  { config: { provider: 'claude', save: false } },
 );
+
+await this.documentStore.save(LlmContextDocument, {
+  role: 'assistant',
+  text: result.data.message.text ?? '',
+});
 ```
 
 Other documents (user inputs, seed system messages, structured outputs) stay manual — see [Chat Flows](./chat-flows.md) for the two halves side by side.

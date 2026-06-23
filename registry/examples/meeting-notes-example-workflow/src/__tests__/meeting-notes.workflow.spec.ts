@@ -41,7 +41,16 @@ describe('MeetingNotesWorkflow', () => {
   describe('initial step', () => {
     it('should execute initial step and stop at waiting_for_response', async () => {
       const context = createStatelessContext();
-      const result = await processor.process(workflow, {}, context);
+      // processor.process expects already-parsed args; in production runStateless/CreateWorkflowService
+      // run the schema first. Mirror that here so the workflow's default kicks in.
+      const result = await processor.process(
+        workflow,
+        {
+          inputText:
+            '- meeting 1.1.2025\n- budget: need 2 cut costs sarah said\n- hire new person?? --> marketing\n- vendor pricing - follow up needed by anna',
+        },
+        context,
+      );
 
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);

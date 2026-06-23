@@ -47,13 +47,14 @@ describe('ChatWorkflow', () => {
       expect(result.stop).toBe(true);
       expect(result.place).toBe('waiting_for_user');
 
-      // Setup creates one hidden system document
+      // Setup creates one internal LlmContext document (hidden from Studio,
+      // still picked up by the LLM provider as conversation history).
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          documentName: 'llm_message',
+          documentName: 'llm_context',
           content: expect.objectContaining({ role: 'user' }),
-          meta: expect.objectContaining({ hidden: true }),
+          internal: true,
         }),
       );
 

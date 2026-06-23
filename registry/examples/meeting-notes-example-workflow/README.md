@@ -94,7 +94,7 @@ Use `wait: true` with a `schema` to pause the workflow and wait for user interac
 ```typescript
 @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
 async userResponse(state, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
-  const result = await this.documentStore.save(MeetingNotesDocument, input.data, { id: 'input' });
+  const result = await this.documentStore.save(MeetingNotesDocument, input.data, { key: 'input' });
   this.meetingNotes = result.content as z.infer<typeof MeetingNotesDocumentSchema>;
 }
 ```
@@ -211,7 +211,7 @@ async optimizeNotes(state: MeetingNotesState) {
   await this.documentStore.save(
     OptimizedNotesDocument,
     objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-    { id: 'final', validate: 'skip' },
+    { key: 'final', validate: 'skip' },
   );
 }
 ```
@@ -223,7 +223,7 @@ Use terminal `@Transition` with `wait: true` to create a review step before the 
 ```typescript
 @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
 async confirm(state, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
-  const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { id: 'final' });
+  const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { key: 'final' });
   this.optimizedNotes = result.content as z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
 }
 ```

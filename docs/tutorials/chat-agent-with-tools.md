@@ -158,7 +158,12 @@ Create `src/weather-chat/weather-chat.workflow.ts`:
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
-import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import {
+  LlmContextDocument,
+  LlmDelegateToolCallsTool,
+  LlmGenerateTextTool,
+  LlmMessageDocument,
+} from '@loopstack/llm-provider-module';
 
 interface ChatState {
   llmResult?: LlmGenerateTextResult;
@@ -177,14 +182,13 @@ export class WeatherChatWorkflow extends BaseWorkflow {
     super();
   }
 
-  // Step 1: Save the system prompt (hidden from UI), then wait for first user message
+  // Step 1: Save the system prompt as internal context, then wait for first user message
   @Transition({ to: 'waiting_for_user' })
   async setup(state: ChatState) {
-    await this.documentStore.save(
-      LlmMessageDocument,
-      { role: 'user', text: this.render(__dirname + '/templates/system.md') },
-      { meta: { hidden: true } },
-    );
+    await this.documentStore.save(LlmContextDocument, {
+      role: 'user',
+      text: this.render(__dirname + '/templates/system.md'),
+    });
   }
 
   // Step 2: User sends a message — save it and move to LLM generation
@@ -272,7 +276,7 @@ The tool loop continues as long as the LLM keeps requesting tools. Once it produ
 
 **Why no prompt in `llmTurn`:** The LLM call passes `{}` as the prompt. Loopstack automatically includes all `LlmMessageDocument` records saved in the current run as the conversation history. The document store IS the LLM's memory. Each new user message and each tool result you save becomes part of the context for the next LLM turn.
 
-**Why `hidden: true` on the system prompt:** The system message needs to be part of the LLM's context but shouldn't appear in the chat UI. The `{ meta: { hidden: true } }` option saves it to the document store for the LLM to see while keeping it invisible to the user in Studio.
+**Why `LlmContextDocument` for the system prompt:** The system message needs to be part of the LLM's context but shouldn't appear in the chat UI. `LlmContextDocument` is declared `@Document({ internal: true, tags: ['message'] })` — the framework excludes internal rows from API responses (so Studio never sees them) while keeping the `'message'` tag so the LLM provider still picks them up as conversation history.
 
 **How `@Guard` works:** When the workflow reaches `response_received`, it evaluates all outgoing transitions. `executeTools` has `priority: 10` and a guard — Loopstack calls `hasToolCalls(state)` first. If it returns `true`, `executeTools` runs. If it returns `false`, Loopstack moves to the next-priority transition: `saveResponse`.
 
