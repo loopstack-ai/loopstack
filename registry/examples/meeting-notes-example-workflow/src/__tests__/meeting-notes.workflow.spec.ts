@@ -88,7 +88,15 @@ describe('MeetingNotesWorkflow', () => {
       const workflowId = '00000000-0000-0000-0000-000000000001';
 
       mockLlmGenerateObject.call.mockResolvedValue({
-        data: { data: {} },
+        data: {
+          data: {
+            date: '2025-01-01',
+            summary: 'Mock summary',
+            participants: [],
+            decisions: [],
+            actionItems: [],
+          },
+        },
       });
 
       const context = createContext({

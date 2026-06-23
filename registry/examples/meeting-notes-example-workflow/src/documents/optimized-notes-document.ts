@@ -11,7 +11,7 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
 
 @Document({
   schema: OptimizedMeetingNotesDocumentSchema,
-  widget: __dirname + '/optimized-notes-document.yaml',
+  widget: './optimized-notes-document.yaml',
 })
 export class OptimizedNotesDocument {
   date: string;

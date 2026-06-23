@@ -58,7 +58,7 @@ const SandboxArgsSchema = z.object({ outputDir: z.string().default(process.cwd()
 type SandboxArgs = z.infer<typeof SandboxArgsSchema>;
 
 @Workflow({
-  widget: __dirname + '/sandbox.ui.yaml',
+  widget: './sandbox.ui.yaml',
   schema: SandboxArgsSchema,
 })
 export class SandboxWorkflow extends BaseWorkflow<SandboxArgs> {

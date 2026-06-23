@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
@@ -73,7 +74,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<CalendarSummaryArgs> {
   @Transition({ from: 'calendar_fetched', to: 'end' })
   async displayResults(state: CalendarSummaryState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: state.events }),
+      markdown: this.render(join(__dirname, 'templates', 'calendarSummary.md'), { events: state.events }),
     });
   }
 

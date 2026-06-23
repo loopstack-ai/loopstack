@@ -9,7 +9,7 @@ export const PlainDocumentSchema = z
 
 @Document({
   schema: PlainDocumentSchema,
-  widget: import.meta.dirname + '/plain-document.yaml',
+  widget: './plain-document.yaml',
 })
 export class PlainDocument {
   text: string;

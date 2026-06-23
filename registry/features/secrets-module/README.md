@@ -87,7 +87,7 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
   @Transition({ from: 'verifying', to: 'end' })
   async showResult(state: SecretsState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/secretsVerified.md', {
+      markdown: this.render(join(__dirname, 'templates', 'secretsVerified.md'), {
         secretKeys: state.secretKeys,
       }),
     });

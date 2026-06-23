@@ -172,7 +172,7 @@ interface ChatState {
 @Workflow({
   title: 'Weather Chat Assistant',
   description: 'A multi-turn chat agent that can look up weather using tool calling.',
-  widget: __dirname + '/weather-chat.ui.yaml',
+  widget: './weather-chat.ui.yaml',
 })
 export class WeatherChatWorkflow extends BaseWorkflow {
   constructor(
@@ -187,7 +187,7 @@ export class WeatherChatWorkflow extends BaseWorkflow {
   async setup(state: ChatState) {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
-      text: this.render(__dirname + '/templates/system.md'),
+      text: this.render(join(__dirname, 'templates', 'system.md')),
     });
   }
 

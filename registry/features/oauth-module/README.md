@@ -85,7 +85,7 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   @Transition({ from: 'calendar_fetched', to: 'end' })
   async displayResults(state: CalendarState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/summary.md', { events: state.events }),
+      markdown: this.render(join(__dirname, 'templates', 'summary.md'), { events: state.events }),
     });
   }
 }

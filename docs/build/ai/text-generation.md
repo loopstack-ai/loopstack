@@ -49,7 +49,7 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
   async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>) {
     await this.llmGenerateText.call(
       {
-        prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
+        prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
@@ -121,7 +121,7 @@ Other documents (user inputs, seed system messages, structured outputs) stay man
 Render Handlebars templates for complex prompts (`this.render()` is available from `BaseWorkflow`):
 
 ```typescript
-const rendered = this.render(__dirname + '/templates/prompt.md', {
+const rendered = this.render(join(__dirname, 'templates', 'prompt.md'), {
   subject: ctx.args.subject,
 });
 

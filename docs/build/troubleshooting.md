@@ -23,15 +23,23 @@ description: Solutions to common Loopstack setup and runtime issues — YAML ass
 
 Then restart the dev server (`npm run start:dev`) — NestJS watches and copies asset files on change.
 
-**Also check:** The path passed to `widget:` or `this.render()` uses `__dirname`, which resolves to the compiled file's location in `dist/`. Make sure you're using:
+**Also check:**
 
-```typescript
-@Document({
-  widget: __dirname + '/my-document.yaml',
-})
-```
+- `widget:` paths on `@Workflow` / `@Tool` / `@Document` are resolved relative to the file containing the decorator. Use a `./` or `../` prefix:
 
-Not a hardcoded path like `'src/my-feature/my-document.yaml'`.
+  ```typescript
+  @Document({
+    widget: './my-document.yaml',
+  })
+  ```
+
+- `this.render(...)` takes an absolute path. Use `path.join(__dirname, ...)`:
+
+  ```typescript
+  this.render(join(__dirname, 'templates', 'prompt.md'));
+  ```
+
+Not a hardcoded path like `'src/my-feature/my-document.yaml'` — those resolve from the process's `cwd`, not the file's directory.
 
 ---
 

@@ -22,7 +22,7 @@ interface ReviewState {
   draft?: string;
 }
 
-@Workflow({ widget: __dirname + '/review.ui.yaml' })
+@Workflow({ widget: './review.ui.yaml' })
 export class ReviewWorkflow extends BaseWorkflow {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();

@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import {
@@ -34,7 +35,7 @@ interface GoogleWorkspaceAgentState {
   description:
     'An interactive chat agent with access to Google Calendar, Gmail, and Google Drive.\nAsk it to check your calendar, search emails, find files, send messages, create events, and more.\nHandles OAuth authentication automatically when needed — the agent detects unauthorized errors\nand launches authentication on its own.',
   name: 'google_workspace_agent',
-  widget: __dirname + '/google-workspace-agent.ui.yaml',
+  widget: './google-workspace-agent.ui.yaml',
 })
 export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
   constructor(
@@ -65,7 +66,7 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
   async setup(_state: GoogleWorkspaceAgentState) {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
-      text: this.render(__dirname + '/templates/systemMessage.md'),
+      text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
     });
   }
 

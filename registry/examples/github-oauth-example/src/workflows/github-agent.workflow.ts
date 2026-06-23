@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import {
@@ -48,7 +49,7 @@ interface GitHubAgentState {
   description:
     'An interactive chat agent with access to GitHub.\nAsk it to manage repositories, issues, pull requests, browse code, check CI/CD status,\nsearch across GitHub, and more. Handles OAuth authentication automatically when needed —\nthe agent detects unauthorized errors and launches authentication on its own.',
   name: 'github_agent',
-  widget: __dirname + '/github-agent.ui.yaml',
+  widget: './github-agent.ui.yaml',
 })
 export class GitHubAgentWorkflow extends BaseWorkflow {
   constructor(
@@ -97,7 +98,7 @@ export class GitHubAgentWorkflow extends BaseWorkflow {
   async setup(_state: GitHubAgentState) {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
-      text: this.render(__dirname + '/templates/systemMessage.md'),
+      text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
     });
   }
 

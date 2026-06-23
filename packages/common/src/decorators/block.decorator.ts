@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import * as path from 'path';
 import { z } from 'zod';
 import type { StaticDocumentMeta, UiWidgetType } from '@loopstack/contracts/types';
+import { getCallerFile } from '../utils/caller-file.js';
 
 /** A widget reference: either a YAML file path or an inline widget object. */
 export type WidgetRef = string | UiWidgetType;
 
 export const BLOCK_CONFIG_METADATA_KEY = Symbol('blockConfig');
 export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
+export const BLOCK_DIR_METADATA_KEY = Symbol('blockDir');
 export const TRANSITIONS_METADATA_KEY = Symbol('transitions');
 export const GUARDS_METADATA_KEY = Symbol('guards');
 
@@ -102,11 +105,44 @@ export interface DocumentOptions {
   internal?: boolean;
 }
 
-export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
+/** @internal Resolves a relative widget path against `dir`; passes through absolute paths and inline objects. */
+function resolveWidgetRef(ref: WidgetRef, dir: string): WidgetRef {
+  if (typeof ref !== 'string') return ref;
+  if (ref.startsWith('./') || ref.startsWith('../')) {
+    return path.resolve(dir, ref);
+  }
+  return ref;
+}
+
+/** @internal Normalises `widget` option — resolves relative paths in single or array form. */
+function resolveWidgetOption(
+  widget: WidgetRef | WidgetRef[] | undefined,
+  dir: string,
+): WidgetRef | WidgetRef[] | undefined {
+  if (widget === undefined) return undefined;
+  if (Array.isArray(widget)) {
+    return widget.map((w) => resolveWidgetRef(w, dir));
+  }
+  return resolveWidgetRef(widget, dir);
+}
+
+/**
+ * Core block decorator. Captures the caller's directory at decorator-evaluation time
+ * and resolves any relative `widget` paths against it. The captured directory is
+ * stored under `BLOCK_DIR_METADATA_KEY`.
+ *
+ * The optional `callerFile` parameter lets wrapping decorators (`Workflow`, `Tool`, `Document`)
+ * pass in the user's actual call site instead of their own location.
+ */
+export function Block(type: BlockType, options?: BlockOptions, callerFile?: string): ClassDecorator {
+  const sourceFile = callerFile ?? getCallerFile();
+  const dir = path.dirname(sourceFile);
+  const resolvedOptions: BlockOptions = options ? { ...options, widget: resolveWidgetOption(options.widget, dir) } : {};
   return (target) => {
     Injectable()(target);
     Reflect.defineMetadata(BLOCK_TYPE_METADATA_KEY, type, target);
-    Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options ?? {}, target);
+    Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, resolvedOptions, target);
+    Reflect.defineMetadata(BLOCK_DIR_METADATA_KEY, dir, target);
   };
 }
 
@@ -119,10 +155,13 @@ export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
  * Identifier resolution: `options.name` ?? class name with `Workflow` suffix stripped,
  * snake_cased (e.g. `ChatWorkflow` → `chat`).
  *
+ * Relative `widget:` paths (`./foo.ui.yaml`, `../shared/foo.ui.yaml`) are resolved
+ * against this file's directory at decorator-evaluation time.
+ *
  * @see WorkflowOptions for available options.
  */
 export function Workflow(options?: WorkflowOptions): ClassDecorator {
-  return Block('workflow', options as BlockOptions);
+  return Block('workflow', options as BlockOptions, getCallerFile());
 }
 
 /**
@@ -135,10 +174,13 @@ export function Workflow(options?: WorkflowOptions): ClassDecorator {
  * `options.name` to a snake_case identifier — it appears in the LLM tool-calling
  * wire format.
  *
+ * Relative `widget:` paths (`./foo.ui.yaml`, `../shared/foo.ui.yaml`) are resolved
+ * against this file's directory at decorator-evaluation time.
+ *
  * @see ToolOptions for available options.
  */
 export function Tool(options?: ToolOptions): ClassDecorator {
-  return Block('tool', options as BlockOptions);
+  return Block('tool', options as BlockOptions, getCallerFile());
 }
 
 /**
@@ -154,11 +196,17 @@ export function Tool(options?: ToolOptions): ClassDecorator {
  * @see DocumentOptions for available options.
  */
 export function Document(options?: DocumentOptions): ClassDecorator {
+  const sourceFile = getCallerFile();
+  const dir = path.dirname(sourceFile);
+  const resolvedOptions: DocumentOptions | undefined = options
+    ? { ...options, widget: resolveWidgetOption(options.widget, dir) }
+    : undefined;
   return (target) => {
     // Documents are NOT @Injectable — they are plain DTOs, not NestJS providers
     Reflect.defineMetadata(BLOCK_TYPE_METADATA_KEY, 'document', target);
-    if (options) {
-      Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options as BlockOptions, target);
+    Reflect.defineMetadata(BLOCK_DIR_METADATA_KEY, dir, target);
+    if (resolvedOptions) {
+      Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, resolvedOptions as BlockOptions, target);
     }
     globalDocumentRegistry.add(target);
   };

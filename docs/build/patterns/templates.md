@@ -21,11 +21,15 @@ export class MyWorkflow extends BaseWorkflow {
 ## Usage
 
 ```typescript
-const rendered = this.render(__dirname + '/templates/prompt.md', {
+import { join } from 'node:path';
+
+const rendered = this.render(join(__dirname, 'templates', 'prompt.md'), {
   subject: args.subject,
   items: state.items,
 });
 ```
+
+`this.render()` expects an absolute path. Build it with `path.join(__dirname, ...)` so templates resolve relative to the workflow's compiled `.js` file at runtime (where the `templates/` folder is copied during build).
 
 Template file (`templates/prompt.md`):
 

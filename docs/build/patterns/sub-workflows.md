@@ -174,7 +174,7 @@ For `FanOutWorkflow` and `SequenceWorkflow` the same idea applies one level deep
 The sub-workflow defines its output by writing to the run's `result` field via `this.assignResult(...)` or `this.setResult(...)`:
 
 ```typescript
-@Workflow({ widget: __dirname + '/sub.ui.yaml' })
+@Workflow({ widget: './sub.ui.yaml' })
 export class SubWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
   start() {
@@ -186,7 +186,7 @@ export class SubWorkflow extends BaseWorkflow {
 ## Complete Example
 
 ```typescript
-@Workflow({ widget: __dirname + '/parent.ui.yaml' })
+@Workflow({ widget: './parent.ui.yaml' })
 export class ParentWorkflow extends BaseWorkflow {
   constructor(private readonly subWorkflow: SubWorkflow) {
     super();

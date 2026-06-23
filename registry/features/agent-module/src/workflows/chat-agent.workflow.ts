@@ -60,7 +60,7 @@ interface ChatAgentState {
   name: 'chat_agent',
   title: 'Chat Agent',
   description: 'An interactive LLM agent with user chat and tool calling.',
-  widget: import.meta.dirname + '/chat-agent.ui.yaml',
+  widget: './chat-agent.ui.yaml',
   schema: ChatAgentArgsSchema,
 })
 export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {

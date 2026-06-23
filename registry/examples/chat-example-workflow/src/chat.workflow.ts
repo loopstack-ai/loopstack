@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { LlmContextDocument, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
@@ -20,7 +21,7 @@ import { LlmContextDocument, LlmGenerateTextTool, LlmMessageDocument } from '@lo
   title: 'LLM Chat Example (Assistant Bob)',
   description:
     'An example workflow that demonstrates how to create a simple chat interface. Messages are processed by an LLM to generate responses.',
-  widget: __dirname + '/chat.ui.yaml',
+  widget: './chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
@@ -32,7 +33,7 @@ export class ChatWorkflow extends BaseWorkflow {
   async setup(_state: Record<string, unknown>) {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
-      text: this.render(__dirname + '/templates/systemMessage.md'),
+      text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
     });
   }
 

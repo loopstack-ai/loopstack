@@ -7,7 +7,7 @@ import type { TransitionInput } from '@loopstack/common';
   description:
     'Predefined-workflow HITL via the prompt-input widget. The workflow loops: it waits for a user ' +
     'message, echoes back a reply, and re-enters the waiting state. No LLM and no sub-workflow involved.',
-  widget: __dirname + '/prompt-input-chat.workflow.yaml',
+  widget: './prompt-input-chat.workflow.yaml',
 })
 export class PromptInputChatWorkflow extends BaseWorkflow {
   @Transition({ to: 'waiting_for_user' })

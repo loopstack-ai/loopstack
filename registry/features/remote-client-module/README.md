@@ -43,7 +43,7 @@ Inject tools directly into your workflow via the constructor — they are NestJS
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { BashTool, EditTool, ReadTool } from '@loopstack/remote-client';
 
-@Workflow({ uiConfig: __dirname + '/my.ui.yaml' })
+@Workflow({ widget: './my.ui.yaml' })
 export class MyWorkflow extends BaseWorkflow {
   constructor(
     private readonly read: ReadTool,

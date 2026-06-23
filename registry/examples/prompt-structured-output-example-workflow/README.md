@@ -73,7 +73,7 @@ export const FileDocumentSchema = z
 
 export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
 
-@Document({ schema: FileDocumentSchema, uiConfig: __dirname + '/file-document.yaml' })
+@Document({ schema: FileDocumentSchema, widget: './file-document.yaml' })
 export class FileDocument {
   filename: string;
   description: string;
@@ -125,7 +125,7 @@ async prompt(state: PromptStructuredOutputState) {
   const result = await this.llmGenerateObject.call(
     {
       outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
-      prompt: this.render(__dirname + '/templates/prompt.md', { language: state.language }),
+      prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { language: state.language }),
     },
     { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
   );
@@ -200,7 +200,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
-        prompt: this.render(__dirname + '/templates/prompt.md', { language: state.language }),
+        prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { language: state.language }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );

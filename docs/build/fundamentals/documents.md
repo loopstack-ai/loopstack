@@ -19,7 +19,7 @@ export const NotesSchema = z.object({
 
 @Document({
   schema: NotesSchema,
-  widget: __dirname + '/notes.ui.yaml',
+  widget: './notes.ui.yaml',
 })
 export class NotesDocument {
   text: string;
@@ -45,7 +45,7 @@ ui:
 ```typescript
 @Document({
   schema: NotesSchema,
-  widget: __dirname + '/notes.ui.yaml',
+  widget: './notes.ui.yaml',
 })
 ```
 
@@ -249,7 +249,7 @@ Tags categorize documents for filtering and searching. There are two ways to set
 ```typescript
 @Document({
   schema: NotesSchema,
-  widget: __dirname + '/notes.ui.yaml',
+  widget: './notes.ui.yaml',
   tags: ['message', 'important'],
 })
 export class NotesDocument {
@@ -283,7 +283,7 @@ export const FileDocumentSchema = z
 
 @Document({
   schema: FileDocumentSchema,
-  widget: __dirname + '/file-document.yaml',
+  widget: './file-document.yaml',
 })
 export class FileDocument {
   filename: string;

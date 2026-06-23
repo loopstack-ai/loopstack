@@ -53,7 +53,7 @@ interface AgentState {
   // Cancel button temporarily disabled — see agent.ui.yaml. Clicking it cancels child workflows but
   // does NOT synthesize tool_result blocks for the cancelled tool_use ids, so the next LLM turn
   // returns 400 ("tool_use without matching tool_result"). Re-enable once cancelPendingTools is fixed.
-  // widget: import.meta.dirname + '/agent.ui.yaml',
+  // widget: './agent.ui.yaml',
   schema: AgentArgsSchema,
 })
 export class AgentWorkflow extends BaseWorkflow<AgentArgs> {

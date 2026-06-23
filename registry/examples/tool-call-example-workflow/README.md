@@ -66,7 +66,7 @@ import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 @Tool({
-  uiConfig: { description: 'Retrieve weather information.' },
+  description: 'Retrieve weather information.',
   schema: z.object({ location: z.string() }),
 })
 export class GetWeather extends BaseTool<{ location: string }, object, string> {
@@ -79,7 +79,7 @@ export class GetWeather extends BaseTool<{ location: string }, object, string> {
 }
 ```
 
-The `description` in `uiConfig` is passed to the LLM to help it understand when to use the tool.
+The `description` is passed to the LLM to help it understand when to use the tool.
 
 #### 2. Injecting Tools in the Workflow
 

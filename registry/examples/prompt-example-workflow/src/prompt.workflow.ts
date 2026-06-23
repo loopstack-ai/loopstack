@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
@@ -23,7 +24,7 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
   async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>) {
     await this.llmGenerateText.call(
       {
-        prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
+        prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );

@@ -112,7 +112,11 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TInput = TAr
   /** Document store for saving and retrieving workflow documents. */
   @Inject(DOCUMENT_STORE) protected readonly documentStore!: DocumentStore;
 
-  /** Render a Handlebars template file with optional data context. */
+  /**
+   * Render a Handlebars template file with optional data context.
+   *
+   * Pass an absolute path — typically `path.join(__dirname, 'templates', 'foo.md')`.
+   */
   @Inject(TEMPLATE_RENDERER) protected readonly render!: TemplateRenderFn;
 
   /**

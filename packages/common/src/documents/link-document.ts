@@ -14,7 +14,7 @@ export type LinkDocumentContent = z.infer<typeof LinkDocumentSchema>;
 
 @Document({
   schema: LinkDocumentSchema,
-  widget: import.meta.dirname + '/link-document.yaml',
+  widget: './link-document.yaml',
 })
 export class LinkDocument {
   label?: string;

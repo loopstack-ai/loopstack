@@ -303,7 +303,7 @@ await this.llmGenerateText.call(
 
 ```typescript
 @Workflow({
-  widget: __dirname + '/my.ui.yaml',
+  widget: './my.ui.yaml',
 })
 export class MyWorkflow extends BaseWorkflow {
   constructor(private readonly myTool: MyTool) {

@@ -72,9 +72,7 @@ import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 
 @Tool({
   name: 'counter',
-  uiConfig: {
-    description: 'Counter tool.',
-  },
+  description: 'Counter tool.',
 })
 export class CounterTool extends BaseTool<object, object, number> {
   count: number = 0;
@@ -108,9 +106,7 @@ type MathSumArgs = z.infer<typeof MathSumSchema>;
 
 @Tool({
   name: 'math_sum',
-  uiConfig: {
-    description: 'Math tool calculating the sum of two arguments by using an injected service.',
-  },
+  description: 'Math tool calculating the sum of two arguments by using an injected service.',
   schema: MathSumSchema,
 })
 export class MathSumTool extends BaseTool<MathSumArgs, object, number> {
@@ -146,7 +142,7 @@ interface CustomToolExampleState {
 }
 
 @Workflow({
-  uiConfig: __dirname + '/custom-tool-example.ui.yaml',
+  widget: './custom-tool-example.ui.yaml',
   schema: z
     .object({
       a: z.number().default(1),
@@ -274,7 +270,7 @@ interface CustomToolExampleState {
 }
 
 @Workflow({
-  uiConfig: __dirname + '/custom-tool-example.ui.yaml',
+  widget: './custom-tool-example.ui.yaml',
   schema: z
     .object({
       a: z.number().default(1),

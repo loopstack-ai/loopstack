@@ -74,7 +74,7 @@ interface CalendarState {
 
 type CalendarArgs = { calendarId: string };
 
-@Workflow({ widget: __dirname + '/calendar.ui.yaml' })
+@Workflow({ widget: './calendar.ui.yaml' })
 export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   constructor(
     private readonly calendarFetchEvents: CalendarFetchEventsTool,
@@ -116,7 +116,7 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   @Transition({ from: 'calendar_fetched', to: 'end' })
   async displayResults(state: CalendarState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/summary.md', { events: state.events }),
+      markdown: this.render(join(__dirname, 'templates', 'summary.md'), { events: state.events }),
     });
   }
 }

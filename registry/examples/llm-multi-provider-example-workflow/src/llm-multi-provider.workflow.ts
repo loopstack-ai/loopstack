@@ -33,7 +33,7 @@ type LlmMultiProviderArgs = z.infer<typeof LlmMultiProviderArgsSchema>;
 @Workflow({
   title: 'LLM Multi-Provider',
   description: 'Runs the same prompt through Claude and OpenAI side by side',
-  widget: __dirname + '/llm-multi-provider.ui.yaml',
+  widget: './llm-multi-provider.ui.yaml',
   schema: LlmMultiProviderArgsSchema,
 })
 export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs> {

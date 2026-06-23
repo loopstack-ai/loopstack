@@ -8,7 +8,7 @@ export const FeedbackFormDocumentSchema = z.object({
 
 @Document({
   schema: FeedbackFormDocumentSchema,
-  widget: __dirname + '/feedback-form-document.yaml',
+  widget: './feedback-form-document.yaml',
 })
 export class FeedbackFormDocument {
   rating: number;

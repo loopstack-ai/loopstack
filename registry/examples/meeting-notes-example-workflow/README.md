@@ -71,7 +71,7 @@ Define input parameters directly in the `@Workflow` decorator with a Zod schema:
 
 ```typescript
 @Workflow({
-  uiConfig: __dirname + '/meeting-notes.ui.yaml',
+  widget: './meeting-notes.ui.yaml',
   schema: z.object({
     inputText: z
       .string()
@@ -135,7 +135,7 @@ export const MeetingNotesDocumentSchema = z.object({
 
 @Document({
   schema: MeetingNotesDocumentSchema,
-  uiConfig: __dirname + '/meeting-notes-document.yaml',
+  widget: './meeting-notes-document.yaml',
 })
 export class MeetingNotesDocument {
   text: string;
@@ -157,7 +157,7 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
 
 @Document({
   schema: OptimizedMeetingNotesDocumentSchema,
-  uiConfig: __dirname + '/optimized-notes-document.yaml',
+  widget: './optimized-notes-document.yaml',
 })
 export class OptimizedNotesDocument {
   date: string;
@@ -200,7 +200,7 @@ async optimizeNotes(state: MeetingNotesState) {
   const result = await this.llmGenerateObject.call(
     {
       outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
-      prompt: this.render(__dirname + '/templates/extract-notes.md', {
+      prompt: this.render(join(__dirname, 'templates', 'extract-notes.md'), {
         text: state.meetingNotes?.text,
       }),
     },

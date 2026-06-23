@@ -25,7 +25,7 @@ export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
 
 @Document({
   schema: FileDocumentSchema,
-  widget: __dirname + '/file-document.yaml',
+  widget: './file-document.yaml',
 })
 export class FileDocument {
   filename: string;
@@ -77,7 +77,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<StructuredOutpu
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
-        prompt: this.render(__dirname + '/templates/prompt.md', { language: state.language }),
+        prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { language: state.language }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );

@@ -74,7 +74,7 @@ The workflow begins with a start `@Transition` method that saves a hidden system
 async setup() {
   await this.documentStore.save(LlmContextDocument, {
     role: 'user',
-    text: this.render(__dirname + '/templates/systemMessage.md'),
+    text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
   });
 }
 ```
@@ -136,7 +136,7 @@ import { LlmContextDocument, LlmGenerateTextTool, LlmMessageDocument } from '@lo
 @Workflow({
   title: 'LLM Chat Example (Assistant Bob)',
   description: 'An example workflow that demonstrates how to create a simple chat interface.',
-  widget: __dirname + '/chat.ui.yaml',
+  widget: './chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
@@ -147,7 +147,7 @@ export class ChatWorkflow extends BaseWorkflow {
   async setup(state: Record<string, unknown>) {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
-      text: this.render(__dirname + '/templates/systemMessage.md'),
+      text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
     });
   }
 

@@ -72,7 +72,7 @@ interface DynamicRoutingState {
 }
 
 @Workflow({
-  uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
+  widget: './dynamic-routing-example.ui.yaml',
   schema: z
     .object({
       value: z.number().default(150),
@@ -206,7 +206,7 @@ interface DynamicRoutingState {
 }
 
 @Workflow({
-  uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
+  widget: './dynamic-routing-example.ui.yaml',
   schema: z
     .object({
       value: z.number().default(150),

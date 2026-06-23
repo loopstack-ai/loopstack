@@ -281,7 +281,7 @@ Workflows and tools use standard NestJS constructor injection:
 
 ```typescript
 @Workflow({
-  widget: __dirname + '/chat.ui.yaml',
+  widget: './chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow {
   constructor(

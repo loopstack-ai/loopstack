@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
@@ -19,7 +20,7 @@ interface SecretsAgentState {
   title: 'Secrets Agent Example',
   description:
     'An agent workflow where the LLM autonomously manages secrets by calling\ngetSecretKeys and requestSecrets tools. The user can send follow-up messages.',
-  widget: __dirname + '/secrets-agent-example.ui.yaml',
+  widget: './secrets-agent-example.ui.yaml',
 })
 export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   constructor(
@@ -37,7 +38,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   async setup(_state: SecretsAgentState) {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
-      text: this.render(__dirname + '/templates/systemMessage.md'),
+      text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
     });
   }
 
@@ -50,7 +51,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
           provider: 'claude',
           model: 'claude-haiku-4-5-20251001',
           tools: ['get_secret_keys', 'request_secrets_task'],
-          system: this.render(__dirname + '/templates/system.md'),
+          system: this.render(join(__dirname, 'templates', 'system.md')),
         },
       },
     );

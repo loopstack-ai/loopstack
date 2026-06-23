@@ -64,7 +64,7 @@ export class MyAppModule {}
 The parent workflow injects the sub-workflow class and calls `.run()` to start it:
 
 ```typescript
-@Workflow({ uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml' })
+@Workflow({ widget: './run-sub-workflow-example-parent.ui.yaml' })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   constructor(private readonly subWorkflow: RunSubWorkflowExampleSubWorkflow) {
     super();
@@ -77,7 +77,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
 The sub-workflow publishes structured data via `this.setResult(...)` in its final `@Transition` method. This data is delivered to the parent workflow via the callback payload:
 
 ```typescript
-@Workflow({ uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml' })
+@Workflow({ widget: './run-sub-workflow-example-sub.ui.yaml' })
 export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
   async message() {

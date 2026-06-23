@@ -17,7 +17,7 @@ import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loops
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
-  widget: __dirname + '/chat.ui.yaml', // UI config
+  widget: './chat.ui.yaml', // UI config
 })
 export class ChatWorkflow extends BaseWorkflow {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
@@ -60,7 +60,7 @@ start → waiting_for_user → [user sends message] → ready → llmTurn → wa
 
 ```typescript
 @Workflow({
-  widget: __dirname + '/chat.ui.yaml',
+  widget: './chat.ui.yaml',
 })
 ```
 
@@ -78,7 +78,7 @@ All options are optional.
 
 ```typescript
 @Workflow({
-  widget: __dirname + '/prompt.ui.yaml',
+  widget: './prompt.ui.yaml',
   schema: z.object({
     subject: z.string().default('coffee'),
   }),
@@ -301,7 +301,7 @@ await this.documentStore.save(LlmContextDocument, { role: 'user', text: 'System 
 `render` is available directly on `BaseWorkflow` (like `documentStore`). Use `this.render()` to render Handlebars template files:
 
 ```typescript
-const rendered = this.render(__dirname + '/templates/prompt.md', {
+const rendered = this.render(join(__dirname, 'templates', 'prompt.md'), {
   subject: args.subject,
 });
 ```

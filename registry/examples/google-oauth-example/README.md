@@ -83,7 +83,7 @@ On success, the workflow renders a markdown summary using a template:
 @Transition({ from: 'calendar_fetched', to: 'end' })
 async displayResults(state: CalendarSummaryState) {
   await this.documentStore.save(MarkdownDocument, {
-    markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: state.events }),
+    markdown: this.render(join(__dirname, 'templates', 'calendarSummary.md'), { events: state.events }),
   });
 }
 ```

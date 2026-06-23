@@ -3,7 +3,8 @@ import type { DocumentStore } from '../interfaces/document-store.interface.js';
 import type { ToolCallOptions, ToolEnvelope, ToolResult } from '../interfaces/handler.interface.js';
 import type { RunContext } from '../interfaces/run-context.interface.js';
 import type { ToolPipeline } from '../interfaces/tool-pipeline.interface.js';
-import { DOCUMENT_STORE, TOOL_PIPELINE } from '../tokens.js';
+import { DOCUMENT_STORE, TEMPLATE_RENDERER, TOOL_PIPELINE } from '../tokens.js';
+import type { TemplateRenderFn } from './workflow-templates.js';
 
 /**
  * Abstract base class for tools.
@@ -39,6 +40,13 @@ export abstract class BaseTool<
 
   /** Document store for saving and retrieving documents. */
   @Inject(DOCUMENT_STORE) protected readonly documentStore!: DocumentStore;
+
+  /**
+   * Render a Handlebars template file with optional data context.
+   *
+   * Pass an absolute path — typically `path.join(__dirname, 'templates', 'foo.md')`.
+   */
+  @Inject(TEMPLATE_RENDERER) protected readonly render!: TemplateRenderFn;
 
   /**
    * Public entry point — what workflow authors call.

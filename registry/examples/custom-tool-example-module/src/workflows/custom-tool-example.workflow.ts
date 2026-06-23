@@ -21,7 +21,7 @@ type CustomToolExampleArgs = z.infer<typeof CustomToolExampleArgsSchema>;
   title: 'Custom Tool',
   description:
     'This workflow demonstrates the usage of custom tools, including both stateless and stateful tools.\nIt performs a simple addition operation using a custom MathSumTool and showcases the behavior of\nstateless and stateful counter tools. It also tests that tool state persists across checkpoints.',
-  widget: __dirname + '/custom-tool-example.ui.yaml',
+  widget: './custom-tool-example.ui.yaml',
   schema: CustomToolExampleArgsSchema,
 })
 export class CustomToolExampleWorkflow extends BaseWorkflow<CustomToolExampleArgs> {

@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
@@ -50,7 +51,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: OptimizedMeetingNotesDocumentSchema,
-        prompt: this.render(__dirname + '/templates/extract-notes.md', {
+        prompt: this.render(join(__dirname, 'templates', 'extract-notes.md'), {
           text: state.meetingNotes?.text,
         }),
       },

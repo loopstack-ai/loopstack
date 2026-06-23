@@ -13,7 +13,7 @@ export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
 
 @Document({
   schema: FileDocumentSchema,
-  widget: __dirname + '/file-document.yaml',
+  widget: './file-document.yaml',
 })
 export class FileDocument {
   filename: string;

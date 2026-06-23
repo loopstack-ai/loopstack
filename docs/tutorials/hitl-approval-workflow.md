@@ -94,7 +94,7 @@ export const MeetingNotesDocumentSchema = z.object({
 
 @Document({
   schema: MeetingNotesDocumentSchema,
-  widget: __dirname + '/meeting-notes-document.yaml',
+  widget: './meeting-notes-document.yaml',
 })
 export class MeetingNotesDocument {
   text: string;
@@ -140,7 +140,7 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
 
 @Document({
   schema: OptimizedMeetingNotesDocumentSchema,
-  widget: __dirname + '/optimized-notes-document.yaml',
+  widget: './optimized-notes-document.yaml',
 })
 export class OptimizedNotesDocument {
   date: string;
@@ -271,7 +271,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
       {
         // Convert the Zod schema to JSON Schema — the LLM uses this to constrain its output
         outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
-        prompt: this.render(__dirname + '/templates/extract-notes.md', { text: state.meetingNotes?.text }),
+        prompt: this.render(join(__dirname, 'templates', 'extract-notes.md'), { text: state.meetingNotes?.text }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );

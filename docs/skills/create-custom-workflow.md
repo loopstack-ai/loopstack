@@ -43,7 +43,7 @@ interface MyState {
 
 @Workflow({
   schema: MyArgs,
-  widget: __dirname + '/my.ui.yaml',
+  widget: './my.ui.yaml',
 })
 export class MyWorkflow extends BaseWorkflow<MyArgs> {
   // --- Tool & sub-workflow injection via constructor ---
@@ -88,7 +88,7 @@ Class decorator. Configures the workflow.
 
 ```typescript
 @Workflow({
-  widget: __dirname + '/my.ui.yaml',  // UI-only YAML config
+  widget: './my.ui.yaml',  // UI-only YAML config
   schema: z.object({                         // Input validation schema
     prompt: z.string(),
   }),
@@ -237,7 +237,7 @@ await this.documentStore.save(LlmContextDocument, { role: 'user', text: 'System 
 `render` is available directly on `BaseWorkflow` (like `documentStore`), so workflows just use `this.render(...)` without any injection:
 
 ```typescript
-const rendered = this.render(__dirname + '/templates/prompt.md', {
+const rendered = this.render(join(__dirname, 'templates', 'prompt.md'), {
   subject: args.subject,
   items: state.items,
 });
@@ -424,7 +424,7 @@ const PromptSchema = z.object({
 type PromptArgs = z.infer<typeof PromptSchema>;
 
 @Workflow({
-  widget: __dirname + '/prompt.ui.yaml',
+  widget: './prompt.ui.yaml',
   schema: PromptSchema,
 })
 export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
@@ -436,7 +436,7 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
   async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>) {
     await this.llmGenerateText.call(
       {
-        prompt: this.render(__dirname + '/templates/prompt.md', { subject: ctx.args.subject }),
+        prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
@@ -455,7 +455,7 @@ const RoutingSchema = z.object({ value: z.number().default(150) }).strict();
 type RoutingArgs = z.infer<typeof RoutingSchema>;
 
 @Workflow({
-  widget: __dirname + '/routing.ui.yaml',
+  widget: './routing.ui.yaml',
   schema: RoutingSchema,
 })
 export class RoutingWorkflow extends BaseWorkflow<RoutingArgs> {
@@ -505,7 +505,7 @@ const ChatSchema = z.object({ prompt: z.string() });
 type ChatArgs = z.infer<typeof ChatSchema>;
 
 @Workflow({
-  widget: __dirname + '/chat.ui.yaml',
+  widget: './chat.ui.yaml',
   schema: ChatSchema,
 })
 export class ChatWorkflow extends BaseWorkflow<ChatArgs> {

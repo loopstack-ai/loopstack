@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
 import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
@@ -17,7 +18,7 @@ export class AgentExampleWorkflow extends BaseWorkflow {
   async start(_state: Record<string, unknown>) {
     await this.agentWorkflow.run(
       {
-        system: this.render(__dirname + '/templates/system.md'),
+        system: this.render(join(__dirname, 'templates', 'system.md')),
         tools: ['weather_lookup', 'calculator'],
         userMessage: "What's the weather in Tokyo? Also, what is 42 * 17?",
       },

@@ -21,7 +21,7 @@ export const NotesSchema = z.object({
 
 @Document({
   schema: NotesSchema,
-  widget: __dirname + '/notes.ui.yaml',
+  widget: './notes.ui.yaml',
 })
 export class NotesDocument {
   text: string;

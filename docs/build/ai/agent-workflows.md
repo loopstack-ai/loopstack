@@ -62,7 +62,7 @@ const docs = await this.loadFiles.call({
   basePath: './src/assets',
 });
 
-const context = this.render(__dirname + '/templates/context.md', {
+const context = this.render(join(__dirname, 'templates', 'context.md'), {
   docs: docs.data,
   projectName: args.projectName,
 });
@@ -128,7 +128,7 @@ const MyAgentSchema = z.object({ instructions: z.string() });
 type MyAgentArgs = z.infer<typeof MyAgentSchema>;
 
 @Workflow({
-  widget: __dirname + '/my-agent.ui.yaml',
+  widget: './my-agent.ui.yaml',
   schema: MyAgentSchema,
 })
 export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {

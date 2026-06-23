@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
@@ -195,7 +196,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
   @Transition({ from: 'search_done', to: 'end' })
   async displayResults(state: GitHubReposOverviewState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/repoOverview.md', {
+      markdown: this.render(join(__dirname, 'templates', 'repoOverview.md'), {
         user: state.user,
         orgs: state.orgs,
         repo: state.repoDetails,

@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { BaseWorkflow, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
@@ -37,7 +38,7 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
   @Transition({ from: 'verifying', to: 'end' })
   async showResult(state: SecretsExampleState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/secretsVerified.md', {
+      markdown: this.render(join(__dirname, 'templates', 'secretsVerified.md'), {
         secretKeys: state.secretKeys,
       }),
     });

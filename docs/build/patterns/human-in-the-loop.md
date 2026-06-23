@@ -109,7 +109,7 @@ const MeetingNotesArgsSchema = z.object({ inputText: z.string().default('...') }
 type MeetingNotesArgs = z.infer<typeof MeetingNotesArgsSchema>;
 
 @Workflow({
-  widget: __dirname + '/meeting-notes.ui.yaml',
+  widget: './meeting-notes.ui.yaml',
   schema: MeetingNotesArgsSchema,
 })
 export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {

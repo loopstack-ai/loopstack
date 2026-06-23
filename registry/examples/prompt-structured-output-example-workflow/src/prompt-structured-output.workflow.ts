@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
@@ -41,7 +42,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<PromptStructure
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: FileDocumentSchema,
-        prompt: this.render(__dirname + '/templates/prompt.md', { language: state.language }),
+        prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { language: state.language }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
