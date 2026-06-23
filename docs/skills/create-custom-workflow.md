@@ -512,6 +512,7 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
     private readonly getWeather: GetWeather,
   ) {
     super();
@@ -540,12 +541,22 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
   async executeToolCalls(state: ChatState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });
   }
 
   hasToolCalls(state: ChatState): boolean {
     return state.llmResult?.message.stopReason === 'tool_use';
+  }
+
+  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
+  async toolResultReceived(state: ChatState, payload: unknown) {
+    const result = await this.llmUpdateToolResult.call({
+      delegateResult: state.delegateResult!,
+      completedTool: payload,
+    });
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'tools_done' })

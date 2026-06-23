@@ -19,7 +19,7 @@ Examples: `@loopstack/claude-module`, `@loopstack/github-module`, `@loopstack/hi
 
 Example packages are complete, working workflows that demonstrate Loopstack patterns. Use them as starting points — install the package, study the source, and adapt it to your needs.
 
-Examples: `@loopstack/chat-example-workflow`, `@loopstack/tool-call-example-workflow`, `@loopstack/sandbox-example-workflow`
+Examples: `@loopstack/chat-example-workflow`, `@loopstack/agent-example-workflow`, `@loopstack/sandbox-example-workflow`
 
 ## Installing a Package
 

@@ -10,7 +10,7 @@ In this tutorial you'll build a weather assistant chatbot. Users can ask about t
 When you're done you'll have a working workflow in Loopstack Studio that looks like this:
 
 ```
-start → setup → [user sends message] → LLM turn → [if tool call: execute → LLM again] → reply → [user sends message] → ...
+start → setup → [user sends message] → LLM turn → [if tool call: delegate → wait for tools → LLM again] → reply → [user sends message] → ...
 ```
 
 **What you'll learn:**
@@ -18,7 +18,8 @@ start → setup → [user sends message] → LLM turn → [if tool call: execute
 - How to define a custom tool with `@Tool` and `BaseTool`
 - How to give an LLM access to tools at call time
 - How `@Guard` routes transitions conditionally based on workflow state
-- How `LlmDelegateToolCallsTool` executes tool calls and feeds results back to the LLM
+- How `LlmDelegateToolCallsTool` delegates tool execution with a callback for async tools
+- How `LlmUpdateToolResultTool` merges each completed tool's result back into the loop
 - How to build a multi-turn chat loop using `wait: true` + cycling transitions
 - How the document store acts as the LLM's conversation history
 
@@ -157,16 +158,18 @@ Create `src/weather-chat/weather-chat.workflow.ts`:
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
+  LlmUpdateToolResultTool,
 } from '@loopstack/llm-provider-module';
 
 interface ChatState {
   llmResult?: LlmGenerateTextResult;
+  delegateResult?: LlmDelegateResult;
 }
 
 @Workflow({
@@ -178,6 +181,7 @@ export class WeatherChatWorkflow extends BaseWorkflow {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
   ) {
     super();
   }
@@ -207,18 +211,42 @@ export class WeatherChatWorkflow extends BaseWorkflow {
     this.assignState({ llmResult: result.data });
   }
 
-  // Step 4a: LLM requested tools — delegate runs them and saves the tool_result message
-  @Transition({ from: 'response_received', to: 'generating', priority: 10 })
+  // Step 4a: LLM requested tools — delegate execution. The callback fires per pending tool.
+  @Transition({ from: 'response_received', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeTools(state: ChatState) {
-    await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
+    const result = await this.llmDelegateToolCalls.call({
+      message: state.llmResult!.message,
+      callback: { transition: 'toolResultReceived' },
+    });
+    this.assignState({ delegateResult: result.data });
   }
 
   hasToolCalls(state: ChatState): boolean {
     return state.llmResult?.message.stopReason === 'tool_use';
   }
 
-  // Step 4b: LLM produced a final text response — auto-saved by llmGenerateText
+  // Step 4b: A pending tool finished — merge its result into delegateResult.
+  // Sync tools never enter this transition; async tools (sub-workflows, HITL) re-enter once per completion.
+  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
+  async toolResultReceived(state: ChatState, payload: unknown) {
+    const result = await this.llmUpdateToolResult.call({
+      delegateResult: state.delegateResult!,
+      completedTool: payload,
+    });
+    this.assignState({ delegateResult: result.data });
+  }
+
+  // Step 4c: All tool results in — loop back to LLM for the next turn.
+  @Transition({ from: 'awaiting_tools', to: 'generating' })
+  @Guard('allToolsComplete')
+  toolsComplete(_state: ChatState) {}
+
+  allToolsComplete(state: ChatState): boolean {
+    return !!state.delegateResult?.allCompleted;
+  }
+
+  // Step 4d: LLM produced a final text response — auto-saved by llmGenerateText
   @Transition({ from: 'response_received', to: 'waiting_for_user' })
   saveResponse(state: ChatState) {}
 }
@@ -269,7 +297,8 @@ waiting_for_user → [user sends message] → userMessage → generating → llm
 **The tool loop** — the inner loop that runs when the LLM calls tools:
 
 ```
-response_received → executeTools → generating → llmTurn → response_received
+response_received → executeTools → awaiting_tools → toolsComplete → generating → llmTurn → response_received
+                                            ↑__ toolResultReceived (async tools only) __|
 ```
 
 The tool loop continues as long as the LLM keeps requesting tools. Once it produces a final text response, `hasToolCalls` returns `false`, `executeTools` is skipped, and `saveResponse` runs instead — sending the workflow back to `waiting_for_user` for the next message.
@@ -280,7 +309,11 @@ The tool loop continues as long as the LLM keeps requesting tools. Once it produ
 
 **How `@Guard` works:** When the workflow reaches `response_received`, it evaluates all outgoing transitions. `executeTools` has `priority: 10` and a guard — Loopstack calls `hasToolCalls(state)` first. If it returns `true`, `executeTools` runs. If it returns `false`, Loopstack moves to the next-priority transition: `saveResponse`.
 
-**How `LlmDelegateToolCalls` works:** The LLM's response contains tool call requests (tool name + arguments). `LlmDelegateToolCallsTool` looks up the matching registered tool class (`GetWeatherTool` in this case), calls its `handle()` method with the LLM-provided arguments, and returns the results. You don't wire this manually — any `@Tool`-decorated class registered as a NestJS provider is automatically discoverable.
+**How `LlmDelegateToolCalls` works:** The LLM's response contains tool call requests (tool name + arguments). `LlmDelegateToolCallsTool` looks up each matching registered tool class (e.g. `GetWeatherTool`) and dispatches them in parallel. Synchronous tools return immediately and populate `result.toolResults`. Asynchronous tools (sub-workflow tools, HITL tools) return `pending: true` and emit a callback when they finish — the workflow's `toolResultReceived` (`wait: true` self-loop) catches each callback and calls `LlmUpdateToolResultTool` to merge the result. When `allCompleted` flips true, the unguarded `toolsComplete` transition fires and the loop returns to the LLM.
+
+For weather (a single sync tool), `toolResultReceived` is never entered — `allCompleted` is already true the moment `executeTools` returns. The wait-loop is in place so the same workflow shape scales the day you swap in or add a sub-workflow tool. Without it, the workflow would silently hang on the first async tool.
+
+**Shortcut:** if you don't need to own the FSM, `@loopstack/agent` ships `ChatAgentWorkflow` which encapsulates this exact loop. Call `chatAgent.run({ system, tools, userMessage })` from a parent workflow and skip writing the inner machinery.
 
 ---
 
@@ -289,4 +322,4 @@ The tool loop continues as long as the LLM keeps requesting tools. Once it produ
 - **[Custom Tools](../build/fundamentals/tools.md)** — build tools that call real external APIs, inject NestJS services, or validate their own output
 - **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — extend the guard pattern to handle error states, retries, or multi-step branching
 - **[Sub-Workflows](../build/patterns/sub-workflows.md)** — replace the inline tool loop with a dedicated agent sub-workflow
-- **[Registry example](https://loopstack.ai/registry/loopstack-tool-call-example-workflow)** — The complete source for the tool-calling pattern
+- **[Registry example](https://loopstack.ai/registry/loopstack-agent-example-workflow)** — The complete source for the agent pattern using `AgentWorkflow`

@@ -67,8 +67,6 @@ import { SecretsExampleModule } from '@loopstack/secrets-example-workflow';
 import { SecretsAgentExampleWorkflow, SecretsExampleWorkflow } from '@loopstack/secrets-example-workflow';
 import { TestUiDocumentsExampleModule } from '@loopstack/test-ui-documents-example-workflow';
 import { TestUiDocumentsWorkflow } from '@loopstack/test-ui-documents-example-workflow';
-import { ToolCallingExampleModule } from '@loopstack/tool-call-example-workflow';
-import { ToolCallWorkflow } from '@loopstack/tool-call-example-workflow';
 import { WorkflowStateExampleModule } from '@loopstack/workflow-state-example-workflow';
 import { WorkflowStateWorkflow } from '@loopstack/workflow-state-example-workflow';
 import { SmokeTestsController } from './smoke-tests.controller';
@@ -97,7 +95,6 @@ import { SmokeTestsController } from './smoke-tests.controller';
     MeetingNotesWorkflow,
     PromptWorkflow,
     PromptStructuredOutputWorkflow,
-    ToolCallWorkflow,
     LlmMultiProviderWorkflow,
 
     // HITL
@@ -151,7 +148,6 @@ import { SmokeTestsController } from './smoke-tests.controller';
     MeetingNotesExampleModule,
     PromptExampleModule,
     PromptStructuredOutputExampleModule,
-    ToolCallingExampleModule,
     LlmMultiProviderExampleModule,
 
     // HITL workflows

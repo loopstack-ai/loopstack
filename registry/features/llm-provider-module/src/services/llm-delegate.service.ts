@@ -22,18 +22,17 @@ export class LlmDelegateService {
    * Execute tool calls from an LLM response.
    * Resolves tool names to instances via ToolRegistry.
    */
-  async delegateToolCalls(toolCalls: LlmToolCall[], callback?: { transition: string }): Promise<LlmDelegateResult> {
+  async delegateToolCalls(toolCalls: LlmToolCall[], callback: { transition: string }): Promise<LlmDelegateResult> {
     if (toolCalls.length === 0) {
       return { allCompleted: true, toolResults: [], pendingCount: 0, errorCount: 0, hasErrors: false, errors: [] };
     }
 
     const results = await Promise.all(
-      toolCalls.map((toolCall) => {
-        const toolCallback = callback
-          ? { transition: callback.transition, metadata: { toolUseId: toolCall.id, toolName: toolCall.name } }
-          : undefined;
-        return this.executeTool(toolCall, toolCallback ? { callback: toolCallback } : undefined);
-      }),
+      toolCalls.map((toolCall) =>
+        this.executeTool(toolCall, {
+          callback: { transition: callback.transition, metadata: { toolUseId: toolCall.id, toolName: toolCall.name } },
+        }),
+      ),
     );
 
     let pendingCount = 0;

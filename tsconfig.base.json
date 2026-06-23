@@ -63,7 +63,6 @@
       "@loopstack/sandbox-example-workflow": ["./registry/examples/sandbox-example-workflow/src"],
       "@loopstack/secrets-example-workflow": ["./registry/examples/secrets-example-workflow/src"],
       "@loopstack/test-ui-documents-example-workflow": ["./registry/examples/test-ui-documents-example-workflow/src"],
-      "@loopstack/tool-call-example-workflow": ["./registry/examples/tool-call-example-workflow/src"],
       "@loopstack/workflow-state-example-workflow": ["./registry/examples/workflow-state-example-workflow/src"],
       "@loopstack/loopstack-studio": ["./frontend/studio/src"]
     }

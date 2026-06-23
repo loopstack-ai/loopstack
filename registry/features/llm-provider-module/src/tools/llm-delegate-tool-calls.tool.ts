@@ -9,11 +9,9 @@ import type { LlmContentBlock, LlmDelegateResult, LlmNormalizedMessage } from '.
 
 export const LlmDelegateToolCallsToolSchema = z.object({
   message: LlmNormalizedMessageSchema,
-  callback: z
-    .object({
-      transition: z.string(),
-    })
-    .optional(),
+  callback: z.object({
+    transition: z.string(),
+  }),
 });
 
 export const LlmDelegateToolCallsConfigSchema = z.object({

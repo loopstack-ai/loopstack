@@ -191,7 +191,10 @@ When multiple transitions share the same `from` state, attach `@Guard('methodNam
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
 async executeToolCalls(state: MyState) {
-  const result = await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
+  const result = await this.llmDelegateToolCalls.call({
+    message: state.llmResult!.message,
+    callback: { transition: 'toolResultReceived' },
+  });
   this.assignState({ delegateResult: result.data });
 }
 

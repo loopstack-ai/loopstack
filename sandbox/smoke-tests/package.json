@@ -58,7 +58,6 @@
     "@loopstack/sandbox-example-workflow": "*",
     "@loopstack/secrets-example-workflow": "*",
     "@loopstack/test-ui-documents-example-workflow": "*",
-    "@loopstack/tool-call-example-workflow": "*",
     "@loopstack/workflow-state-example-workflow": "*",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
