@@ -7,7 +7,6 @@ import {
   WorkflowEntity,
   WorkflowInterface,
   WorkflowMetadataInterface,
-  getBlockArgsSchema,
   getGuardMetadataMap,
   getWorkflowStateSchema,
   normalizeRetryConfig,
@@ -64,9 +63,6 @@ export class WorkflowProcessorService implements Processor {
       options: { stateless: boolean };
     },
   ): Promise<WorkflowMetadataInterface> {
-    const schema = getBlockArgsSchema(workflow);
-    const validArgs = schema ? (schema.parse(args) as Record<string, unknown> | undefined) : args;
-
     const isStateless = !!context.options?.stateless;
 
     let workflowEntity: WorkflowEntity | undefined;
@@ -138,7 +134,7 @@ export class WorkflowProcessorService implements Processor {
       workspaceId: context.workspaceId,
       workflowId: context.workflowId ?? '',
       labels: context.labels ?? [],
-      args: validArgs ? Object.freeze({ ...validArgs }) : undefined,
+      args: args ? Object.freeze({ ...args }) : undefined,
       options: context.options,
       cache: new Map(),
       queryRunner: null,

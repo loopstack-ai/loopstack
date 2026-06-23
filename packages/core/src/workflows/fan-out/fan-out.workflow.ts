@@ -2,8 +2,6 @@ import { Inject, type Type } from '@nestjs/common';
 import {
   BaseWorkflow,
   Guard,
-  QueueResult,
-  RunOptions,
   Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
@@ -15,7 +13,6 @@ import {
   type FanOutArgs,
   FanOutArgsSchema,
   type FanOutInput,
-  type FanOutItemInput,
   type FanOutMode,
   type FanOutResult,
   type FanOutResultEntry,
@@ -61,11 +58,7 @@ interface FanOutState {
   description: 'Launches multiple sub-workflows in parallel and aggregates their results.',
   schema: FanOutArgsSchema,
 })
-// The class is typed with FanOutInput (the friendly external API), but at runtime ctx.args
-// is the normalized FanOutArgs (entries-array). The `as unknown as FanOutArgs` casts below
-// bridge that gap. Single-generic BaseWorkflow can't model Input ≠ Args; revisit if we add
-// a second generic later.
-export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
+export class FanOutWorkflow extends BaseWorkflow<FanOutArgs, FanOutInput> {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     private readonly registry: WorkflowRegistryService,
@@ -73,26 +66,13 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
     super();
   }
 
-  async run(args?: FanOutInput, options?: RunOptions): Promise<QueueResult> {
-    if (!args) {
-      throw new Error('FanOutWorkflow requires { items } — see the FanOutInput type.');
-    }
-    const { entries, itemsWereArray } = this.normalizeItems(args.items);
-    const normalized: FanOutArgs = {
-      entries,
-      itemsWereArray,
-      mode: args.mode ?? 'all',
-    };
-    return super.run(normalized as unknown as FanOutInput, options);
-  }
-
   @Transition({ to: 'awaiting' })
-  async start(state: FanOutState, ctx: RunContext<FanOutInput>) {
-    const args = ctx.args as unknown as FanOutArgs;
-    const itemKeys = args.entries.map(([key]) => key);
+  async start(state: FanOutState, ctx: RunContext<FanOutArgs>) {
+    const { entries, itemsWereArray, mode } = ctx.args;
+    const itemKeys = entries.map(([key]) => key);
 
     // Resolve all workflow classes up front so a bad name fails before any queueing.
-    const resolved = args.entries.map(([key, item]) => ({
+    const resolved = entries.map(([key, item]) => ({
       key,
       item,
       workflowClass: this.resolveClass(item.workflow),
@@ -110,8 +90,8 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
       pendingCount: itemKeys.length,
       results: {},
       itemKeys,
-      itemsWereArray: args.itemsWereArray,
-      mode: args.mode,
+      itemsWereArray,
+      mode,
     });
   }
 
@@ -119,7 +99,7 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
   async onChildComplete(
     state: FanOutState,
     input: TransitionInput<unknown, { key?: string }>,
-    ctx: RunContext<FanOutInput>,
+    ctx: RunContext<FanOutArgs>,
   ) {
     const key = input.meta?.key;
     if (!key) {
@@ -183,23 +163,5 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput> {
   private resolveClass(workflowName: string): Type {
     const { instance } = this.registry.resolve(workflowName);
     return instance.constructor as Type;
-  }
-
-  private normalizeItems(items: FanOutInput['items']): { entries: FanOutArgs['entries']; itemsWereArray: boolean } {
-    const itemsWereArray = Array.isArray(items);
-    const rawEntries: Array<[string, FanOutItemInput]> = itemsWereArray
-      ? items.map((item, index) => [item.label ?? String(index), item])
-      : Object.entries(items);
-
-    const seen = new Set<string>();
-    const entries: FanOutArgs['entries'] = rawEntries.map(([key, item]) => {
-      if (seen.has(key)) {
-        throw new Error(`FanOut item key "${key}" is duplicated. Keys must be unique.`);
-      }
-      seen.add(key);
-      return [key, item];
-    });
-
-    return { entries, itemsWereArray };
   }
 }

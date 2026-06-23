@@ -61,10 +61,15 @@ export interface TransitionInput<TData = unknown, TMeta = unknown> {
 /**
  * Abstract base class for workflows.
  *
- * Generic parameter:
- * - `TArgs` — per-invocation input, validated against `@Workflow({ schema })`.
- *   Used to type `run()` at sub-workflow call sites and `ctx.args` inside transitions
- *   (via `ctx: RunContext<TArgs>`). State is typed per-transition on the `state` parameter.
+ * Generic parameters:
+ * - `TArgs` — the **storage contract**: what is validated, persisted, and arrives in `ctx.args`
+ *   inside transitions (via `ctx: RunContext<TArgs>`).
+ * - `TInput` — the **call-site contract**: what callers pass to `run(input)`. Defaults to `TArgs`,
+ *   so workflows whose call shape equals their storage shape only need a single generic.
+ *
+ * The two diverge when the workflow's `@Workflow({ schema })` is a transforming zod schema
+ * (`schema.transform(input => args)`). In that case, infer the types from the schema:
+ *   `BaseWorkflow<z.output<typeof Schema>, z.input<typeof Schema>>`.
  *
  * State and result are mutated via setters, never via the return value:
  * - `this.assignState(partial)` — shallow-merge into state
@@ -97,7 +102,7 @@ export interface TransitionInput<TData = unknown, TMeta = unknown> {
  * ```
  */
 @Injectable()
-export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {
+export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TInput = TArgs> {
   /** @internal — injected by the framework. Routes run() through the orchestrator. */
   @Inject(WORKFLOW_ORCHESTRATOR) private readonly __orchestrator!: WorkflowOrchestrator;
 
@@ -113,11 +118,11 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {
   /**
    * Launch this workflow as a sub-workflow.
    *
-   * @param args — Input args, validated against `@Workflow({ schema })`
+   * @param input — Call-site input, validated and transformed by `@Workflow({ schema })` into `TArgs`
    * @param options — Optional callback to resume the parent workflow when this one completes
    */
-  async run(args?: TArgs, options?: RunOptions): Promise<QueueResult> {
-    return this.__orchestrator.queue(this.constructor as Type, args as Record<string, unknown>, options);
+  async run(input?: TInput, options?: RunOptions): Promise<QueueResult> {
+    return this.__orchestrator.queue(this.constructor as Type, input as Record<string, unknown>, options);
   }
 
   /**

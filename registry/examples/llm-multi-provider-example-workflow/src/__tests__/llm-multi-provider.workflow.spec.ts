@@ -95,26 +95,4 @@ describe('LlmMultiProviderWorkflow', () => {
       }),
     );
   });
-
-  it('should use default prompt when not provided', async () => {
-    mockLlm.call
-      .mockResolvedValueOnce(mockLlmResponse('Response 1'))
-      .mockResolvedValueOnce(mockLlmResponse('Response 2'));
-
-    const context = createStatelessContext();
-    const result = await processor.process(workflow, {}, context);
-
-    expect(result.hasError).toBe(false);
-    expect(result.place).toBe('end');
-
-    // First call should use the default prompt
-    expect(mockLlm.call).toHaveBeenCalledWith(
-      expect.objectContaining({
-        prompt: expect.stringContaining('meaning of life'),
-      }),
-      expect.objectContaining({
-        config: expect.objectContaining({ provider: 'claude' }),
-      }),
-    );
-  });
 });

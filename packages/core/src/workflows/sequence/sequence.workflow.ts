@@ -2,8 +2,6 @@ import { Inject, type Type } from '@nestjs/common';
 import {
   BaseWorkflow,
   Guard,
-  QueueResult,
-  RunOptions,
   Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
@@ -15,7 +13,6 @@ import {
   type SequenceArgs,
   SequenceArgsSchema,
   type SequenceInput,
-  type SequenceItemInput,
   type SequenceMode,
   type SequenceResult,
   type SequenceResultEntry,
@@ -63,11 +60,7 @@ interface SequenceState {
   description: 'Runs multiple sub-workflows one after another and aggregates their results.',
   schema: SequenceArgsSchema,
 })
-// The class is typed with SequenceInput (the friendly external API), but at runtime ctx.args
-// is the normalized SequenceArgs (entries-array). The `as unknown as SequenceArgs` casts below
-// bridge that gap. Single-generic BaseWorkflow can't model Input ≠ Args; revisit if we add
-// a second generic later.
-export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
+export class SequenceWorkflow extends BaseWorkflow<SequenceArgs, SequenceInput> {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     private readonly registry: WorkflowRegistryService,
@@ -75,44 +68,30 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
     super();
   }
 
-  async run(args?: SequenceInput, options?: RunOptions): Promise<QueueResult> {
-    if (!args) {
-      throw new Error('SequenceWorkflow requires { items } — see the SequenceInput type.');
-    }
-    const { entries, itemsWereArray } = this.normalizeItems(args.items);
-    const normalized: SequenceArgs = {
-      entries,
-      itemsWereArray,
-      mode: args.mode ?? 'all',
-    };
-    return super.run(normalized as unknown as SequenceInput, options);
-  }
-
   @Transition({ to: 'awaiting' })
-  async start(state: SequenceState, ctx: RunContext<SequenceInput>) {
-    const args = ctx.args as unknown as SequenceArgs;
-    const itemKeys = args.entries.map(([key]) => key);
+  async start(state: SequenceState, ctx: RunContext<SequenceArgs>) {
+    const { entries, itemsWereArray, mode } = ctx.args;
+    const itemKeys = entries.map(([key]) => key);
 
     // Resolve every workflow class up front so a bad name fails the sequence immediately.
-    args.entries.forEach(([, item]) => this.resolveClass(item.workflow));
+    entries.forEach(([, item]) => this.resolveClass(item.workflow));
 
     if (itemKeys.length > 0) {
-      await this.queueAt(args, 0);
+      await this.queueAt(ctx.args, 0);
     }
 
     this.assignState({
       currentIndex: 0,
       results: {},
       itemKeys,
-      itemsWereArray: args.itemsWereArray,
-      mode: args.mode,
+      itemsWereArray,
+      mode,
       aborted: false,
     });
   }
 
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
-  async onChildComplete(state: SequenceState, input: TransitionInput, ctx: RunContext<SequenceInput>) {
-    const args = ctx.args as unknown as SequenceArgs;
+  async onChildComplete(state: SequenceState, input: TransitionInput, ctx: RunContext<SequenceArgs>) {
     const key = state.itemKeys[state.currentIndex];
     if (!key) {
       throw new Error('Sequence received a child callback with no matching active item.');
@@ -130,7 +109,7 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
     const shouldContinue = state.mode === 'allSettled' || !isError;
 
     if (shouldContinue && nextIndex < state.itemKeys.length) {
-      await this.queueAt(args, nextIndex);
+      await this.queueAt(ctx.args, nextIndex);
       this.assignState({ currentIndex: nextIndex, results: newResults });
       return;
     }
@@ -197,23 +176,5 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput> {
   private resolveClass(workflowName: string): Type {
     const { instance } = this.registry.resolve(workflowName);
     return instance.constructor as Type;
-  }
-
-  private normalizeItems(items: SequenceInput['items']): { entries: SequenceArgs['entries']; itemsWereArray: boolean } {
-    const itemsWereArray = Array.isArray(items);
-    const rawEntries: Array<[string, SequenceItemInput]> = itemsWereArray
-      ? items.map((item, index) => [item.label ?? String(index), item])
-      : Object.entries(items);
-
-    const seen = new Set<string>();
-    const entries: SequenceArgs['entries'] = rawEntries.map(([key, item]) => {
-      if (seen.has(key)) {
-        throw new Error(`Sequence item key "${key}" is duplicated. Keys must be unique.`);
-      }
-      seen.add(key);
-      return [key, item];
-    });
-
-    return { entries, itemsWereArray };
   }
 }

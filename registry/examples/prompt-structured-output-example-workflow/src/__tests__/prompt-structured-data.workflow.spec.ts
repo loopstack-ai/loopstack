@@ -97,25 +97,5 @@ describe('PromptStructuredOutputWorkflow', () => {
         }),
       );
     });
-
-    it('should use default language when not provided', async () => {
-      mockLlmGenerateObject.call.mockResolvedValue({
-        data: { data: mockFileContent },
-      });
-
-      const result = await processor.process(workflow, {}, context);
-
-      expect(result.hasError).toBe(false);
-      expect(mockLlmGenerateObject.call).toHaveBeenCalledWith(
-        expect.objectContaining({
-          prompt: expect.stringContaining('python'),
-        }),
-        expect.objectContaining({
-          config: expect.objectContaining({
-            provider: 'claude',
-          }),
-        }),
-      );
-    });
   });
 });

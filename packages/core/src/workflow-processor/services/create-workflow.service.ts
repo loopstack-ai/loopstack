@@ -13,9 +13,9 @@ export class CreateWorkflowService {
   ) {}
 
   private validateWorkflowArgs(workflow: WorkflowInterface, data: Partial<WorkflowEntity>): Partial<WorkflowEntity> {
-    if (data.args && Object.keys(data.args as Record<string, unknown>).length !== 0) {
-      const schema = getBlockArgsSchema(workflow);
-      data.args = schema?.parse(data.args);
+    const schema = getBlockArgsSchema(workflow);
+    if (schema) {
+      data.args = schema.parse(data.args ?? {}) as Record<string, unknown>;
     }
     return data;
   }
