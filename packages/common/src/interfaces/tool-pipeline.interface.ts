@@ -1,5 +1,5 @@
 import type { BaseTool } from '../base/base-tool.js';
-import type { ToolCallOptions, ToolResult } from './handler.interface.js';
+import type { ToolCallOptions, ToolEnvelope } from './handler.interface.js';
 
 /**
  * Interface for the tool execution pipeline.
@@ -12,5 +12,5 @@ export interface ToolPipeline {
     tool: BaseTool<TArgs, TConfig, TResult, TMeta>,
     args: TArgs | undefined,
     options?: ToolCallOptions<TConfig>,
-  ): Promise<ToolResult<TResult, TMeta>>;
+  ): Promise<ToolEnvelope<TResult, TMeta>>;
 }

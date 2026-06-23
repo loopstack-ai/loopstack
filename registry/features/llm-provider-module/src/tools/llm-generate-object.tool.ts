@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
-import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { toJSONSchema, z } from 'zod';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import type { LlmContext } from '../contracts/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
@@ -18,7 +18,9 @@ export const LlmGenerateObjectArgsSchema = z.object({
       }),
     )
     .optional(),
-  outputSchema: z.record(z.string(), z.unknown()),
+  outputSchema: z.custom<z.ZodTypeAny>((v) => v instanceof z.ZodType, {
+    message: 'outputSchema must be a Zod schema',
+  }),
 });
 
 export const LlmGenerateObjectConfigSchema = z.object({
@@ -56,10 +58,12 @@ export class LlmGenerateObjectTool extends BaseTool<
     args: LlmGenerateObjectArgs,
     ctx: RunContext,
     options?: ToolCallOptions<LlmGenerateObjectConfig>,
-  ): Promise<ToolResult<LlmGenerateObjectResult, LlmResultMeta>> {
+  ): Promise<ToolEnvelope<LlmGenerateObjectResult, LlmResultMeta>> {
     const config = options?.config;
     const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
     const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments() };
+
+    const jsonSchema = toJSONSchema(args.outputSchema) as Record<string, unknown>;
 
     const providerArgs = {
       system: config?.system,
@@ -68,15 +72,16 @@ export class LlmGenerateObjectTool extends BaseTool<
       messagesSearchTag: config?.messagesSearchTag,
       model: config?.model ?? this.moduleConfig.model,
       providerConfig: config?.providerConfig,
-      outputSchema: args.outputSchema,
+      outputSchema: jsonSchema,
     };
 
     const result = await provider.generateObject(providerArgs, llmCtx);
+    const validated = args.outputSchema.parse(result.data);
 
     const usage = provider.extractUsage(result.response);
 
     return {
-      data: result,
+      data: { ...result, data: validated },
       metadata: {
         provider: provider.providerId,
         model: config?.model ?? this.moduleConfig.model ?? 'default',

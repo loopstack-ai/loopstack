@@ -13,7 +13,7 @@ Tools exposed to the LLM need a `description` so the LLM knows when to use them:
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 @Tool({
@@ -24,7 +24,7 @@ import type { RunContext } from '@loopstack/common';
   }),
 })
 export class GetWeather extends BaseTool<{ location: string }, object, string> {
-  protected async handle(_args: { location: string }, _ctx: RunContext): Promise<ToolResult<string>> {
+  protected async handle(): Promise<ToolEnvelope<string>> {
     return Promise.resolve({ type: 'text', data: 'Mostly sunny, 14C, rain in the afternoon.' });
   }
 }

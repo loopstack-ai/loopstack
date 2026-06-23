@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -48,7 +48,7 @@ export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs,
   protected async handle(
     args: GoogleDriveListFilesArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleDriveListFilesResult>> {
+  ): Promise<ToolEnvelope<GoogleDriveListFilesResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {

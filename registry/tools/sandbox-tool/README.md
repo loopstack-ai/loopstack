@@ -44,7 +44,7 @@ Inject the tool classes via the constructor, then call them in your transitions:
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SandboxCommand, SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 
@@ -71,14 +71,14 @@ export class MySandboxWorkflow extends BaseWorkflow<MySandboxArgs> {
 
   @Transition({ to: 'sandbox_ready' })
   async createSandbox(state: SandboxState, ctx: RunContext<MySandboxArgs>) {
-    const result: ToolResult<{ containerId: string; dockerId: string }> = await this.sandboxInit.call({
+    const result = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
       containerName: 'my-node-sandbox',
       projectOutPath: ctx.args.outputDir,
       rootPath: 'workspace',
     });
-    this.assignState({ containerId: result.data!.containerId });
+    this.assignState({ containerId: result.data.containerId });
   }
 
   @Transition({ from: 'sandbox_ready', to: 'code_executed' })

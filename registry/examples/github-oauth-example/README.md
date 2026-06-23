@@ -207,7 +207,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 
 ## Dependencies
 
-- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `TransitionInput`, `ToolResult`, `MarkdownDocument`, `MessageDocument`)
+- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Guard`, `TransitionInput`, `MarkdownDocument`, `MessageDocument`)
 - `@loopstack/llm-provider-module` - LLM adapter tools (`LlmGenerateTextTool`, `LlmMessageDocument`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`)
 - `@loopstack/github-module` - All 25 GitHub tools

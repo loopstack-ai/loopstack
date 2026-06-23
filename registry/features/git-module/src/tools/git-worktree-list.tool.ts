@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitWorktree = {
@@ -31,7 +30,7 @@ export class GitWorktreeListTool extends BaseTool<object, object, GitWorktreeLis
     super();
   }
 
-  protected async handle(_args: object, _ctx: RunContext): Promise<ToolResult<GitWorktreeListResult>> {
+  protected async handle(): Promise<ToolEnvelope<GitWorktreeListResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitWorktreeList(agentUrl);
     return { data: result };

@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { TOOL_REGISTRY, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { ToolRegistry } from '@loopstack/common';
+import { TOOL_PIPELINE, TOOL_REGISTRY, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
+import type { ToolPipeline, ToolRegistry } from '@loopstack/common';
 import type { LlmDelegateResult, LlmToolCall, LlmToolErrorEntry, LlmToolResultEntry } from '../types/index.js';
 
 /**
@@ -13,7 +13,10 @@ import type { LlmDelegateResult, LlmToolCall, LlmToolErrorEntry, LlmToolResultEn
 export class LlmDelegateService {
   private readonly logger = new Logger(LlmDelegateService.name);
 
-  constructor(@Inject(TOOL_REGISTRY) private readonly toolRegistry: ToolRegistry) {}
+  constructor(
+    @Inject(TOOL_REGISTRY) private readonly toolRegistry: ToolRegistry,
+    @Inject(TOOL_PIPELINE) private readonly pipeline: ToolPipeline,
+  ) {}
 
   /**
    * Execute tool calls from an LLM response.
@@ -116,10 +119,10 @@ export class LlmDelegateService {
   /**
    * Execute a single tool call by resolving the tool from the registry.
    */
-  private async executeTool(toolCall: LlmToolCall, options?: ToolCallOptions): Promise<ToolResult> {
+  private async executeTool(toolCall: LlmToolCall, options?: ToolCallOptions): Promise<ToolEnvelope> {
     try {
       const tool = this.toolRegistry.get(toolCall.name);
-      return await tool.call(toolCall.args as Record<string, unknown>, options);
+      return await this.pipeline.execute(tool, toolCall.args as Record<string, unknown>, options);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Tool "${toolCall.name}" failed: ${errorMessage}`);
@@ -133,13 +136,13 @@ export class LlmDelegateService {
   private async handleToolCompletion(
     toolName: string,
     completedToolRecord: Record<string, unknown>,
-  ): Promise<ToolResult> {
+  ): Promise<ToolEnvelope> {
     const tool = this.toolRegistry.get(toolName);
 
     const callbackStatus = completedToolRecord.status as string | undefined;
     const subWorkflowFailed = callbackStatus === 'failed' || callbackStatus === 'canceled';
 
-    let toolResult: ToolResult;
+    let toolResult: ToolEnvelope;
     try {
       toolResult = await tool.complete(completedToolRecord);
     } catch (error) {

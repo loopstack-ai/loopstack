@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -46,7 +46,7 @@ export class AuthenticateGoogleTask extends BaseTool<
     args: AuthenticateGoogleTaskInput,
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<AuthenticateGoogleTaskResult>> {
+  ): Promise<ToolEnvelope<AuthenticateGoogleTaskResult>> {
     const result = await this.oAuthWorkflow.run(
       { provider: 'google', scopes: args.scopes },
       { callback: options?.callback ?? args.callback, show: 'inline', label: 'Google authentication required' },
@@ -58,7 +58,7 @@ export class AuthenticateGoogleTask extends BaseTool<
     };
   }
 
-  async complete(_result: Record<string, unknown>): Promise<ToolResult<AuthenticateGoogleTaskResult>> {
+  async complete(_result: Record<string, unknown>): Promise<ToolEnvelope<AuthenticateGoogleTaskResult>> {
     return {
       data: 'Google authentication completed successfully. You can now use Google Workspace tools.',
     };

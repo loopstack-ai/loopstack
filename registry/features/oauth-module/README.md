@@ -61,8 +61,8 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   async fetchEvents(state: CalendarState, ctx: RunContext<CalendarArgs>) {
     const result = await this.calendarFetchEvents.call({ calendarId: ctx.args.calendarId });
     this.assignState({
-      requiresAuthentication: result.data!.error === 'unauthorized',
-      events: result.data!.events,
+      requiresAuthentication: result.data.error === 'unauthorized',
+      events: result.data.events,
     });
   }
 
@@ -149,7 +149,7 @@ Inject `OAuthTokenStore` to access stored tokens:
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -163,7 +163,7 @@ export class MyApiFetchTool extends BaseTool {
     super();
   }
 
-  protected async handle(args: { query: string }, ctx: RunContext): Promise<ToolResult> {
+  protected async handle(args: { query: string }, ctx: RunContext): Promise<ToolEnvelope> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'my-provider');
 
     if (!accessToken) {

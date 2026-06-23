@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
@@ -32,7 +31,7 @@ export class GlobTool extends BaseTool<GlobArgs, object, GlobResult> {
     super();
   }
 
-  protected async handle(args: GlobArgs, _ctx: RunContext): Promise<ToolResult<GlobResult>> {
+  protected async handle(args: GlobArgs): Promise<ToolEnvelope<GlobResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.glob(agentUrl, args.pattern, args.path);
     return { data: result };

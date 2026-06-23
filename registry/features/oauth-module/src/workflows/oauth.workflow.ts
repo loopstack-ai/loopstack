@@ -1,8 +1,8 @@
 import { z } from 'zod';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents/index.js';
-import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
+import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
 
 interface OAuthArgs {
   provider: string;
@@ -38,13 +38,13 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
 
   @Transition({ to: 'awaiting_auth' })
   async initiateOAuth(state: OAuthState, ctx: RunContext<OAuthArgs>) {
-    const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
+    const result = await this.buildOAuthUrl.call({
       provider: ctx.args.provider,
       scopes: ctx.args.scopes,
     });
 
-    const oauthState = result.data!.state;
-    const authUrl = result.data!.authUrl;
+    const oauthState = result.data.state;
+    const authUrl = result.data.authUrl;
 
     await this.documentStore.save(
       OAuthPromptDocument,

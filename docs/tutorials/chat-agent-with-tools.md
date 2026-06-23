@@ -86,7 +86,7 @@ Create `src/weather-chat/tools/get-weather.tool.ts`:
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 const GetWeatherSchema = z.object({
@@ -101,7 +101,7 @@ type GetWeatherArgs = z.infer<typeof GetWeatherSchema>;
   schema: GetWeatherSchema,
 })
 export class GetWeatherTool extends BaseTool<GetWeatherArgs> {
-  protected async handle(args: GetWeatherArgs, _ctx: RunContext): Promise<ToolResult<string>> {
+  protected async handle(args: GetWeatherArgs): Promise<ToolEnvelope<string>> {
     // In a real implementation, call a weather API here
     return {
       type: 'text',

@@ -1,8 +1,6 @@
 import { z } from 'zod';
-import { toJSONSchema } from 'zod';
 import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
 
@@ -42,16 +40,13 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<PromptStructure
   async prompt(state: PromptStructuredOutputState) {
     const result = await this.llmGenerateObject.call(
       {
-        outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
+        outputSchema: FileDocumentSchema,
         prompt: this.render(__dirname + '/templates/prompt.md', { language: state.language }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
 
-    const objectResult = result.data as LlmGenerateObjectResult;
-    const llmResult = await this.documentStore.save(FileDocument, objectResult.data as FileDocumentType, {
-      validate: 'skip',
-    });
+    const llmResult = await this.documentStore.save(FileDocument, result.data.data as FileDocumentType);
     this.assignState({ llmResult });
   }
 

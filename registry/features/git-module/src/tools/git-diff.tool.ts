@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitDiffArgs = {
@@ -33,7 +32,7 @@ export class GitDiffTool extends BaseTool<GitDiffArgs, object, GitDiffResult> {
     super();
   }
 
-  protected async handle(args: GitDiffArgs, _ctx: RunContext): Promise<ToolResult<GitDiffResult>> {
+  protected async handle(args: GitDiffArgs): Promise<ToolEnvelope<GitDiffResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitDiff(agentUrl, args.staged);
     return { data: result };

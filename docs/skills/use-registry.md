@@ -103,4 +103,4 @@ Look for:
 
 - `@Tool({ name, description, schema })` — the name, description (seen by LLMs), and Zod schema for accepted arguments
 - `handle()` method — the actual implementation
-- `ToolResult` return — what data comes back
+- `ToolEnvelope` return — what data comes back (workflow callers see the narrowed `ToolResult` after `tool.call()` throws on `error`/`pending`)

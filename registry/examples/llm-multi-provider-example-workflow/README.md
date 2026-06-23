@@ -122,7 +122,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
 
     await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
-      text: `**Claude:** ${result.data!.message.text}`,
+      text: `**Claude:** ${result.data.message.text}`,
     });
     this.assignState({ prompt: ctx.args.prompt });
   }
@@ -143,7 +143,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<LlmMultiProviderArgs>
 
     await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
-      text: `**OpenAI:** ${result.data!.message.text}`,
+      text: `**OpenAI:** ${result.data.message.text}`,
     });
   }
 

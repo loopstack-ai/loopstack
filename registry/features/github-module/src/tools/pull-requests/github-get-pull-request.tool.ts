@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -57,7 +57,7 @@ export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs,
   protected async handle(
     args: GitHubGetPullRequestArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubGetPullRequestResult>> {
+  ): Promise<ToolEnvelope<GitHubGetPullRequestResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {

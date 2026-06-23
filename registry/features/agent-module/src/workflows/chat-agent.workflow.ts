@@ -124,7 +124,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
       completedTool: payload,
     });
 
-    const delegateResult = result.data as LlmDelegateResult;
+    const delegateResult = result.data;
     const finishResult = this.extractFinishResult(delegateResult);
 
     this.assignState({ delegateResult, finishResult });

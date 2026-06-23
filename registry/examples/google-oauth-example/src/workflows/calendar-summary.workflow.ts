@@ -42,8 +42,8 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<CalendarSummaryArgs> {
       timeMax: this.endOfWeek(),
     });
     this.assignState({
-      requiresAuthentication: result.data!.error === 'unauthorized',
-      events: result.data!.events,
+      requiresAuthentication: result.data.error === 'unauthorized',
+      events: result.data.events,
     });
   }
 

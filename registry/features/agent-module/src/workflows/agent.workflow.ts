@@ -111,7 +111,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
       completedTool: payload,
     });
 
-    this.assignState({ delegateResult: result.data as LlmDelegateResult });
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })

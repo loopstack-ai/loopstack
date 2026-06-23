@@ -16,7 +16,7 @@ export class FrenchGreetingWorkflow extends BaseWorkflow {
     const result = await this.greeter.call({ name: 'Monde' });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `[French] ${result.data!.message}`,
+      text: `[French] ${result.data.message}`,
     });
   }
 

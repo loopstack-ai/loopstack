@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow.js';
 
@@ -38,7 +38,7 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
     args: RequestSecretsTaskInput,
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<RequestSecretsTaskResult>> {
+  ): Promise<ToolEnvelope<RequestSecretsTaskResult>> {
     const result = await this.secretsRequestWorkflow.run(
       { variables: args.variables },
       { callback: options?.callback, show: 'inline', label: 'Requesting Secrets' },
@@ -50,7 +50,7 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
     };
   }
 
-  async complete(_result: Record<string, unknown>): Promise<ToolResult<RequestSecretsTaskResult>> {
+  async complete(_result: Record<string, unknown>): Promise<ToolEnvelope<RequestSecretsTaskResult>> {
     return {
       data: 'Secrets have been stored securely by the user.',
     };

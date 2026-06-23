@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -38,7 +37,7 @@ export class SandboxFileInfo extends BaseTool<SandboxFileInfoArgs, object, Sandb
     super();
   }
 
-  protected async handle(args: SandboxFileInfoArgs, _ctx: RunContext): Promise<ToolResult<SandboxFileInfoResult>> {
+  protected async handle(args: SandboxFileInfoArgs): Promise<ToolEnvelope<SandboxFileInfoResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Getting file info for ${targetPath} in container ${containerId}`);

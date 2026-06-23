@@ -176,7 +176,7 @@ const ExploreResponseSchema = z.object({ response: z.string() });
 | -------------- | -------- | -------- | --------------------------------------------------------- |
 | `instructions` | `string` | Yes      | Detailed instructions for what to explore in the codebase |
 
-**Returns:** `ToolResult<ExploreTaskResult>`
+**Returns:** `ToolEnvelope<ExploreTaskResult>`
 
 - On launch: `{ data: { workflowId }, pending: { workflowId } }`
 - On complete: `{ data: string }` — the agent's synthesized response text

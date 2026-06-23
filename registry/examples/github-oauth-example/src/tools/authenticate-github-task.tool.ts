@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -44,7 +44,7 @@ export class AuthenticateGitHubTask extends BaseTool<
     args: AuthenticateGitHubTaskInput,
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
+  ): Promise<ToolEnvelope<AuthenticateGitHubTaskResult>> {
     const result = await this.oAuthWorkflow.run(
       { provider: 'github', scopes: args.scopes },
       { callback: options?.callback ?? args.callback, show: 'inline', label: 'GitHub authentication required' },
@@ -56,7 +56,7 @@ export class AuthenticateGitHubTask extends BaseTool<
     };
   }
 
-  async complete(_result: Record<string, unknown>): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
+  async complete(_result: Record<string, unknown>): Promise<ToolEnvelope<AuthenticateGitHubTaskResult>> {
     return {
       data: 'GitHub authentication completed successfully. You can now use GitHub tools.',
     };

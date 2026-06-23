@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -46,7 +46,10 @@ export class GitHubSearchIssuesTool extends BaseTool<GitHubSearchIssuesArgs, obj
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubSearchIssuesArgs, ctx: RunContext): Promise<ToolResult<GitHubSearchIssuesResult>> {
+  protected async handle(
+    args: GitHubSearchIssuesArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubSearchIssuesResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {

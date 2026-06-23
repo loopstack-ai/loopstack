@@ -1,8 +1,6 @@
 import { z } from 'zod';
-import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
-import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
@@ -51,7 +49,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   async optimizeNotes(state: MeetingNotesState) {
     const result = await this.llmGenerateObject.call(
       {
-        outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
+        outputSchema: OptimizedMeetingNotesDocumentSchema,
         prompt: this.render(__dirname + '/templates/extract-notes.md', {
           text: state.meetingNotes?.text,
         }),
@@ -59,14 +57,10 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
 
-    const objectResult = result.data as LlmGenerateObjectResult;
     await this.documentStore.save(
       OptimizedNotesDocument,
-      objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-      {
-        key: 'final',
-        validate: 'skip',
-      },
+      result.data.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+      { key: 'final' },
     );
   }
 

@@ -35,7 +35,7 @@ export class ReviewWorkflow extends BaseWorkflow {
       { prompt: 'Write a one-paragraph product description for a coffee subscription.' },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    this.assignState({ draft: result.data!.message.text });
+    this.assignState({ draft: result.data.message.text });
   }
 
   // Step 2: Workflow pauses here until the user clicks Approve in the Studio UI

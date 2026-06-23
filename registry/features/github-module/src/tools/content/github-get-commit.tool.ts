@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -54,7 +54,7 @@ export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, G
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubGetCommitArgs, ctx: RunContext): Promise<ToolResult<GitHubGetCommitResult>> {
+  protected async handle(args: GitHubGetCommitArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetCommitResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {

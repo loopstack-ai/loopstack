@@ -13,7 +13,7 @@ A tool is a class that extends `BaseTool`, decorated with `@Tool()`. Tools are t
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 const InputSchema = z
@@ -32,7 +32,7 @@ type MyToolArgs = z.infer<typeof InputSchema>;
 })
 export class MyTool extends BaseTool<MyToolArgs, object, string> {
   // BaseTool<TArgs, TConfig, TResult, TMeta?>
-  protected async handle(args: MyToolArgs, ctx: RunContext): Promise<ToolResult<string>> {
+  protected async handle(args: MyToolArgs, ctx: RunContext): Promise<ToolEnvelope<string>> {
     return { data: `Found results for: ${args.query}` };
   }
 }
@@ -44,8 +44,8 @@ export class MyTool extends BaseTool<MyToolArgs, object, string> {
 | --------- | ------------------------------------ | ------------------------- | ------------------------- |
 | `TArgs`   | input arguments to `handle()`        | `@Tool({ schema })`       | `object`                  |
 | `TConfig` | per-call config via `options.config` | `@Tool({ configSchema })` | `object`                  |
-| `TResult` | `data` field of `ToolResult`         | —                         | `unknown`                 |
-| `TMeta`   | `metadata` field of `ToolResult`     | —                         | `Record<string, unknown>` |
+| `TResult` | `data` field of `ToolEnvelope`       | —                         | `unknown`                 |
+| `TMeta`   | `metadata` field of `ToolEnvelope`   | —                         | `Record<string, unknown>` |
 
 Pass `object` for `TConfig` when the tool has no configuration. Most tools only thread `TArgs` and `TResult`; `TConfig` and `TMeta` are reserved for tools that opt into config validation or typed result metadata (e.g. `LlmGenerateTextTool` types token usage on `metadata`).
 
@@ -89,7 +89,7 @@ protected async handle(
   args: TArgs,
   ctx: RunContext,
   options?: ToolCallOptions<TConfig>,
-): Promise<ToolResult<TData>>;
+): Promise<ToolEnvelope<TData>>;
 ```
 
 The `handle()` method receives validated arguments, the execution context, and optional config. This is the abstract method you implement.
@@ -119,7 +119,7 @@ Use `args` for the **per-call input** (what the tool acts on) and `config` for *
   configSchema: z.object({ model: z.string() }), // config — behaviour
 })
 export class Summarize extends BaseTool<{ text: string }, { model: string }, string> {
-  protected async handle(args, ctx, options): Promise<ToolResult<string>> {
+  protected async handle(args, ctx, options): Promise<ToolEnvelope<string>> {
     const model = options?.config?.model ?? 'claude-sonnet-4-6';
     // ...use `model` to drive the LLM call, `args.text` as the prompt
     return { data: '...' };
@@ -134,18 +134,27 @@ await this.summarize.call({ text: 'long article...' }, { config: { model: 'claud
 
 `BaseTool` also has an optional `complete(result)` method, called when a tool launches a sub-workflow from `handle()` and finishes asynchronously. Override it to post-process the sub-workflow result before it's returned to the LLM. The default passes the result through. See [Async Tools](../build/fundamentals/tools.md#async-tools-sub-workflow-callbacks) for the full lifecycle.
 
-## ToolResult
+## ToolEnvelope vs ToolResult
+
+`handle()` returns a `ToolEnvelope` (the raw shape, with `error`/`pending` arms); `tool.call()` returns a narrowed `ToolResult` (data + metadata required, throws on `error`/`pending`).
 
 ```typescript
-type ToolResult<TData = any> = {
+type ToolEnvelope<TData = unknown> = {
   type?: 'text' | 'image' | 'file';
   data?: TData;
   error?: string;
   metadata?: Record<string, unknown>;
+  pending?: { workflowId: string };
 };
+
+interface ToolResult<TData = unknown> {
+  data: TData;
+  metadata: Record<string, unknown>;
+  type?: 'text' | 'image' | 'file';
+}
 ```
 
-Return patterns:
+Return patterns inside `handle()`:
 
 ```typescript
 // Simple value
@@ -154,7 +163,7 @@ return { data: 42 };
 // Typed data
 return { data: { name: 'result', items: [...] } };
 
-// Error
+// Recoverable failure (LLM tool loop forwards as is_error)
 return { error: 'Something went wrong' };
 
 // Text type
@@ -165,6 +174,9 @@ return {
   data: result,
   metadata: { tokensUsed: 150 },
 };
+
+// Async sub-workflow launched
+return { pending: { workflowId } };
 ```
 
 ## Document Store
@@ -172,7 +184,7 @@ return {
 `this.documentStore` is auto-injected on `BaseTool` (and `BaseWorkflow`). Use it to save documents:
 
 ```typescript
-protected async handle(args: MyArgs, ctx: RunContext): Promise<ToolResult> {
+protected async handle(args: MyArgs, ctx: RunContext): Promise<ToolEnvelope<string>> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     text: 'Processing complete.',
@@ -220,7 +232,7 @@ export class MathService {
 
 // tools/math-sum.tool.ts
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { MathService } from '../services/math.service';
 
@@ -243,7 +255,7 @@ export class MathSumTool extends BaseTool<MathSumArgs, object, number> {
     super();
   }
 
-  protected async handle(args: MathSumArgs, ctx: RunContext): Promise<ToolResult<number>> {
+  protected async handle(args: MathSumArgs, ctx: RunContext): Promise<ToolEnvelope<number>> {
     const sum = this.mathService.sum(args.a, args.b);
     return { data: sum };
   }
@@ -256,7 +268,7 @@ Tools exposed to the LLM need a `description` so the LLM knows when to use them.
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 @Tool({
@@ -267,7 +279,7 @@ import type { RunContext } from '@loopstack/common';
   }),
 })
 export class GetWeather extends BaseTool<{ location: string }, object, string> {
-  protected async handle(args: { location: string }, ctx: RunContext): Promise<ToolResult<string>> {
+  protected async handle(args: { location: string }, ctx: RunContext): Promise<ToolEnvelope<string>> {
     return Promise.resolve({ type: 'text', data: 'Mostly sunny, 14C.' });
   }
 }
@@ -323,7 +335,7 @@ src/
 ## Checklist
 
 1. Create tool class extending `BaseTool<TArgs, TConfig, TResult>` with `@Tool({ name, description, schema })`
-2. Implement `handle(args, ctx, options?)` returning `Promise<ToolResult>`
+2. Implement `handle(args, ctx, options?)` returning `Promise<ToolEnvelope<TResult>>`
 3. Register as provider in a NestJS `@Module()`
 4. Export from the module
 5. Import module in the workflow's parent module

@@ -248,7 +248,7 @@ export class ExploreTask extends BaseTool {
     args: { instructions: string },
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult> {
+  ): Promise<ToolEnvelope> {
     const result = await this.agentWorkflow.run(
       {
         system: 'You are a codebase exploration agent.',
@@ -264,7 +264,7 @@ export class ExploreTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope> {
     const data = result as { data?: { response?: string } };
     return { data: data.data?.response ?? result };
   }

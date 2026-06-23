@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { LlmMessageDocument } from '../documents/index.js';
 import { LlmDelegateService } from '../services/llm-delegate.service.js';
@@ -43,7 +43,7 @@ export class LlmUpdateToolResultTool extends BaseTool<
     args: LlmUpdateToolResultToolArgs,
     _ctx: RunContext,
     options?: ToolCallOptions<LlmUpdateToolResultConfig>,
-  ): Promise<ToolResult<LlmDelegateResult>> {
+  ): Promise<ToolEnvelope<LlmDelegateResult>> {
     const result = await this.delegateService.updateToolResult(
       args.delegateResult as LlmDelegateResult,
       args.completedTool,

@@ -99,7 +99,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
       delegateResult: state.delegateResult!,
       completedTool: payload,
     });
-    this.assignState({ delegateResult: result.data as LlmDelegateResult });
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { FailingWorkflow } from '../workflows/failing.workflow';
 
@@ -21,7 +21,7 @@ export class FailingSubWorkflowTool extends BaseTool<object, object, FailingSubW
     _args: object,
     _ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<FailingSubWorkflowToolResult>> {
+  ): Promise<ToolEnvelope<FailingSubWorkflowToolResult>> {
     const result = await this.failingWorkflow.run({}, { callback: options?.callback });
 
     return {

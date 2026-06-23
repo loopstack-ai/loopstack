@@ -62,14 +62,15 @@ Define a tool by extending `BaseTool` and using the `@Tool` decorator with a des
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
 @Tool({
   uiConfig: { description: 'Retrieve weather information.' },
   schema: z.object({ location: z.string() }),
 })
-export class GetWeather extends BaseTool {
-  async call(_args: unknown): Promise<ToolResult> {
+export class GetWeather extends BaseTool<{ location: string }, object, string> {
+  protected async handle(): Promise<ToolEnvelope<string>> {
     return Promise.resolve({
       type: 'text',
       data: 'Mostly sunny, 14C, rain in the afternoon.',

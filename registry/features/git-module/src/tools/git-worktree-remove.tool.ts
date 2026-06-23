@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export const GitWorktreeRemoveSchema = z
@@ -30,7 +29,7 @@ export class GitWorktreeRemoveTool extends BaseTool<GitWorktreeRemoveArgs, objec
     super();
   }
 
-  protected async handle(args: GitWorktreeRemoveArgs, _ctx: RunContext): Promise<ToolResult<GitWorktreeRemoveResult>> {
+  protected async handle(args: GitWorktreeRemoveArgs): Promise<ToolEnvelope<GitWorktreeRemoveResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitWorktreeRemove(agentUrl, args);
     return { data: result };

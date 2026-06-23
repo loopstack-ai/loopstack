@@ -61,8 +61,8 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   async start(_state: ConnectGitHubState) {
     const result = await this.gitHubGetAuthenticatedUser.call();
     this.assignState({
-      requiresAuth: result.data!.error === 'unauthorized',
-      user: result.data!.user,
+      requiresAuth: result.data.error === 'unauthorized',
+      user: result.data.user,
     });
   }
 
@@ -84,7 +84,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   @Transition({ from: 'awaiting_auth', to: 'check_auth', wait: true })
   async authCompleted(_state: ConnectGitHubState, _input: TransitionInput) {
     const result = await this.gitHubGetAuthenticatedUser.call();
-    this.assignState({ user: result.data!.user, requiresAuth: false });
+    this.assignState({ user: result.data.user, requiresAuth: false });
   }
 
   // ── Step 2b: Ask create or link ─────────────────────────────────────
@@ -110,7 +110,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
         perPage: 30,
       });
 
-      const repos = listResult.data!.repos ?? [];
+      const repos = listResult.data.repos ?? [];
       const repoNames = repos.map((r) => r.fullName);
 
       await this.askUser.run(
@@ -136,7 +136,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       autoInit: false,
     });
 
-    this.assignState({ repo: createResult.data!.repo, isNewRepo: true });
+    this.assignState({ repo: createResult.data.repo, isNewRepo: true });
   }
 
   // ── Step 3b: Link existing repo ─────────────────────────────────────
@@ -173,7 +173,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     }
 
     const statusResult = await this.gitStatus.call();
-    const status = statusResult.data!;
+    const status = statusResult.data;
     const hasUncommittedChanges =
       status.staged.length > 0 ||
       status.modified.length > 0 ||
@@ -251,7 +251,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
           'echo "diverged"',
         ].join(' && '),
       });
-      const divergeState = checkResult.data!.stdout.trim().split('\n').pop()!.trim();
+      const divergeState = checkResult.data.stdout.trim().split('\n').pop()!.trim();
       if (divergeState === 'same' || divergeState === 'no_remote') {
         this.assignState({ divergenceState: 'none' });
       } else {
@@ -273,7 +273,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     }
     // local_ahead — fast-forward push
     const statusResult = await this.gitStatus.call();
-    const branch = statusResult.data!.branch ?? 'main';
+    const branch = statusResult.data.branch ?? 'main';
     const token = await this.getGitHubToken(ctx);
     await this.gitPush.call({ remote: 'origin', branch, token });
   }
@@ -310,7 +310,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   async syncStrategyChosen(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>, ctx: RunContext) {
     const answer = input.data.answer;
     const statusResult = await this.gitStatus.call();
-    const branch = statusResult.data!.branch ?? 'main';
+    const branch = statusResult.data.branch ?? 'main';
 
     const token = await this.getGitHubToken(ctx);
 

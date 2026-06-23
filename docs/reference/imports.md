@@ -14,7 +14,7 @@ Quick-reference for all import paths.
 import { BaseWorkflow, Guard, QueueResult, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
 // Tools
-import { BaseTool, ServerTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, ServerTool, Tool, ToolEnvelope, ToolResult } from '@loopstack/common';
 import type { ToolCallOptions } from '@loopstack/common';
 // Documents
 import { Document, DocumentEntity } from '@loopstack/common';

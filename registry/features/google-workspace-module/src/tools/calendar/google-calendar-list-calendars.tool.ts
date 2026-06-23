@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -44,7 +44,7 @@ export class GoogleCalendarListCalendarsTool extends BaseTool<
   protected async handle(
     args: GoogleCalendarListCalendarsArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleCalendarListCalendarsResult>> {
+  ): Promise<ToolEnvelope<GoogleCalendarListCalendarsResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {

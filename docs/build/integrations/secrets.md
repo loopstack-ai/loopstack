@@ -40,7 +40,7 @@ async pushSecrets(state: SecretsState) {
 ## Example Workflow
 
 ```typescript
-import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { MarkdownDocument } from '@loopstack/common';
 import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
@@ -70,7 +70,7 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'requesting_secrets', to: 'verifying', wait: true })
   async secretsSubmitted(state: SecretsState) {
-    const result: ToolResult<Array<{ key: string; hasValue: boolean }>> = await this.getSecretKeys.call({});
+    const result = await this.getSecretKeys.call({});
     this.assignState({ secretKeys: result.data });
   }
 

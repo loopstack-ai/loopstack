@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -36,7 +36,10 @@ export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, obj
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubListBranchesArgs, ctx: RunContext): Promise<ToolResult<GitHubListBranchesResult>> {
+  protected async handle(
+    args: GitHubListBranchesArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubListBranchesResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {

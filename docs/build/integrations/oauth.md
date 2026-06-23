@@ -89,8 +89,8 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
       calendarId: ctx.args.calendarId,
     });
     this.assignState({
-      requiresAuthentication: result.data!.error === 'unauthorized',
-      events: result.data!.events,
+      requiresAuthentication: result.data.error === 'unauthorized',
+      events: result.data.events,
     });
   }
 
@@ -126,7 +126,7 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -140,7 +140,7 @@ export class CalendarFetchEventsTool extends BaseTool {
     super();
   }
 
-  protected async handle(args: { calendarId: string }, ctx: RunContext): Promise<ToolResult> {
+  protected async handle(args: { calendarId: string }, ctx: RunContext): Promise<ToolEnvelope> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {

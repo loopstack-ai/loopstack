@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitCommitArgs = {
@@ -26,7 +25,7 @@ export class GitCommitTool extends BaseTool<GitCommitArgs, object, GitCommitResu
     super();
   }
 
-  protected async handle(args: GitCommitArgs, _ctx: RunContext): Promise<ToolResult<GitCommitResult>> {
+  protected async handle(args: GitCommitArgs): Promise<ToolEnvelope<GitCommitResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitCommit(agentUrl, args.message);
     return { data: result };

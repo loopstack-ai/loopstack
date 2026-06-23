@@ -44,8 +44,8 @@ async fetchEvents(state: CalendarSummaryState, ctx: RunContext<{ calendarId: str
     timeMax: this.endOfWeek(),
   });
   this.assignState({
-    requiresAuthentication: result.data!.error === 'unauthorized',
-    events: result.data!.events,
+    requiresAuthentication: result.data.error === 'unauthorized',
+    events: result.data.events,
   });
 }
 

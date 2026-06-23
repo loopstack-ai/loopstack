@@ -91,8 +91,8 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
     this.assignState({
       owner: ctx.args.owner,
       repo: ctx.args.repo,
-      requiresAuthentication: result.data!.error === 'unauthorized',
-      user: result.data!.user,
+      requiresAuthentication: result.data.error === 'unauthorized',
+      user: result.data.user,
     });
   }
 
@@ -123,7 +123,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
   @Transition({ from: 'user_fetched', to: 'orgs_fetched' })
   async fetchOrgs(_state: GitHubReposOverviewState) {
     const result = await this.gitHubListUserOrgs.call({ perPage: 10 });
-    this.assignState({ orgs: result.data!.orgs });
+    this.assignState({ orgs: result.data.orgs });
   }
 
   // --- Step 3: Fetch repo details and branches ---
@@ -139,7 +139,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
       owner: state.owner,
       repo: state.repo,
     });
-    this.assignState({ repoDetails: repoResult.data!.repo, branches: branchesResult.data!.branches });
+    this.assignState({ repoDetails: repoResult.data.repo, branches: branchesResult.data.branches });
   }
 
   // --- Step 4: Fetch issues and PRs ---
@@ -159,7 +159,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
       state: 'open',
       perPage: 10,
     });
-    this.assignState({ issues: issuesResult.data!.issues, pullRequests: prsResult.data!.pullRequests });
+    this.assignState({ issues: issuesResult.data.issues, pullRequests: prsResult.data.pullRequests });
   }
 
   // --- Step 5: Fetch directory listing and workflow runs ---
@@ -176,7 +176,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
       repo: state.repo,
       perPage: 5,
     });
-    this.assignState({ directoryEntries: dirResult.data!.entries, workflowRuns: runsResult.data!.runs });
+    this.assignState({ directoryEntries: dirResult.data.entries, workflowRuns: runsResult.data.runs });
   }
 
   // --- Step 6: Search code in the repo ---
@@ -187,7 +187,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<GitHubReposOvervie
       query: `repo:${state.owner}/${state.repo}`,
       perPage: 5,
     });
-    this.assignState({ searchResults: result.data!.results });
+    this.assignState({ searchResults: result.data.results });
   }
 
   // --- Display all results ---

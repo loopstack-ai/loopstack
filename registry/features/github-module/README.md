@@ -121,7 +121,7 @@ export class MyGitHubWorkflow extends BaseWorkflow {
   @Transition({ to: 'user_checked' })
   async checkUser(state: State) {
     const result = await this.gitHubGetAuthenticatedUser.call();
-    this.assignState({ requiresAuth: result.data!.error === 'unauthorized' });
+    this.assignState({ requiresAuth: result.data.error === 'unauthorized' });
   }
 
   @Transition({ from: 'user_checked', to: 'awaiting_auth', priority: 10 })
@@ -143,7 +143,7 @@ export class MyGitHubWorkflow extends BaseWorkflow {
   @Transition({ from: 'user_checked', to: 'end' })
   async listRepos(state: State) {
     const result = await this.gitHubListRepos.call({ sort: 'updated', perPage: 10 });
-    this.assignState({ repos: result.data!.repos });
+    this.assignState({ repos: result.data.repos });
   }
 }
 ```

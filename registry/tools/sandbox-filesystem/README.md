@@ -40,7 +40,7 @@ export class MyModule {}
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SandboxCreateDirectory, SandboxReadFile, SandboxWriteFile } from '@loopstack/sandbox-filesystem';
 import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
@@ -68,7 +68,7 @@ export class SandboxWorkflow extends BaseWorkflow<SandboxArgs> {
 
   @Transition({ to: 'sandbox_ready' })
   async initSandbox(state: SandboxState, ctx: RunContext<SandboxArgs>) {
-    const result: ToolResult = await this.sandboxInit.call({
+    const result = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
       containerName: 'sandbox-container',

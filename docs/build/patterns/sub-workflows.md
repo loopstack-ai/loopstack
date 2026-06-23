@@ -338,7 +338,7 @@ export class RunTestsTask extends BaseTool {
     args: { testDirectory: string },
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult> {
+  ): Promise<ToolEnvelope> {
     const result = await this.testRunner.run(
       { testDirectory: args.testDirectory },
       { callback: options?.callback, show: 'inline', label: 'Running tests...' },
@@ -350,7 +350,7 @@ export class RunTestsTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope> {
     const data = result as { data?: { passed: boolean; output: string } };
     return { data: data.data ?? result };
   }

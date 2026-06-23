@@ -68,7 +68,7 @@ export class CustomToolModule {}
 A simple tool that maintains internal state across calls. It extends `BaseTool` and implements `handle()`:
 
 ```typescript
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 
 @Tool({
   name: 'counter',
@@ -79,7 +79,7 @@ import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 export class CounterTool extends BaseTool<object, object, number> {
   count: number = 0;
 
-  protected async handle(_args?: object): Promise<ToolResult<number>> {
+  protected async handle(): Promise<ToolEnvelope<number>> {
     this.count++;
     return Promise.resolve({ data: this.count });
   }
@@ -94,7 +94,7 @@ A tool that accepts typed arguments via a Zod schema and uses NestJS constructor
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { MathService } from '../services/math.service';
 
 const MathSumSchema = z
@@ -118,7 +118,7 @@ export class MathSumTool extends BaseTool<MathSumArgs, object, number> {
     super();
   }
 
-  protected async handle(args: MathSumArgs): Promise<ToolResult<number>> {
+  protected async handle(args: MathSumArgs): Promise<ToolEnvelope<number>> {
     const sum = this.mathService.sum(args.a, args.b);
     return Promise.resolve({ data: sum });
   }

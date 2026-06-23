@@ -61,12 +61,12 @@ export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
 
 A normalized result has two views of the assistant's reply:
 
-- `result.data!.message.text` — the plain-text projection (always populated). This is what you want in 95% of cases.
-- `result.data!.message.blocks` — the structured content blocks (`text`, `thinking`, `tool_call`, etc.). Use these when you need to inspect tool calls, thinking output, or render block-by-block.
+- `result.data.message.text` — the plain-text projection (always populated). This is what you want in 95% of cases.
+- `result.data.message.blocks` — the structured content blocks (`text`, `thinking`, `tool_call`, etc.). Use these when you need to inspect tool calls, thinking output, or render block-by-block.
 
 ```typescript
 const result = await this.llmGenerateText.call({ prompt: 'Write a haiku about coffee' });
-const text = result.data!.message.text;
+const text = result.data.message.text;
 ```
 
 Both views are derived from the same underlying response — `text` is the concatenation of all `text`-type blocks, with `thinking` and tool blocks filtered out.

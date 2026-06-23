@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import type { ToolRegistry } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
@@ -72,7 +72,7 @@ export class LlmGenerateTextTool extends BaseTool<
     args: LlmGenerateTextArgs,
     ctx: RunContext,
     options?: ToolCallOptions<LlmGenerateTextConfig>,
-  ): Promise<ToolResult<LlmGenerateTextResult, LlmResultMeta>> {
+  ): Promise<ToolEnvelope<LlmGenerateTextResult, LlmResultMeta>> {
     const config = options?.config;
     const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
 

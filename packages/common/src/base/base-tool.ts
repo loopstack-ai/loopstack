@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { DocumentStore } from '../interfaces/document-store.interface.js';
-import type { ToolCallOptions, ToolResult } from '../interfaces/handler.interface.js';
+import type { ToolCallOptions, ToolEnvelope, ToolResult } from '../interfaces/handler.interface.js';
 import type { RunContext } from '../interfaces/run-context.interface.js';
 import type { ToolPipeline } from '../interfaces/tool-pipeline.interface.js';
 import { DOCUMENT_STORE, TOOL_PIPELINE } from '../tokens.js';
@@ -41,11 +41,27 @@ export abstract class BaseTool<
   @Inject(DOCUMENT_STORE) protected readonly documentStore!: DocumentStore;
 
   /**
-   * Public entry point — what consumers call.
-   * Routes through ToolPipelineService for validation, config merge, and interceptors.
+   * Public entry point — what workflow authors call.
+   *
+   * Routes through `ToolPipelineService` (validation, config merge, interceptors) and narrows
+   * the raw envelope to the success path: throws on `error`, throws on `pending`. The agent
+   * tool-call loop that needs to observe `error` / `pending` calls the pipeline directly.
    */
   async call(args?: TArgs, options?: ToolCallOptions<TConfig>): Promise<ToolResult<TResult, TMeta>> {
-    return this.__pipeline.execute(this, args, options);
+    const envelope = await this.__pipeline.execute(this, args, options);
+    if (envelope.error) {
+      throw new Error(envelope.error);
+    }
+    if (envelope.pending) {
+      throw new Error(
+        `Tool ${this.constructor.name} returned pending; observe pending via the agent tool-call loop, not BaseTool.call().`,
+      );
+    }
+    return {
+      data: envelope.data as TResult,
+      metadata: (envelope.metadata ?? ({} as TMeta)) as TMeta,
+      ...(envelope.type ? { type: envelope.type } : {}),
+    };
   }
 
   /**
@@ -60,14 +76,14 @@ export abstract class BaseTool<
     args: TArgs,
     ctx: RunContext,
     options?: ToolCallOptions<TConfig>,
-  ): Promise<ToolResult<TResult, TMeta>>;
+  ): Promise<ToolEnvelope<TResult, TMeta>>;
 
   /**
    * Called when an async sub-workflow completes and the callback fires.
    * Override to post-process the result (e.g. update link documents, transform data).
    * The default implementation passes through the sub-workflow result.
    */
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope> {
     return { data: (result as { data?: unknown }).data ?? result };
   }
 }

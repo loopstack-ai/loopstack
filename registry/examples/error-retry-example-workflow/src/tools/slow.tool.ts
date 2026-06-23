@@ -1,5 +1,4 @@
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 
 export type SlowToolResult = string;
 
@@ -8,7 +7,7 @@ export type SlowToolResult = string;
   description: 'A tool that takes a configurable amount of time to complete.',
 })
 export class SlowTool extends BaseTool<{ delayMs: number }, object, SlowToolResult> {
-  protected async handle(args: { delayMs: number }, _ctx: RunContext): Promise<ToolResult<SlowToolResult>> {
+  protected async handle(args: { delayMs: number }): Promise<ToolEnvelope<SlowToolResult>> {
     await new Promise((resolve) => setTimeout(resolve, args.delayMs));
     return {
       type: 'text',
