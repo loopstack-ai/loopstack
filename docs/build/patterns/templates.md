@@ -134,5 +134,5 @@ ui:
 
 ## Registry References
 
-- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-prompt-example-workflow) — Uses `this.render()` for Handlebars prompt templates
-- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow) — Uses templates for structured note rendering
+- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#prompt) — Uses `this.render()` for Handlebars prompt templates
+- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#meeting-notes) — Uses templates for structured note rendering

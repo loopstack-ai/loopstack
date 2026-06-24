@@ -338,7 +338,7 @@ See [`@loopstack/hitl`](https://loopstack.ai/registry/loopstack-hitl-module) for
 
 ## Registry References
 
-- [hitl-example-module](https://loopstack.ai/registry/loopstack-hitl-example-module) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
+- [hitl-example-module](https://loopstack.ai/registry/loopstack-hitl-examples) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
 - [@loopstack/hitl](https://loopstack.ai/registry/loopstack-hitl-module) — The underlying HITL module: `AskUserWorkflow`, `ConfirmUserWorkflow`, `ask_clarification`, `ask_for_approval`
-- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
-- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Chat input pattern with prompt-input widget
+- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#meeting-notes) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
+- [chat-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#prompt-input-chat) — Chat input pattern with prompt-input widget

@@ -97,7 +97,7 @@ await this.llmGenerateText.call(
 
 The tool saves the assistant message as an `LlmMessageDocument` automatically — no manual `documentStore.save()` is required. Two config knobs control this:
 
-- `config: { save: false }` — opt out entirely. Use this when you want to inspect, transform, or persist the response yourself (see [llm-multi-provider-example-workflow](https://loopstack.ai/registry/loopstack-llm-multi-provider-example-workflow) for a worked case).
+- `config: { save: false }` — opt out entirely. Use this when you want to inspect, transform, or persist the response yourself (see [llm-multi-provider-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#multi-provider) for a worked case).
 - `config: { meta: {...} }` — merge extra metadata into the auto-saved document. Free-form payload that downstream readers can pick up off `document.meta`.
 
 To run a "silent" turn the LLM remembers but the user doesn't see, opt out of auto-save and persist the result as `LlmContextDocument` (declared `internal: true`, so Studio never sees it):
@@ -156,4 +156,4 @@ If you're implementing a custom `LlmProviderInterface`, honor the `onStream` cal
 
 ## Registry References
 
-- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-prompt-example-workflow) — Single-turn prompt with subject parameter and Handlebars template
+- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#prompt) — Single-turn prompt with subject parameter and Handlebars template

@@ -186,4 +186,4 @@ Multiple `ErrorDocument`s accumulate if retries fail repeatedly — giving a ful
 
 ## Registry References
 
-- [error-retry-example-workflow](https://loopstack.ai/registry/loopstack-error-retry-example-workflow) — Demonstrates all five retry modes: auto-retry, manual retry, custom error place, timeout, and hybrid
+- [error-retry-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#error-retry) — Demonstrates all five retry modes: auto-retry, manual retry, custom error place, timeout, and hybrid

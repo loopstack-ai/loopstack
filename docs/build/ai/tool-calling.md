@@ -156,5 +156,5 @@ The `callback` arg is required — it's how async tool completions find their wa
 
 ## Registry References
 
-- [agent-example-workflow](https://loopstack.ai/registry/loopstack-agent-example-workflow) — Parent workflow that delegates to `AgentWorkflow` for tool-calling with weather and calculator tools
-- [delegate-error-example-workflow](https://loopstack.ai/registry/loopstack-delegate-error-example-workflow) — Reference for hand-rolling the tool loop when you need custom error policy or per-turn logic
+- [agent-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#agent) — Parent workflow that delegates to `AgentWorkflow` for tool-calling with weather and calculator tools
+- [delegate-error-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Reference for hand-rolling the tool loop when you need custom error policy or per-turn logic

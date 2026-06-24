@@ -106,4 +106,4 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
 
 ## Registry References
 
-- [secrets-example-workflow](https://loopstack.ai/registry/loopstack-secrets-example-workflow) — Request secrets from user, verify storage, and display results with both direct workflow and agent-based approaches
+- [secrets-example-workflow](https://loopstack.ai/registry/loopstack-secrets-examples) — Request secrets from user, verify storage, and display results with both direct workflow and agent-based approaches

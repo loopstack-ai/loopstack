@@ -395,12 +395,12 @@ src/
 
 ## Registry References
 
-- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Multi-turn chat workflow (the minimal example on this page)
-- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-prompt-example-workflow) — Simple single-turn prompt workflow
-- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — Tool calling loop with guards and conditional routing
-- [dynamic-routing-example-workflow](https://loopstack.ai/registry/loopstack-dynamic-routing-example-workflow) — Multi-level guard-based routing
-- [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-workflow-state-example-workflow) — State management with typed state interface
-- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Sub-workflow execution with callbacks
+- [chat-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#prompt-input-chat) — Multi-turn chat workflow (the minimal example on this page)
+- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#prompt) — Simple single-turn prompt workflow
+- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Tool calling loop with guards and conditional routing
+- [dynamic-routing-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#dynamic-routing) — Multi-level guard-based routing
+- [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#workflow-state) — State management with typed state interface
+- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#sub-workflow) — Sub-workflow execution with callbacks
 
 ---
 

@@ -370,5 +370,5 @@ The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architec
 
 ## Registry References
 
-- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent calling sub-workflows with callbacks and typed output, all three `show` modes chained, `FanOutWorkflow` / `SequenceWorkflow` coordination, and a failing-child workflow paired with a parent that branches on `input.hasError`
+- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#sub-workflow) — Parent calling sub-workflows with callbacks and typed output, all three `show` modes chained, `FanOutWorkflow` / `SequenceWorkflow` coordination, and a failing-child workflow paired with a parent that branches on `input.hasError`
 - [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — ExploreTask wrapping AgentWorkflow as a task tool

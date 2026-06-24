@@ -152,5 +152,5 @@ export class MyWorkflow extends BaseWorkflow {
 
 ## Registry References
 
-- [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-workflow-state-example-workflow) — Stores state in typed state interface, accesses in transitions, uses helper methods
-- [accessing-tool-results-example-workflow](https://loopstack.ai/registry/loopstack-accessing-tool-results-example-workflow) — Storing and accessing tool results via workflow state
+- [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#workflow-state) — Stores state in typed state interface, accesses in transitions, uses helper methods
+- [accessing-tool-results-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#workflow-state) — Storing and accessing tool results via workflow state

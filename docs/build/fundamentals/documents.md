@@ -326,9 +326,9 @@ const result = await this.llmGenerateObject.call(
 
 ## Registry References
 
-- [prompt-structured-output-example-workflow](https://loopstack.ai/registry/loopstack-prompt-structured-output-example-workflow) — FileDocument with code-view widget for AI-generated code
-- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
-- [test-ui-documents-example-workflow](https://loopstack.ai/registry/loopstack-test-ui-documents-example-workflow) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
+- [prompt-structured-output-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#structured-output) — FileDocument with code-view widget for AI-generated code
+- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#meeting-notes) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
+- [test-ui-documents-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#ui-documents) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
 
 ---
 

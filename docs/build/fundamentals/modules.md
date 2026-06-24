@@ -273,7 +273,7 @@ The `forFeature()` import of `MyFeatureRootModule` ensures the global default is
 
 **Why `@Global()`?** The `@Global()` decorator is a [standard NestJS feature](https://docs.nestjs.com/modules#global-modules) that makes a module's exports available to every other module in the application without an explicit `imports: [...]` entry. The root module uses it so that `MY_FEATURE_CONFIG` and the tools are injectable anywhere — including in modules that never call `forRoot()` or `forFeature()`. This is also why `LoopCoreModule` is marked global by `LoopstackModule.forRoot()`. Use `@Global()` sparingly for app-wide singletons; prefer per-module imports for scoped behavior.
 
-See [module-config-example](https://loopstack.ai/registry/loopstack-module-config-example) for a complete runnable example, including a nested wrapper module that passes config through to the underlying configurable module.
+See [module-config-example](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#module-config) for a complete runnable example, including a nested wrapper module that passes config through to the underlying configurable module.
 
 ## Dependency Injection
 
@@ -314,6 +314,6 @@ Once registered:
 
 ## Registry References
 
-- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Example module with ClaudeModule import
-- [custom-tool-example-module](https://loopstack.ai/registry/loopstack-custom-tool-example-module) — Module with custom tools, services, and workflow providers
-- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Module registering both parent and sub-workflow providers
+- [chat-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#prompt-input-chat) — Example module with ClaudeModule import
+- [custom-tool-example-module](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#custom-tool) — Module with custom tools, services, and workflow providers
+- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#sub-workflow) — Module registering both parent and sub-workflow providers

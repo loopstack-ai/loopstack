@@ -161,5 +161,5 @@ needsAuth(state: MyState): boolean {
 
 ## Registry References
 
-- [dynamic-routing-example-workflow](https://loopstack.ai/registry/loopstack-dynamic-routing-example-workflow) — Multi-level guard-based routing with cascading forks
-- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — Guard-based routing for LLM tool call detection
+- [dynamic-routing-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#dynamic-routing) — Multi-level guard-based routing with cascading forks
+- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Guard-based routing for LLM tool call detection

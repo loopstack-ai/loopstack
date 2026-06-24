@@ -1,20 +1,16 @@
 ---
+'@loopstack/agent': patch
+'@loopstack/api': minor
 '@loopstack/common': minor
 '@loopstack/contracts': minor
 '@loopstack/core': minor
-'@loopstack/api': minor
-'@loopstack/llm-provider-module': minor
-'@loopstack/agent': patch
 '@loopstack/hitl': patch
+'@loopstack/llm-provider-module': minor
 '@loopstack/oauth-module': patch
-'@loopstack/chat-example-workflow': patch
-'@loopstack/github-oauth-example': patch
-'@loopstack/google-oauth-example': patch
-'@loopstack/hitl-example-module': patch
-'@loopstack/meeting-notes-example-workflow': patch
-'@loopstack/prompt-example-workflow': patch
-'@loopstack/prompt-structured-output-example-workflow': patch
-'@loopstack/secrets-example-workflow': patch
+'@loopstack/hitl-examples': patch
+'@loopstack/llm-examples': patch
+'@loopstack/oauth-examples': patch
+'@loopstack/secrets-examples': patch
 ---
 
 Cleanup of the `documentStore.save` options taxonomy. Three related changes:

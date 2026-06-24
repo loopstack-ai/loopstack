@@ -1,23 +1,19 @@
 ---
-'@loopstack/common': minor
-'@loopstack/core': minor
-'@loopstack/contracts': patch
-'@loopstack/api': patch
 '@loopstack/agent': patch
+'@loopstack/api': patch
 '@loopstack/code-agent': patch
+'@loopstack/common': minor
+'@loopstack/contracts': patch
+'@loopstack/core': minor
 '@loopstack/github-integration': patch
 '@loopstack/github-module': patch
 '@loopstack/hitl': patch
 '@loopstack/llm-provider-module': patch
 '@loopstack/oauth-module': patch
-'@loopstack/agent-example-workflow': patch
-'@loopstack/chat-example-workflow': patch
-'@loopstack/code-agent-example-workflow': patch
-'@loopstack/github-oauth-example': patch
-'@loopstack/google-oauth-example': patch
-'@loopstack/hitl-example-module': patch
-'@loopstack/meeting-notes-example-workflow': patch
-'@loopstack/run-sub-workflow-example': patch
+'@loopstack/advanced-workflows-examples': patch
+'@loopstack/agent-examples': patch
+'@loopstack/hitl-examples': patch
+'@loopstack/oauth-examples': patch
 ---
 
 Unify the `wait: true` payload shape. Every wait transition now receives the same envelope, `TransitionInput<TData, TMeta>`, regardless of whether the resume came from a sub-workflow completion or a frontend / API trigger:

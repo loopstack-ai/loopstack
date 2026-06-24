@@ -293,8 +293,8 @@ src/
 
 ## Registry References
 
-- [custom-tool-example-module](https://loopstack.ai/registry/loopstack-custom-tool-example-module) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
-- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — GetWeather tool exposed to the LLM for function calling
+- [custom-tool-example-module](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
+- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — GetWeather tool exposed to the LLM for function calling
 
 ---
 

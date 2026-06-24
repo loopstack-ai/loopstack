@@ -129,5 +129,5 @@ respond(state: ChatState) {}
 
 ## Registry References
 
-- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Multi-turn chat with Claude, system message, and prompt-input widget
-- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — Chat with tool calling loop
+- [chat-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#prompt-input-chat) — Multi-turn chat with Claude, system message, and prompt-input widget
+- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Chat with tool calling loop

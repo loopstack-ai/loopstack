@@ -1,9 +1,8 @@
 ---
-'@loopstack/common': minor
-'@loopstack/core': minor
-'@loopstack/testing': minor
 '@loopstack/agent': patch
 '@loopstack/code-agent': patch
+'@loopstack/common': minor
+'@loopstack/core': minor
 '@loopstack/git-module': patch
 '@loopstack/github-integration': patch
 '@loopstack/github-module': patch
@@ -12,34 +11,18 @@
 '@loopstack/mcp-module': patch
 '@loopstack/oauth-module': patch
 '@loopstack/remote-client': patch
-'@loopstack/secrets-module': patch
 '@loopstack/sandbox-filesystem': patch
 '@loopstack/sandbox-tool': patch
-'@loopstack/accessing-tool-results-example-workflow': patch
-'@loopstack/agent-example-workflow': patch
-'@loopstack/chat-example-workflow': patch
-'@loopstack/code-agent-example-workflow': patch
-'@loopstack/custom-tool-example-module': patch
-'@loopstack/delegate-error-example-workflow': patch
-'@loopstack/dynamic-routing-example-workflow': patch
-'@loopstack/error-retry-example-workflow': patch
-'@loopstack/git-commit-flow-example-workflow': patch
-'@loopstack/github-oauth-example': patch
-'@loopstack/google-oauth-example': patch
-'@loopstack/hitl-example-module': patch
-'@loopstack/llm-multi-provider-example-workflow': patch
-'@loopstack/mcp-linear-example-workflow': patch
-'@loopstack/meeting-notes-example-workflow': patch
-'@loopstack/module-config-example': patch
-'@loopstack/prompt-example-workflow': patch
-'@loopstack/prompt-structured-output-example-workflow': patch
-'@loopstack/remote-file-explorer-example-workflow': patch
-'@loopstack/run-sub-workflow-example': patch
-'@loopstack/sandbox-example-workflow': patch
-'@loopstack/secrets-example-workflow': patch
-'@loopstack/test-ui-documents-example-workflow': patch
-'@loopstack/tool-call-example-workflow': patch
-'@loopstack/workflow-state-example-workflow': patch
+'@loopstack/secrets-module': patch
+'@loopstack/testing': minor
+'@loopstack/advanced-workflows-examples': patch
+'@loopstack/agent-examples': patch
+'@loopstack/filesystem-examples': patch
+'@loopstack/git-examples': patch
+'@loopstack/hitl-examples': patch
+'@loopstack/llm-examples': patch
+'@loopstack/oauth-examples': patch
+'@loopstack/secrets-examples': patch
 ---
 
 Transitions return nothing and mutate workflow state and result via four setter methods on `BaseWorkflow`:

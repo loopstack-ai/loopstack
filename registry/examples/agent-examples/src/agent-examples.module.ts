@@ -1,0 +1,50 @@
+import { Module } from '@nestjs/common';
+import { AgentModule } from '@loopstack/agent';
+import { ClaudeModule } from '@loopstack/claude-module';
+import { CodeAgentModule } from '@loopstack/code-agent';
+import { StudioApp } from '@loopstack/common';
+import { McpModule } from '@loopstack/mcp-module';
+import { AgentExampleWorkflow } from './workflows/agent/agent-example.workflow';
+import { CalculatorTool } from './workflows/agent/tools/calculator.tool';
+import { WeatherLookupTool } from './workflows/agent/tools/weather-lookup.tool';
+import { CodeAgentExampleWorkflow } from './workflows/code-agent/code-agent-example.workflow';
+import { CustomAgentExampleWorkflow } from './workflows/custom-agent/custom-agent-example.workflow';
+import { FailingSubWorkflow } from './workflows/custom-agent/failing-sub.workflow';
+import { FailingSubWorkflowTool } from './workflows/custom-agent/tools/failing-sub-workflow.tool';
+import { RuntimeErrorTool } from './workflows/custom-agent/tools/runtime-error.tool';
+import { StrictSchemaTool } from './workflows/custom-agent/tools/strict-schema.tool';
+import { McpLinearExampleWorkflow } from './workflows/mcp-linear/mcp-linear-example.workflow';
+
+const WORKFLOWS = [
+  AgentExampleWorkflow,
+  CodeAgentExampleWorkflow,
+  McpLinearExampleWorkflow,
+  CustomAgentExampleWorkflow,
+];
+
+@StudioApp({
+  title: 'Agent Examples',
+  workflows: WORKFLOWS,
+})
+@Module({
+  imports: [
+    AgentModule,
+    CodeAgentModule,
+    ClaudeModule,
+    McpModule.forRoot({
+      allowedHosts: ['mcp.linear.app'],
+      hostHeaderEnv: { 'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' } },
+    }),
+  ],
+  providers: [
+    CalculatorTool,
+    WeatherLookupTool,
+    StrictSchemaTool,
+    RuntimeErrorTool,
+    FailingSubWorkflowTool,
+    FailingSubWorkflow,
+    ...WORKFLOWS,
+  ],
+  exports: WORKFLOWS,
+})
+export class AgentExamplesModule {}

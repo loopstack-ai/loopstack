@@ -121,4 +121,4 @@ await this.llmGenerateObject.call(
 
 ## Registry References
 
-- [prompt-structured-output-example-workflow](https://loopstack.ai/registry/loopstack-prompt-structured-output-example-workflow) — Generates structured code files using the LLM provider
+- [prompt-structured-output-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#structured-output) — Generates structured code files using the LLM provider

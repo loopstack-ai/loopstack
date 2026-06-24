@@ -1,14 +1,11 @@
 ---
-'@loopstack/llm-provider-module': minor
 '@loopstack/agent': patch
-'@loopstack/chat-example-workflow': patch
-'@loopstack/delegate-error-example-workflow': patch
-'@loopstack/github-oauth-example': patch
-'@loopstack/google-oauth-example': patch
-'@loopstack/llm-multi-provider-example-workflow': patch
-'@loopstack/prompt-example-workflow': patch
-'@loopstack/secrets-example-workflow': patch
-'@loopstack/tool-call-example-workflow': patch
+'@loopstack/llm-provider-module': minor
+'@loopstack/agent-examples': patch
+'@loopstack/hitl-examples': patch
+'@loopstack/llm-examples': patch
+'@loopstack/oauth-examples': patch
+'@loopstack/secrets-examples': patch
 ---
 
 `LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, and `LlmUpdateToolResultTool` now persist their messages to the document store automatically — the assistant turn after `llmGenerateText`, and the `tool_result` user turn once all delegated tools have completed (sync or async). Two new config fields control this:

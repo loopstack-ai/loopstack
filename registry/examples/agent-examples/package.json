@@ -1,0 +1,53 @@
+{
+  "name": "@loopstack/agent-examples",
+  "displayName": "Loopstack Agent Examples",
+  "description": "Workflow examples for LLM agents in Loopstack — basic AgentWorkflow, code-exploration agent, MCP-connected agent, and a from-scratch custom agent loop with error handling.",
+  "keywords": [
+    "loopstack",
+    "example",
+    "agent",
+    "llm",
+    "claude",
+    "mcp",
+    "workflow"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/agent": "*",
+    "@loopstack/claude-module": "*",
+    "@loopstack/code-agent": "*",
+    "@loopstack/common": "*",
+    "@loopstack/llm-provider-module": "*",
+    "@loopstack/mcp-module": "*",
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
+  }
+}
