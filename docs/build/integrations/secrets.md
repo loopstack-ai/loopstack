@@ -23,9 +23,8 @@ constructor(private readonly syncSecrets: SyncSecretsTool) {
 }
 
 @Transition({ from: 'secrets_received', to: 'ready' })
-async pushSecrets(state: SecretsState): Promise<SecretsState> {
+async pushSecrets(state: SecretsState) {
   await this.syncSecrets.call({});
-  return state;
 }
 ```
 
@@ -41,7 +40,7 @@ async pushSecrets(state: SecretsState): Promise<SecretsState> {
 ## Example Workflow
 
 ```typescript
-import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { MarkdownDocument } from '@loopstack/common';
 import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
@@ -49,8 +48,8 @@ interface SecretsState {
   secretKeys?: Array<{ key: string; hasValue: boolean }>;
 }
 
-@Workflow({ widget: __dirname + '/secrets-example.ui.yaml' })
-export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>, SecretsState> {
+@Workflow({ widget: './secrets-example.ui.yaml' })
+export class SecretsExampleWorkflow extends BaseWorkflow {
   constructor(
     private readonly requestSecrets: RequestSecretsTool,
     private readonly getSecretKeys: GetSecretKeysTool,
@@ -59,7 +58,7 @@ export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>
   }
 
   @Transition({ to: 'requesting_secrets' })
-  async requestSecretsFromUser(state: SecretsState): Promise<SecretsState> {
+  async requestSecretsFromUser(state: SecretsState) {
     await this.requestSecrets.call({
       variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
     });
@@ -67,23 +66,21 @@ export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>
     await this.documentStore.save(SecretRequestDocument, {
       variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
     });
-    return state;
   }
 
   @Transition({ from: 'requesting_secrets', to: 'verifying', wait: true })
-  async secretsSubmitted(state: SecretsState): Promise<SecretsState> {
-    const result: ToolResult<Array<{ key: string; hasValue: boolean }>> = await this.getSecretKeys.call({});
-    return { ...state, secretKeys: result.data };
+  async secretsSubmitted(state: SecretsState) {
+    const result = await this.getSecretKeys.call({});
+    this.assignState({ secretKeys: result.data });
   }
 
   @Transition({ from: 'verifying', to: 'end' })
-  async showResult(state: SecretsState): Promise<unknown> {
+  async showResult(state: SecretsState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/secretsVerified.md', {
+      markdown: this.render(join(__dirname, 'templates', 'secretsVerified.md'), {
         secretKeys: state.secretKeys,
       }),
     });
-    return {};
   }
 }
 ```
@@ -109,4 +106,4 @@ export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>
 
 ## Registry References
 
-- [secrets-example-workflow](https://loopstack.ai/registry/loopstack-secrets-example-workflow) — Request secrets from user, verify storage, and display results with both direct workflow and agent-based approaches
+- [secrets-example-workflow](https://loopstack.ai/registry/loopstack-secrets-examples) — Request secrets from user, verify storage, and display results with both direct workflow and agent-based approaches

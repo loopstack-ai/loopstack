@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom';
 import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
+import { FeatureRegistryProvider } from '@/features/feature-registry';
 import { Workbench } from '@/features/workbench';
 import { useDefaultEnvironmentPreviewUrl } from '../hooks/useEnvironmentPreviewUrl.ts';
 import { useWorkflow } from '../hooks/useWorkflows.ts';
@@ -42,14 +43,16 @@ export default function WorkbenchPage({
     <div className="flex h-svh flex-col">
       <div className="flex-1 overflow-hidden">
         <ErrorSnackbar error={fetchWorkflow.error} />
-        <LoadingCentered loading={fetchWorkflow.isLoading}>
-          {fetchWorkflow.data ? (
-            <Workbench
-              workflow={fetchWorkflow.data}
-              breadcrumbData={breadcrumbData}
-              getPreviewUrl={getPreviewUrl}
-              getEnvironmentPreviewUrl={resolvedGetEnvironmentPreviewUrl}
-            />
+        <LoadingCentered loading={fetchWorkflow.isLoading || fetchWorkspace.isLoading}>
+          {fetchWorkflow.data && fetchWorkspace.data ? (
+            <FeatureRegistryProvider appName={fetchWorkspace.data.appName}>
+              <Workbench
+                workflow={fetchWorkflow.data}
+                breadcrumbData={breadcrumbData}
+                getPreviewUrl={getPreviewUrl}
+                getEnvironmentPreviewUrl={resolvedGetEnvironmentPreviewUrl}
+              />
+            </FeatureRegistryProvider>
           ) : !fetchWorkflow.isLoading && !fetchWorkflow.error ? (
             <p className="text-muted-foreground py-8 text-center text-sm">Workflow not found.</p>
           ) : null}

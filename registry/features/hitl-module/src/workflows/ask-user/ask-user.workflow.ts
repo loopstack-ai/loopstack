@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document.js';
 import { AskUserDocument } from '../../documents/ask-user-document.js';
@@ -27,39 +27,35 @@ type AskUserState = AskUserArgs;
     'Generic sub-workflow that presents a question to the user and waits for their answer.\nUsed by async tool calls (e.g. askClarification) to interrupt an agent loop for user input.\nSupports three modes: text (default), options (pick from a list), and confirm (yes/no).',
   schema: AskUserArgsSchema,
 })
-export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
+export class AskUserWorkflow extends BaseWorkflow<AskUserArgs> {
   @Transition({ to: 'show_question' })
-  async start(state: AskUserState, ctx: RunContext): Promise<AskUserState> {
-    const args = ctx.args as AskUserArgs;
-    return { ...state, ...args };
+  start(state: AskUserState, ctx: RunContext<AskUserArgs>) {
+    this.assignState({ ...ctx.args });
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isOptionsMode')
-  async showQuestionOptions(state: AskUserState): Promise<AskUserState> {
+  async showQuestionOptions(state: AskUserState) {
     await this.documentStore.save(
       AskUserOptionsDocument,
       { question: state.question, options: state.options ?? [], allowCustomAnswer: state.allowCustomAnswer },
-      { id: 'question' },
+      { key: 'question' },
     );
-    return state;
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isConfirmMode')
-  async showQuestionConfirm(state: AskUserState): Promise<AskUserState> {
-    await this.documentStore.save(AskUserConfirmDocument, { question: state.question }, { id: 'question' });
-    return state;
+  async showQuestionConfirm(state: AskUserState) {
+    await this.documentStore.save(AskUserConfirmDocument, { question: state.question }, { key: 'question' });
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user' })
-  async showQuestionText(state: AskUserState): Promise<AskUserState> {
-    await this.documentStore.save(AskUserDocument, { question: state.question }, { id: 'question' });
-    return state;
+  async showQuestionText(state: AskUserState) {
+    await this.documentStore.save(AskUserDocument, { question: state.question }, { key: 'question' });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'end', wait: true, schema: AskUserAnswerSchema })
-  async userAnswered(state: AskUserState, payload: { answer: string }): Promise<{ answer: string }> {
+  async userAnswered(state: AskUserState, input: TransitionInput<{ answer: string }>) {
     if (state.mode === 'options') {
       await this.documentStore.save(
         AskUserOptionsDocument,
@@ -67,25 +63,25 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
           question: state.question,
           options: state.options ?? [],
           allowCustomAnswer: state.allowCustomAnswer,
-          answer: payload.answer,
+          answer: input.data.answer,
         },
-        { id: 'question' },
+        { key: 'question' },
       );
     } else if (state.mode === 'confirm') {
       await this.documentStore.save(
         AskUserConfirmDocument,
-        { question: state.question, answer: payload.answer },
-        { id: 'question' },
+        { question: state.question, answer: input.data.answer },
+        { key: 'question' },
       );
     } else {
       await this.documentStore.save(
         AskUserDocument,
-        { question: state.question, answer: payload.answer },
-        { id: 'question' },
+        { question: state.question, answer: input.data.answer },
+        { key: 'question' },
       );
     }
 
-    return { answer: payload.answer };
+    this.setResult({ answer: input.data.answer } as unknown as Record<string, unknown>);
   }
 
   private isOptionsMode(state: AskUserState): boolean {

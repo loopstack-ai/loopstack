@@ -6,7 +6,6 @@ import WorkerLayout from './app/WorkerLayout.tsx';
 import { StudioSidebar } from './components/layout/StudioSidebar.tsx';
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar.tsx';
 import config from './config.ts';
-import { FeatureRegistryProvider } from './features/feature-registry';
 import { LocalHealthCheck } from './features/health';
 import { OAuthCallbackPage } from './features/oauth';
 import DashboardPage from './pages/DashboardPage.tsx';
@@ -49,12 +48,10 @@ function AppRoot() {
       <Toaster richColors position="top-center" />
       <StudioPreferencesProvider>
         <StudioProvider router={router} environment={config.environment}>
-          <FeatureRegistryProvider>
-            <LocalHealthCheck />
-            <SseProvider />
-            <InvalidationEventsProvider />
-            <AppSidebar />
-          </FeatureRegistryProvider>
+          <LocalHealthCheck />
+          <SseProvider />
+          <InvalidationEventsProvider />
+          <AppSidebar />
         </StudioProvider>
       </StudioPreferencesProvider>
     </QueryProvider>
@@ -66,11 +63,9 @@ function EmbedRoot() {
   return (
     <QueryProvider>
       <StudioProvider router={router} environment={config.environment}>
-        <FeatureRegistryProvider>
-          <SseProvider />
-          <InvalidationEventsProvider />
-          <WorkerLayout />
-        </FeatureRegistryProvider>
+        <SseProvider />
+        <InvalidationEventsProvider />
+        <WorkerLayout />
       </StudioProvider>
     </QueryProvider>
   );

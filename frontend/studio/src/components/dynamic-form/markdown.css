@@ -65,12 +65,6 @@
   margin-bottom: 0;
 }
 
-.user {
-  .markdown-content p {
-    color: white;
-  }
-}
-
 .markdown-content ul {
   display: flex;
   flex-direction: column;

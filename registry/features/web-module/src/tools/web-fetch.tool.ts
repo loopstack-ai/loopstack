@@ -1,7 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { MAX_MARKDOWN_LENGTH, MAX_RESULT_SIZE_CHARS } from '../constants.js';
 import { WebFetchFetcherService, WebFetchSummarizerService } from '../services/index.js';
 import { WebFetchResult } from '../types/index.js';
@@ -35,7 +34,7 @@ export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult>
   @Inject() private readonly fetcher: WebFetchFetcherService;
   @Inject() private readonly summarizer: WebFetchSummarizerService;
 
-  protected async handle(args: WebFetchArgs, _ctx: RunContext): Promise<ToolResult<WebFetchResult>> {
+  protected async handle(args: WebFetchArgs): Promise<ToolEnvelope<WebFetchResult>> {
     const start = performance.now();
     const outcome = await this.fetcher.fetch(args.url);
 

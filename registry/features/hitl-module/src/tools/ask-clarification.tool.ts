@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow.js';
 
@@ -51,7 +51,7 @@ export class AskClarificationTool extends BaseTool<AskClarificationInput, object
     args: AskClarificationInput,
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<AskClarificationResult>> {
+  ): Promise<ToolEnvelope<AskClarificationResult>> {
     const result = await this.askUserWorkflow.run(
       {
         question: args.question,
@@ -68,7 +68,7 @@ export class AskClarificationTool extends BaseTool<AskClarificationInput, object
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult<AskClarificationResult>> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope<AskClarificationResult>> {
     const data = result as { data?: { answer?: string } };
     return { data: data.data?.answer ?? result };
   }

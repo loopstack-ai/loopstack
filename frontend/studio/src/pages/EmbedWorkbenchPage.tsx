@@ -3,9 +3,11 @@ import { useParams } from 'react-router-dom';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
+import { FeatureRegistryProvider } from '@/features/feature-registry';
 import { WorkflowItem } from '@/features/workbench';
 import { WorkbenchLayoutProvider } from '@/features/workbench/providers/WorkbenchLayoutProvider';
 import { useWorkflow } from '../hooks/useWorkflows.ts';
+import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { requireParam } from '../lib/requireParam.ts';
 
 const EMBED_MESSAGE_TYPE = 'loopstack:embed:workflow-completed';
@@ -17,6 +19,7 @@ export default function EmbedWorkbenchPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchWorkflow = useWorkflow(workflowId);
+  const fetchWorkspace = useWorkspace(fetchWorkflow.data?.workspaceId);
   const notifiedRef = useRef(false);
 
   // Notify parent when workflow has completed
@@ -72,17 +75,19 @@ export default function EmbedWorkbenchPage() {
   return (
     <div ref={containerRef} className="overflow-hidden pl-3 py-4">
       <ErrorSnackbar error={fetchWorkflow.error} />
-      <LoadingCentered loading={fetchWorkflow.isLoading}>
-        {fetchWorkflow.data ? (
-          <WorkbenchLayoutProvider workspaceId={fetchWorkflow.data.workspaceId} workflow={fetchWorkflow.data}>
-            <WorkflowItem
-              workflow={fetchWorkflow.data}
-              workflowId={fetchWorkflow.data.id}
-              scrollTo={scrollTo}
-              settings={settings}
-              embed
-            />
-          </WorkbenchLayoutProvider>
+      <LoadingCentered loading={fetchWorkflow.isLoading || fetchWorkspace.isLoading}>
+        {fetchWorkflow.data && fetchWorkspace.data ? (
+          <FeatureRegistryProvider appName={fetchWorkspace.data.appName}>
+            <WorkbenchLayoutProvider workspaceId={fetchWorkflow.data.workspaceId} workflow={fetchWorkflow.data}>
+              <WorkflowItem
+                workflow={fetchWorkflow.data}
+                workflowId={fetchWorkflow.data.id}
+                scrollTo={scrollTo}
+                settings={settings}
+                embed
+              />
+            </WorkbenchLayoutProvider>
+          </FeatureRegistryProvider>
         ) : null}
       </LoadingCentered>
     </div>

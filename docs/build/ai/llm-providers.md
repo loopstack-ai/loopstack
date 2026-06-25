@@ -21,6 +21,12 @@ import { LlmProviderModule } from '@loopstack/llm-provider-module';
 export class AppModule {}
 ```
 
+> **`LlmProviderModule` is required, and must be imported before any provider module.**
+>
+> `LlmProviderModule` registers `LlmProviderRegistry` — the runtime registry that provider modules (`ClaudeModule`, `OpenAiModule`) inject to self-register their backends. Importing a provider module without `LlmProviderModule` fails at boot with `UnknownDependenciesException` on `LlmProviderRegistry` (and on `ClaudeLlmProvider` / `OpenAiLlmProvider`, which depend on it).
+>
+> Any of these forms registers the registry: bare `LlmProviderModule`, `LlmProviderModule.forRoot(config)`, or `LlmProviderModule.forFeature(config)` (the feature form imports the global root transitively). Pick `forRoot` when setting app-wide defaults, `forFeature` for per-module overrides, and the bare import when no defaults are needed.
+
 ## Module-Level Defaults
 
 Use `LlmProviderModule.forRoot()` to set a default model for all LLM calls in your app. Use `forFeature()` to override per-module:
@@ -198,20 +204,17 @@ Content blocks are one of:
 
 ### Writing messages — `text` vs `blocks`
 
-When you save an `LlmMessageDocument` manually, the same two fields are available — both optional. Provide whichever fits:
+Assistant messages (and the user-side `tool_result` turn) are saved automatically by `LlmGenerateTextTool` / `LlmDelegateToolCallsTool`. When you save an `LlmMessageDocument` manually — for user input, seed messages, or system primers — the same two fields are available, both optional. Provide whichever fits:
 
 ```typescript
 // Plain text message — most common case
 await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'Hello!' });
 
-// Structured message — tool results, multi-block content
+// Structured message — multi-block content
 await this.documentStore.save(LlmMessageDocument, {
   role: 'user',
-  blocks: [{ type: 'tool_result', toolCallId: '...', content: '...', isError: false }],
+  blocks: [{ type: 'text', text: 'See attached.' }],
 });
-
-// LLM response — both fields are already populated by the provider
-await this.documentStore.save(LlmMessageDocument, result.data!.message);
 ```
 
 You don't need to fill both. The renderer and downstream providers fall back gracefully: if only `text` is set, it's rendered as a single text bubble; if only `blocks` is set, the text projection is derived from text-type blocks on demand.

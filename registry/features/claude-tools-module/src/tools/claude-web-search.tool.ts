@@ -1,10 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
-import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import { WebSearchHit, WebSearchResult, WebSearchResultBlock } from '../types/index.js';
 
 const MAX_RESULT_SIZE_CHARS = 20_000;
@@ -46,11 +45,11 @@ export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSear
     args: ClaudeWebSearchArgs,
     ctx: RunContext,
     options?: ToolCallOptions<ClaudeWebSearchConfig>,
-  ): Promise<ToolResult<WebSearchResult>> {
+  ): Promise<ToolEnvelope<WebSearchResult>> {
     const config = options?.config;
     const startTime = performance.now();
 
-    const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call(
+    const result = await this.llmGenerateText.call(
       { prompt: `Perform a web search for the query: ${args.query}` },
       {
         config: {
@@ -66,7 +65,7 @@ export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSear
       },
     );
 
-    const response = result.data!.response as Anthropic.Message;
+    const response = result.data.response as Anthropic.Message;
     const durationSeconds = (performance.now() - startTime) / 1000;
     const data = this.capResultSize(this.parseResponse(response.content, args.query, durationSeconds));
 

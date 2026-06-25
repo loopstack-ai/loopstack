@@ -94,7 +94,7 @@ export const MeetingNotesDocumentSchema = z.object({
 
 @Document({
   schema: MeetingNotesDocumentSchema,
-  widget: __dirname + '/meeting-notes-document.yaml',
+  widget: './meeting-notes-document.yaml',
 })
 export class MeetingNotesDocument {
   text: string;
@@ -140,7 +140,7 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
 
 @Document({
   schema: OptimizedMeetingNotesDocumentSchema,
-  widget: __dirname + '/optimized-notes-document.yaml',
+  widget: './optimized-notes-document.yaml',
 })
 export class OptimizedNotesDocument {
   date: string;
@@ -221,7 +221,7 @@ Create `src/meeting-notes/meeting-notes.workflow.ts`:
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
@@ -231,49 +231,47 @@ interface MeetingNotesState {
   meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
 }
 
+const MeetingNotesArgsSchema = z.object({
+  inputText: z
+    .string()
+    .default(
+      '- meeting 1.1.2025\n- budget: need 2 cut costs sarah said\n- hire new person?? --> marketing\n- vendor pricing - follow up needed by anna',
+    ),
+});
+type MeetingNotesArgs = z.infer<typeof MeetingNotesArgsSchema>;
+
 @Workflow({
   title: 'Meeting Notes Optimizer',
   description: 'Structures raw meeting notes using AI, with human review at each step.',
-  schema: z.object({
-    inputText: z
-      .string()
-      .default(
-        '- meeting 1.1.2025\n- budget: need 2 cut costs sarah said\n- hire new person?? --> marketing\n- vendor pricing - follow up needed by anna',
-      ),
-  }),
+  schema: MeetingNotesArgsSchema,
 })
-export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, MeetingNotesState> {
+export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
   // Step 1: Display raw notes as an editable form and wait
   @Transition({ to: 'waiting_for_response' })
-  async showNotes(state: MeetingNotesState, ctx: RunContext): Promise<MeetingNotesState> {
-    const args = ctx.args as { inputText: string };
-    await this.documentStore.save(MeetingNotesDocument, { text: args.inputText }, { id: 'input' });
-    return state;
+  async showNotes(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>) {
+    await this.documentStore.save(MeetingNotesDocument, { text: ctx.args.inputText }, { key: 'input' });
   }
 
-  // Step 2: User clicks "Optimize Notes" — payload is the edited form content
+  // Step 2: User clicks "Optimize Notes" — input.data is the edited form content
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
-  async userResponse(
-    state: MeetingNotesState,
-    payload: z.infer<typeof MeetingNotesDocumentSchema>,
-  ): Promise<MeetingNotesState> {
+  async userResponse(state: MeetingNotesState, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
     // Persist whatever the user may have edited before clicking the button
-    const result = await this.documentStore.save(MeetingNotesDocument, payload, { id: 'input' });
-    return { ...state, meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> };
+    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { key: 'input' });
+    this.assignState({ meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> });
   }
 
   // Step 3: Send notes to LLM, save the structured result
   @Transition({ from: 'response_received', to: 'notes_optimized' })
-  async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
+  async optimizeNotes(state: MeetingNotesState) {
     const result = await this.llmGenerateObject.call(
       {
         // Convert the Zod schema to JSON Schema — the LLM uses this to constrain its output
         outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
-        prompt: this.render(__dirname + '/templates/extract-notes.md', { text: state.meetingNotes?.text }),
+        prompt: this.render(join(__dirname, 'templates', 'extract-notes.md'), { text: state.meetingNotes?.text }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
@@ -282,27 +280,23 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
     await this.documentStore.save(
       OptimizedNotesDocument,
       objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-      { id: 'final', validate: 'skip' },
+      { key: 'final', validate: 'skip' },
     );
-    return state;
   }
 
   // Step 4: User reviews the structured output and clicks "Confirm"
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
-  async confirm(
-    state: MeetingNotesState,
-    payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-  ): Promise<unknown> {
-    // Save final confirmed version — the return value becomes the workflow output
-    const result = await this.documentStore.save(OptimizedNotesDocument, payload, { id: 'final' });
-    return { optimizedNotes: result.content };
+  async confirm(state: MeetingNotesState, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
+    // Save final confirmed version and publish it as the workflow output
+    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { key: 'final' });
+    this.setResult({ optimizedNotes: result.content });
   }
 }
 ```
 
 **Why `validate: 'skip'` when saving the LLM result:** LLM output can occasionally deviate from the schema in minor ways (empty strings, null values). Using `validate: 'skip'` saves it anyway so the user can review and correct it in the form before confirming.
 
-**Why the final transition returns the payload:** The return value of the `to: 'end'` transition becomes the workflow's output. If this workflow is later used as a sub-workflow, the parent receives `payload.data.optimizedNotes` in its callback.
+**Why the final transition calls `this.setResult(...)`:** The published `result` becomes the workflow's output. If this workflow is later used as a sub-workflow, the parent receives `input.data.optimizedNotes` in its callback envelope.
 
 ---
 
@@ -370,10 +364,10 @@ Let's trace the state flow:
 start
   → showNotes        saves raw notes, moves to waiting_for_response
   → [PAUSE]          workflow waits — user reads and optionally edits
-  → userResponse     user clicks "Optimize Notes", payload = form content
+  → userResponse     user clicks "Optimize Notes", input.data = form content
   → optimizeNotes    calls LLM with structured output schema, saves result
   → [PAUSE]          workflow waits — user reviews AI output
-  → confirm          user clicks "Confirm", payload = confirmed content
+  → confirm          user clicks "Confirm", input.data = confirmed content
   → end              workflow completes, output = confirmed notes
 ```
 
@@ -386,4 +380,4 @@ Each `wait: true` transition is a checkpoint. The workflow can pause here for se
 - **[Sub-Workflows](../build/patterns/sub-workflows.md)** — Use this workflow as a step inside a larger workflow
 - **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — Add a guard to route differently if the LLM output confidence is low
 - **[Error Handling](../build/patterns/error-handling.md)** — Add retry logic to the `optimizeNotes` transition in case the LLM call fails
-- **[Registry example](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow)** — The complete source for this workflow
+- **[Registry example](https://loopstack.ai/registry/loopstack-hitl-examples#meeting-notes)** — The complete source for this workflow

@@ -12,7 +12,7 @@ export class LocalFileExplorerModule {
   static forFeature(config?: { enabled?: boolean; environments?: string[] }): DynamicModule {
     return {
       module: LocalFileExplorerModule,
-      providers: [registerFeature('fileExplorer', config)],
+      providers: [registerFeature('localFileExplorer', config)],
     };
   }
 }

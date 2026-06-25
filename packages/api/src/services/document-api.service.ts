@@ -42,6 +42,7 @@ export class DocumentApiService {
       where: {
         ...transformedFilter,
         createdBy: user,
+        internal: false,
       },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
@@ -72,6 +73,7 @@ export class DocumentApiService {
       where: {
         id,
         createdBy: user,
+        internal: false,
       },
     });
 

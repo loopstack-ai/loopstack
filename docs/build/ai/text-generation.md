@@ -12,14 +12,17 @@ Generate text from any configured LLM provider using `LlmGenerateTextTool`. Pass
 ```typescript
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
 
 @Module({
-  imports: [ClaudeModule],
+  imports: [LlmProviderModule, ClaudeModule],
   providers: [PromptWorkflow],
   exports: [PromptWorkflow],
 })
 export class PromptModule {}
 ```
+
+`LlmProviderModule` registers the global provider registry that adapter tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool`) and provider implementations (`ClaudeLlmProvider`) depend on. Without it, NestJS throws `UnknownDependenciesException` for `LlmProviderRegistry` at boot. See [LLM Providers](./llm-providers.md) for details and module-level defaults.
 
 ## Example Workflow
 
@@ -27,42 +30,29 @@ export class PromptModule {}
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 
-interface PromptState {
-  llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
-}
+const PromptSchema = z.object({
+  subject: z.string().default('coffee'),
+});
+type PromptArgs = z.infer<typeof PromptSchema>;
 
 @Workflow({
-  schema: z.object({
-    subject: z.string().default('coffee'),
-  }),
+  schema: PromptSchema,
 })
-export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptState> {
+export class PromptWorkflow extends BaseWorkflow<PromptArgs> {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
-  @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
-    const args = ctx.args as { subject: string };
-    const result = await this.llmGenerateText.call(
+  @Transition({ to: 'end' })
+  async prompt(state: Record<string, unknown>, ctx: RunContext<PromptArgs>) {
+    await this.llmGenerateText.call(
       {
-        prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+        prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    return { llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
-  }
-
-  @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: PromptState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-    return {};
   }
 }
 ```
@@ -71,12 +61,12 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptStat
 
 A normalized result has two views of the assistant's reply:
 
-- `result.data!.message.text` — the plain-text projection (always populated). This is what you want in 95% of cases.
-- `result.data!.message.blocks` — the structured content blocks (`text`, `thinking`, `tool_call`, etc.). Use these when you need to inspect tool calls, thinking output, or render block-by-block.
+- `result.data.message.text` — the plain-text projection (always populated). This is what you want in 95% of cases.
+- `result.data.message.blocks` — the structured content blocks (`text`, `thinking`, `tool_call`, etc.). Use these when you need to inspect tool calls, thinking output, or render block-by-block.
 
 ```typescript
 const result = await this.llmGenerateText.call({ prompt: 'Write a haiku about coffee' });
-const text = result.data!.message.text;
+const text = result.data.message.text;
 ```
 
 Both views are derived from the same underlying response — `text` is the concatenation of all `text`-type blocks, with `thinking` and tool blocks filtered out.
@@ -103,13 +93,36 @@ await this.llmGenerateText.call(
 );
 ```
 
+## Persisting the Response
+
+The tool saves the assistant message as an `LlmMessageDocument` automatically — no manual `documentStore.save()` is required. Two config knobs control this:
+
+- `config: { save: false }` — opt out entirely. Use this when you want to inspect, transform, or persist the response yourself (see [llm-multi-provider-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#multi-provider) for a worked case).
+- `config: { meta: {...} }` — merge extra metadata into the auto-saved document. Free-form payload that downstream readers can pick up off `document.meta`.
+
+To run a "silent" turn the LLM remembers but the user doesn't see, opt out of auto-save and persist the result as `LlmContextDocument` (declared `internal: true`, so Studio never sees it):
+
+```typescript
+const result = await this.llmGenerateText.call(
+  { prompt: 'Summarize the previous turn in one sentence for internal reasoning.' },
+  { config: { provider: 'claude', save: false } },
+);
+
+await this.documentStore.save(LlmContextDocument, {
+  role: 'assistant',
+  text: result.data.message.text ?? '',
+});
+```
+
+Other documents (user inputs, seed system messages, structured outputs) stay manual — see [Chat Flows](./chat-flows.md) for the two halves side by side.
+
 ## Using Templates
 
 Render Handlebars templates for complex prompts (`this.render()` is available from `BaseWorkflow`):
 
 ```typescript
-const rendered = this.render(__dirname + '/templates/prompt.md', {
-  subject: args.subject,
+const rendered = this.render(join(__dirname, 'templates', 'prompt.md'), {
+  subject: ctx.args.subject,
 });
 
 const result = await this.llmGenerateText.call(
@@ -127,7 +140,7 @@ LLM responses stream to Studio automatically — no opt-in, no code changes. Whe
 1. Tool dispatches `llm.response.start` with a fresh `streamMessageId`.
 2. Provider emits `text_delta`, `thinking_delta`, and `tool_call` events as content arrives. Studio renders an in-flight message keyed by `streamMessageId`.
 3. Tool dispatches `llm.response.done` with the final normalized message; the result is returned to the workflow.
-4. The workflow persists the response via `documentStore.save(LlmMessageDocument, result.data.message, ...)`. The saved document inherits `streamMessageId` as its `id`, so Studio **replaces** the in-flight streamed message with the final document — same ID, same slot. No duplicate bubble.
+4. The tool persists an `LlmMessageDocument` for the assistant turn automatically. The saved document inherits `streamMessageId` as its `id`, so Studio **replaces** the in-flight streamed message with the final document — same ID, same slot. No duplicate bubble. Pass `config: { save: false }` if you want to handle persistence yourself.
 
 This is why you don't need to do anything special to "finalize" the stream: the document save naturally takes over from the stream because they share the same `id`.
 
@@ -143,4 +156,4 @@ If you're implementing a custom `LlmProviderInterface`, honor the `onStream` cal
 
 ## Registry References
 
-- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-prompt-example-workflow) — Single-turn prompt with subject parameter and Handlebars template
+- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#prompt) — Single-turn prompt with subject parameter and Handlebars template

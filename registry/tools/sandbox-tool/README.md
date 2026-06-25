@@ -44,7 +44,7 @@ Inject the tool classes via the constructor, then call them in your transitions:
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SandboxCommand, SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 
@@ -52,12 +52,15 @@ interface SandboxState {
   containerId?: string;
 }
 
+const MySandboxArgsSchema = z.object({
+  outputDir: z.string().default(process.cwd() + '/out'),
+});
+type MySandboxArgs = z.infer<typeof MySandboxArgsSchema>;
+
 @Workflow({
-  schema: z.object({
-    outputDir: z.string().default(process.cwd() + '/out'),
-  }),
+  schema: MySandboxArgsSchema,
 })
-export class MySandboxWorkflow extends BaseWorkflow<{ outputDir: string }, SandboxState> {
+export class MySandboxWorkflow extends BaseWorkflow<MySandboxArgs> {
   constructor(
     private readonly sandboxInit: SandboxInit,
     private readonly sandboxCommand: SandboxCommand,
@@ -67,20 +70,19 @@ export class MySandboxWorkflow extends BaseWorkflow<{ outputDir: string }, Sandb
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async createSandbox(state: SandboxState, ctx: RunContext): Promise<SandboxState> {
-    const args = ctx.args as { outputDir: string };
-    const result: ToolResult<{ containerId: string; dockerId: string }> = await this.sandboxInit.call({
+  async createSandbox(state: SandboxState, ctx: RunContext<MySandboxArgs>) {
+    const result = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
       containerName: 'my-node-sandbox',
-      projectOutPath: args.outputDir,
+      projectOutPath: ctx.args.outputDir,
       rootPath: 'workspace',
     });
-    return { ...state, containerId: result.data!.containerId };
+    this.assignState({ containerId: result.data.containerId });
   }
 
   @Transition({ from: 'sandbox_ready', to: 'code_executed' })
-  async runCode(state: SandboxState): Promise<SandboxState> {
+  async runCode(state: SandboxState) {
     await this.sandboxCommand.call({
       containerId: state.containerId!,
       executable: 'node',
@@ -88,16 +90,14 @@ export class MySandboxWorkflow extends BaseWorkflow<{ outputDir: string }, Sandb
       workingDirectory: '/workspace',
       timeout: 30000,
     });
-    return state;
   }
 
   @Transition({ from: 'code_executed', to: 'end' })
-  async cleanup(state: SandboxState): Promise<unknown> {
+  async cleanup(state: SandboxState) {
     await this.sandboxDestroy.call({
       containerId: state.containerId!,
       removeContainer: true,
     });
-    return {};
   }
 }
 ```

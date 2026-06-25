@@ -21,11 +21,15 @@ export class MyWorkflow extends BaseWorkflow {
 ## Usage
 
 ```typescript
-const rendered = this.render(__dirname + '/templates/prompt.md', {
+import { join } from 'node:path';
+
+const rendered = this.render(join(__dirname, 'templates', 'prompt.md'), {
   subject: args.subject,
   items: state.items,
 });
 ```
+
+`this.render()` expects an absolute path. Build it with `path.join(__dirname, ...)` so templates resolve relative to the workflow's compiled `.js` file at runtime (where the `templates/` folder is copied during build).
 
 Template file (`templates/prompt.md`):
 
@@ -43,16 +47,15 @@ Write a haiku about {{subject}}.
 Pass any data as the second argument to `this.render()`:
 
 ```typescript
-// Workflow args (from ctx parameter)
-const args = ctx.args as { subject: string };
-this.render(templatePath, { subject: args.subject });
+// Workflow args (from ctx parameter — typed via RunContext<{ subject: string }>)
+this.render(templatePath, { subject: ctx.args.subject });
 
 // Workflow state (from state parameter)
 this.render(templatePath, { items: state.items, count: state.counter });
 
 // Mixed data
 this.render(templatePath, {
-  prompt: args.prompt,
+  prompt: ctx.args.prompt,
   history: state.conversationHistory,
   timestamp: new Date().toISOString(),
 });
@@ -131,5 +134,5 @@ ui:
 
 ## Registry References
 
-- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-prompt-example-workflow) — Uses `this.render()` for Handlebars prompt templates
-- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow) — Uses templates for structured note rendering
+- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#prompt) — Uses `this.render()` for Handlebars prompt templates
+- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#meeting-notes) — Uses templates for structured note rendering

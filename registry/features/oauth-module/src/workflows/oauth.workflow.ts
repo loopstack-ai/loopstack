@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import type { RunContext } from '@loopstack/common';
-import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents/index.js';
-import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
+import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
 
 interface OAuthArgs {
   provider: string;
@@ -28,7 +28,7 @@ interface OAuthState {
     })
     .strict(),
 })
-export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
+export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
   constructor(
     private readonly buildOAuthUrl: BuildOAuthUrlTool,
     private readonly exchangeOAuthToken: ExchangeOAuthTokenTool,
@@ -37,28 +37,27 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
   }
 
   @Transition({ to: 'awaiting_auth' })
-  async initiateOAuth(state: OAuthState, ctx: RunContext): Promise<OAuthState> {
-    const args = ctx.args as OAuthArgs;
-    const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
-      provider: args.provider,
-      scopes: args.scopes,
+  async initiateOAuth(state: OAuthState, ctx: RunContext<OAuthArgs>) {
+    const result = await this.buildOAuthUrl.call({
+      provider: ctx.args.provider,
+      scopes: ctx.args.scopes,
     });
 
-    const oauthState = result.data!.state;
-    const authUrl = result.data!.authUrl;
+    const oauthState = result.data.state;
+    const authUrl = result.data.authUrl;
 
     await this.documentStore.save(
       OAuthPromptDocument,
       {
-        provider: args.provider,
+        provider: ctx.args.provider,
         authUrl,
         state: oauthState,
         status: 'pending' as const,
       },
-      { id: 'oauthPrompt' },
+      { key: 'oauthPrompt' },
     );
 
-    return { ...state, provider: args.provider, scopes: args.scopes, oauthState, authUrl };
+    this.assignState({ provider: ctx.args.provider, scopes: ctx.args.scopes, oauthState, authUrl });
   }
 
   @Transition({
@@ -67,14 +66,11 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
     wait: true,
     schema: z.object({ code: z.string(), state: z.string() }),
   })
-  async exchangeToken(
-    state: OAuthState,
-    payload: { code: string; state: string },
-  ): Promise<{ authenticated: boolean }> {
+  async exchangeToken(state: OAuthState, input: TransitionInput<{ code: string; state: string }>) {
     await this.exchangeOAuthToken.call({
       provider: state.provider,
-      code: payload.code,
-      state: payload.state,
+      code: input.data.code,
+      state: input.data.state,
       expectedState: state.oauthState!,
     });
 
@@ -87,9 +83,9 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
         status: 'success' as const,
         message: 'Successfully connected.',
       },
-      { id: 'oauthPrompt' },
+      { key: 'oauthPrompt' },
     );
 
-    return { authenticated: true };
+    this.setResult({ authenticated: true } as unknown as Record<string, unknown>);
   }
 }

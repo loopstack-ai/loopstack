@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -33,7 +33,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GmailSendMessageArgs, ctx: RunContext): Promise<ToolResult<GmailSendMessageResult>> {
+  protected async handle(args: GmailSendMessageArgs, ctx: RunContext): Promise<ToolEnvelope<GmailSendMessageResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -42,6 +42,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -68,6 +69,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -79,6 +81,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'api_error',
           message: `Gmail API error: ${response.statusText}`,
         },
+        error: `Gmail API error: ${response.statusText}`,
       };
     }
 

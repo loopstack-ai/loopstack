@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import {
   BaseWorkflow,
   Guard,
@@ -9,8 +9,9 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
+  LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
@@ -51,7 +52,6 @@ interface ChatAgentState {
   context?: string;
   taskMode?: boolean;
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
   finishResult?: unknown;
 }
@@ -60,10 +60,10 @@ interface ChatAgentState {
   name: 'chat_agent',
   title: 'Chat Agent',
   description: 'An interactive LLM agent with user chat and tool calling.',
-  widget: import.meta.dirname + '/chat-agent.ui.yaml',
+  widget: './chat-agent.ui.yaml',
   schema: ChatAgentArgsSchema,
 })
-export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentState> {
+export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
@@ -75,23 +75,18 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: ChatAgentState, ctx: RunContext): Promise<ChatAgentState> {
-    const args = ctx.args as ChatAgentArgs;
-    if (args.context) {
-      await this.documentStore.save(
-        LlmMessageDocument,
-        { role: 'user', text: args.context },
-        { meta: { hidden: true } },
-      );
+  async setup(state: ChatAgentState, ctx: RunContext<ChatAgentArgs>) {
+    if (ctx.args.context) {
+      await this.documentStore.save(LlmContextDocument, { role: 'user', text: ctx.args.context });
     }
 
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: args.userMessage });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.userMessage });
 
-    return { ...state, ...args };
+    this.assignState({ ...ctx.args });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
-  async llmTurn(state: ChatAgentState): Promise<ChatAgentState> {
+  async llmTurn(state: ChatAgentState) {
     const tools = state.taskMode ? [...state.tools, 'agent_finish'] : state.tools;
 
     const result = await this.llmGenerateText.call(
@@ -105,17 +100,12 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
       },
     );
 
-    return { ...state, llmResult: result.data, llmMeta: result.metadata };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10, timeout: 120_000 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: ChatAgentState): Promise<ChatAgentState> {
-    // Save assistant message immediately (before tools run)
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-
+  async executeToolCalls(state: ChatAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
@@ -124,68 +114,45 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
     const delegateResult = result.data;
     const finishResult = this.extractFinishResult(delegateResult);
 
-    return { ...state, delegateResult, finishResult };
+    this.assignState({ delegateResult, finishResult });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
-  async toolResultReceived(state: ChatAgentState, payload: unknown): Promise<ChatAgentState> {
+  async toolResultReceived(state: ChatAgentState, payload: unknown) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: payload,
     });
 
-    const delegateResult = result.data as LlmDelegateResult;
+    const delegateResult = result.data;
     const finishResult = this.extractFinishResult(delegateResult);
 
-    return { ...state, delegateResult, finishResult };
+    this.assignState({ delegateResult, finishResult });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'end', priority: 20 })
   @Guard('isFinished')
-  async finished(state: ChatAgentState): Promise<unknown> {
-    return Promise.resolve(state.finishResult);
+  finished(state: ChatAgentState) {
+    this.setResult(state.finishResult as unknown as Record<string, unknown>);
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })
   @Guard('allToolsComplete')
-  async toolsComplete(state: ChatAgentState): Promise<ChatAgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
-
-    return state;
-  }
+  toolsComplete(_state: ChatAgentState) {}
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: ChatAgentState, ctx: RunContext): Promise<ChatAgentState> {
+  async cancelPendingTools(state: ChatAgentState, ctx: RunContext) {
     if (ctx.workflowId) {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }
-    return state;
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond(state: ChatAgentState): Promise<ChatAgentState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: {
-        response: state.llmResult!.response,
-        provider: state.llmMeta!.provider,
-      },
-    });
-
-    return state;
-  }
+  respond(_state: ChatAgentState) {}
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: ChatAgentState, payload: string): Promise<ChatAgentState> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
-    return state;
+  async userMessage(state: ChatAgentState, input: TransitionInput<string>) {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
   }
 
   private hasToolCalls(state: ChatAgentState): boolean {

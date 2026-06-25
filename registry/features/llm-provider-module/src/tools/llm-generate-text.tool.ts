@@ -1,11 +1,12 @@
 import { Inject } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import type { ToolRegistry } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
 import type { LlmContext } from '../contracts/index.js';
+import { LlmMessageDocument } from '../documents/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
@@ -37,6 +38,8 @@ export const LlmGenerateTextConfigSchema = z.object({
   messagesSearchTag: z.string().optional(),
   providerConfig: z.record(z.string(), z.unknown()).optional(),
   tools: z.array(z.string()).optional(),
+  save: z.boolean().optional(),
+  meta: z.record(z.string(), z.unknown()).optional(),
 });
 
 type LlmGenerateTextArgs = z.infer<typeof LlmGenerateTextArgsSchema>;
@@ -69,7 +72,7 @@ export class LlmGenerateTextTool extends BaseTool<
     args: LlmGenerateTextArgs,
     ctx: RunContext,
     options?: ToolCallOptions<LlmGenerateTextConfig>,
-  ): Promise<ToolResult<LlmGenerateTextResult, LlmResultMeta>> {
+  ): Promise<ToolEnvelope<LlmGenerateTextResult, LlmResultMeta>> {
     const config = options?.config;
     const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
 
@@ -119,6 +122,12 @@ export class LlmGenerateTextTool extends BaseTool<
     if (streamMessageId) {
       result.message.id = streamMessageId;
       this.dispatchStreamEvent(ctx, { type: 'done', messageId: streamMessageId, message: result.message });
+    }
+
+    if (config?.save !== false) {
+      await this.documentStore.save(LlmMessageDocument, result.message, {
+        meta: { response: result.response, provider: provider.providerId, ...(config?.meta ?? {}) },
+      });
     }
 
     return {

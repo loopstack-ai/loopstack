@@ -9,7 +9,7 @@ export const ErrorDocumentSchema = z
 
 @Document({
   schema: ErrorDocumentSchema,
-  widget: import.meta.dirname + '/error-document.yaml',
+  widget: './error-document.yaml',
   tags: ['error'],
 })
 export class ErrorDocument {

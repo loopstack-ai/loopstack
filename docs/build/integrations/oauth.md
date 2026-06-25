@@ -62,8 +62,8 @@ export class MyModule {}
 The simplest approach: launch the built-in `OAuthWorkflow` when authentication is needed.
 
 ```typescript
-import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { MarkdownDocument } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -72,8 +72,10 @@ interface CalendarState {
   requiresAuthentication?: boolean;
 }
 
-@Workflow({ widget: __dirname + '/calendar.ui.yaml' })
-export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, CalendarState> {
+type CalendarArgs = { calendarId: string };
+
+@Workflow({ widget: './calendar.ui.yaml' })
+export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   constructor(
     private readonly calendarFetchEvents: CalendarFetchEventsTool,
     private readonly oAuth: OAuthWorkflow,
@@ -82,27 +84,24 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   }
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarState, ctx: RunContext): Promise<CalendarState> {
-    const args = ctx.args as { calendarId: string };
+  async fetchEvents(state: CalendarState, ctx: RunContext<CalendarArgs>) {
     const result = await this.calendarFetchEvents.call({
-      calendarId: args.calendarId,
+      calendarId: ctx.args.calendarId,
     });
-    return {
-      ...state,
-      requiresAuthentication: result.data!.error === 'unauthorized',
-      events: result.data!.events,
-    };
+    this.assignState({
+      requiresAuthentication: result.data.error === 'unauthorized',
+      events: result.data.events,
+    });
   }
 
   // If unauthorized -> launch OAuth sub-workflow
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(state: CalendarState): Promise<CalendarState> {
+  async authRequired(state: CalendarState) {
     await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
-    return state;
   }
 
   needsAuth(state: CalendarState): boolean {
@@ -110,18 +109,15 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   }
 
   // After auth -> retry from start
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true, schema: CallbackSchema })
-  async authCompleted(state: CalendarState, _payload: { workflowId: string }): Promise<CalendarState> {
-    return state;
-  }
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
+  authCompleted(state: CalendarState, _input: TransitionInput) {}
 
   // Success -> display results
   @Transition({ from: 'calendar_fetched', to: 'end' })
-  async displayResults(state: CalendarState): Promise<unknown> {
+  async displayResults(state: CalendarState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/summary.md', { events: state.events }),
+      markdown: this.render(join(__dirname, 'templates', 'summary.md'), { events: state.events }),
     });
-    return {};
   }
 }
 ```
@@ -130,7 +126,7 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -144,7 +140,7 @@ export class CalendarFetchEventsTool extends BaseTool {
     super();
   }
 
-  protected async handle(args: { calendarId: string }, ctx: RunContext): Promise<ToolResult> {
+  protected async handle(args: { calendarId: string }, ctx: RunContext): Promise<ToolEnvelope> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -193,5 +189,5 @@ The token store also reads `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` — 
 
 ## Registry References
 
-- [google-oauth-example](https://loopstack.ai/registry/loopstack-google-oauth-example) — Google Calendar fetch with OAuth sub-workflow, custom calendar tool, and Google Workspace agent with tool calling
-- [github-oauth-example](https://loopstack.ai/registry/loopstack-github-oauth-example) — GitHub OAuth integration with repos overview and GitHub agent with 25+ tools
+- [google-oauth-example](https://loopstack.ai/registry/loopstack-oauth-examples) — Google Calendar fetch with OAuth sub-workflow, custom calendar tool, and Google Workspace agent with tool calling
+- [github-oauth-example](https://loopstack.ai/registry/loopstack-oauth-examples) — GitHub OAuth integration with repos overview and GitHub agent with 25+ tools

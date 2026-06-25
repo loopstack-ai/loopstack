@@ -142,7 +142,26 @@ actions:
     label: 'Reject'
 ```
 
-## Meta Properties
+## Document-Type Options
+
+### `internal` — Frame­work-internal documents
+
+Declare `internal: true` directly on the `@Document` decorator to mark every instance of this type as framework plumbing. Internal documents are persisted server-side and still readable by code that queries the document store (e.g. LLM providers building conversation history), but they're excluded from API responses and live updates — Studio never sees them.
+
+```typescript
+@Document({
+  schema: LlmContextSchema,
+  internal: true,
+  tags: ['message'],
+})
+export class LlmContextDocument {
+  /* ... */
+}
+```
+
+The built-in `LlmContextDocument` uses exactly this combination so LLM context messages reach the model but never render in the chat UI.
+
+### Meta Properties
 
 Loopstack splits document metadata into two kinds: **static meta** (declared once on `@Document({ meta })` and applied to every instance) and **dynamic meta** (passed per-call via `documentStore.save(…, { meta })` and persisted on that specific document row).
 
@@ -153,7 +172,7 @@ Declared on the decorator. Applies to every instance of this document type.
 ```typescript
 @Document({
   schema: ReportSchema,
-  meta: { hidden: false, mimeType: 'text/markdown', level: 'info' },
+  meta: { mimeType: 'text/markdown', level: 'info' },
 })
 export class ReportDocument {
   /* ... */
@@ -162,7 +181,6 @@ export class ReportDocument {
 
 | Property         | Type                                        | Description                                                                     |
 | ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
-| `hidden`         | `boolean`                                   | Hide every instance of this document type from the Studio UI by default.        |
 | `mimeType`       | `string`                                    | MIME type hint used by Studio for rendering/downloads (see below for the list). |
 | `level`          | `'debug' \| 'info' \| 'warning' \| 'error'` | Severity tag. Studio may style documents based on this.                         |
 | `enableAtPlaces` | `string[]`                                  | Only render this document type when the workflow is at one of these places.     |
@@ -173,17 +191,15 @@ export class ReportDocument {
 Set per call. Persisted on the specific document row.
 
 ```typescript
-await this.documentStore.save(MyDocument, content, { id: 'doc-1', meta: { hidden: true, invalidate: false } });
+await this.documentStore.save(MyDocument, content, { key: 'doc-1', meta: { invalidate: false } });
 ```
 
-| Property              | Type      | Description                                                                                                                                             |
-| --------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `invalidate`          | `boolean` | **Opt-out of replacement.** Default behavior (omitted/`true`) invalidates the previous version when reusing the same `id`. Set to `false` to keep both. |
-| `data`                | `any`     | Arbitrary per-instance metadata bag for user-defined data. Not used by the framework.                                                                   |
-| `streaming`           | `boolean` | _Frontend-managed._ Set by Studio during LLM streaming to indicate this document is still being filled in. Not typically set by backend code.           |
-| `streamReadyForFinal` | `boolean` | _Frontend-managed._ Companion to `streaming` — marks the stream complete and the final version ready to persist. Not typically set by backend code.     |
-
-> `hidden` also appears in `DocumentSaveOptions.meta` and overrides the static `hidden` value for this single row — handy when most rows should be visible but a specific one should be tucked away.
+| Property              | Type      | Description                                                                                                                                              |
+| --------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `invalidate`          | `boolean` | **Opt-out of replacement.** Default behavior (omitted/`true`) invalidates the previous version when reusing the same `key`. Set to `false` to keep both. |
+| `data`                | `any`     | Arbitrary per-instance metadata bag for user-defined data. Not used by the framework.                                                                    |
+| `streaming`           | `boolean` | _Frontend-managed._ Set by Studio during LLM streaming to indicate this document is still being filled in. Not typically set by backend code.            |
+| `streamReadyForFinal` | `boolean` | _Frontend-managed._ Companion to `streaming` — marks the stream complete and the final version ready to persist. Not typically set by backend code.      |
 
 ### Supported MIME Types
 

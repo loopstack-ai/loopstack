@@ -20,7 +20,10 @@ export function createApi(http: AxiosInstance) {
     dashboard: createDashboardApi(http),
     documents: createDocumentsApi(http),
     environments: createEnvironmentsApi(http),
-    files: createFilesApi(http),
+    files: {
+      local: createFilesApi(http, 'local'),
+      remote: createFilesApi(http, 'remote'),
+    },
     git: createGitApi(http),
     processor: createProcessorApi(http),
     secrets: createSecretsApi(http),

@@ -2,20 +2,17 @@ import { Inject, type Type } from '@nestjs/common';
 import {
   BaseWorkflow,
   Guard,
-  QueueResult,
-  RunOptions,
   Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import {
   type FanOutArgs,
   FanOutArgsSchema,
   type FanOutInput,
-  type FanOutItemInput,
   type FanOutMode,
   type FanOutResult,
   type FanOutResultEntry,
@@ -61,7 +58,7 @@ interface FanOutState {
   description: 'Launches multiple sub-workflows in parallel and aggregates their results.',
   schema: FanOutArgsSchema,
 })
-export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
+export class FanOutWorkflow extends BaseWorkflow<FanOutArgs, FanOutInput> {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     private readonly registry: WorkflowRegistryService,
@@ -69,30 +66,13 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
     super();
   }
 
-  /**
-   * Override `run()` to convert `items` (array OR record) into the persisted ordered-entries
-   * shape and reject duplicate keys before queuing.
-   */
-  async run(args?: FanOutInput, options?: RunOptions): Promise<QueueResult> {
-    if (!args) {
-      throw new Error('FanOutWorkflow requires { items } — see the FanOutInput type.');
-    }
-    const { entries, itemsWereArray } = this.normalizeItems(args.items);
-    const normalized: FanOutArgs = {
-      entries,
-      itemsWereArray,
-      mode: args.mode ?? 'all',
-    };
-    return super.run(normalized as unknown as FanOutInput, options);
-  }
-
   @Transition({ to: 'awaiting' })
-  async start(state: FanOutState, ctx: RunContext): Promise<FanOutState> {
-    const args = ctx.args as FanOutArgs;
-    const itemKeys = args.entries.map(([key]) => key);
+  async start(state: FanOutState, ctx: RunContext<FanOutArgs>) {
+    const { entries, itemsWereArray, mode } = ctx.args;
+    const itemKeys = entries.map(([key]) => key);
 
     // Resolve all workflow classes up front so a bad name fails before any queueing.
-    const resolved = args.entries.map(([key, item]) => ({
+    const resolved = entries.map(([key, item]) => ({
       key,
       item,
       workflowClass: this.resolveClass(item.workflow),
@@ -106,29 +86,32 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
       });
     }
 
-    return {
+    this.assignState({
       pendingCount: itemKeys.length,
       results: {},
       itemKeys,
-      itemsWereArray: args.itemsWereArray,
-      mode: args.mode,
-    };
+      itemsWereArray,
+      mode,
+    });
   }
 
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
-  async onChildComplete(state: FanOutState, payload: Record<string, unknown>, ctx: RunContext): Promise<FanOutState> {
-    const subscriberMetadata = payload._subscriberMetadata as { key?: string } | undefined;
-    const key = subscriberMetadata?.key;
+  async onChildComplete(
+    state: FanOutState,
+    input: TransitionInput<unknown, { key?: string }>,
+    ctx: RunContext<FanOutArgs>,
+  ) {
+    const key = input.meta?.key;
     if (!key) {
-      throw new Error('FanOut child completion missing correlation key in _subscriberMetadata.');
+      throw new Error('FanOut child completion missing correlation key in TransitionInput.meta.');
     }
 
-    const status = (payload.status as FanOutResultEntry['status']) ?? 'failed';
-    const isError = status === 'failed' || status === 'canceled';
+    const status = input.status as FanOutResultEntry['status'];
+    const isError = input.hasError;
 
     const entry: FanOutResultEntry = isError
       ? { status, error: status === 'canceled' ? 'Sibling failure canceled this child.' : `Child workflow ${status}.` }
-      : { status, data: payload.data };
+      : { status, data: input.data };
 
     const newResults = { ...state.results, [key]: entry };
     const newPending = state.pendingCount - 1;
@@ -137,13 +120,13 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }
 
-    return { ...state, pendingCount: newPending, results: newResults };
+    this.assignState({ pendingCount: newPending, results: newResults });
   }
 
   @Transition({ from: 'awaiting', to: 'end' })
   @Guard('allComplete')
-  async done(state: FanOutState): Promise<FanOutResult> {
-    return this.buildResult(state);
+  done(state: FanOutState) {
+    this.setResult(this.buildResult(state) as unknown as Record<string, unknown>);
   }
 
   private allComplete(state: FanOutState): boolean {
@@ -180,23 +163,5 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutInput, FanOutState> {
   private resolveClass(workflowName: string): Type {
     const { instance } = this.registry.resolve(workflowName);
     return instance.constructor as Type;
-  }
-
-  private normalizeItems(items: FanOutInput['items']): { entries: FanOutArgs['entries']; itemsWereArray: boolean } {
-    const itemsWereArray = Array.isArray(items);
-    const rawEntries: Array<[string, FanOutItemInput]> = itemsWereArray
-      ? items.map((item, index) => [item.label ?? String(index), item])
-      : Object.entries(items);
-
-    const seen = new Set<string>();
-    const entries: FanOutArgs['entries'] = rawEntries.map(([key, item]) => {
-      if (seen.has(key)) {
-        throw new Error(`FanOut item key "${key}" is duplicated. Keys must be unique.`);
-      }
-      seen.add(key);
-      return [key, item];
-    });
-
-    return { entries, itemsWereArray };
   }
 }

@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ToolExecutionContext, ToolResult } from '@loopstack/common';
+import { ToolEnvelope, ToolExecutionContext } from '@loopstack/common';
 import { ProcessingTimeQuotaCalculator } from '../processing-time-quota.calculator.js';
 
 describe('ProcessingTimeQuotaCalculator', () => {
   let calculator: ProcessingTimeQuotaCalculator;
-  const result: ToolResult = { data: {} };
+  const result: ToolEnvelope = { data: {} };
 
   beforeEach(() => {
     calculator = new ProcessingTimeQuotaCalculator();

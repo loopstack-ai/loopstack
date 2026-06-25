@@ -1,0 +1,25 @@
+widgets:
+  - widget: button
+    showWhen:
+      - error_custom
+    options:
+      transition: handleCustomError
+      label: Recover
+  - widget: button
+    showWhen:
+      - error_hybrid
+    options:
+      transition: handleHybridError
+      label: Recover
+  - widget: button
+    showWhen:
+      - error_retry_target
+    options:
+      transition: handleRetryTargetError
+      label: Recover
+  - widget: button
+    showWhen:
+      - sub_failed
+    options:
+      transition: handleSubFailed
+      label: Recover

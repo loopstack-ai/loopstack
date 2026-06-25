@@ -1,4 +1,4 @@
-import { ToolExecutionContext, ToolResult } from '@loopstack/common';
+import { ToolEnvelope, ToolExecutionContext } from '@loopstack/common';
 import { QuotaUsage } from '../interfaces/quota.interface.js';
 import { ToolQuotaCalculator } from '../interfaces/tool-quota-calculator.interface.js';
 import { getModelPricing } from './model-pricing.js';
@@ -6,7 +6,7 @@ import { getModelPricing } from './model-pricing.js';
 export class AiGenerateTextQuotaCalculator implements ToolQuotaCalculator {
   quotaType = 'llm-cost';
 
-  calculateQuotaUsage(_context: ToolExecutionContext, result: ToolResult): QuotaUsage | null {
+  calculateQuotaUsage(_context: ToolExecutionContext, result: ToolEnvelope): QuotaUsage | null {
     const metadata = result.metadata as
       | {
           provider?: string;

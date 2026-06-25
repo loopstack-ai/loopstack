@@ -88,7 +88,7 @@ router.get('/status', async (_req: Request, res) => {
   try {
     const result = await gitExec('status --porcelain=v1 -b');
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git status failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git status failed' });
       return;
     }
 
@@ -155,7 +155,7 @@ router.get('/log', async (req: Request, res) => {
         res.json({ commits: [] });
         return;
       }
-      res.status(500).json({ error: result.stderr || 'git log failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git log failed' });
       return;
     }
 
@@ -186,7 +186,7 @@ router.get('/diff', async (req: Request, res) => {
     const result = await gitExec(args);
 
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git diff failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git diff failed' });
       return;
     }
 
@@ -214,7 +214,7 @@ router.get('/branches', async (_req: Request, res) => {
   try {
     const result = await gitExec("branch --format='%(refname:short)||%(HEAD)'");
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git branch failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git branch failed' });
       return;
     }
 
@@ -287,7 +287,7 @@ router.post('/add', async (req: Request, res) => {
     const result = await gitExec(`add ${safeFiles}`);
 
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git add failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git add failed' });
       return;
     }
 
@@ -318,7 +318,7 @@ router.post('/commit', async (req: Request, res) => {
     try {
       const result = await gitExec(`commit -F "${tmpFile}"`);
       if (result.exitCode !== 0) {
-        res.status(500).json({ error: result.stderr || 'git commit failed' });
+        res.status(500).json({ error: result.stderr || result.stdout || 'git commit failed' });
         return;
       }
 
@@ -373,7 +373,9 @@ router.post('/push', async (req: Request, res) => {
 
     const result = await gitExec(args, 60_000, token);
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git push failed', output: result.stdout + result.stderr });
+      res
+        .status(500)
+        .json({ error: result.stderr || result.stdout || 'git push failed', output: result.stdout + result.stderr });
       return;
     }
 
@@ -404,7 +406,9 @@ router.post('/fetch', async (req: Request, res) => {
 
     const result = await gitExec(args, 60_000, token);
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git fetch failed', output: result.stdout + result.stderr });
+      res
+        .status(500)
+        .json({ error: result.stderr || result.stdout || 'git fetch failed', output: result.stdout + result.stderr });
       return;
     }
 
@@ -442,7 +446,9 @@ router.post('/pull', async (req: Request, res) => {
 
     const result = await gitExec(args, 60_000, token);
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git pull failed', output: result.stdout + result.stderr });
+      res
+        .status(500)
+        .json({ error: result.stderr || result.stdout || 'git pull failed', output: result.stdout + result.stderr });
       return;
     }
 
@@ -474,7 +480,7 @@ router.post('/checkout', async (req: Request, res) => {
     const result = await gitExec(`checkout ${flag}${branch}`);
 
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git checkout failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git checkout failed' });
       return;
     }
 
@@ -504,7 +510,7 @@ router.post('/branch', async (req: Request, res) => {
 
     const result = await gitExec(`branch ${name}`);
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git branch failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git branch failed' });
       return;
     }
 
@@ -540,7 +546,7 @@ router.post('/remote/configure', async (req: Request, res) => {
     }
 
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'Failed to configure remote' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'Failed to configure remote' });
       return;
     }
 
@@ -568,7 +574,7 @@ router.delete('/remote', async (req: Request, res) => {
 
     const result = await gitExec(`remote remove ${remoteName}`);
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'Failed to remove remote' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'Failed to remove remote' });
       return;
     }
 
@@ -620,7 +626,7 @@ router.get('/worktree/list', async (_req: Request, res) => {
   try {
     const result = await gitExec('worktree list --porcelain');
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git worktree list failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git worktree list failed' });
       return;
     }
 
@@ -731,9 +737,10 @@ router.post('/worktree/add', async (req: Request, res) => {
 
     const result = await gitExec(args);
     if (result.exitCode !== 0) {
-      res
-        .status(500)
-        .json({ error: result.stderr || 'git worktree add failed', output: result.stdout + result.stderr });
+      res.status(500).json({
+        error: result.stderr || result.stdout || 'git worktree add failed',
+        output: result.stdout + result.stderr,
+      });
       return;
     }
 
@@ -763,7 +770,7 @@ router.post('/worktree/remove', async (req: Request, res) => {
 
     const result = await gitExec(args);
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git worktree remove failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git worktree remove failed' });
       return;
     }
 
@@ -783,7 +790,7 @@ router.post('/worktree/prune', async (_req: Request, res) => {
   try {
     const result = await gitExec('worktree prune -v');
     if (result.exitCode !== 0) {
-      res.status(500).json({ error: result.stderr || 'git worktree prune failed' });
+      res.status(500).json({ error: result.stderr || result.stdout || 'git worktree prune failed' });
       return;
     }
 

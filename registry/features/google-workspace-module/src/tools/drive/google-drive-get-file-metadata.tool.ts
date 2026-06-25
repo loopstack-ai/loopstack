@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -48,7 +48,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
   protected async handle(
     args: GoogleDriveGetFileMetadataArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleDriveGetFileMetadataResult>> {
+  ): Promise<ToolEnvelope<GoogleDriveGetFileMetadataResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -57,6 +57,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -73,6 +74,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -84,6 +86,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${response.statusText}`,
         },
+        error: `Google Drive API error: ${response.statusText}`,
       };
     }
 

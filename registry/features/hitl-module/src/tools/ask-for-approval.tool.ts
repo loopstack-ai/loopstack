@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '../workflows/confirm-user/confirm-user.workflow.js';
 
@@ -30,7 +30,7 @@ export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, As
     args: AskForApprovalInput,
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<AskForApprovalResult>> {
+  ): Promise<ToolEnvelope<AskForApprovalResult>> {
     const result = await this.confirmUserWorkflow.run(
       { markdown: args.concept },
       { callback: options?.callback, show: 'inline', label: 'Waiting for approval...' },
@@ -42,7 +42,7 @@ export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, As
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult<AskForApprovalResult>> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope<AskForApprovalResult>> {
     const data = result as { data?: { confirmed: boolean; markdown?: string } };
     const approved = data.data?.confirmed ?? false;
     return { data: approved ? { concept: data.data?.markdown } : { denied: true } };

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -40,7 +40,7 @@ export class GoogleDriveUploadFileTool extends BaseTool<
   protected async handle(
     args: GoogleDriveUploadFileArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleDriveUploadFileResult>> {
+  ): Promise<ToolEnvelope<GoogleDriveUploadFileResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -49,6 +49,7 @@ export class GoogleDriveUploadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -87,6 +88,7 @@ export class GoogleDriveUploadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -98,6 +100,7 @@ export class GoogleDriveUploadFileTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${response.statusText}`,
         },
+        error: `Google Drive API error: ${response.statusText}`,
       };
     }
 

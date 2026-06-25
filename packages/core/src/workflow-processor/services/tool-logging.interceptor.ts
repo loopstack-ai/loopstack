@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { ToolExecutionContext, ToolInterceptor, ToolResult, UseToolInterceptor } from '@loopstack/common';
+import { ToolEnvelope, ToolExecutionContext, ToolInterceptor, UseToolInterceptor } from '@loopstack/common';
 
 /**
  * Built-in interceptor that logs tool execution with timing.
@@ -9,7 +9,7 @@ import { ToolExecutionContext, ToolInterceptor, ToolResult, UseToolInterceptor }
 export class ToolLoggingInterceptor implements ToolInterceptor {
   private readonly logger = new Logger('ToolExecution');
 
-  async intercept(context: ToolExecutionContext, next: () => Promise<ToolResult>): Promise<ToolResult> {
+  async intercept(context: ToolExecutionContext, next: () => Promise<ToolEnvelope>): Promise<ToolEnvelope> {
     const toolName = context.tool.constructor.name;
     const startTime = performance.now();
 

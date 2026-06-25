@@ -39,14 +39,17 @@ export class AppModule {}
 Inject `OAuthWorkflow` into your workflow and launch it as a sub-workflow when authentication is needed:
 
 ```typescript
-import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
+const CalendarSchema = z.object({ calendarId: z.string().default('primary') }).strict();
+type CalendarArgs = z.infer<typeof CalendarSchema>;
+
 @Workflow({
-  schema: z.object({ calendarId: z.string().default('primary') }).strict(),
+  schema: CalendarSchema,
 })
-export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, CalendarState> {
+export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   constructor(
     private readonly calendarFetchEvents: CalendarFetchEventsTool,
     private readonly oAuth: OAuthWorkflow,
@@ -55,41 +58,35 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   }
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarState, ctx: RunContext): Promise<CalendarState> {
-    const args = ctx.args as { calendarId: string };
-    const result = await this.calendarFetchEvents.call({ calendarId: args.calendarId });
-    return {
-      ...state,
-      requiresAuthentication: result.data!.error === 'unauthorized',
-      events: result.data!.events,
-    };
+  async fetchEvents(state: CalendarState, ctx: RunContext<CalendarArgs>) {
+    const result = await this.calendarFetchEvents.call({ calendarId: ctx.args.calendarId });
+    this.assignState({
+      requiresAuthentication: result.data.error === 'unauthorized',
+      events: result.data.events,
+    });
   }
 
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(state: CalendarState): Promise<CalendarState> {
+  async authRequired(state: CalendarState) {
     await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
-    return state;
   }
 
   needsAuth(state: CalendarState): boolean {
     return !!state.requiresAuthentication;
   }
 
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true, schema: CallbackSchema })
-  async authCompleted(state: CalendarState, _payload: { workflowId: string }): Promise<CalendarState> {
-    return state;
-  }
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
+  authCompleted(state: CalendarState, _input: TransitionInput) {}
 
   @Transition({ from: 'calendar_fetched', to: 'end' })
-  async displayResults(state: CalendarState): Promise<unknown> {
+  async displayResults(state: CalendarState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/summary.md', { events: state.events }),
+      markdown: this.render(join(__dirname, 'templates', 'summary.md'), { events: state.events }),
     });
-    return {};
   }
 }
 ```
@@ -152,7 +149,7 @@ Inject `OAuthTokenStore` to access stored tokens:
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -166,7 +163,7 @@ export class MyApiFetchTool extends BaseTool {
     super();
   }
 
-  protected async handle(args: { query: string }, ctx: RunContext): Promise<ToolResult> {
+  protected async handle(args: { query: string }, ctx: RunContext): Promise<ToolEnvelope> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'my-provider');
 
     if (!accessToken) {

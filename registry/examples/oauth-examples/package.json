@@ -1,0 +1,52 @@
+{
+  "name": "@loopstack/oauth-examples",
+  "displayName": "Loopstack OAuth Examples",
+  "description": "Workflow examples for OAuth-protected integrations in Loopstack — GitHub repos overview, GitHub agent, Google Calendar summary, Google Workspace agent.",
+  "keywords": [
+    "loopstack",
+    "example",
+    "oauth",
+    "github",
+    "google",
+    "workflow"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/claude-module": "*",
+    "@loopstack/common": "*",
+    "@loopstack/github-module": "*",
+    "@loopstack/google-workspace-module": "*",
+    "@loopstack/llm-provider-module": "*",
+    "@loopstack/oauth-module": "*",
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
+  }
+}

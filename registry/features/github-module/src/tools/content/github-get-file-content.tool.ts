@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -44,7 +44,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
   protected async handle(
     args: GitHubGetFileContentArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubGetFileContentResult>> {
+  ): Promise<ToolEnvelope<GitHubGetFileContentResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -53,6 +53,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -75,6 +76,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -86,6 +88,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

@@ -113,6 +113,10 @@ export interface GitWorktreeAddResponse {
 export class RemoteClient {
   private readonly logger = new Logger(RemoteClient.name);
 
+  async ping(connectionUrl: string): Promise<{ status: string; timestamp: string }> {
+    return this.doRequest<{ status: string; timestamp: string }>(connectionUrl, 'GET', '/health');
+  }
+
   async writeFile(connectionUrl: string, path: string, content: string): Promise<void> {
     await this.doRequest(connectionUrl, 'POST', '/files/write', { path, content });
   }

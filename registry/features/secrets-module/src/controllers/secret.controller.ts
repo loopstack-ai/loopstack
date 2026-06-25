@@ -11,7 +11,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { WorkspaceService } from '@loopstack/core';
+import { ClientMessageService, WorkspaceService } from '@loopstack/core';
 import { SecretService } from '../services/index.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
@@ -20,6 +20,7 @@ export class SecretController {
   constructor(
     private readonly secretService: SecretService,
     private readonly workspaceService: WorkspaceService,
+    private readonly clientMessages: ClientMessageService,
   ) {}
 
   private async verifyWorkspaceAccess(workspaceId: string, userId: string) {
@@ -49,6 +50,7 @@ export class SecretController {
   ) {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.create(workspaceId, body);
+    this.clientMessages.dispatchWorkspaceEvent('secret.upserted', workspaceId, user.userId);
     return { id: secret.id, key: secret.key };
   }
 
@@ -60,6 +62,7 @@ export class SecretController {
   ) {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.upsert(workspaceId, body);
+    this.clientMessages.dispatchWorkspaceEvent('secret.upserted', workspaceId, user.userId);
     return { id: secret.id, key: secret.key };
   }
 
@@ -72,6 +75,7 @@ export class SecretController {
   ) {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.update(id, workspaceId, body);
+    this.clientMessages.dispatchWorkspaceEvent('secret.upserted', workspaceId, user.userId);
     return { id: secret.id, key: secret.key };
   }
 
@@ -83,6 +87,7 @@ export class SecretController {
   ) {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     await this.secretService.delete(id, workspaceId);
+    this.clientMessages.dispatchWorkspaceEvent('secret.deleted', workspaceId, user.userId);
     return { success: true };
   }
 }

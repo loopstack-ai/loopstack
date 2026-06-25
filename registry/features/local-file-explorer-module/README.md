@@ -1,6 +1,6 @@
 ---
 title: Local File Explorer Module
-description: Loopstack registry feature exposing the local filesystem of a workspace as a REST API. LocalFileExplorerModule, LocalFileExplorerController endpoints for /files/tree and /files/read, FileApiService, FileSystemService, FileExplorerNodeDto, FileContentDto, path traversal protection, 10 MB file size limit, workflow YAML parsing.
+description: Loopstack registry feature exposing the local filesystem of a workspace as a REST API. LocalFileExplorerModule, LocalFileExplorerController endpoints for /local-files/tree and /local-files/read, FileApiService, FileSystemService, FileExplorerNodeDto, FileContentDto, path traversal protection, 10 MB file size limit, workflow YAML parsing.
 ---
 
 # @loopstack/local-file-explorer-module
@@ -40,8 +40,8 @@ Use `LocalFileExplorerModule.forFeature({ enabled: true, environments: ['local']
 Once the module is imported, the endpoints are live. From a client:
 
 ```
-GET /api/v1/workspaces/:workspaceId/files/tree
-GET /api/v1/workspaces/:workspaceId/files/read?path=src/index.ts
+GET /api/v1/workspaces/:workspaceId/local-files/tree
+GET /api/v1/workspaces/:workspaceId/local-files/read?path=src/index.ts
 ```
 
 Both require an authenticated user (via the standard `@CurrentUser()` mechanism) and resolve the workspace's `appName` to scope file access to that workspace's project directory.
@@ -56,7 +56,7 @@ HTTP request ──► LocalFileExplorerController
                       └─► FileApiService ──► FileSystemService ──► fs
 ```
 
-`LocalFileExplorerController` is mounted at `/api/v1/workspaces/:workspaceId/files`. Every request first resolves the workspace through `WorkspaceService` — this verifies the current user owns the workspace and yields its `appName`, which becomes the root for all file operations. `FileApiService` then delegates to `FileSystemService` for raw filesystem access.
+`LocalFileExplorerController` is mounted at `/api/v1/workspaces/:workspaceId/local-files`. Every request first resolves the workspace through `WorkspaceService` — this verifies the current user owns the workspace and yields its `appName`, which becomes the root for all file operations. `FileApiService` then delegates to `FileSystemService` for raw filesystem access.
 
 ### Security
 
@@ -81,10 +81,10 @@ When `read` returns a `.yaml` / `.yml` file whose content parses to an object co
 
 ## Endpoints
 
-| Method | Path                                                | Auth             | Returns                                                                |
-| ------ | --------------------------------------------------- | ---------------- | ---------------------------------------------------------------------- |
-| `GET`  | `/api/v1/workspaces/:workspaceId/files/tree`        | `@CurrentUser()` | `FileExplorerNodeDto[]` — recursive tree under the workspace's project |
-| `GET`  | `/api/v1/workspaces/:workspaceId/files/read?path=…` | `@CurrentUser()` | `FileContentDto` — file content (+ `workflowConfig` for workflow YAML) |
+| Method | Path                                                      | Auth             | Returns                                                                |
+| ------ | --------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------- |
+| `GET`  | `/api/v1/workspaces/:workspaceId/local-files/tree`        | `@CurrentUser()` | `FileExplorerNodeDto[]` — recursive tree under the workspace's project |
+| `GET`  | `/api/v1/workspaces/:workspaceId/local-files/read?path=…` | `@CurrentUser()` | `FileContentDto` — file content (+ `workflowConfig` for workflow YAML) |
 
 ### `FileExplorerNodeDto`
 

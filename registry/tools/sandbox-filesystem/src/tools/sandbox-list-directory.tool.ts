@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -38,10 +37,7 @@ export class SandboxListDirectory extends BaseTool<SandboxListDirectoryArgs, obj
     super();
   }
 
-  protected async handle(
-    args: SandboxListDirectoryArgs,
-    _ctx: RunContext,
-  ): Promise<ToolResult<SandboxListDirectoryResult>> {
+  protected async handle(args: SandboxListDirectoryArgs): Promise<ToolEnvelope<SandboxListDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 
     this.logger.debug(`Listing directory ${dirPath} in container ${containerId} (recursive: ${recursive})`);

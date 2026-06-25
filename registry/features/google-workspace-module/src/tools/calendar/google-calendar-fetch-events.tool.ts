@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -50,7 +50,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
   protected async handle(
     args: GoogleCalendarFetchEventsArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleCalendarFetchEventsResult>> {
+  ): Promise<ToolEnvelope<GoogleCalendarFetchEventsResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -59,6 +59,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -89,6 +90,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -100,6 +102,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'api_error',
           message: `Google Calendar API error: ${response.statusText}`,
         },
+        error: `Google Calendar API error: ${response.statusText}`,
       };
     }
 

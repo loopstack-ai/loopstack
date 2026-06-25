@@ -9,7 +9,7 @@ export class RemoteFileExplorerModule {
   static forFeature(config?: { enabled?: boolean; environments?: string[] }): DynamicModule {
     return {
       module: RemoteFileExplorerModule,
-      providers: [registerFeature('fileExplorer', config)],
+      providers: [registerFeature('remoteFileExplorer', config)],
     };
   }
 }

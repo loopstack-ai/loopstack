@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { CallbackSchema } from '@loopstack/common';
 
 export type FanOutMode = 'all' | 'allSettled';
 
@@ -17,20 +16,39 @@ export type FanOutItem = z.infer<typeof FanOutItemSchema>;
 /** Author-facing item input — same shape as the persisted item. */
 export type FanOutItemInput = FanOutItem;
 
-export interface FanOutInput {
-  items: FanOutItemInput[] | Record<string, FanOutItemInput>;
-  mode?: FanOutMode;
-}
-
-export const FanOutArgsSchema = z.object({
-  /** Ordered ([key, item]) entries — the wire form so insertion order is preserved end-to-end. */
-  entries: z.array(z.tuple([z.string(), FanOutItemSchema])),
-  /** True if the author passed an array (output is an array); false if they passed a record. */
-  itemsWereArray: z.boolean(),
-  mode: z.enum(['all', 'allSettled']).default('all'),
+const FanOutInputObject = z.object({
+  items: z.union([z.array(FanOutItemSchema), z.record(z.string(), FanOutItemSchema)]),
+  mode: z.enum(['all', 'allSettled']).optional(),
 });
 
-export type FanOutArgs = z.infer<typeof FanOutArgsSchema>;
+/**
+ * Validates the friendly `Input` shape and transforms it into the normalized `Args` shape
+ * (ordered `entries` tuples + `itemsWereArray` flag). Persisted shape is the post-transform form.
+ */
+export const FanOutArgsSchema = FanOutInputObject.transform((input) => {
+  const itemsWereArray = Array.isArray(input.items);
+  const rawEntries: Array<[string, FanOutItem]> = itemsWereArray
+    ? (input.items as FanOutItem[]).map((item, index) => [item.label ?? String(index), item])
+    : Object.entries(input.items as Record<string, FanOutItem>);
+
+  const seen = new Set<string>();
+  const entries: Array<[string, FanOutItem]> = rawEntries.map(([key, item]) => {
+    if (seen.has(key)) {
+      throw new Error(`FanOut item key "${key}" is duplicated. Keys must be unique.`);
+    }
+    seen.add(key);
+    return [key, item];
+  });
+
+  return {
+    entries,
+    itemsWereArray,
+    mode: (input.mode ?? 'all') as FanOutMode,
+  };
+});
+
+export type FanOutInput = z.input<typeof FanOutArgsSchema>;
+export type FanOutArgs = z.output<typeof FanOutArgsSchema>;
 
 export const FanOutResultEntrySchema = z.object({
   status: z.enum(['completed', 'failed', 'canceled']),
@@ -48,22 +66,19 @@ export interface FanOutResult {
 }
 
 /**
- * Use to type the parent's callback transition payload.
+ * Schema for the `data` field of the `TransitionInput` delivered to a parent's callback
+ * after `FanOutWorkflow` settles.
  *
  * ```ts
- * @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutCallbackSchema })
- * async onAllDone(state, payload: FanOutCallbackPayload) { ... }
+ * @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutResultSchema })
+ * async onAllDone(state, input: TransitionInput<FanOutResult>) { input.data.results }
  * ```
  */
-export const FanOutCallbackSchema = CallbackSchema.extend({
-  data: z.object({
-    results: z.union([
-      z.array(FanOutResultEntrySchema.extend({ key: z.string() })),
-      z.record(z.string(), FanOutResultEntrySchema),
-    ]),
-    hasErrors: z.boolean(),
-    errorCount: z.number(),
-  }),
+export const FanOutResultSchema = z.object({
+  results: z.union([
+    z.array(FanOutResultEntrySchema.extend({ key: z.string() })),
+    z.record(z.string(), FanOutResultEntrySchema),
+  ]),
+  hasErrors: z.boolean(),
+  errorCount: z.number(),
 });
-
-export type FanOutCallbackPayload = z.infer<typeof FanOutCallbackSchema>;

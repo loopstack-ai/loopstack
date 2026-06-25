@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import {
   BaseWorkflow,
   Guard,
@@ -9,14 +9,14 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
+  LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
   LlmUpdateToolResultTool,
 } from '@loopstack/llm-provider-module';
-import type { AgentRunResult } from '../types/index.js';
 
 /**
  * Generic LLM agent workflow.
@@ -37,13 +37,22 @@ const AgentArgsSchema = z.object({
 
 type AgentArgs = z.infer<typeof AgentArgsSchema>;
 
+/**
+ * Schema for the `data` field of the `TransitionInput` delivered to a parent's
+ * callback transition after AgentWorkflow completes.
+ *
+ * Use as the `schema:` on the callback wait-transition and as the generic
+ * parameter to `TransitionInput<AgentResult>`.
+ */
+export const AgentResultSchema = z.object({ response: z.string() });
+export type AgentResult = z.infer<typeof AgentResultSchema>;
+
 interface AgentState {
   system: string;
   tools: string[];
   userMessage: string;
   context?: string;
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
 }
 
@@ -54,10 +63,10 @@ interface AgentState {
   // Cancel button temporarily disabled — see agent.ui.yaml. Clicking it cancels child workflows but
   // does NOT synthesize tool_result blocks for the cancelled tool_use ids, so the next LLM turn
   // returns 400 ("tool_use without matching tool_result"). Re-enable once cancelPendingTools is fixed.
-  // widget: import.meta.dirname + '/agent.ui.yaml',
+  // widget: './agent.ui.yaml',
   schema: AgentArgsSchema,
 })
-export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
+export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
@@ -68,23 +77,18 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: AgentState, ctx: RunContext): Promise<AgentState> {
-    const args = ctx.args as AgentArgs;
-    if (args.context) {
-      await this.documentStore.save(
-        LlmMessageDocument,
-        { role: 'user', text: args.context },
-        { meta: { hidden: true } },
-      );
+  async setup(state: AgentState, ctx: RunContext<AgentArgs>) {
+    if (ctx.args.context) {
+      await this.documentStore.save(LlmContextDocument, { role: 'user', text: ctx.args.context });
     }
 
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: args.userMessage });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: ctx.args.userMessage });
 
-    return { ...state, ...args };
+    this.assignState({ ...ctx.args });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
-  async llmTurn(state: AgentState): Promise<AgentState> {
+  async llmTurn(state: AgentState) {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -96,69 +100,46 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
       },
     );
 
-    return { ...state, llmResult: result.data, llmMeta: result.metadata };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10, timeout: 120_000 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: AgentState): Promise<AgentState> {
-    // Save assistant message immediately (before tools run)
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-
+  async executeToolCalls(state: AgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
 
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
-  async toolResultReceived(state: AgentState, payload: unknown): Promise<AgentState> {
+  async toolResultReceived(state: AgentState, input: TransitionInput) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
-      completedTool: payload,
+      completedTool: input,
     });
 
-    return { ...state, delegateResult: result.data as LlmDelegateResult };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })
   @Guard('allToolsComplete')
-  async toolsComplete(state: AgentState): Promise<AgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
-
-    return state;
-  }
+  toolsComplete(_state: AgentState) {}
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: AgentState, ctx: RunContext): Promise<AgentState> {
+  async cancelPendingTools(state: AgentState, ctx: RunContext) {
     if (ctx.workflowId) {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }
-    return state;
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
-  async respond(state: AgentState): Promise<AgentRunResult> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: {
-        response: state.llmResult!.response,
-        provider: state.llmMeta!.provider,
-      },
-    });
-    return { response: state.llmResult?.message.text ?? '' };
+  respond(state: AgentState) {
+    const result: AgentResult = { response: state.llmResult?.message.text ?? '' };
+    this.setResult(result);
   }
 
   private hasToolCalls(state: AgentState): boolean {

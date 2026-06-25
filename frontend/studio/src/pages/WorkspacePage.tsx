@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import type { WorkspaceActionInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import MainLayout from '../components/layout/MainLayout.tsx';
+import { FeatureRegistryProvider } from '../features/feature-registry';
 import { WorkbenchSidebarShell } from '../features/workbench/components/WorkbenchSidebarShell.tsx';
 import { WorkbenchLayoutProvider } from '../features/workbench/providers/WorkbenchLayoutProvider.tsx';
 import WorkspaceHomePage from '../features/workspaces/components/WorkspaceHomePage.tsx';
@@ -30,26 +31,33 @@ const WorkspacePage = () => {
 
   const isLoading = fetchWorkspace.isLoading || fetchAppsConfig.isLoading;
 
-  return (
-    <WorkbenchLayoutProvider workspaceId={workspaceId!} getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}>
-      <WorkbenchSidebarShell>
-        <MainLayout breadcrumbsData={breadcrumbData}>
-          <>
-            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : ''}
-            <ErrorSnackbar error={fetchWorkspace.error} />
-            <ErrorSnackbar error={fetchAppsConfig.error} />
+  if (!workspace) {
+    return (
+      <MainLayout breadcrumbsData={breadcrumbData}>
+        {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : null}
+        <ErrorSnackbar error={fetchWorkspace.error} />
+        <ErrorSnackbar error={fetchAppsConfig.error} />
+      </MainLayout>
+    );
+  }
 
-            {workspace && startFormAction ? (
+  return (
+    <FeatureRegistryProvider appName={workspace.appName}>
+      <WorkbenchLayoutProvider workspaceId={workspaceId!} getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}>
+        <WorkbenchSidebarShell>
+          <MainLayout breadcrumbsData={breadcrumbData}>
+            <ErrorSnackbar error={fetchAppsConfig.error} />
+            {startFormAction ? (
               <WorkspaceHomePage workspace={workspace} action={startFormAction} />
-            ) : workspace && !isLoading ? (
+            ) : (
               <div className="flex flex-col items-center justify-center py-16">
                 <p className="text-muted-foreground">No home page configured for this workspace.</p>
               </div>
-            ) : null}
-          </>
-        </MainLayout>
-      </WorkbenchSidebarShell>
-    </WorkbenchLayoutProvider>
+            )}
+          </MainLayout>
+        </WorkbenchSidebarShell>
+      </WorkbenchLayoutProvider>
+    </FeatureRegistryProvider>
   );
 };
 

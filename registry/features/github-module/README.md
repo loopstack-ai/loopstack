@@ -63,7 +63,7 @@ export class GitHubAssistantWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'chatting' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(state: Record<string, unknown>) {
     await this.agent.run(
       {
         system: 'You are a GitHub assistant. Help the user manage repos, issues, PRs, and actions.',
@@ -82,7 +82,6 @@ export class GitHubAssistantWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'agentDone' }, show: 'inline', label: 'Working...' },
     );
-    return state;
   }
 }
 ```
@@ -95,8 +94,8 @@ For full control over the auth flow, inject the individual tools and `OAuthWorkf
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { GitHubGetAuthenticatedUserTool, GitHubListReposTool } from '@loopstack/github-module';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -110,7 +109,7 @@ interface State {
   title: 'My GitHub Workflow',
   schema: z.object({}).strict(),
 })
-export class MyGitHubWorkflow extends BaseWorkflow<Record<string, unknown>, State> {
+export class MyGitHubWorkflow extends BaseWorkflow {
   constructor(
     private readonly gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
     private readonly gitHubListRepos: GitHubListReposTool,
@@ -120,34 +119,31 @@ export class MyGitHubWorkflow extends BaseWorkflow<Record<string, unknown>, Stat
   }
 
   @Transition({ to: 'user_checked' })
-  async checkUser(state: State): Promise<State> {
+  async checkUser(state: State) {
     const result = await this.gitHubGetAuthenticatedUser.call();
-    return { ...state, requiresAuth: result.data!.error === 'unauthorized' };
+    this.assignState({ requiresAuth: result.data.error === 'unauthorized' });
   }
 
   @Transition({ from: 'user_checked', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async startAuth(state: State): Promise<State> {
+  async startAuth(state: State) {
     await this.oAuthWorkflow.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
     );
-    return state;
   }
 
   needsAuth(state: State): boolean {
     return !!state.requiresAuth;
   }
 
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true, schema: CallbackSchema })
-  async authCompleted(state: State): Promise<State> {
-    return state;
-  }
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
+  authCompleted(state: State, _input: TransitionInput) {}
 
   @Transition({ from: 'user_checked', to: 'end' })
-  async listRepos(state: State): Promise<State> {
+  async listRepos(state: State) {
     const result = await this.gitHubListRepos.call({ sort: 'updated', perPage: 10 });
-    return { ...state, repos: result.data!.repos };
+    this.assignState({ repos: result.data.repos });
   }
 }
 ```

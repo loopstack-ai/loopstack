@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { ToolExecutionContext, ToolInterceptor, ToolResult, UseToolInterceptor } from '@loopstack/common';
+import { ToolEnvelope, ToolExecutionContext, ToolInterceptor, UseToolInterceptor } from '@loopstack/common';
 import { ProcessingTimeQuotaCalculator } from '../calculators/index.js';
 import { QuotaCalculatorRegistry } from './quota-calculator-registry.service.js';
 import { QuotaClientService } from './quota-client.service.js';
@@ -14,7 +14,7 @@ export class QuotaInterceptor implements ToolInterceptor {
     private readonly calculatorRegistry: QuotaCalculatorRegistry,
   ) {}
 
-  async intercept(context: ToolExecutionContext, next: () => Promise<ToolResult>): Promise<ToolResult> {
+  async intercept(context: ToolExecutionContext, next: () => Promise<ToolEnvelope>): Promise<ToolEnvelope> {
     const userId = context.runContext.userId;
     const toolClassName = context.tool.constructor.name;
 

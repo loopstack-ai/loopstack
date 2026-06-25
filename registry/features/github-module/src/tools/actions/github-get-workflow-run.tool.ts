@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -50,7 +50,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
   protected async handle(
     args: GitHubGetWorkflowRunArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubGetWorkflowRunResult>> {
+  ): Promise<ToolEnvelope<GitHubGetWorkflowRunResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -59,6 +59,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -78,6 +79,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -89,6 +91,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

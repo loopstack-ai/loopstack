@@ -2,6 +2,7 @@ import { Loader2 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import MainLayout from '../components/layout/MainLayout.tsx';
+import { FeatureRegistryProvider } from '../features/feature-registry';
 import { WorkbenchSidebarShell } from '../features/workbench/components/WorkbenchSidebarShell.tsx';
 import { WorkbenchLayoutProvider } from '../features/workbench/providers/WorkbenchLayoutProvider.tsx';
 import ExecutionTimeline from '../features/workspaces/components/ExecutionTimeline.tsx';
@@ -26,20 +27,26 @@ const WorkspaceRunsPage = () => {
     { label: 'Runs', current: true },
   ];
 
-  return (
-    <WorkbenchLayoutProvider workspaceId={workspaceId!} getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}>
-      <WorkbenchSidebarShell>
-        <MainLayout breadcrumbsData={breadcrumbData}>
-          <>
-            <h1 className="mb-4 text-3xl font-bold tracking-tight">{workspace?.title ?? ''} — Runs</h1>
-            {fetchWorkspace.isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : ''}
-            <ErrorSnackbar error={fetchWorkspace.error} />
+  if (!workspace) {
+    return (
+      <MainLayout breadcrumbsData={breadcrumbData}>
+        {fetchWorkspace.isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : null}
+        <ErrorSnackbar error={fetchWorkspace.error} />
+      </MainLayout>
+    );
+  }
 
-            {workspace ? <ExecutionTimeline workspace={workspace} /> : ''}
-          </>
-        </MainLayout>
-      </WorkbenchSidebarShell>
-    </WorkbenchLayoutProvider>
+  return (
+    <FeatureRegistryProvider appName={workspace.appName}>
+      <WorkbenchLayoutProvider workspaceId={workspaceId!} getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}>
+        <WorkbenchSidebarShell>
+          <MainLayout breadcrumbsData={breadcrumbData}>
+            <h1 className="mb-4 text-3xl font-bold tracking-tight">{workspace.title} — Runs</h1>
+            <ExecutionTimeline workspace={workspace} />
+          </MainLayout>
+        </WorkbenchSidebarShell>
+      </WorkbenchLayoutProvider>
+    </FeatureRegistryProvider>
   );
 };
 

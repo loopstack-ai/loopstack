@@ -1,4 +1,4 @@
-import { ToolExecutionContext, ToolResult } from '@loopstack/common';
+import { ToolEnvelope, ToolExecutionContext } from '@loopstack/common';
 import { QuotaUsage } from './quota.interface.js';
 
 export interface ToolQuotaCalculator {
@@ -11,5 +11,5 @@ export interface ToolQuotaCalculator {
    * Calculate actual quota usage after tool execution.
    * Return null if usage cannot be determined from the result.
    */
-  calculateQuotaUsage(context: ToolExecutionContext, result: ToolResult): QuotaUsage | null;
+  calculateQuotaUsage(context: ToolExecutionContext, result: ToolEnvelope): QuotaUsage | null;
 }

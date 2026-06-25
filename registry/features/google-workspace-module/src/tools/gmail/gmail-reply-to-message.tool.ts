@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -36,7 +36,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
   protected async handle(
     args: GmailReplyToMessageArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GmailReplyToMessageResult>> {
+  ): Promise<ToolEnvelope<GmailReplyToMessageResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -45,6 +45,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -60,6 +61,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -71,6 +73,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
           error: 'api_error',
           message: `Gmail API error: ${originalResponse.statusText}`,
         },
+        error: `Gmail API error: ${originalResponse.statusText}`,
       };
     }
 
@@ -128,6 +131,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -139,6 +143,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
           error: 'api_error',
           message: `Gmail API error: ${response.statusText}`,
         },
+        error: `Gmail API error: ${response.statusText}`,
       };
     }
 

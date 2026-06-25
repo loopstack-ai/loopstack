@@ -41,12 +41,10 @@ export class MyModule {}
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
-const AnswerCallback = CallbackSchema.extend({
-  data: z.object({ answer: z.string() }),
-});
+const AnswerSchema = z.object({ answer: z.string() });
 
 @Workflow({ title: 'My Workflow' })
 export class MyWorkflow extends BaseWorkflow {
@@ -55,21 +53,19 @@ export class MyWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(state: Record<string, unknown>) {
     await this.askUser.run(
       { question: 'What is your name?' },
       { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },
     );
-    return state;
   }
 
-  @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerCallback })
-  async answerReceived(state: Record<string, unknown>, payload: z.infer<typeof AnswerCallback>): Promise<unknown> {
+  @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerSchema })
+  async answerReceived(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Hello, ${payload.data.answer}!`,
+      text: `Hello, ${input.data.answer}!`,
     });
-    return {};
   }
 }
 ```
@@ -117,7 +113,11 @@ The `show_question` state uses guard-based routing to save the correct document 
 - **options** — saves `AskUserOptionsDocument`, renders a choice list
 - **confirm** — saves `AskUserConfirmDocument`, renders yes/no buttons
 
-**Returns:** `{ answer: string }`
+**Immediate return from `.run()`:** `QueueResult` — `{ workflowId: string }`. `.run()` schedules the child and returns synchronously; it does **not** wait for the user. Use `workflowId` to embed the child in the parent's UI via `LinkDocument` (or pass `show: 'inline'` on `.run()` to do this automatically).
+
+**Callback `input.data`:** `{ answer: string }` — delivered as the `data` field of a `TransitionInput<{ answer: string }>` to the wait transition named in `options.callback.transition`. The `schema:` on the wait transition validates `input.data` only; the surrounding envelope (`workflowId`, `status`, `hasError`, `errorMessage`) is added by the framework.
+
+For the full sub-workflow callback pattern — typing `data` via the wait transition schema, branching on `input.hasError` / `input.status`, and embedding the child UI with `show: 'inline'` — see [`@loopstack/run-sub-workflow-example`](https://loopstack.ai/registry/loopstack-run-sub-workflow-example).
 
 #### Multiple-choice and confirmation modes
 
@@ -153,7 +153,9 @@ start → waiting_for_confirmation → end
 
 Two wait transitions (`userConfirmed` / `userDenied`) resolve to different results.
 
-**Returns:** `{ confirmed: boolean, markdown: string }`
+**Immediate return from `.run()`:** `QueueResult` — `{ workflowId: string }`.
+
+**Callback `input.data`:** `{ confirmed: boolean, markdown: string }` — accessed as `input.data.confirmed` / `input.data.markdown` in the wait transition.
 
 ```typescript
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
@@ -179,7 +181,8 @@ Both tools follow the same pattern: launch the corresponding sub-workflow, retur
 | `options`           | `string[]`                         | no       | Choices when mode is `'options'`       |
 | `allowCustomAnswer` | `boolean`                          | no       | Show free-text input alongside options |
 
-**Returns:** `{ answer: string }`
+**Immediate return from `.run()`:** `QueueResult` — `{ workflowId: string }`
+**Callback `input.data`:** `{ answer: string }`
 
 ### ConfirmUserWorkflow
 
@@ -187,7 +190,8 @@ Both tools follow the same pattern: launch the corresponding sub-workflow, retur
 | ---------- | -------- | -------- | ----------------------------------- |
 | `markdown` | `string` | yes      | Markdown content to show for review |
 
-**Returns:** `{ confirmed: boolean, markdown: string }`
+**Immediate return from `.run()`:** `QueueResult` — `{ workflowId: string }`
+**Callback `input.data`:** `{ confirmed: boolean, markdown: string }`
 
 ## Tools Reference
 
@@ -229,7 +233,7 @@ Present markdown content to the user for approval. Pauses the agent until the us
 ## Related
 
 - [Human-in-the-Loop Patterns](https://loopstack.ai/docs/build/patterns/human-in-the-loop) — wait transitions, document actions, conditional widgets
-- [hitl-example-module](https://loopstack.ai/registry/loopstack-hitl-example-module) — comprehensive HITL examples: custom document with widget, AskUserWorkflow / ConfirmUserWorkflow shortcuts, and agent-tool flows
+- [hitl-examples](https://loopstack.ai/registry/loopstack-hitl-examples) — comprehensive HITL examples: custom document with widget, AskUserWorkflow / ConfirmUserWorkflow shortcuts, and agent-tool flows
 
 ## About
 

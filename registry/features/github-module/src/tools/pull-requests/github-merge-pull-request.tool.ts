@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -45,7 +45,7 @@ export class GitHubMergePullRequestTool extends BaseTool<
   protected async handle(
     args: GitHubMergePullRequestArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubMergePullRequestResult>> {
+  ): Promise<ToolEnvelope<GitHubMergePullRequestResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -54,6 +54,7 @@ export class GitHubMergePullRequestTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -83,6 +84,7 @@ export class GitHubMergePullRequestTool extends BaseTool<
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -94,6 +96,7 @@ export class GitHubMergePullRequestTool extends BaseTool<
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

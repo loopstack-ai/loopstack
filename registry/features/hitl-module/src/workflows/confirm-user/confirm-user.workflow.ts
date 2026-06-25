@@ -7,30 +7,33 @@ interface ConfirmUserState {
   markdown: string;
 }
 
+const ConfirmUserArgsSchema = z.object({
+  markdown: z.string(),
+});
+
+type ConfirmUserArgs = z.infer<typeof ConfirmUserArgsSchema>;
+
 @Workflow({
   name: 'confirm_user',
   title: 'Confirm User',
   description:
     'Generic sub-workflow that presents markdown content to the user and waits for confirmation.\nUsed by async tool calls (e.g. askForApproval) to get explicit user confirmation.',
-  schema: z.object({
-    markdown: z.string(),
-  }),
+  schema: ConfirmUserArgsSchema,
 })
-export class ConfirmUserWorkflow extends BaseWorkflow<{ markdown: string }, ConfirmUserState> {
+export class ConfirmUserWorkflow extends BaseWorkflow<ConfirmUserArgs> {
   @Transition({ to: 'waiting_for_confirmation' })
-  async showContent(state: ConfirmUserState, ctx: RunContext): Promise<ConfirmUserState> {
-    const args = ctx.args as { markdown: string };
-    await this.documentStore.save(ConfirmUserDocument, { markdown: args.markdown }, { id: 'content' });
-    return { ...state, markdown: args.markdown };
+  async showContent(state: ConfirmUserState, ctx: RunContext<ConfirmUserArgs>) {
+    await this.documentStore.save(ConfirmUserDocument, { markdown: ctx.args.markdown }, { key: 'content' });
+    this.assignState({ markdown: ctx.args.markdown });
   }
 
   @Transition({ from: 'waiting_for_confirmation', to: 'end', wait: true })
-  async userConfirmed(state: ConfirmUserState): Promise<{ confirmed: boolean; markdown: string }> {
-    return Promise.resolve({ confirmed: true, markdown: state.markdown });
+  userConfirmed(state: ConfirmUserState) {
+    this.setResult({ confirmed: true, markdown: state.markdown } as unknown as Record<string, unknown>);
   }
 
   @Transition({ from: 'waiting_for_confirmation', to: 'end', wait: true })
-  async userDenied(state: ConfirmUserState): Promise<{ confirmed: boolean; markdown: string }> {
-    return Promise.resolve({ confirmed: false, markdown: state.markdown });
+  userDenied(state: ConfirmUserState) {
+    this.setResult({ confirmed: false, markdown: state.markdown } as unknown as Record<string, unknown>);
   }
 }

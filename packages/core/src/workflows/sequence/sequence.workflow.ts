@@ -2,20 +2,17 @@ import { Inject, type Type } from '@nestjs/common';
 import {
   BaseWorkflow,
   Guard,
-  QueueResult,
-  RunOptions,
   Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import {
   type SequenceArgs,
   SequenceArgsSchema,
   type SequenceInput,
-  type SequenceItemInput,
   type SequenceMode,
   type SequenceResult,
   type SequenceResultEntry,
@@ -63,7 +60,7 @@ interface SequenceState {
   description: 'Runs multiple sub-workflows one after another and aggregates their results.',
   schema: SequenceArgsSchema,
 })
-export class SequenceWorkflow extends BaseWorkflow<SequenceInput, SequenceState> {
+export class SequenceWorkflow extends BaseWorkflow<SequenceArgs, SequenceInput> {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     private readonly registry: WorkflowRegistryService,
@@ -71,67 +68,50 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput, SequenceState>
     super();
   }
 
-  async run(args?: SequenceInput, options?: RunOptions): Promise<QueueResult> {
-    if (!args) {
-      throw new Error('SequenceWorkflow requires { items } — see the SequenceInput type.');
-    }
-    const { entries, itemsWereArray } = this.normalizeItems(args.items);
-    const normalized: SequenceArgs = {
-      entries,
-      itemsWereArray,
-      mode: args.mode ?? 'all',
-    };
-    return super.run(normalized as unknown as SequenceInput, options);
-  }
-
   @Transition({ to: 'awaiting' })
-  async start(state: SequenceState, ctx: RunContext): Promise<SequenceState> {
-    const args = ctx.args as SequenceArgs;
-    const itemKeys = args.entries.map(([key]) => key);
+  async start(state: SequenceState, ctx: RunContext<SequenceArgs>) {
+    const { entries, itemsWereArray, mode } = ctx.args;
+    const itemKeys = entries.map(([key]) => key);
 
     // Resolve every workflow class up front so a bad name fails the sequence immediately.
-    args.entries.forEach(([, item]) => this.resolveClass(item.workflow));
+    entries.forEach(([, item]) => this.resolveClass(item.workflow));
 
     if (itemKeys.length > 0) {
-      await this.queueAt(args, 0);
+      await this.queueAt(ctx.args, 0);
     }
 
-    return {
+    this.assignState({
       currentIndex: 0,
       results: {},
       itemKeys,
-      itemsWereArray: args.itemsWereArray,
-      mode: args.mode,
+      itemsWereArray,
+      mode,
       aborted: false,
-    };
+    });
   }
 
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
-  async onChildComplete(
-    state: SequenceState,
-    payload: Record<string, unknown>,
-    ctx: RunContext,
-  ): Promise<SequenceState> {
-    const args = ctx.args as SequenceArgs;
+  async onChildComplete(state: SequenceState, input: TransitionInput, ctx: RunContext<SequenceArgs>) {
     const key = state.itemKeys[state.currentIndex];
     if (!key) {
       throw new Error('Sequence received a child callback with no matching active item.');
     }
 
-    const status = (payload.status as SequenceResultEntry['status']) ?? 'failed';
-    const isError = status === 'failed' || status === 'canceled';
+    const status = input.status as SequenceResultEntry['status'];
+    const isError = input.hasError;
 
     const entry: SequenceResultEntry = isError
       ? { status, error: `Child workflow ${status}.` }
-      : { status, data: payload.data };
+      : { status, data: input.data };
 
     const newResults = { ...state.results, [key]: entry };
     const nextIndex = state.currentIndex + 1;
     const shouldContinue = state.mode === 'allSettled' || !isError;
 
     if (shouldContinue && nextIndex < state.itemKeys.length) {
-      await this.queueAt(args, nextIndex);
-      return { ...state, currentIndex: nextIndex, results: newResults };
+      await this.queueAt(ctx.args, nextIndex);
+      this.assignState({ currentIndex: nextIndex, results: newResults });
+      return;
     }
 
     // Either done, or aborting in mode 'all' — mark remaining as skipped.
@@ -144,18 +124,17 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput, SequenceState>
       }
     }
 
-    return {
-      ...state,
+    this.assignState({
       currentIndex: state.itemKeys.length,
       results: newResults,
       aborted: !shouldContinue,
-    };
+    });
   }
 
   @Transition({ from: 'awaiting', to: 'end' })
   @Guard('allComplete')
-  async done(state: SequenceState): Promise<SequenceResult> {
-    return this.buildResult(state);
+  done(state: SequenceState) {
+    this.setResult(this.buildResult(state) as unknown as Record<string, unknown>);
   }
 
   private allComplete(state: SequenceState): boolean {
@@ -197,23 +176,5 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceInput, SequenceState>
   private resolveClass(workflowName: string): Type {
     const { instance } = this.registry.resolve(workflowName);
     return instance.constructor as Type;
-  }
-
-  private normalizeItems(items: SequenceInput['items']): { entries: SequenceArgs['entries']; itemsWereArray: boolean } {
-    const itemsWereArray = Array.isArray(items);
-    const rawEntries: Array<[string, SequenceItemInput]> = itemsWereArray
-      ? items.map((item, index) => [item.label ?? String(index), item])
-      : Object.entries(items);
-
-    const seen = new Set<string>();
-    const entries: SequenceArgs['entries'] = rawEntries.map(([key, item]) => {
-      if (seen.has(key)) {
-        throw new Error(`Sequence item key "${key}" is duplicated. Keys must be unique.`);
-      }
-      seen.add(key);
-      return [key, item];
-    });
-
-    return { entries, itemsWereArray };
   }
 }

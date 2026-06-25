@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
@@ -47,7 +47,7 @@ export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskR
     args: ExploreTaskInput,
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<ExploreTaskResult>> {
+  ): Promise<ToolEnvelope<ExploreTaskResult>> {
     const result = await this.agentWorkflow.run(
       {
         system: EXPLORE_SYSTEM_PROMPT,
@@ -63,7 +63,7 @@ export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskR
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult<ExploreTaskResult>> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope<ExploreTaskResult>> {
     const data = result as { workflowId?: string; data?: { response?: string } };
     return { data: data.data?.response ?? result };
   }

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -36,7 +36,10 @@ export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, obj
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubListBranchesArgs, ctx: RunContext): Promise<ToolResult<GitHubListBranchesResult>> {
+  protected async handle(
+    args: GitHubListBranchesArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubListBranchesResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -45,6 +48,7 @@ export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, obj
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -68,6 +72,7 @@ export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, obj
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -79,6 +84,7 @@ export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, obj
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

@@ -1,5 +1,5 @@
 import { Injectable, SetMetadata } from '@nestjs/common';
-import { ToolResult } from './handler.interface.js';
+import { ToolEnvelope } from './handler.interface.js';
 import type { RunContext } from './run-context.interface.js';
 
 export interface ToolExecutionContext {
@@ -39,7 +39,7 @@ export interface ToolExecutionContext {
  * - Handle errors with try/catch around `next()`
  */
 export interface ToolInterceptor {
-  intercept(context: ToolExecutionContext, next: () => Promise<ToolResult>): Promise<ToolResult>;
+  intercept(context: ToolExecutionContext, next: () => Promise<ToolEnvelope>): Promise<ToolEnvelope>;
 }
 
 /** Metadata key used by DiscoveryService to find tool interceptors */

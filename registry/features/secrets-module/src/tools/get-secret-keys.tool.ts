@@ -1,5 +1,5 @@
 import { Inject } from '@nestjs/common';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SecretService } from '../services/index.js';
 
@@ -12,7 +12,7 @@ export type GetSecretKeysResult = { key: string; hasValue: boolean }[];
 export class GetSecretKeysTool extends BaseTool<object, object, GetSecretKeysResult> {
   @Inject() private secretService: SecretService;
 
-  protected async handle(_args: object | undefined, ctx: RunContext): Promise<ToolResult<GetSecretKeysResult>> {
+  protected async handle(_args: object | undefined, ctx: RunContext): Promise<ToolEnvelope<GetSecretKeysResult>> {
     const secrets = await this.secretService.findAllByWorkspace(ctx.workspaceId as string);
     return {
       data: secrets.map((s) => ({

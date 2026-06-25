@@ -25,7 +25,7 @@ export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
 
 @Document({
   schema: FileDocumentSchema,
-  widget: __dirname + '/file-document.yaml',
+  widget: './file-document.yaml',
 })
 export class FileDocument {
   filename: string;
@@ -49,33 +49,35 @@ interface StructuredOutputState {
   llmResult?: DocumentEntity<FileDocumentType>;
 }
 
+const StructuredOutputSchema = z.object({
+  language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
+});
+type StructuredOutputArgs = z.infer<typeof StructuredOutputSchema>;
+
 @Workflow({
-  schema: z.object({
-    language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
-  }),
+  schema: StructuredOutputSchema,
 })
-export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }, StructuredOutputState> {
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<StructuredOutputArgs> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
   @Transition({ to: 'ready' })
-  async greeting(state: StructuredOutputState, ctx: RunContext): Promise<StructuredOutputState> {
-    const args = ctx.args as { language: string };
+  async greeting(state: StructuredOutputState, ctx: RunContext<StructuredOutputArgs>) {
     await this.documentStore.save(
       LlmMessageDocument,
-      { role: 'assistant', text: `Creating a Hello World script in ${args.language}...` },
-      { id: 'status' },
+      { role: 'assistant', text: `Creating a Hello World script in ${ctx.args.language}...` },
+      { key: 'status' },
     );
-    return { ...state, language: args.language };
+    this.assignState({ language: ctx.args.language });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async prompt(state: StructuredOutputState): Promise<StructuredOutputState> {
+  async prompt(state: StructuredOutputState) {
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
-        prompt: this.render(__dirname + '/templates/prompt.md', { language: state.language }),
+        prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { language: state.language }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
@@ -84,17 +86,16 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     const llmResult = await this.documentStore.save(FileDocument, objectResult.data as FileDocumentType, {
       validate: 'skip',
     });
-    return { ...state, llmResult };
+    this.assignState({ llmResult });
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  async respond(state: StructuredOutputState): Promise<unknown> {
+  async respond(state: StructuredOutputState) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Generated: ${state.llmResult?.content?.description ?? ''}` },
-      { id: 'status' },
+      { key: 'status' },
     );
-    return {};
   }
 }
 ```
@@ -120,4 +121,4 @@ await this.llmGenerateObject.call(
 
 ## Registry References
 
-- [prompt-structured-output-example-workflow](https://loopstack.ai/registry/loopstack-prompt-structured-output-example-workflow) — Generates structured code files using the LLM provider
+- [prompt-structured-output-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#structured-output) — Generates structured code files using the LLM provider

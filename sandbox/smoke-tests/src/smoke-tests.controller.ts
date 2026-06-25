@@ -1,8 +1,8 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ChatWorkflow } from '@loopstack/chat-example-workflow';
 import { UserId } from '@loopstack/common';
 import type { WorkflowPayload, WorkflowRunResult } from '@loopstack/common';
 import { WorkflowRunner } from '@loopstack/core';
+import { PromptExampleWorkflow } from '@loopstack/llm-examples';
 
 /**
  * Example custom controller — demonstrates how to start a workflow
@@ -12,9 +12,9 @@ import { WorkflowRunner } from '@loopstack/core';
 export class SmokeTestsController {
   constructor(private readonly workflowRunner: WorkflowRunner) {}
 
-  @Post('run/chat')
-  async runChat(@UserId() userId: string, @Body() payload: WorkflowPayload): Promise<WorkflowRunResult> {
-    return this.workflowRunner.execute(ChatWorkflow, payload, {
+  @Post('run/prompt')
+  async runPrompt(@UserId() userId: string, @Body() payload: WorkflowPayload): Promise<WorkflowRunResult> {
+    return this.workflowRunner.execute(PromptExampleWorkflow, payload, {
       userId,
       appName: 'smoke_tests',
     });
