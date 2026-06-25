@@ -11,7 +11,7 @@
     "tool",
     "webfetch"
   ],
-  "version": "0.4.4",
+  "version": "0.4.5",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -34,8 +34,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/claude-module": "^0.25.4",
-    "@loopstack/common": "^0.35.0",
+    "@loopstack/claude-module": "^0.25.5",
+    "@loopstack/common": "^0.36.0",
     "lru-cache": "^11.0.2",
     "turndown": "^7.2.0"
   },
