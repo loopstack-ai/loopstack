@@ -70,6 +70,43 @@ Launches a generic `AgentWorkflow` as a sub-workflow with two custom tools (`wea
 
 Launches `AgentWorkflow` as a code-exploration agent with `glob`, `grep`, and `read` tools. Demonstrates configuring a domain-specific agent without building a custom loop.
 
+### Setup
+
+The `glob`, `grep`, and `read` tools execute on a **remote agent**, so the workspace must have a `sandbox` environment connected.
+
+**1. Run a remote agent.** The simplest option is `@loopstack/remote-server` on `localhost:3001` (see `services/remote-server/`).
+
+**2. Register an available environment in your app module:**
+
+```typescript
+import { RemoteClientModule } from '@loopstack/remote-client';
+
+@Module({
+  imports: [
+    LoopstackModule.forRoot(),
+    RemoteClientModule.forRoot({
+      environments: {
+        available: [
+          {
+            type: 'sandbox',
+            name: 'Local Remote Server',
+            connectionUrl: 'http://localhost:3080',
+            agentUrl: 'http://localhost:3001',
+            local: true,
+          },
+        ],
+      },
+    }),
+    AgentExamplesModule,
+  ],
+})
+export class AppModule {}
+```
+
+`AgentExamplesModule` itself declares the `sandbox` slot via `RemoteClientModule.forFeature(...)` — make sure you use the same type = sandbox.
+
+**3. Create a workspace from the Studio.** The environment is auto-selected from the matching `type` and persisted on creation.
+
 ### Files
 
 - `code-agent-example.workflow.ts` — workflow class

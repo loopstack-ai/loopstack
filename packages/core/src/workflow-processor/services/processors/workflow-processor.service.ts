@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import {
-  NormalizedRetryConfig,
   TransitionMetadata,
   WorkflowCheckpointEntity,
   WorkflowEntity,
@@ -9,7 +8,6 @@ import {
   WorkflowMetadataInterface,
   getGuardMetadataMap,
   getWorkflowStateSchema,
-  normalizeRetryConfig,
 } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
@@ -401,9 +399,10 @@ export class WorkflowProcessorService implements Processor {
   ): Promise<void> {
     meta.version++;
 
-    const retry: NormalizedRetryConfig = transitionMeta.retry ?? normalizeRetryConfig();
-    const methodName = transitionMeta.methodName;
+    const { methodName, retryAttempts, retryDelay, retryBackoff, retryMaxDelay, retryTarget, errorPlace } =
+      transitionMeta;
 
+    // retryCount is scoped to the originating transition. Reset when we land on a different one.
     let retryCount: number = meta.retryCount ?? 0;
     if (meta.retryTransitionId !== methodName) {
       retryCount = 0;
@@ -411,7 +410,8 @@ export class WorkflowProcessorService implements Processor {
 
     this.logger.warn(`Transition '${methodName}' failed (attempt ${retryCount + 1}): ${error.message}`);
 
-    if (retry.attempts > 0 && retryCount < retry.attempts) {
+    // 1. Auto-retry path
+    if (retryAttempts > 0 && retryCount < retryAttempts) {
       retryCount++;
       meta.retryCount = retryCount;
       meta.retryTransitionId = methodName;
@@ -419,18 +419,24 @@ export class WorkflowProcessorService implements Processor {
       meta.hasError = true;
 
       const delayMs =
-        retry.backoff === 'exponential'
-          ? Math.min(retry.delay * Math.pow(2, retryCount - 1), retry.maxDelay)
-          : retry.delay;
+        retryBackoff === 'exponential' ? Math.min(retryDelay * Math.pow(2, retryCount - 1), retryMaxDelay) : retryDelay;
 
-      this.logger.log(`Auto-retry ${retryCount}/${retry.attempts} for '${methodName}' in ${delayMs}ms`);
+      if (retryTarget) {
+        this.logger.log(
+          `Auto-retry ${retryCount}/${retryAttempts} for '${methodName}' via target place '${retryTarget}' in ${delayMs}ms`,
+        );
+        meta.place = retryTarget;
+      } else {
+        this.logger.log(`Auto-retry ${retryCount}/${retryAttempts} for '${methodName}' in ${delayMs}ms`);
+      }
       meta._retrySignal = { delayMs };
       return;
     }
 
-    if (retry.place) {
-      this.logger.log(`Retries exhausted for '${methodName}' — transitioning to custom error place '${retry.place}'`);
-      meta.place = retry.place;
+    // 2. Error place path — retries exhausted or non-retryable failure
+    if (errorPlace) {
+      this.logger.log(`Routing failure of '${methodName}' to error place '${errorPlace}'`);
+      meta.place = errorPlace;
       meta.hasError = true;
       meta.errorMessage = error.message;
       meta.retryCount = 0;
@@ -438,6 +444,7 @@ export class WorkflowProcessorService implements Processor {
       return;
     }
 
+    // 3. Manual retry default — stay at place, expose Retry button
     this.logger.log(`Transition '${methodName}' failed — staying at current place for manual retry`);
     meta.hasError = true;
     meta.errorMessage = error.message;
@@ -445,8 +452,13 @@ export class WorkflowProcessorService implements Processor {
     meta.retryTransitionId = methodName;
   }
 
-  private clearRetryState(meta: ProcessorMetadata): void {
-    if (meta.retryTransitionId) {
+  /**
+   * Clear retry bookkeeping when a transition succeeds. Only clears state that belongs
+   * to the just-succeeded transition — so when `retryTarget` routes the workflow through
+   * an intermediate place, successful transitions there don't wipe the originator's count.
+   */
+  private clearRetryState(meta: ProcessorMetadata, justSucceededMethodName: string): void {
+    if (meta.retryTransitionId === justSucceededMethodName) {
       meta.retryCount = 0;
       meta.retryTransitionId = undefined;
     }
@@ -498,9 +510,36 @@ export class WorkflowProcessorService implements Processor {
 
         const rawPayload = (pendingTransition.payload ?? {}) as Record<string, unknown>;
         const rawData = 'data' in rawPayload ? rawPayload.data : undefined;
-        const validatedData = waitTransition.schema ? waitTransition.schema.parse(rawData) : rawData;
-
         const status = (rawPayload.status as 'completed' | 'failed' | 'canceled' | undefined) ?? 'completed';
+        const isFailureCallback = status === 'failed' || status === 'canceled';
+
+        // Sub-workflow failure callback: route to the transition's declared failure handling
+        // (retryAttempts / errorPlace) if it opted in. Otherwise fall through to the body —
+        // preserves the existing pattern where a callback transition handles failures inline
+        // (e.g. LLM tool delegation accumulating tool_result entries with isError: true).
+        if (isFailureCallback && (waitTransition.errorPlace || waitTransition.retryAttempts > 0)) {
+          const errorMessage = (rawPayload.errorMessage as string | null | undefined) ?? `Sub-workflow ${status}`;
+          const subError = new Error(errorMessage);
+          this.logger.warn(
+            `Wait transition '${waitTransition.methodName}' received ${status} callback: ${errorMessage}`,
+          );
+          await this.handleTransitionError(meta, subError, waitTransition);
+
+          const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
+          meta.availableTransitions = errorAvailable.map((t) => ({
+            id: t.methodName,
+            from: meta.place,
+            to: t.to,
+            trigger: t.wait ? ('manual' as const) : undefined,
+          }));
+          return state;
+        }
+
+        // Skip schema validation for sub-workflow failure callbacks that fall through to the body —
+        // their `data` is whatever the sub-workflow's final result was (often null when it never
+        // reached setResult), and the parent's transition still needs to run so it can react.
+        const validatedData =
+          waitTransition.schema && !isFailureCallback ? waitTransition.schema.parse(rawData) : rawData;
         const transitionInput = {
           workflowId: (rawPayload.workflowId as string | undefined) ?? pendingTransition.workflowId,
           status,
@@ -524,7 +563,7 @@ export class WorkflowProcessorService implements Processor {
             waitTransition,
           );
           state = result.newState;
-          this.clearRetryState(meta);
+          this.clearRetryState(meta, waitTransition.methodName);
         } catch (e) {
           const error = e instanceof Error ? e : new Error(String(e));
           this.logger.error(new ConfigTraceError(error, workflow));
@@ -590,7 +629,7 @@ export class WorkflowProcessorService implements Processor {
           next,
         );
         state = result.newState;
-        this.clearRetryState(meta);
+        this.clearRetryState(meta, next.methodName);
       } catch (e) {
         const error = e instanceof Error ? e : new Error(String(e));
         this.logger.error(new ConfigTraceError(error, workflow));

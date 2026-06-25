@@ -57,6 +57,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -73,6 +74,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -84,6 +86,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${response.statusText}`,
         },
+        error: `Google Drive API error: ${response.statusText}`,
       };
     }
 

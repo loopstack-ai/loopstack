@@ -59,6 +59,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -89,6 +90,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -100,6 +102,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'api_error',
           message: `Google Calendar API error: ${response.statusText}`,
         },
+        error: `Google Calendar API error: ${response.statusText}`,
       };
     }
 

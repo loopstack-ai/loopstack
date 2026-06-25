@@ -13,7 +13,7 @@ export interface FeatureRegistration {
  * register themselves as a Studio feature on the importing `@StudioApp`.
  *
  * @param id - feature identifier; must match the key in the Studio frontend's
- *   AVAILABLE_FEATURES registry. Examples: 'git', 'fileExplorer', 'secrets'.
+ *   AVAILABLE_FEATURES registry. Examples: 'git', 'localFileExplorer', 'secrets'.
  * @param config - optional config. `enabled` toggles the feature on/off
  *   (defaults to true); any other fields are forwarded as the feature's runtime
  *   config and exposed to the frontend.

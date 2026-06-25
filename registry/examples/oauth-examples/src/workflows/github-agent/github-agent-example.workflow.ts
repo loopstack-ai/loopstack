@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { TransitionInput } from '@loopstack/common';
 import {
   GitHubCreateIssueCommentTool,
   GitHubCreateIssueTool,
@@ -100,11 +101,15 @@ export class GithubAgentExampleWorkflow extends BaseWorkflow {
       role: 'user',
       text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
     });
+    await this.documentStore.save(LlmMessageDocument, {
+      role: 'assistant',
+      text: this.render(join(__dirname, 'templates', 'welcomeMessage.md')),
+    });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(_state: GitHubAgentState, payload: string) {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+  async userMessage(_state: GitHubAgentState, input: TransitionInput<string>) {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
@@ -167,10 +172,10 @@ to let the user sign in, then retry. Be concise and format results using markdow
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(state: GitHubAgentState, payload: Record<string, unknown>) {
+  async toolResultReceived(state: GitHubAgentState, input: TransitionInput<Record<string, unknown>>) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
-      completedTool: payload,
+      completedTool: input,
     });
     this.assignState({ delegateResult: result.data });
   }

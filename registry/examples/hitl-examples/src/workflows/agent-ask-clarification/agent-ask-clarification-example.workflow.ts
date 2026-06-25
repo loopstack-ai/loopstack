@@ -1,8 +1,5 @@
-import { z } from 'zod';
-import { AgentWorkflow } from '@loopstack/agent';
+import { type AgentResult, AgentResultSchema, AgentWorkflow } from '@loopstack/agent';
 import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-
-const AgentResponseSchema = z.object({ response: z.string() });
 
 const SYSTEM_PROMPT = `You are a trip-planning assistant.
 
@@ -39,13 +36,13 @@ export class AgentAskClarificationExampleWorkflow extends BaseWorkflow {
     from: 'running',
     to: 'end',
     wait: true,
-    schema: AgentResponseSchema,
+    schema: AgentResultSchema,
   })
-  async agentComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
+  async agentComplete(_state: Record<string, unknown>, input: TransitionInput<AgentResult>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: input.data.response,
     });
-    this.setResult({ response: input.data.response } as unknown as Record<string, unknown>);
+    this.setResult(input.data);
   }
 }

@@ -87,6 +87,15 @@ function rootProviders(options?: RemoteClientModuleOptions): Provider[] {
 class RemoteClientRootModule {}
 
 /**
+ * Feature host for slot extension providers. Kept separate from
+ * `RemoteClientModule` so `forFeature()` does not transitively re-import
+ * `RemoteClientRootModule` (which would create a second @Global root with
+ * default config that shadows the configured one from `forRoot()`).
+ */
+@Module({})
+class RemoteClientFeatureModule {}
+
+/**
  * Remote Client Module — wires the RemoteClient and environment tools.
  *
  * - Bare import (`RemoteClientModule`) — registers the global root with default config.
@@ -108,7 +117,7 @@ export class RemoteClientModule {
 
   static forFeature(options: RemoteClientFeatureOptions): DynamicModule {
     return {
-      module: RemoteClientModule,
+      module: RemoteClientFeatureModule,
       providers: options.slots.map((slot) => registerStudioExtension('environments', slot)),
     };
   }

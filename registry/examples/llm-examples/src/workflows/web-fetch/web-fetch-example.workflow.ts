@@ -30,14 +30,17 @@ export class WebFetchExampleWorkflow extends BaseWorkflow<WebFetchArgs> {
     super();
   }
 
-  @Transition({ to: 'fetched' })
-  async fetch(state: WebFetchState, ctx: RunContext<WebFetchArgs>) {
+  @Transition({ to: 'fetching' })
+  async announce(state: WebFetchState, ctx: RunContext<WebFetchArgs>) {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Fetching ${ctx.args.url}...` },
       { key: 'status' },
     );
+  }
 
+  @Transition({ from: 'fetching', to: 'fetched' })
+  async fetch(state: WebFetchState, ctx: RunContext<WebFetchArgs>) {
     const result = await this.webFetch.call({
       url: ctx.args.url,
       prompt: ctx.args.prompt,

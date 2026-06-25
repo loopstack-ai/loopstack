@@ -13,3 +13,5 @@ export * from './workflows/sequence/sequence-example.workflow';
 export * from './workflows/batch-processing/batch-processing-example.workflow';
 export * from './workflows/custom-tool/custom-tool-example.workflow';
 export * from './workflows/ui-documents/ui-documents-example.workflow';
+export * from './workflows/agent-error-handling/agent-error-handling.workflow';
+export * from './workflows/agent-error-handling/agent-error-handling-failing-sub.workflow';

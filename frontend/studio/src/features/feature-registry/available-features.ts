@@ -1,4 +1,4 @@
-import { fileExplorerFeature } from '../file-explorer';
+import { localFileExplorerFeature, remoteFileExplorerFeature } from '../file-explorer';
 import { gitFeature } from '../git';
 import { secretsFeature } from '../secrets';
 import type { StudioFeature } from './types';
@@ -10,6 +10,7 @@ import type { StudioFeature } from './types';
  */
 export const AVAILABLE_FEATURES: Record<string, StudioFeature> = {
   git: gitFeature,
-  fileExplorer: fileExplorerFeature,
+  localFileExplorer: localFileExplorerFeature,
+  remoteFileExplorer: remoteFileExplorerFeature,
   secrets: secretsFeature,
 };

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents/index.js';
 import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
 
@@ -66,11 +66,11 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
     wait: true,
     schema: z.object({ code: z.string(), state: z.string() }),
   })
-  async exchangeToken(state: OAuthState, payload: { code: string; state: string }) {
+  async exchangeToken(state: OAuthState, input: TransitionInput<{ code: string; state: string }>) {
     await this.exchangeOAuthToken.call({
       provider: state.provider,
-      code: payload.code,
-      state: payload.state,
+      code: input.data.code,
+      state: input.data.state,
       expectedState: state.oauthState!,
     });
 

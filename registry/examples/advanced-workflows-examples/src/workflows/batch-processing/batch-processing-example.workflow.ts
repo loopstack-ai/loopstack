@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseWorkflow, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 interface BatchProcessingState {
@@ -44,19 +44,18 @@ export class BatchProcessingExampleWorkflow extends BaseWorkflow<BatchProcessing
   }
 
   @Transition({ from: 'batch_done', to: 'batch_ready' })
-  nextBatch(state: BatchProcessingState, ctx: RunContext<BatchProcessingArgs>) {
-    const next = state.batchIndex + 1;
-    const more = next * ctx.args.batchSize < state.items.length;
-    if (more) {
-      this.assignState({ batchIndex: next });
-    }
+  @Guard('hasMoreItems')
+  nextBatch(state: BatchProcessingState) {
+    this.assignState({ batchIndex: state.batchIndex + 1 });
+  }
+
+  hasMoreItems(state: BatchProcessingState): boolean {
+    return state.processed.length < state.items.length;
   }
 
   @Transition({ from: 'batch_done', to: 'end', priority: 10 })
+  @Guard('allItemsProcessed')
   async finish(state: BatchProcessingState, ctx: RunContext<BatchProcessingArgs>) {
-    const done = (state.batchIndex + 1) * ctx.args.batchSize >= state.items.length;
-    if (!done) return;
-
     await this.documentStore.save(MarkdownDocument, {
       markdown: [
         `# Batch Processing Complete`,
@@ -67,6 +66,10 @@ export class BatchProcessingExampleWorkflow extends BaseWorkflow<BatchProcessing
         state.processed.length > 10 ? `\n_(${state.processed.length - 10} more omitted)_` : '',
       ].join('\n'),
     });
+  }
+
+  allItemsProcessed(state: BatchProcessingState): boolean {
+    return state.processed.length >= state.items.length;
   }
 
   private async processItem(item: string): Promise<string> {

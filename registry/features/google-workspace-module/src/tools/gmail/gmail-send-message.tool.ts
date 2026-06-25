@@ -42,6 +42,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -68,6 +69,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -79,6 +81,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'api_error',
           message: `Gmail API error: ${response.statusText}`,
         },
+        error: `Gmail API error: ${response.statusText}`,
       };
     }
 

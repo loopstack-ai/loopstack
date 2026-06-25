@@ -5,6 +5,7 @@ import { SseClientEvents } from '@/events';
 import {
   getChildWorkflowsCacheKey,
   getDocumentsCacheKey,
+  getSecretsCacheKey,
   getWorkflowCacheKey,
   getWorkflowStatusCacheKey,
 } from '@/hooks/query-keys';
@@ -20,6 +21,10 @@ interface WorkflowEventPayload {
 
 interface DocumentEventPayload {
   workflowId?: string;
+}
+
+interface SecretEventPayload {
+  workspaceId?: string;
 }
 
 const DEBOUNCE_MS = 300;
@@ -73,10 +78,20 @@ export function InvalidationEventsProvider() {
       }
     });
 
+    const invalidateSecrets = (payload: SecretEventPayload) => {
+      if (payload.workspaceId) {
+        invalidate(getSecretsCacheKey(envKey, payload.workspaceId));
+      }
+    };
+    const unsubSecretUpserted = eventBus.on(SseClientEvents.SECRET_UPSERTED, invalidateSecrets);
+    const unsubSecretDeleted = eventBus.on(SseClientEvents.SECRET_DELETED, invalidateSecrets);
+
     return () => {
       unsubWorkflowCreated();
       unsubWorkflowUpdated();
       unsubDocumentCreated();
+      unsubSecretUpserted();
+      unsubSecretDeleted();
 
       // Cancel all pending debounced calls and clear cache
       cache.forEach((debouncedFn) => debouncedFn.cancel());

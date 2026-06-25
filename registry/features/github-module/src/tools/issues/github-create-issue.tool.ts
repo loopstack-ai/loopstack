@@ -50,6 +50,7 @@ export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, objec
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -80,6 +81,7 @@ export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, objec
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -91,6 +93,7 @@ export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, objec
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

@@ -108,12 +108,10 @@ To configure automatic retries:
 @Transition({
   from: 'calling_api',
   to: 'api_complete',
-  retry: {
-    attempts: 3,
-    delay: 1000,       // ms before first retry
-    backoff: 'exponential',
-    maxDelay: 30000,   // cap at 30 seconds
-  },
+  retryAttempts: 3,
+  retryDelay: 1000,         // ms before first retry
+  retryBackoff: 'exponential',
+  retryMaxDelay: 30000,     // cap at 30 seconds
 })
 async callExternalApi(state: MyState) {
   // ...
@@ -123,25 +121,47 @@ async callExternalApi(state: MyState) {
 **How exponential backoff is calculated:**
 
 ```
-attempt 1: delay × 2^0 = 1000ms
-attempt 2: delay × 2^1 = 2000ms
-attempt 3: delay × 2^2 = 4000ms (capped at maxDelay)
+attempt 1: retryDelay × 2^0 = 1000ms
+attempt 2: retryDelay × 2^1 = 2000ms
+attempt 3: retryDelay × 2^2 = 4000ms (capped at retryMaxDelay)
 ```
 
 The delay is implemented as a BullMQ job delay — the job is re-queued with a scheduled execution time. Nothing blocks during the wait.
+
+**Retrying via a different place (`retryTarget`):**
+
+By default, an auto-retry re-runs the failing transition. Set `retryTarget` to route each retry through a different place — useful when retries need preparation work (e.g. refreshing a token) between attempts:
+
+```typescript
+@Transition({
+  from: 'calling_api', to: 'api_complete',
+  retryAttempts: 3,
+  retryTarget: 'refresh_credentials',
+})
+async callExternalApi(...) { ... }
+
+@Transition({ from: 'refresh_credentials', to: 'calling_api' })
+async refreshCredentials() { ... }
+```
+
+Transitions at the retry target run with their own independent retry budget.
 
 **After retries are exhausted:**
 
 If all retry attempts fail, you can route the workflow to a custom error-handling place:
 
 ```typescript
-retry: {
-  attempts: 3,
-  place: 'error_handling',  // go here instead of staying at current place
-}
+@Transition({
+  from: 'calling_api', to: 'api_complete',
+  retryAttempts: 3,
+  errorPlace: 'error_handling',
+})
+async callExternalApi(...) { ... }
 ```
 
-Without `place`, the workflow stays at the current place with `hasError: true`. The Studio toolbar shows a **Retry** button that re-triggers the failed transition immediately.
+Without `errorPlace`, the workflow stays at the current place with `hasError: true`. The Studio toolbar shows a **Retry** button that re-triggers the failed transition immediately.
+
+The same routing applies to **wait transitions that resume from a failed sub-workflow callback** (`status: 'failed' | 'canceled'`). If the wait transition declares `errorPlace` or `retryAttempts > 0`, the framework treats the failed callback as a transition failure and routes accordingly — the happy-path body never sees the bad data. Without either, the body is invoked with the raw callback so accumulator patterns (e.g. LLM tool delegation) can handle errors inline.
 
 ---
 

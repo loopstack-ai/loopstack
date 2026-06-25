@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { FailingSubWorkflow } from '../failing-sub.workflow';
+import { AgentErrorHandlingFailingSubWorkflow } from '../agent-error-handling-failing-sub.workflow';
 
 export type FailingSubWorkflowToolResult = { workflowId: string };
 
@@ -13,7 +13,7 @@ export type FailingSubWorkflowToolResult = { workflowId: string };
   schema: z.object({}),
 })
 export class FailingSubWorkflowTool extends BaseTool<object, object, FailingSubWorkflowToolResult> {
-  constructor(private readonly failingWorkflow: FailingSubWorkflow) {
+  constructor(private readonly failingWorkflow: AgentErrorHandlingFailingSubWorkflow) {
     super();
   }
 

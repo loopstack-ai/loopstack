@@ -56,7 +56,13 @@ export class AuthenticateGitHubTask extends BaseTool<
     };
   }
 
-  async complete(_result: Record<string, unknown>): Promise<ToolEnvelope<AuthenticateGitHubTaskResult>> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope<AuthenticateGitHubTaskResult>> {
+    const status = result.status as string | undefined;
+    if (status === 'failed' || status === 'canceled') {
+      const detail = (result.errorMessage as string | undefined) ?? `Sub-workflow ${status}`;
+      const message = `GitHub authentication ${status}: ${detail}`;
+      return { data: message, error: message };
+    }
     return {
       data: 'GitHub authentication completed successfully. You can now use GitHub tools.',
     };

@@ -88,13 +88,24 @@ export class GithubOverviewExampleWorkflow extends BaseWorkflow<GitHubReposOverv
 
   @Transition({ to: 'user_fetched' })
   async fetchUser(state: GitHubReposOverviewState, ctx: RunContext<GitHubReposOverviewArgs>) {
-    const result = await this.gitHubGetAuthenticatedUser.call();
-    this.assignState({
-      owner: ctx.args.owner,
-      repo: ctx.args.repo,
-      requiresAuthentication: result.data.error === 'unauthorized',
-      user: result.data.user,
-    });
+    try {
+      const result = await this.gitHubGetAuthenticatedUser.call();
+      this.assignState({
+        owner: ctx.args.owner,
+        repo: ctx.args.repo,
+        requiresAuthentication: false,
+        user: result.data.user,
+      });
+    } catch (error) {
+      // GitHub tools throw with a human-readable message on auth failure
+      // ("No valid GitHub token found. Please authenticate first." / "GitHub token was rejected. Please re-authenticate.").
+      // Match on "authenticate" to route through the OAuth sub-workflow; rethrow everything else.
+      if (error instanceof Error && /authenticate/i.test(error.message)) {
+        this.assignState({ owner: ctx.args.owner, repo: ctx.args.repo, requiresAuthentication: true });
+        return;
+      }
+      throw error;
+    }
   }
 
   // If unauthorized -> launch OAuth

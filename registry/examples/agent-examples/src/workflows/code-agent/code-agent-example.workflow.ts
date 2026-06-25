@@ -1,22 +1,35 @@
-import { z } from 'zod';
-import { AgentWorkflow } from '@loopstack/agent';
+import { type AgentResult, AgentResultSchema, AgentWorkflow } from '@loopstack/agent';
 import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-
-const ExploreResponseSchema = z.object({ response: z.string() });
+import { EnvironmentService } from '@loopstack/remote-client';
 
 const EXPLORE_INSTRUCTIONS = `Find the entry-point module of this project and list the
 top-level providers it registers. Return a short bulleted summary.`;
 
+/**
+ * Code-exploration agent powered by `AgentWorkflow` with `glob`, `grep`, and `read`
+ * tools. These tools execute on a remote agent, so the workspace must have a
+ * `sandbox` environment connected and the remote agent must be reachable.
+ *
+ * Setup (see `agent-examples/README.md` → Code Agent for the full snippet):
+ */
 @Workflow({
   title: 'Agent - Code Agent Example',
   description: 'Launches AgentWorkflow as a codebase-exploration agent with glob, grep, and read tools.',
 })
 export class CodeAgentExampleWorkflow extends BaseWorkflow {
-  constructor(private readonly agentWorkflow: AgentWorkflow) {
+  constructor(
+    private readonly agentWorkflow: AgentWorkflow,
+    private readonly environments: EnvironmentService,
+  ) {
     super();
   }
 
-  @Transition({ to: 'exploring' })
+  @Transition({ to: 'verified' })
+  async verifyEnvironment(_state: Record<string, unknown>) {
+    await this.environments.assertReachable('sandbox');
+  }
+
+  @Transition({ from: 'verified', to: 'exploring' })
   async startExploration(_state: Record<string, unknown>) {
     await this.agentWorkflow.run(
       {
@@ -32,9 +45,9 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
     from: 'exploring',
     to: 'end',
     wait: true,
-    schema: ExploreResponseSchema,
+    schema: AgentResultSchema,
   })
-  async exploreComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
+  async exploreComplete(_state: Record<string, unknown>, input: TransitionInput<AgentResult>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: input.data.response,

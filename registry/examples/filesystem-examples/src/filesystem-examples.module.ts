@@ -25,9 +25,9 @@ const WORKFLOWS = [
   imports: [
     SandboxFilesystemModule,
     SandboxToolModule,
-    RemoteFileExplorerModule,
-    RemoteClientModule,
-    LocalFileExplorerModule,
+    RemoteFileExplorerModule.forFeature(),
+    RemoteClientModule.forFeature({ slots: [{ id: 'sandbox', type: 'sandbox', title: 'Sandbox' }] }),
+    LocalFileExplorerModule.forFeature(),
   ],
   providers: WORKFLOWS,
   exports: WORKFLOWS,

@@ -8,32 +8,26 @@ const FeatureRegistryContext = createContext<StudioFeature[]>([]);
 const BackendFeaturesContext = createContext<StudioFeatureRegistration[]>([]);
 
 export interface FeatureRegistryProviderProps {
-  /** Static feature list (fallback when no backend features are available). */
-  features?: StudioFeature[];
+  /** App name to scope features to. Must match an `appName` from `/api/v1/config/apps`. */
+  appName: string;
   children: ReactNode;
 }
 
-function resolveFeatures(
-  backendFeatures: StudioFeatureRegistration[] | undefined,
-  fallback: StudioFeature[],
-): StudioFeature[] {
-  if (!backendFeatures?.length) return fallback;
-
+function resolveFeatures(backendFeatures: StudioFeatureRegistration[]): StudioFeature[] {
   return backendFeatures
     .filter((bf) => bf.enabled !== false)
     .map((bf) => AVAILABLE_FEATURES[bf.id])
     .filter(Boolean);
 }
 
-export function FeatureRegistryProvider({ features = [], children }: FeatureRegistryProviderProps) {
+export function FeatureRegistryProvider({ appName, children }: FeatureRegistryProviderProps) {
   const { data: apps } = useAppsConfig();
-  const backendFeatures = apps?.[0]?.features;
+  const backendFeatures = useMemo(() => apps?.find((a) => a.appName === appName)?.features ?? [], [apps, appName]);
 
-  const activeFeatures = useMemo(() => resolveFeatures(backendFeatures, features), [backendFeatures, features]);
-  const backendFeaturesValue = useMemo(() => backendFeatures ?? [], [backendFeatures]);
+  const activeFeatures = useMemo(() => resolveFeatures(backendFeatures), [backendFeatures]);
 
   return (
-    <BackendFeaturesContext.Provider value={backendFeaturesValue}>
+    <BackendFeaturesContext.Provider value={backendFeatures}>
       <FeatureRegistryContext.Provider value={activeFeatures}>{children}</FeatureRegistryContext.Provider>
     </BackendFeaturesContext.Provider>
   );

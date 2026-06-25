@@ -1,11 +1,17 @@
 ---
 title: Error Handling, Retry & Timeout
-description: Recovering from transition errors with auto-retry and exponential backoff, custom error state transitions, manual retry via Studio UI, and transition timeouts.
+description: Recovering from transition errors with auto-retry and exponential backoff, retryTarget for retry-via-another-place, errorPlace routing for sync throws and sub-workflow failure callbacks, manual retry via Studio UI, and transition timeouts.
 ---
 
 # Error Handling, Retry & Timeout
 
-When a transition throws an error, the framework rolls back all changes and gives you three ways to recover: auto-retry with backoff, transition to a custom error state, or manual retry via the UI.
+When a transition fails — by throwing, timing out, or receiving a `failed` / `canceled` callback from a sub-workflow — the framework rolls back local changes and then runs a single decision tree:
+
+1. **Auto-retry** if `retryAttempts` has budget left.
+2. **Route to `errorPlace`** if declared (retries exhausted, or no retries configured).
+3. **Manual retry (default)** — stay at the current place and surface a Retry button in the UI.
+
+The same rule applies to sync throws, timeouts, and sub-workflow failure callbacks — there's one mental model.
 
 ## Retry Modes
 
@@ -14,7 +20,7 @@ When a transition throws an error, the framework rolls back all changes and give
 Automatically re-run a failed transition with exponential backoff:
 
 ```typescript
-@Transition({ from: 'fetching', to: 'done', retry: 3 })
+@Transition({ from: 'fetching', to: 'done', retryAttempts: 3 })
 async fetchData() {
   await this.httpClient.call({ url: 'https://api.example.com/data' });
 }
@@ -22,12 +28,34 @@ async fetchData() {
 
 If `fetchData` throws, the framework retries up to 3 times with exponential delays (1s, 2s, 4s). The workflow stays at the `fetching` place during retries.
 
-### Custom Error Place
+### Retry via a Different Place (`retryTarget`)
+
+Some retries need preparation work between attempts — refresh a token, invalidate a cache, log out and back in. `retryTarget` moves the workflow to a different place on each auto-retry, instead of re-running the failing transition directly:
+
+```typescript
+@Transition({
+  from: 'fetching', to: 'done',
+  retryAttempts: 3,
+  retryTarget: 'refresh_credentials',
+})
+async callApi() {
+  await this.api.call({ ... });
+}
+
+@Transition({ from: 'refresh_credentials', to: 'fetching' })
+async refreshCredentials() {
+  await this.auth.refreshToken();
+}
+```
+
+On failure, `callApi`'s retry budget is decremented, the workflow jumps to `refresh_credentials`, the refresh transition runs, and the workflow loops back to `fetching` to re-attempt `callApi`. Transitions inside the retry target have their own independent retry budget — a failure in `refreshCredentials` doesn't consume `callApi`'s attempts.
+
+### Custom Error Place (`errorPlace`)
 
 Route to a dedicated error state when a transition fails:
 
 ```typescript
-@Transition({ from: 'processing', to: 'done', retry: { place: 'error_processing' } })
+@Transition({ from: 'processing', to: 'done', errorPlace: 'error_processing' })
 async processData() {
   await this.processor.call({ data: this.rawData });
 }
@@ -42,11 +70,11 @@ async handleProcessingError() {
 }
 ```
 
-The workflow transitions to `error_processing` where you define recovery logic via `wait: true` transitions (buttons in the UI).
+The workflow transitions to `error_processing` where you define recovery logic via `wait: true` transitions (buttons in the UI). When `errorPlace` is set without `retryAttempts`, attempts default to `0` — failures route straight to the error place on the first try.
 
 ### Manual Retry (Default)
 
-When no `retry` config is specified, the workflow stays at the current place and shows a "Retry" button:
+When no failure handling is specified, the workflow stays at the current place and shows a "Retry" button:
 
 ```typescript
 @Transition({ from: 'sending', to: 'sent' })
@@ -65,7 +93,8 @@ Combine auto-retry with a fallback error state:
 @Transition({
   from: 'deploying',
   to: 'deployed',
-  retry: { attempts: 2, place: 'deploy_failed' },
+  retryAttempts: 2,
+  errorPlace: 'deploy_failed',
 })
 async deploy() {
   await this.deployer.call({ target: 'production' });
@@ -79,20 +108,38 @@ async retryDeploy() {
 
 Retries twice automatically. If both fail, transitions to `deploy_failed` for manual intervention.
 
-## Retry Configuration
+## Sub-Workflow Failure Callbacks
+
+A wait transition that resumes from a sub-workflow callback can fail just like a synchronous transition — when the child finishes with `status: failed` or `canceled`. The same `retryAttempts` / `retryTarget` / `errorPlace` rules apply:
 
 ```typescript
-retry: number                    // Shorthand: number of auto-retry attempts
-retry: {
-  attempts?: number,             // Auto-retry count (0 = skip auto-retry, -1 = manual only)
-  delay?: number,                // Base delay in ms (default: 1000)
-  backoff?: 'fixed' | 'exponential',  // Backoff strategy (default: 'exponential')
-  maxDelay?: number,             // Backoff cap in ms (default: 30000)
-  place?: string,                // Custom error place when retries exhausted
+@Transition({ from: 'awaiting_child', to: 'done', wait: true, errorPlace: 'sub_failed' })
+async childCompleted(_state, _input) {
+  // Happy path only — the child succeeded.
+}
+
+@Transition({ from: 'sub_failed', to: 'done', wait: true })
+async handleSubFailed() {
+  // Recovery when the child failed — surfaces a Recover button.
 }
 ```
 
-**Backoff calculation (exponential):** `delay * 2^(attempt - 1)`, capped at `maxDelay`.
+Without `errorPlace` (or `retryAttempts`), a sub-workflow failure callback still fires the body — for accumulator patterns where the body itself handles error results (e.g. LLM tool delegation). With either declared, the framework treats the failure as the wait transition failing and skips the body entirely. That protects schema-validated bodies from receiving `null` / malformed data when the child never reached `setResult(...)`.
+
+## Failure-Handling Configuration
+
+```typescript
+retryAttempts?: number           // -1 = unlimited manual retry (default).
+                                 // 0 = no auto-retry (default when errorPlace is set).
+                                 // N>0 = up to N auto-retries.
+retryDelay?: number              // Base delay in ms (default: 1000).
+retryBackoff?: 'fixed' | 'exponential'  // (default: 'exponential')
+retryMaxDelay?: number           // Backoff cap in ms (default: 30000).
+retryTarget?: string             // Re-enter this place on each auto-retry, instead of re-running this transition.
+errorPlace?: string              // Where to route when retries are exhausted (or no retry is configured).
+```
+
+**Backoff calculation (exponential):** `retryDelay * 2^(attempt - 1)`, capped at `retryMaxDelay`.
 
 | Attempt | Delay (default config) |
 | ------- | ---------------------- |
@@ -108,7 +155,7 @@ retry: {
 Transitions can access the current retry count through `ctx.execution.retryCount`. It is 0-indexed: `0` on the first attempt, `1` after the first retry, and so on. Add `1` for a human-friendly attempt number when logging or branching on retries.
 
 ```typescript
-@Transition({ from: 'fetching', to: 'done', retry: 3 })
+@Transition({ from: 'fetching', to: 'done', retryAttempts: 3 })
 async fetchData(state: MyState, ctx: RunContext) {
   const attempt = (ctx.execution?.retryCount ?? 0) + 1;
   this.logger.log(`Fetch attempt ${attempt}`);
@@ -147,7 +194,7 @@ You can combine timeout with retry:
   from: 'analyzing',
   to: 'analyzed',
   timeout: 5000,
-  retry: 2,
+  retryAttempts: 2,
 })
 async analyzeData() {
   await this.analyzer.call({ dataset: this.data });
@@ -186,4 +233,4 @@ Multiple `ErrorDocument`s accumulate if retries fail repeatedly — giving a ful
 
 ## Registry References
 
-- [error-retry-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#error-retry) — Demonstrates all five retry modes: auto-retry, manual retry, custom error place, timeout, and hybrid
+- [error-retry-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#error-retry) — Demonstrates all seven retry modes: auto-retry, manual retry, custom error place, timeout, hybrid, `retryTarget`, and sub-workflow failure callback routed via `errorPlace`.

@@ -49,6 +49,7 @@ export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object,
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -78,6 +79,7 @@ export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object,
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -89,6 +91,7 @@ export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object,
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

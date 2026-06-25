@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/advanced-workflows-examples",
   "displayName": "Loopstack Advanced Workflows Examples",
-  "description": "In-depth workflow examples for advanced Loopstack patterns — state, dynamic routing, error retry, sub-workflows (parent, fan-out, sequence), batch processing, custom tools, module configuration, UI documents.",
+  "description": "In-depth workflow examples for advanced Loopstack patterns — state, dynamic routing, error retry, sub-workflows (parent, fan-out, sequence), batch processing, custom tools, module configuration, UI documents, agent tool-error handling.",
   "keywords": [
     "loopstack",
     "example",
@@ -12,7 +12,9 @@
     "retry",
     "sub-workflow",
     "fan-out",
-    "batch"
+    "batch",
+    "agent",
+    "error-handling"
   ],
   "version": "0.1.0",
   "license": "MIT",
@@ -35,8 +37,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
+    "@loopstack/claude-module": "*",
     "@loopstack/common": "*",
     "@loopstack/core": "*",
+    "@loopstack/llm-provider-module": "*",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },

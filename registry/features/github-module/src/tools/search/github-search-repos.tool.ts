@@ -52,6 +52,7 @@ export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, objec
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -78,6 +79,7 @@ export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, objec
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -89,6 +91,7 @@ export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, objec
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

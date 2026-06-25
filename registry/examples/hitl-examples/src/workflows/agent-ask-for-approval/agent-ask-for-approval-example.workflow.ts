@@ -1,18 +1,14 @@
-import { z } from 'zod';
-import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-
-const AgentResponseSchema = z.object({ response: z.string() });
+import { type AgentResult, AgentResultSchema, AgentWorkflow } from '@loopstack/agent';
+import { BaseWorkflow, MarkdownDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
 const SYSTEM_PROMPT = `You are a release-notes drafting assistant.
 
-Your task: produce a concise release-notes markdown draft for the user's input, then submit it for explicit user approval.
+Your task: produce a concise release-notes markdown draft, get explicit user approval via the "ask_for_approval" tool, then output the approved markdown as your final response.
 
 CRITICAL RULES — your response MUST follow these:
-- Do NOT write the draft as plain text in your response.
-- Your response MUST be exactly ONE tool call to "ask_for_approval".
-- The "concept" argument of the tool call IS the markdown draft.
-- Never finish your turn without calling "ask_for_approval".`;
+- First turn: respond with exactly ONE tool call to "ask_for_approval". The "concept" argument IS the markdown draft. Do NOT write the draft as plain text in this turn.
+- After approval: your final text response MUST be the approved markdown verbatim, with no preamble, commentary, or trailing text.
+- After denial: respond with a brief one-line note that the draft was rejected.`;
 
 @Workflow({
   title: 'HITL - Agent Ask For Approval Example',
@@ -42,13 +38,10 @@ export class AgentAskForApprovalExampleWorkflow extends BaseWorkflow {
     from: 'running',
     to: 'end',
     wait: true,
-    schema: AgentResponseSchema,
+    schema: AgentResultSchema,
   })
-  async agentComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
-    await this.documentStore.save(MessageDocument, {
-      role: 'assistant',
-      text: input.data.response,
-    });
-    this.setResult({ response: input.data.response } as unknown as Record<string, unknown>);
+  async agentComplete(_state: Record<string, unknown>, input: TransitionInput<AgentResult>) {
+    await this.documentStore.save(MarkdownDocument, { markdown: input.data.response });
+    this.setResult(input.data);
   }
 }

@@ -6,7 +6,7 @@ import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto.js';
 import { FileApiService } from '../services/file-api.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
-@Controller('api/v1/workspaces/:workspaceId/files')
+@Controller('api/v1/workspaces/:workspaceId/local-files')
 export class LocalFileExplorerController {
   constructor(
     private readonly fileApiService: FileApiService,

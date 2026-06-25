@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
 
@@ -48,10 +48,5 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
       },
       { show: 'inline', label: 'Linear Agent Chat' },
     );
-
-    await this.documentStore.save(MessageDocument, {
-      role: 'assistant',
-      text: `Connected to Linear MCP at ${LINEAR_MCP_URL}.`,
-    });
   }
 }

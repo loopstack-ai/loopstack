@@ -58,7 +58,13 @@ export class AuthenticateGoogleTask extends BaseTool<
     };
   }
 
-  async complete(_result: Record<string, unknown>): Promise<ToolEnvelope<AuthenticateGoogleTaskResult>> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope<AuthenticateGoogleTaskResult>> {
+    const status = result.status as string | undefined;
+    if (status === 'failed' || status === 'canceled') {
+      const detail = (result.errorMessage as string | undefined) ?? `Sub-workflow ${status}`;
+      const message = `Google authentication ${status}: ${detail}`;
+      return { data: message, error: message };
+    }
     return {
       data: 'Google authentication completed successfully. You can now use Google Workspace tools.',
     };

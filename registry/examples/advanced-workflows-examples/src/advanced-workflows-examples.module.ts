@@ -1,5 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ClaudeModule } from '@loopstack/claude-module';
 import { StudioApp } from '@loopstack/common';
+import { AgentErrorHandlingFailingSubWorkflow } from './workflows/agent-error-handling/agent-error-handling-failing-sub.workflow';
+import { AgentErrorHandlingWorkflow } from './workflows/agent-error-handling/agent-error-handling.workflow';
+import { FailingSubWorkflowTool } from './workflows/agent-error-handling/tools/failing-sub-workflow.tool';
+import { RuntimeErrorTool } from './workflows/agent-error-handling/tools/runtime-error.tool';
+import { StrictSchemaTool } from './workflows/agent-error-handling/tools/strict-schema.tool';
 import { BatchProcessingExampleWorkflow } from './workflows/batch-processing/batch-processing-example.workflow';
 import { CustomToolExampleWorkflow } from './workflows/custom-tool/custom-tool-example.workflow';
 import { MathService } from './workflows/custom-tool/services/math.service';
@@ -7,6 +13,7 @@ import { CounterTool } from './workflows/custom-tool/tools/counter.tool';
 import { MathSumTool } from './workflows/custom-tool/tools/math-sum.tool';
 import { DynamicRoutingExampleWorkflow } from './workflows/dynamic-routing/dynamic-routing-example.workflow';
 import { ErrorRetryWorkflow } from './workflows/error-retry/error-retry-example.workflow';
+import { ErrorRetryFailingChildWorkflow } from './workflows/error-retry/failing-child.workflow';
 import { SlowTool } from './workflows/error-retry/tools/slow.tool';
 import { Step1Tool } from './workflows/error-retry/tools/step1.tool';
 import { Step2Tool } from './workflows/error-retry/tools/step2.tool';
@@ -32,8 +39,6 @@ const WORKFLOWS = [
   DynamicRoutingExampleWorkflow,
   ErrorRetryWorkflow,
   RunSubWorkflowExampleParentWorkflow,
-  RunSubWorkflowExampleSubWorkflow,
-  RunSubWorkflowExampleFailingSubWorkflow,
   RunSubWorkflowExampleErrorHandlingWorkflow,
   RunSubWorkflowExampleShowModesWorkflow,
   RunSubWorkflowExampleFanOutWorkflow,
@@ -41,6 +46,7 @@ const WORKFLOWS = [
   BatchProcessingExampleWorkflow,
   CustomToolExampleWorkflow,
   TestUiDocumentsWorkflow,
+  AgentErrorHandlingWorkflow,
 ];
 
 @StudioApp({
@@ -49,13 +55,29 @@ const WORKFLOWS = [
 })
 @Module({
   imports: [
+    ClaudeModule,
     GreeterModule.forRoot({ language: 'en', greeting: 'Hello' }),
     DefaultGreetingModule,
     GermanGreetingModule,
     FrenchGreetingModule,
     NestedGreetingModule,
   ],
-  providers: [MathService, MathSumTool, CounterTool, Step1Tool, Step2Tool, SlowTool, ...WORKFLOWS],
+  providers: [
+    MathService,
+    MathSumTool,
+    CounterTool,
+    Step1Tool,
+    Step2Tool,
+    SlowTool,
+    StrictSchemaTool,
+    RuntimeErrorTool,
+    FailingSubWorkflowTool,
+    ErrorRetryFailingChildWorkflow,
+    RunSubWorkflowExampleSubWorkflow,
+    RunSubWorkflowExampleFailingSubWorkflow,
+    AgentErrorHandlingFailingSubWorkflow,
+    ...WORKFLOWS,
+  ],
   exports: WORKFLOWS,
 })
 export class AdvancedWorkflowsExamplesModule {}

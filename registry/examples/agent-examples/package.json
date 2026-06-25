@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/agent-examples",
   "displayName": "Loopstack Agent Examples",
-  "description": "Workflow examples for LLM agents in Loopstack — basic AgentWorkflow, code-exploration agent, MCP-connected agent, and a from-scratch custom agent loop with error handling.",
+  "description": "Workflow examples for LLM agents in Loopstack — basic AgentWorkflow, code-exploration agent, MCP-connected agent, and a from-scratch custom agent loop with a deterministic turn budget.",
   "keywords": [
     "loopstack",
     "example",
@@ -38,6 +38,7 @@
     "@loopstack/common": "*",
     "@loopstack/llm-provider-module": "*",
     "@loopstack/mcp-module": "*",
+    "@loopstack/remote-client": "*",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document.js';
 import { AskUserDocument } from '../../documents/ask-user-document.js';
@@ -55,7 +55,7 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs> {
   }
 
   @Transition({ from: 'waiting_for_user', to: 'end', wait: true, schema: AskUserAnswerSchema })
-  async userAnswered(state: AskUserState, payload: { answer: string }) {
+  async userAnswered(state: AskUserState, input: TransitionInput<{ answer: string }>) {
     if (state.mode === 'options') {
       await this.documentStore.save(
         AskUserOptionsDocument,
@@ -63,25 +63,25 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs> {
           question: state.question,
           options: state.options ?? [],
           allowCustomAnswer: state.allowCustomAnswer,
-          answer: payload.answer,
+          answer: input.data.answer,
         },
         { key: 'question' },
       );
     } else if (state.mode === 'confirm') {
       await this.documentStore.save(
         AskUserConfirmDocument,
-        { question: state.question, answer: payload.answer },
+        { question: state.question, answer: input.data.answer },
         { key: 'question' },
       );
     } else {
       await this.documentStore.save(
         AskUserDocument,
-        { question: state.question, answer: payload.answer },
+        { question: state.question, answer: input.data.answer },
         { key: 'question' },
       );
     }
 
-    this.setResult({ answer: payload.answer } as unknown as Record<string, unknown>);
+    this.setResult({ answer: input.data.answer } as unknown as Record<string, unknown>);
   }
 
   private isOptionsMode(state: AskUserState): boolean {

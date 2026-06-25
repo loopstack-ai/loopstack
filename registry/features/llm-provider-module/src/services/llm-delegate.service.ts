@@ -151,10 +151,13 @@ export class LlmDelegateService {
     }
 
     if (subWorkflowFailed && !toolResult.error) {
+      // Tool's complete() didn't recognize the failure. Overwrite both `data` and `error` —
+      // otherwise the tool's (now misleading) success payload would be sent to the LLM as the
+      // tool_result content alongside isError: true, and the model would proceed as if it succeeded.
       const errorMessage = `Sub-workflow "${toolName}" ${callbackStatus}.`;
       this.logger.error(errorMessage);
       toolResult = {
-        data: (toolResult.data as string) ?? errorMessage,
+        data: errorMessage,
         error: errorMessage,
       };
     }

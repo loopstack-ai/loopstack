@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { TransitionInput } from '@loopstack/common';
 import {
   GmailGetMessageTool,
   GmailReplyToMessageTool,
@@ -68,11 +69,15 @@ export class GoogleWorkspaceAgentExampleWorkflow extends BaseWorkflow {
       role: 'user',
       text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
     });
+    await this.documentStore.save(LlmMessageDocument, {
+      role: 'assistant',
+      text: this.render(join(__dirname, 'templates', 'welcomeMessage.md')),
+    });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(_state: GoogleWorkspaceAgentState, payload: string) {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+  async userMessage(_state: GoogleWorkspaceAgentState, input: TransitionInput<string>) {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
@@ -121,10 +126,10 @@ then retry. Be concise and format results using markdown.`,
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(state: GoogleWorkspaceAgentState, payload: Record<string, unknown>) {
+  async toolResultReceived(state: GoogleWorkspaceAgentState, input: TransitionInput<Record<string, unknown>>) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
-      completedTool: payload,
+      completedTool: input,
     });
     this.assignState({ delegateResult: result.data });
   }

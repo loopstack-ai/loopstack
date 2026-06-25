@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import {
   BaseWorkflow,
   Guard,
@@ -36,6 +36,16 @@ const AgentArgsSchema = z.object({
 });
 
 type AgentArgs = z.infer<typeof AgentArgsSchema>;
+
+/**
+ * Schema for the `data` field of the `TransitionInput` delivered to a parent's
+ * callback transition after AgentWorkflow completes.
+ *
+ * Use as the `schema:` on the callback wait-transition and as the generic
+ * parameter to `TransitionInput<AgentResult>`.
+ */
+export const AgentResultSchema = z.object({ response: z.string() });
+export type AgentResult = z.infer<typeof AgentResultSchema>;
 
 interface AgentState {
   system: string;
@@ -105,10 +115,10 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
-  async toolResultReceived(state: AgentState, payload: unknown) {
+  async toolResultReceived(state: AgentState, input: TransitionInput) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
-      completedTool: payload,
+      completedTool: input,
     });
 
     this.assignState({ delegateResult: result.data });
@@ -128,7 +138,8 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
   respond(state: AgentState) {
-    this.setResult({ response: state.llmResult?.message.text ?? '' } as unknown as Record<string, unknown>);
+    const result: AgentResult = { response: state.llmResult?.message.text ?? '' };
+    this.setResult(result);
   }
 
   private hasToolCalls(state: AgentState): boolean {

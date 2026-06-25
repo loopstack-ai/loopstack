@@ -2,6 +2,8 @@ export const SseClientEvents = {
   WORKFLOW_CREATED: 'workflow.created',
   WORKFLOW_UPDATED: 'workflow.updated',
   DOCUMENT_CREATED: 'document.created',
+  SECRET_UPSERTED: 'secret.upserted',
+  SECRET_DELETED: 'secret.deleted',
   SSE_CONNECTED: 'sse.connected',
   LLM_RESPONSE_START: 'llm.response.start',
   LLM_RESPONSE_TEXT_DELTA: 'llm.response.text_delta',

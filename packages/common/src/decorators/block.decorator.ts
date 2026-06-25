@@ -216,56 +216,14 @@ export function getBlockType(target: object): BlockType | undefined {
   return Reflect.getMetadata(BLOCK_TYPE_METADATA_KEY, target.constructor) as BlockType | undefined;
 }
 
-// Retry Configuration
+// Retry / error-routing defaults
 
-/** Shorthand (number of auto-retry attempts) or full config object. */
-export type RetryConfig =
-  | number
-  | {
-      /** Number of auto-retry attempts. -1 = unlimited manual retry (default). 0+ = auto-retry count. */
-      attempts?: number;
-      /** Base delay in ms between retries. Default: 1000 */
-      delay?: number;
-      /** Backoff strategy. Default: 'exponential' */
-      backoff?: 'fixed' | 'exponential';
-      /** Maximum delay cap in ms for exponential backoff. Default: 30000 */
-      maxDelay?: number;
-      /** Custom error place to transition to when retries are exhausted. */
-      place?: string;
-    };
-
-/** Fully resolved retry config with all defaults applied. */
-export interface NormalizedRetryConfig {
-  attempts: number;
-  delay: number;
-  backoff: 'fixed' | 'exponential';
-  maxDelay: number;
-  place?: string;
-}
-
-const RETRY_DEFAULTS: Omit<NormalizedRetryConfig, 'place'> = {
+const RETRY_DEFAULTS = {
   attempts: -1,
   delay: 1000,
-  backoff: 'exponential',
+  backoff: 'exponential' as const,
   maxDelay: 30000,
 };
-
-export function normalizeRetryConfig(config?: RetryConfig): NormalizedRetryConfig {
-  if (config === undefined) {
-    return { ...RETRY_DEFAULTS };
-  }
-  if (typeof config === 'number') {
-    return { ...RETRY_DEFAULTS, attempts: config };
-  }
-  const hasPlace = config.place !== undefined;
-  return {
-    attempts: config.attempts ?? (hasPlace ? 0 : RETRY_DEFAULTS.attempts),
-    delay: config.delay ?? RETRY_DEFAULTS.delay,
-    backoff: config.backoff ?? RETRY_DEFAULTS.backoff,
-    maxDelay: config.maxDelay ?? RETRY_DEFAULTS.maxDelay,
-    place: config.place,
-  };
-}
 
 // Transition Decorators
 
@@ -276,7 +234,18 @@ export interface TransitionMetadata {
   wait?: boolean;
   priority?: number;
   schema?: z.ZodType;
-  retry?: NormalizedRetryConfig;
+  /** Number of auto-retry attempts. -1 = unlimited manual retry (default). 0 = no auto-retry. N>0 = up to N auto-retries. */
+  retryAttempts: number;
+  /** Base delay in ms between auto-retries. */
+  retryDelay: number;
+  /** Backoff strategy for auto-retries. */
+  retryBackoff: 'fixed' | 'exponential';
+  /** Cap in ms for exponential backoff. */
+  retryMaxDelay: number;
+  /** Where to re-enter on auto-retry. When unset, the failing transition is re-run. When set, `place` is moved to this target and whatever transition fires from there handles the retry. */
+  retryTarget?: string;
+  /** Where to go when retries are exhausted, or when the failure isn't retryable (e.g. sub-workflow callback with status `failed` / `canceled`). A `wait: true` transition from this place typically does the recovery. */
+  errorPlace?: string;
   /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
   timeout?: number;
 }
@@ -295,8 +264,18 @@ export interface TransitionOptions {
   priority?: number;
   /** Zod schema to validate the transition payload (for wait transitions) or args (for initial transitions) */
   schema?: z.ZodType;
-  /** Retry configuration for error handling. Default: unlimited manual retry. */
-  retry?: RetryConfig;
+  /** Number of auto-retry attempts. -1 = unlimited manual retry (default). 0 = no auto-retry. N>0 = up to N auto-retries. */
+  retryAttempts?: number;
+  /** Base ms between auto-retries. Default: 1000. */
+  retryDelay?: number;
+  /** Backoff strategy for auto-retries. Default: 'exponential'. */
+  retryBackoff?: 'fixed' | 'exponential';
+  /** Cap in ms for exponential backoff. Default: 30000. */
+  retryMaxDelay?: number;
+  /** Where to re-enter on auto-retry. When unset, the failing transition is re-run. When set, `place` is moved to this target on each retry. */
+  retryTarget?: string;
+  /** Where to go when retries are exhausted, or when the failure isn't retryable (e.g. sub-workflow callback with status `failed` / `canceled`). */
+  errorPlace?: string;
   /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
   timeout?: number;
 }
@@ -308,6 +287,10 @@ function addTransitionMetadata(target: object, metadata: TransitionMetadata): vo
 
 export function Transition(options: TransitionOptions): MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
+    // When `errorPlace` is set without `retryAttempts`, default to 0 auto-retries
+    // (route straight to errorPlace on first failure). Otherwise default to unlimited
+    // manual retry.
+    const defaultAttempts = options.errorPlace !== undefined ? 0 : RETRY_DEFAULTS.attempts;
     addTransitionMetadata(target, {
       methodName: String(propertyKey),
       from: options.from ?? 'start',
@@ -315,7 +298,12 @@ export function Transition(options: TransitionOptions): MethodDecorator {
       wait: options.wait,
       priority: options.priority,
       schema: options.schema,
-      retry: normalizeRetryConfig(options.retry),
+      retryAttempts: options.retryAttempts ?? defaultAttempts,
+      retryDelay: options.retryDelay ?? RETRY_DEFAULTS.delay,
+      retryBackoff: options.retryBackoff ?? RETRY_DEFAULTS.backoff,
+      retryMaxDelay: options.retryMaxDelay ?? RETRY_DEFAULTS.maxDelay,
+      retryTarget: options.retryTarget,
+      errorPlace: options.errorPlace,
       timeout: options.timeout,
     });
   };

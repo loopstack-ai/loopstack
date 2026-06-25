@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { TransitionInput } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmContextDocument,
@@ -73,10 +74,10 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(state: AgenticState, payload: Record<string, unknown>) {
+  async toolResultReceived(state: AgenticState, input: TransitionInput<Record<string, unknown>>) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
-      completedTool: payload,
+      completedTool: input,
     });
     this.assignState({ delegateResult: result.data });
   }
@@ -90,8 +91,8 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: AgenticState, payload: string) {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+  async userMessage(state: AgenticState, input: TransitionInput<string>) {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })

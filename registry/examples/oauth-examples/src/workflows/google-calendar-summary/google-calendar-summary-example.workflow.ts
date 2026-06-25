@@ -37,15 +37,23 @@ export class GoogleCalendarSummaryExampleWorkflow extends BaseWorkflow<CalendarS
 
   @Transition({ to: 'calendar_fetched' })
   async fetchEvents(state: CalendarSummaryState, ctx: RunContext<CalendarSummaryArgs>) {
-    const result = await this.googleCalendarFetchEvents.call({
-      calendarId: ctx.args.calendarId,
-      timeMin: this.now(),
-      timeMax: this.endOfWeek(),
-    });
-    this.assignState({
-      requiresAuthentication: result.data.error === 'unauthorized',
-      events: result.data.events,
-    });
+    try {
+      const result = await this.googleCalendarFetchEvents.call({
+        calendarId: ctx.args.calendarId,
+        timeMin: this.now(),
+        timeMax: this.endOfWeek(),
+      });
+      this.assignState({ requiresAuthentication: false, events: result.data.events });
+    } catch (error) {
+      // The Google tools throw with their human-readable message on auth failure
+      // ("No valid Google token found. Please authenticate first." / "Google token was rejected. Please re-authenticate.").
+      // Both contain "authenticate" — match on that to route through the OAuth sub-workflow.
+      if (error instanceof Error && /authenticate/i.test(error.message)) {
+        this.assignState({ requiresAuthentication: true });
+        return;
+      }
+      throw error;
+    }
   }
 
   // If unauthorized -> launch OAuth as sub-workflow

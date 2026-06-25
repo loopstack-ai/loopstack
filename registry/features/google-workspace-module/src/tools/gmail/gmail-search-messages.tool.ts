@@ -55,6 +55,7 @@ export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, o
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -81,6 +82,7 @@ export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, o
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -92,6 +94,7 @@ export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, o
           error: 'api_error',
           message: `Gmail API error: ${listResponse.statusText}`,
         },
+        error: `Gmail API error: ${listResponse.statusText}`,
       };
     }
 

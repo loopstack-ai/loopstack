@@ -5,15 +5,17 @@ import { ClaudeWebSearch } from './tools/index.js';
 
 const PROVIDERS = [ClaudeWebSearch];
 
+@Module({})
+class ClaudeToolsRootModule {}
+
 @Module({
-  imports: [LlmProviderModule.forFeature({})],
   providers: PROVIDERS,
   exports: PROVIDERS,
 })
 export class ClaudeToolsModule {
   static forFeature(config: { llm: LlmModuleConfig }): DynamicModule {
     return {
-      module: ClaudeToolsModule,
+      module: ClaudeToolsRootModule,
       imports: [LlmProviderModule.forFeature(config.llm)],
       providers: PROVIDERS,
       exports: PROVIDERS,

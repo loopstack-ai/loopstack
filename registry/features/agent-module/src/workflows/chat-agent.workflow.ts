@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import {
   BaseWorkflow,
   Guard,
@@ -151,8 +151,8 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   respond(_state: ChatAgentState) {}
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: ChatAgentState, payload: string) {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
+  async userMessage(state: ChatAgentState, input: TransitionInput<string>) {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
   }
 
   private hasToolCalls(state: ChatAgentState): boolean {

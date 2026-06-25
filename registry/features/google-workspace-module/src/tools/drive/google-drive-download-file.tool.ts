@@ -53,6 +53,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -69,6 +70,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -80,6 +82,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${metaResponse.statusText}`,
         },
+        error: `Google Drive API error: ${metaResponse.statusText}`,
       };
     }
 
@@ -107,6 +110,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -118,6 +122,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${downloadResponse.statusText}`,
         },
+        error: `Google Drive API error: ${downloadResponse.statusText}`,
       };
     }
 

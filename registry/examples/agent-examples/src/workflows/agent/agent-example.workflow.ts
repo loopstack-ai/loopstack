@@ -1,9 +1,7 @@
 import { join } from 'node:path';
-import { z } from 'zod';
-import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-
-const AgentResponseSchema = z.object({ response: z.string() });
+import { type AgentResult, AgentResultSchema, AgentWorkflow } from '@loopstack/agent';
+import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
+import { LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
   title: 'Agent - Basic Agent Example',
@@ -16,14 +14,14 @@ export class AgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'running' })
-  async start(_state: Record<string, unknown>) {
+  async start() {
     await this.agentWorkflow.run(
       {
         system: this.render(join(__dirname, 'templates', 'system.md')),
         tools: ['weather_lookup', 'calculator'],
         userMessage: "What's the weather in Tokyo? Also, what is 42 * 17?",
       },
-      { callback: { transition: 'agentComplete' }, show: 'inline', label: 'Agent working...' },
+      { callback: { transition: 'agentComplete' }, show: 'inline', label: 'Subagent' },
     );
   }
 
@@ -31,10 +29,10 @@ export class AgentExampleWorkflow extends BaseWorkflow {
     from: 'running',
     to: 'end',
     wait: true,
-    schema: AgentResponseSchema,
+    schema: AgentResultSchema,
   })
-  async agentComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
-    await this.documentStore.save(MessageDocument, {
+  async agentComplete(_state: Record<string, unknown>, input: TransitionInput<AgentResult>) {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
       text: input.data.response,
     });

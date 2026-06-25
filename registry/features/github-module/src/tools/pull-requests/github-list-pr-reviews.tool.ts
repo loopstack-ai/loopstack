@@ -51,6 +51,7 @@ export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, o
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -70,6 +71,7 @@ export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, o
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -81,6 +83,7 @@ export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, o
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 
