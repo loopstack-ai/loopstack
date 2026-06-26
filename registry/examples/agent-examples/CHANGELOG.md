@@ -1,8 +1,67 @@
-# @loopstack/code-agent
+# @loopstack/agent-examples
 
-## 0.4.5
+## 0.1.1
 
 ### Patch Changes
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, and `LlmUpdateToolResultTool` now persist their messages to the document store automatically — the assistant turn after `llmGenerateText`, and the `tool_result` user turn once all delegated tools have completed (sync or async). Two new config fields control this:
+  - `save?: boolean` (default `true`) — pass `false` to opt out when you want to inspect, transform, or persist the response yourself (e.g. prefixing the text with a provider name for side-by-side comparison).
+  - `meta?: Record<string, unknown>` — merged into the auto-saved document's metadata. Common use: `{ meta: { hidden: true } }` to keep a message in the LLM's conversation history while hiding it from the Studio UI.
+
+  **Migration:** if your workflow already saves `result.data!.message` / `state.llmResult!.message` manually, drop the call — you'll otherwise persist the same document twice. Author-constructed messages (`{ role: 'user', text }`, system seeds, transformed responses) stay manual.
+
+  All registry examples and the built-in `AgentWorkflow` / `ChatAgentWorkflow` updated to drop their manual saves. Three sync-only tool-calling workflows (`tool-call-example-workflow`, `explore-registry-package-agent`, `search-registry-agent`) had their state graphs simplified — `awaiting_tools` intermediate state, `toolsComplete` transition, and `allToolsComplete` guard are gone since they were only needed for the now-automatic save. Async workflows (with `callback: { transition: ... }`) keep that structure for callback re-entry.
+
+  The new typed config schemas on `LlmDelegateToolCallsTool` / `LlmUpdateToolResultTool` also surface a previously-silent bug: workflows passing `{ config: { provider: 'claude' } }` to those tools (the field was never accepted; it was discarded under the prior `object` config type). Affected example call sites have been cleaned up.
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Relative `widget:` paths on `@Workflow` / `@Tool` / `@Document` resolve against the class's source directory at decorator-evaluation time (e.g. `widget: './chat.ui.yaml'`). The `Block()` decorator captures the caller file via a new `getCallerFile()` helper and stores the directory under `BLOCK_DIR_METADATA_KEY`. `BaseTool` exposes the `render` Handlebars renderer alongside `BaseWorkflow`. Example workflow render call sites use `path.join(__dirname, 'templates', 'foo.md')`. Registry READMEs and docs swept; `uiConfig:` references in registry READMEs corrected to `widget:`. Resolves todo.md [#9](https://github.com/loopstack-ai/loopstack/issues/9).
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Failure-handling on `@Transition` is now expressed as flat fields instead of a nested `retry` object, and the framework treats sync throws, timeouts, and sub-workflow failure callbacks under a single decision tree (auto-retry → `errorPlace` → manual retry).
+
+  **Decorator surface:**
+
+  ```ts
+  @Transition({
+    from, to,
+    retryAttempts?: number,            // -1 = unlimited manual retry (default).
+                                       //  0 = no auto-retry (default when errorPlace is set).
+                                       // N>0 = up to N auto-retries.
+    retryDelay?: number,               // Base ms (default 1000).
+    retryBackoff?: 'fixed' | 'exponential',  // default 'exponential'.
+    retryMaxDelay?: number,            // ms cap for backoff (default 30000).
+    retryTarget?: string,              // Re-enter this place on each retry, instead of re-running the failing transition.
+    errorPlace?: string,               // Where to route when retries are exhausted (or no retry configured).
+    timeout?: number,
+  })
+  ```
+
+  `retryTarget` is new: it lets a retry land on a different place so a recovery transition (token refresh, cache invalidation, etc.) runs before the failing transition is re-attempted. The transitions reached via `retryTarget` have their own independent retry budget — failures there don't consume the originating transition's attempts.
+
+  Wait transitions that resume from a sub-workflow callback now obey the same rules: a `status: 'failed' | 'canceled'` callback runs through the same decision tree. With `errorPlace` declared, the framework treats the failure as the wait transition failing and skips the body entirely — protecting schema-validated bodies from receiving `null` / malformed data when the child never reached `setResult(...)`. Without `errorPlace` (or `retryAttempts`), the body still fires for accumulator patterns (e.g. LLM tool delegation) where the body itself inspects error results.
+
+  **Breaking changes:**
+  - `RetryConfig`, `NormalizedRetryConfig`, and `normalizeRetryConfig` are removed from `@loopstack/common`.
+  - `@Transition({ retry: 3 })` → `@Transition({ retryAttempts: 3 })`.
+  - `@Transition({ retry: { place: 'x' } })` → `@Transition({ errorPlace: 'x' })`. When `errorPlace` is set without `retryAttempts`, attempts default to `0` (route on first failure) — matching the previous semantics.
+  - `@Transition({ retry: { attempts, delay, backoff, maxDelay, place } })` → individual `retryAttempts`/`retryDelay`/`retryBackoff`/`retryMaxDelay`/`errorPlace` fields.
+
+  **Migration:**
+
+  ```ts
+  // Before
+  @Transition({ from: 'fetching', to: 'done', retry: 3 })
+  @Transition({ from: 'processing', to: 'done', retry: { place: 'error_processing' } })
+  @Transition({ from: 'deploying', to: 'deployed', retry: { attempts: 2, place: 'deploy_failed' } })
+
+  // After
+  @Transition({ from: 'fetching', to: 'done', retryAttempts: 3 })
+  @Transition({ from: 'processing', to: 'done', errorPlace: 'error_processing' })
+  @Transition({ from: 'deploying', to: 'deployed', retryAttempts: 2, errorPlace: 'deploy_failed' })
+  ```
+
+  `LlmDelegateService` now overwrites both `data` and `error` when a sub-workflow tool result reports failure — previously the misleading success payload could leak to the LLM alongside `isError: true`. The `error-retry` and new `agent-error-handling` examples (the latter moved from `@loopstack/agent-examples` into `@loopstack/advanced-workflows-examples`) demonstrate the full set of patterns. Docs (`build/patterns/error-handling.md`) are swept to the new shape with sections for `retryTarget` and sub-workflow failure callbacks.
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `BaseWorkflow` is now single-generic — `BaseWorkflow<TArgs>`. The unused `_TState` second generic has been removed; state is typed per-transition on the `state` parameter. Author convention for typing `ctx.args` is now `ctx: RunContext<FooArgs>` (derived from a `type FooArgs = z.infer<typeof FooSchema>` alias), removing the previously-required `const args = ctx.args as { ... }` cast. All examples, registry workflows, and docs updated.
 
 - [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Split tool result types and tighten the public call surface.
   - **New `ToolEnvelope<T, M>`** — the raw shape returned by `BaseTool.handle()`, `complete()`, and `ToolPipeline.execute()`. Has optional `data`, `error`, `pending`, `metadata`, `type`. This is what was previously called `ToolResult`.
@@ -18,6 +77,8 @@
   - Workflows — drop `result.data!` / `result.metadata!` non-null assertions; the new `ToolResult` makes both non-optional. Drop `as LlmResultMeta` casts on `result.metadata`.
   - Interceptors and quota calculators — `intercept(ctx, next: () => Promise<ToolEnvelope>): Promise<ToolEnvelope>`. `ToolQuotaCalculator.calculateQuotaUsage(ctx, result: ToolEnvelope)`.
   - Structured output — pass a Zod schema to `outputSchema` instead of `toJSONSchema(Schema)`. Drop `validate: 'skip'` on the subsequent `documentStore.save()`.
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `LlmDelegateToolCallsToolSchema.callback` is now required. The previous synchronous loop pattern (no callback, guard-only) silently hung the moment any tool returned `pending: true` — typical for sub-workflow tools and HITL tools. Requiring `callback` at the schema level forces every caller to wire up the `wait: true` self-loop transition that handles async completions via `LlmUpdateToolResultTool`. The `tool-call-example-workflow` example, which demonstrated the unsafe synchronous pattern, has been removed; use `@loopstack/agent` (via `AgentWorkflow.run()`) for standard tool calling, or see `delegate-error-example-workflow` as a reference for hand-rolled loops with custom error handling.
 
 - [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Unify the `wait: true` payload shape. Every wait transition now receives the same envelope, `TransitionInput<TData, TMeta>`, regardless of whether the resume came from a sub-workflow completion or a frontend / API trigger:
 
@@ -118,147 +179,9 @@
 
 - Updated dependencies [[`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89)]:
   - @loopstack/agent@0.5.5
+  - @loopstack/llm-provider-module@0.7.0
   - @loopstack/common@0.36.0
-  - @loopstack/core@0.36.0
   - @loopstack/remote-client@0.26.0
-
-## 0.4.4
-
-### Patch Changes
-
-- [#218](https://github.com/loopstack-ai/loopstack/pull/218) [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Sub-workflow rendering is now controlled by a single `show` option on `RunOptions`, and the orchestrator auto-creates the link card so the parent's view never goes blank.
-
-  `BaseWorkflow.run()` accepts `show?: 'inline' | 'link' | 'hidden'` (default `'inline'`) and `label?: string`. The orchestrator writes the matching `LinkDocument` into the parent's stream from `WorkflowOrchestrationService.queue()` while still inside the parent's `ExecutionScope`:
-  - `'inline'` — `embed: true, expanded: true` (iframe in the parent's view). Right for HITL/OAuth/agents.
-  - `'link'` — `embed: false` (status card opens in a separate window). Right for autonomous children.
-  - `'hidden'` — no save. Right for fan-out / background work.
-
-  The `status` field is removed from `LinkDocumentSchema`. The Studio `LinkCard` reads live status from `useChildWorkflows(parentId)` (already SSE-invalidated) and maps `WorkflowState` to its colored badge — there is no longer any denormalized status to keep in sync.
-
-  All registry features, examples, and sandbox call sites drop their manual `documentStore.save(LinkDocument, …)` pairs around `subWorkflow.run()` and pass `show` + `label` on the `.run()` call instead.
-
-- Updated dependencies [[`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c), [`0cab7cb`](https://github.com/loopstack-ai/loopstack/commit/0cab7cbcc25fc6ddf5705264f24136891428100c)]:
-  - @loopstack/remote-client@0.25.4
-  - @loopstack/common@0.35.0
-  - @loopstack/core@0.35.0
-  - @loopstack/agent@0.5.4
-
-## 0.4.3
-
-### Patch Changes
-
-- [#210](https://github.com/loopstack-ai/loopstack/pull/210) [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Sub-workflow rendering is now controlled by a single `show` option on `RunOptions`, and the orchestrator auto-creates the link card so the parent's view never goes blank.
-
-  `BaseWorkflow.run()` accepts `show?: 'inline' | 'link' | 'hidden'` (default `'inline'`) and `label?: string`. The orchestrator writes the matching `LinkDocument` into the parent's stream from `WorkflowOrchestrationService.queue()` while still inside the parent's `ExecutionScope`:
-  - `'inline'` — `embed: true, expanded: true` (iframe in the parent's view). Right for HITL/OAuth/agents.
-  - `'link'` — `embed: false` (status card opens in a separate window). Right for autonomous children.
-  - `'hidden'` — no save. Right for fan-out / background work.
-
-  The `status` field is removed from `LinkDocumentSchema`. The Studio `LinkCard` reads live status from `useChildWorkflows(parentId)` (already SSE-invalidated) and maps `WorkflowState` to its colored badge — there is no longer any denormalized status to keep in sync.
-
-  All registry features, examples, and sandbox call sites drop their manual `documentStore.save(LinkDocument, …)` pairs around `subWorkflow.run()` and pass `show` + `label` on the `.run()` call instead.
-
-- Updated dependencies [[`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c), [`dfc1694`](https://github.com/loopstack-ai/loopstack/commit/dfc1694b9bf585b3c61a127c58f07c8da964280c)]:
-  - @loopstack/remote-client@0.25.3
-  - @loopstack/common@0.34.0
-  - @loopstack/agent@0.5.3
-  - @loopstack/core@0.34.0
-
-## 0.4.2
-
-### Patch Changes
-
-- [#178](https://github.com/loopstack-ai/loopstack/pull/178) [`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Propagate `LoopstackContext` → `RunContext` rename to tool `handle()` signatures. Rewrite registry READMEs to the canonical template and consolidate the per-package `SETUP.md` content into each README.
-
-- Updated dependencies [[`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b), [`fff422f`](https://github.com/loopstack-ai/loopstack/commit/fff422f6cad4cac05be9380af82fb470b5fd4c0b)]:
-  - @loopstack/common@0.33.0
-  - @loopstack/agent@0.5.2
-  - @loopstack/remote-client@0.25.2
-  - @loopstack/core@0.33.0
-
-## 0.4.1
-
-### Patch Changes
-
-- [#176](https://github.com/loopstack-ai/loopstack/pull/176) [`52cbb6f`](https://github.com/loopstack-ai/loopstack/commit/52cbb6fcb2c2ed9f15cd1a7498b208a54f8de3c8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Move framework dependencies to devDependencies + peerDependencies
-
-- Updated dependencies [[`228d08b`](https://github.com/loopstack-ai/loopstack/commit/228d08b807915ecfa6ef8275714500750e797036), [`52cbb6f`](https://github.com/loopstack-ai/loopstack/commit/52cbb6fcb2c2ed9f15cd1a7498b208a54f8de3c8), [`52cbb6f`](https://github.com/loopstack-ai/loopstack/commit/52cbb6fcb2c2ed9f15cd1a7498b208a54f8de3c8)]:
-  - @loopstack/core@0.32.3
-  - @loopstack/agent@0.5.1
-  - @loopstack/remote-client@0.25.1
-  - @loopstack/common@0.32.3
-
-## 0.4.0
-
-### Minor Changes
-
-- [#170](https://github.com/loopstack-ai/loopstack/pull/170) [`fc88357`](https://github.com/loopstack-ai/loopstack/commit/fc88357ecbf6bf83b61de8aa353fdba9b0f43f4c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - feat(framework): rework framework components and align with NestJs practices
-
-### Patch Changes
-
-- Updated dependencies [[`fc88357`](https://github.com/loopstack-ai/loopstack/commit/fc88357ecbf6bf83b61de8aa353fdba9b0f43f4c)]:
-  - @loopstack/remote-client@0.25.0
-  - @loopstack/agent@0.5.0
-  - @loopstack/common@0.32.0
-
-## 0.3.1
-
-### Patch Changes
-
-- Updated dependencies [[`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1), [`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1)]:
-  - @loopstack/common@0.31.0
-  - @loopstack/core@0.31.0
-  - @loopstack/agent@0.4.1
-  - @loopstack/remote-client@0.24.1
-
-## 0.3.0
-
-### Minor Changes
-
-- [#147](https://github.com/loopstack-ai/loopstack/pull/147) [`1d069d2`](https://github.com/loopstack-ai/loopstack/commit/1d069d2bd819e8eb9f427ab486a34defc12d971b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Nodenext ts options
-
-### Patch Changes
-
-- Updated dependencies [[`6847dd4`](https://github.com/loopstack-ai/loopstack/commit/6847dd43d390b090388b2eddfc2ec50d8b4cc3c1), [`a220472`](https://github.com/loopstack-ai/loopstack/commit/a220472529f50ac5957f960787f742bdf57ab511), [`1d069d2`](https://github.com/loopstack-ai/loopstack/commit/1d069d2bd819e8eb9f427ab486a34defc12d971b)]:
-  - @loopstack/core@0.30.0
-  - @loopstack/common@0.30.0
-  - @loopstack/remote-client@0.24.0
-  - @loopstack/agent@0.4.0
-
-## 0.2.1
-
-### Patch Changes
-
-- [#143](https://github.com/loopstack-ai/loopstack/pull/143) [`4adc8f9`](https://github.com/loopstack-ai/loopstack/commit/4adc8f9e9b6b0b85787cea4d800cfe1142c421f3) Thanks [@github-actions](https://github.com/apps/github-actions)! - Adapt tools and examples to LLM provider registry; fix optional tool args and call signatures
-
-- Updated dependencies [[`4adc8f9`](https://github.com/loopstack-ai/loopstack/commit/4adc8f9e9b6b0b85787cea4d800cfe1142c421f3)]:
-  - @loopstack/common@0.29.0
-  - @loopstack/core@0.29.0
-  - @loopstack/agent@0.3.0
-  - @loopstack/remote-client@0.23.4
-
-## 0.2.0
-
-### Minor Changes
-
-- [#135](https://github.com/loopstack-ai/loopstack/pull/135) [`d5e7897`](https://github.com/loopstack-ai/loopstack/commit/d5e789797c5ccc38a9a65a51402f56ba63ac01f0) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add workspace tool installation to CLI and refactor code-agent to use generic AgentWorkflow
-
-### Patch Changes
-
-- Updated dependencies [[`d5e7897`](https://github.com/loopstack-ai/loopstack/commit/d5e789797c5ccc38a9a65a51402f56ba63ac01f0), [`189e733`](https://github.com/loopstack-ai/loopstack/commit/189e733748074d015a41290ab45c7a46be92253c)]:
-  - @loopstack/agent@0.2.0
-  - @loopstack/common@0.28.0
-  - @loopstack/core@0.28.0
-  - @loopstack/remote-client@0.23.3
-
-## 0.1.1
-
-### Patch Changes
-
-- [#132](https://github.com/loopstack-ai/loopstack/pull/132) [`3911d9e`](https://github.com/loopstack-ai/loopstack/commit/3911d9e10d47c75bc36e5391562a3ee62eb3fa31) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add code-agent module with AI-powered codebase exploration workflow using Claude
-
-- Updated dependencies []:
-  - @loopstack/common@0.27.0
-  - @loopstack/core@0.27.0
-  - @loopstack/claude-module@0.22.4
-  - @loopstack/remote-client@0.23.2
+  - @loopstack/mcp-module@0.3.5
+  - @loopstack/code-agent@0.4.5
+  - @loopstack/claude-module@0.25.5

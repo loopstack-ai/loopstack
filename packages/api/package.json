@@ -2,7 +2,7 @@
   "name": "@loopstack/api",
   "displayName": "Loopstack Api Module",
   "description": "The api module of the loopstack automation framework",
-  "version": "0.35.0",
+  "version": "0.36.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -30,10 +30,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/auth": "^0.35.0",
-    "@loopstack/common": "^0.35.0",
-    "@loopstack/contracts": "^0.35.0",
-    "@loopstack/core": "^0.35.0",
+    "@loopstack/auth": "^0.36.0",
+    "@loopstack/common": "^0.36.0",
+    "@loopstack/contracts": "^0.36.0",
+    "@loopstack/core": "^0.36.0",
     "cors": "^2.8.6",
     "lodash": "^4.18.1",
     "yaml": "^2.8.3"
