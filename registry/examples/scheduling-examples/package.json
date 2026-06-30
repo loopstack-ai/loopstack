@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/scheduling-examples",
   "displayName": "Loopstack Scheduling Examples",
-  "description": "Placeholder for scheduling workflow examples — cron, webhooks, delayed runs (coming soon).",
+  "description": "Scheduling workflow examples for Loopstack — cron, webhook, delayed, and batch trigger patterns.",
   "keywords": [
     "loopstack",
     "example",
@@ -31,7 +31,13 @@
   },
   "dependencies": {
     "@loopstack/common": "*",
-    "@nestjs/common": "^11.1.19"
+    "@loopstack/core": "*",
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/schedule": "^6.1.1",
+    "@nestjs/typeorm": "^11.0.1",
+    "typeorm": "^0.3.28",
+    "zod": "^4.3.6"
   },
   "files": [
     "dist",
