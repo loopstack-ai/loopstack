@@ -47,7 +47,19 @@ export const FanOutArgsSchema = FanOutInputObject.transform((input) => {
   };
 });
 
+/**
+ * Call-site input for `FanOutWorkflow.run()` — the workflow to fan out, the items
+ * (array or keyed record), and the `mode` (`'all'` | `'allSettled'`).
+ *
+ * @public
+ */
 export type FanOutInput = z.input<typeof FanOutArgsSchema>;
+
+/**
+ * Validated/persisted args for `FanOutWorkflow` (the parsed form of `FanOutInput`).
+ *
+ * @public
+ */
 export type FanOutArgs = z.output<typeof FanOutArgsSchema>;
 
 export const FanOutResultEntrySchema = z.object({
@@ -66,13 +78,16 @@ export interface FanOutResult {
 }
 
 /**
- * Schema for the `data` field of the `TransitionInput` delivered to a parent's callback
- * after `FanOutWorkflow` settles.
+ * Zod schema for the aggregated `FanOutWorkflow` result delivered as the `data` field of the
+ * `TransitionInput` in a parent's callback.
  *
- * ```ts
- * @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutResultSchema })
- * async onAllDone(state, input: TransitionInput<FanOutResult>) { input.data.results }
- * ```
+ * Fields:
+ * - `results` — an array of entries (each with a `key`) if items were an array, otherwise a
+ *   keyed record of entries; every entry carries a `status`, optional `data`, and optional `error`.
+ * - `hasErrors` — true when any child did not complete successfully.
+ * - `errorCount` — number of children that did not complete successfully.
+ *
+ * @public
  */
 export const FanOutResultSchema = z.object({
   results: z.union([

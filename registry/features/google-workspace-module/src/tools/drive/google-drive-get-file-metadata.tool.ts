@@ -10,8 +10,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleDriveGetFileMetadataTool`.
+ *
+ * @public
+ */
 export type GoogleDriveGetFileMetadataArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleDriveGetFileMetadataTool`.
+ *
+ * @public
+ */
 export type GoogleDriveGetFileMetadataResult =
   | {
       id: string;
@@ -29,6 +39,14 @@ export type GoogleDriveGetFileMetadataResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that gets detailed metadata for a single Google Drive file. Takes a `fileId` and returns
+ * name, mime type, size, timestamps, owners, parents, and sharing state, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_drive_get_file_metadata',
   description:

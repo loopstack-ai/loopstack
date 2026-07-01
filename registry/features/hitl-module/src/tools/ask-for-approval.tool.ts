@@ -11,8 +11,24 @@ const AskForApprovalInputSchema = z
 
 type AskForApprovalInput = z.infer<typeof AskForApprovalInputSchema>;
 
+/**
+ * Result returned by `AskForApprovalTool` — the pending `workflowId` while waiting,
+ * then the approved `concept` or a `denied` flag once the user decides.
+ *
+ * @public
+ */
 export type AskForApprovalResult = { workflowId: string } | { concept: string | undefined } | { denied: true };
 
+/**
+ * Tool that presents a concept to the user for approval and waits for their decision.
+ *
+ * Runs the {@link ConfirmUserWorkflow} as an inline sub-workflow, rendering the `concept`
+ * markdown with a confirm button and pausing the agent loop until the user approves or
+ * denies. Returns an {@link AskForApprovalResult}.
+ *
+ * @providedBy HitlModule
+ * @public
+ */
 @Tool({
   name: 'ask_for_approval',
   description:

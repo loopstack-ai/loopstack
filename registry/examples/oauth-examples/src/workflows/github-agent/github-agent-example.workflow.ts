@@ -96,7 +96,7 @@ export class GithubAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async setup(_state: GitHubAgentState) {
+  async setup() {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
       text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
@@ -113,7 +113,7 @@ export class GithubAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(_state: GitHubAgentState) {
+  async llmTurn() {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -182,12 +182,12 @@ to let the user sign in, then retry. Be concise and format results using markdow
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  allToolsCompleteTransition(_state: GitHubAgentState) {}
+  allToolsCompleteTransition() {}
 
   allToolsComplete(state: GitHubAgentState): boolean {
     return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  respond(_state: GitHubAgentState) {}
+  respond() {}
 }

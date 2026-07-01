@@ -5,6 +5,12 @@ import { PassThrough } from 'node:stream';
 
 export const DOCKER_CLIENT = Symbol('DOCKER_CLIENT');
 
+/**
+ * Config for a sandbox container — the Docker image, container name, and the host directory mounted
+ * into the container at `rootPath`.
+ *
+ * @public
+ */
 export interface ContainerConfig {
   imageName: string;
   containerName: string;
@@ -12,6 +18,12 @@ export interface ContainerConfig {
   rootPath: string;
 }
 
+/**
+ * Result of executing a command in a sandbox container: captured stdout/stderr, exit code, and
+ * whether the command timed out.
+ *
+ * @public
+ */
 export interface CommandExecutionResult {
   stdout: string;
   stderr: string;
@@ -35,6 +47,14 @@ interface ContainerEntry {
   lock: Promise<void>;
 }
 
+/**
+ * Service that manages the lifecycle of Docker sandbox containers — registering configs, ensuring
+ * containers run, executing commands, and stopping/removing them; inject it for direct container
+ * control beyond what the sandbox tools expose.
+ *
+ * @providedBy SandboxToolModule
+ * @public
+ */
 @Injectable()
 export class DockerContainerManagerService implements OnModuleDestroy {
   private readonly logger = new Logger(DockerContainerManagerService.name);

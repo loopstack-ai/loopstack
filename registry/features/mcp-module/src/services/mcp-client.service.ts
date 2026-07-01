@@ -32,12 +32,22 @@ const OUTER_TIMEOUT_MULTIPLIER = 2;
 
 export type { McpTransportKind };
 
+/**
+ * Options for an `McpClientService` call (per-request timeout, transport, DNS-resolution skip).
+ *
+ * @public
+ */
 export interface McpClientCallOptions {
   timeoutMs?: number;
   skipDnsResolution?: boolean;
   transport?: McpTransportKind;
 }
 
+/**
+ * Result of an `McpClientService.callTool()` invocation — a modern call-tool result or a legacy tool result.
+ *
+ * @public
+ */
 export type McpCallToolResult =
   | { kind: 'legacyToolResult'; toolResult: unknown; meta?: unknown }
   | {
@@ -48,6 +58,12 @@ export type McpCallToolResult =
       meta?: unknown;
     };
 
+/**
+ * Service that connects to remote MCP servers; inject it to list and call tools on an MCP endpoint.
+ *
+ * @providedBy McpModule
+ * @public
+ */
 @Injectable()
 export class McpClientService {
   private readonly logger = new Logger(McpClientService.name);

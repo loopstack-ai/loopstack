@@ -5,7 +5,7 @@ description: Step-by-step instructions for AI agents to scaffold a new workflow 
 
 # Skill: Create a Custom Workflow
 
-> **For AI coding agents:** This page is a dense reference checklist optimized for tools like Claude Code scaffolding Loopstack code. For the human-readable guide, see [Creating Workflows](../build/fundamentals/workflows.md).
+> **For AI coding agents:** This page is a dense reference checklist optimized for tools like Claude Code scaffolding Loopstack code. For the human-readable guide, see [Creating Workflows](../build/fundamentals/workflows.md). For design judgment — scripted vs agentic, where logic belongs, state vs result vs documents — read [Best Practices](../build/best-practices.md) before scaffolding.
 
 ## Workflow Anatomy
 

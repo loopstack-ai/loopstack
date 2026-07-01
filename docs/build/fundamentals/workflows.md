@@ -7,6 +7,8 @@ description: How to define workflow state machines using BaseWorkflow, @Workflow
 
 A workflow is a state machine defined as a TypeScript class. Define transitions between named states, add guards for conditional routing, and use wait transitions to pause for user input or external events.
 
+> **Before you build much:** read [Best Practices](../best-practices.md) — when to choose scripted vs agentic flows, where logic belongs, the difference between state, result, and documents, and the conventions that keep workflows clean.
+
 ## Chat Example
 
 A simple chat workflow: wait for a user message, call LLM, display the response, and loop back.

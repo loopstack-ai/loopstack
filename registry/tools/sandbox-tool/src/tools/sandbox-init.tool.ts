@@ -13,13 +13,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxInitArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxInit`.
+ *
+ * Specifies the container id, Docker image, container name, and the host path to mount.
+ *
+ * @public
+ */
+export type SandboxInitArgs = z.infer<typeof inputSchema>;
 
-interface SandboxInitResult {
+/**
+ * Result of `SandboxInit`.
+ *
+ * Reports the registered container id and the underlying Docker container id.
+ *
+ * @public
+ */
+export interface SandboxInitResult {
   containerId: string;
   dockerId: string;
 }
 
+/**
+ * Tool that initializes a new Docker sandbox container from an image and mounts a host directory into it.
+ *
+ * @providedBy SandboxToolModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_init',
   description: 'Initialize a new sandbox container',

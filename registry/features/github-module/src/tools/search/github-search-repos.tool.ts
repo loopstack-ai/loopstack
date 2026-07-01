@@ -13,8 +13,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubSearchReposTool`: the GitHub search `query`, optional `sort` and
+ * `perPage`/`page` paging.
+ *
+ * @public
+ */
 export type GitHubSearchReposArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubSearchReposTool`: `totalCount` and a `results` array of matching
+ * repositories, or an `error`.
+ *
+ * @public
+ */
 export type GitHubSearchReposResult =
   | {
       totalCount: number;
@@ -31,6 +43,12 @@ export type GitHubSearchReposResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that searches for repositories on GitHub using the GitHub search syntax.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_search_repos',
   description:

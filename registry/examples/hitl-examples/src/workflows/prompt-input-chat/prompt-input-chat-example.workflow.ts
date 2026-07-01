@@ -11,7 +11,7 @@ import type { TransitionInput } from '@loopstack/common';
 })
 export class PromptInputChatExampleWorkflow extends BaseWorkflow {
   @Transition({ to: 'waiting_for_user' })
-  async greet(_state: Record<string, unknown>) {
+  async greet() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Hi! Send me a message and I will echo it back.',
@@ -26,5 +26,5 @@ export class PromptInputChatExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'reply_sent', to: 'waiting_for_user' })
-  loop(_state: Record<string, unknown>) {}
+  loop() {}
 }

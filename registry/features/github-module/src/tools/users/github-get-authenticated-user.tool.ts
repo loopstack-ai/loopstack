@@ -6,8 +6,19 @@ import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z.object({}).strict();
 
+/**
+ * Args for `GitHubGetAuthenticatedUserTool`: an empty object; the user is resolved from the token.
+ *
+ * @public
+ */
 export type GitHubGetAuthenticatedUserArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetAuthenticatedUserTool`: a `user` profile with login, name, email,
+ * avatar and counts, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetAuthenticatedUserResult = {
   user?: {
     id: number;
@@ -26,6 +37,12 @@ export type GitHubGetAuthenticatedUserResult = {
   message?: string;
 };
 
+/**
+ * Tool that fetches the profile of the currently authenticated GitHub user.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_authenticated_user',
   description:

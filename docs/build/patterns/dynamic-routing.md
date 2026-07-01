@@ -54,7 +54,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<RoutingArgs> {
   async createMockData(state: RoutingState, ctx: RunContext<RoutingArgs>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Analysing value = ${ctx.args.value}`,
+      text: `Analyzing value = ${ctx.args.value}`,
     });
     this.assignState({ value: ctx.args.value });
   }

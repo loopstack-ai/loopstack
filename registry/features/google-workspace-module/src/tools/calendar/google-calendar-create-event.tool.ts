@@ -22,8 +22,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleCalendarCreateEventTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarCreateEventArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleCalendarCreateEventTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarCreateEventResult =
   | {
       event: {
@@ -37,6 +47,14 @@ export type GoogleCalendarCreateEventResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that creates a new event on a Google Calendar. Takes a summary, start/end times, and optional
+ * description, location, attendees, and reminders, and returns the created event's id and link, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_calendar_create_event',
   description:

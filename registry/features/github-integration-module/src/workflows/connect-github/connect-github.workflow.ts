@@ -25,6 +25,14 @@ interface ConnectGitHubState {
   hasUncommittedChanges?: boolean;
 }
 
+/**
+ * Workflow that connects a workspace to a GitHub repository: it authenticates via OAuth, lets the user
+ * create or link a repo, configures git remotes and user identity, resolves branch divergence through HITL
+ * prompts, and pushes.
+ *
+ * @providedBy GitHubIntegrationModule
+ * @public
+ */
 @Workflow({
   name: 'connect_github',
   title: 'Connect to GitHub',

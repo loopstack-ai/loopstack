@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetWorkflowRunTool`: the repository `owner`, `repo` and `runId`.
+ *
+ * @public
+ */
 export type GitHubGetWorkflowRunArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetWorkflowRunTool`: a `run` object with status, conclusion, branch
+ * and run metadata, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetWorkflowRunResult =
   | {
       run: {
@@ -35,6 +46,12 @@ export type GitHubGetWorkflowRunResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that fetches detailed information about a single GitHub Actions workflow run.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_workflow_run',
   description:

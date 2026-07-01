@@ -14,6 +14,12 @@ export interface TransitionPayload {
   payload?: Record<string, unknown>;
 }
 
+/**
+ * Result of `WorkflowRunner.execute` — the controller-facing entry point that
+ * starts, resumes, or retries a workflow based on the payload shape.
+ *
+ * @public
+ */
 export interface WorkflowRunResult {
   workflowId: string;
   workspaceId: string;

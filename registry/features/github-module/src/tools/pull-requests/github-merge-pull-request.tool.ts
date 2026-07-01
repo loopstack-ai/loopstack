@@ -15,8 +15,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubMergePullRequestTool`: the repository `owner`, `repo`, `pullNumber`,
+ * `mergeMethod` and optional `commitTitle`/`commitMessage`.
+ *
+ * @public
+ */
 export type GitHubMergePullRequestArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubMergePullRequestTool`: a `merge` object with the merge commit `sha`
+ * and `merged` flag, or an `error`.
+ *
+ * @public
+ */
 export type GitHubMergePullRequestResult =
   | {
       merge: {
@@ -27,6 +39,12 @@ export type GitHubMergePullRequestResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that merges a GitHub pull request using the chosen merge method.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_merge_pull_request',
   description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',

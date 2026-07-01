@@ -16,8 +16,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreateOrUpdateFileTool`: the repository `owner`, `repo`, file `path`,
+ * plain-text `content`, commit `message`, optional `branch` and `sha` of the file being replaced.
+ *
+ * @public
+ */
 export type GitHubCreateOrUpdateFileArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreateOrUpdateFileTool`: the written `file` and resulting `commit`, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreateOrUpdateFileResult =
   | {
       file: {
@@ -33,6 +44,13 @@ export type GitHubCreateOrUpdateFileResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that creates or updates a file in a GitHub repository, base64-encoding the
+ * provided text and committing it. Pass the existing file `sha` to update in place.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_or_update_file',
   description:

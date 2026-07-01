@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetPullRequestTool`: the repository `owner`, `repo` and `pullNumber`.
+ *
+ * @public
+ */
 export type GitHubGetPullRequestArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetPullRequestTool`: a `pullRequest` object with branches, merge state,
+ * diff stats and timestamps, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetPullRequestResult =
   | {
       pullRequest: {
@@ -42,6 +53,12 @@ export type GitHubGetPullRequestResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that fetches detailed information about a single GitHub pull request.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_pull_request',
   description:

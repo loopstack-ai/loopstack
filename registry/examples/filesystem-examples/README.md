@@ -38,9 +38,45 @@ npm install @loopstack/filesystem-examples
 import { FilesystemExamplesModule } from '@loopstack/filesystem-examples';
 ```
 
+## Required app-module configuration
+
+The Remote File Explorer and Remote Client examples connect to a remote agent. `FilesystemExamplesModule` declares the slot via `RemoteClientModule.forFeature({ slots: [{ type: 'sandbox' }] })`, but the consumer must register at least one matching environment in their root module via `RemoteClientModule.forRoot(...)`:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { FilesystemExamplesModule } from '@loopstack/filesystem-examples';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+import { RemoteClientModule } from '@loopstack/remote-client';
+
+@Module({
+  imports: [
+    LoopstackModule.forRoot(),
+    RemoteClientModule.forRoot({
+      environments: {
+        available: [
+          {
+            type: 'sandbox',
+            name: 'Local Remote Server',
+            connectionUrl: process.env.SANDBOX_URL ?? 'http://localhost:3080',
+            agentUrl: process.env.SANDBOX_AGENT_URL ?? 'http://localhost:3001',
+            local: true,
+          },
+        ],
+      },
+    }),
+    FilesystemExamplesModule,
+  ],
+})
+export class AppModule {}
+```
+
+The `type: 'sandbox'` must match the slot type declared by `FilesystemExamplesModule`. Workspaces created in Studio auto-select the environment from the matching type.
+
+The Sandbox and Local File Explorer examples don't depend on the remote server and work without this config.
+
 ## Environment
 
-The sandbox example requires Docker. The remote examples require a running remote server (`SANDBOX_URL`, `SANDBOX_AGENT_URL`) — see `@loopstack/remote-client`'s `forRoot` config.
+The Sandbox example requires Docker. The Remote File Explorer and Remote Client examples require a running remote agent (the simplest option is `@loopstack/remote-server` on `localhost:3001`).
 
 ## Examples
 

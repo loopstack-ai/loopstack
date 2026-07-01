@@ -10,7 +10,7 @@ import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/
 })
 export class ErrorRetryFailingChildWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  async fail(_state: Record<string, unknown>) {
+  async fail() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Failing child: about to throw.',

@@ -11,8 +11,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetRepoTool`: the repository `owner` and `repo` name.
+ *
+ * @public
+ */
 export type GitHubGetRepoArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetRepoTool`: a `repo` object with id, full name, visibility,
+ * description, language, default branch, stars, forks, topics and license, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetRepoResult = {
   repo?: {
     id: number;
@@ -37,6 +48,13 @@ export type GitHubGetRepoResult = {
   message?: string;
 };
 
+/**
+ * Tool that fetches detailed information about a single GitHub repository.
+ * Takes an `owner` and `repo` and returns full repository metadata.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_repo',
   description:

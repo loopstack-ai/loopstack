@@ -44,6 +44,24 @@ npm install @loopstack/llm-examples
 import { LlmExamplesModule } from '@loopstack/llm-examples';
 ```
 
+## Required app-module configuration
+
+Every workflow in this package calls a tool from `@loopstack/llm-provider-module` (`LlmGenerateTextTool`, `LlmGenerateObjectTool`). That module is `@Global` and must be configured once in your root module to set the default model:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { LlmExamplesModule } from '@loopstack/llm-examples';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+
+@Module({
+  imports: [LoopstackModule.forRoot(), LlmProviderModule.forRoot({ model: 'claude-sonnet-4-6' }), LlmExamplesModule],
+})
+export class AppModule {}
+```
+
+`LlmExamplesModule` already re-imports `ClaudeModule`, `ClaudeToolsModule`, `OpenAiModule`, and `WebModule` — both providers register themselves with the LLM registry so the Multi-Provider example can dispatch to either. `LlmProviderModule.forRoot(...)` sets the default model the tools fall back to when a call doesn't override `{ config: { provider, model } }` explicitly.
+
 ## Environment
 
 Set provider API keys for the workflows you want to run:

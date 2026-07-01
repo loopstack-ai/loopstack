@@ -16,8 +16,21 @@ const RequestSecretsTaskInputSchema = z
 
 type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
 
+/**
+ * Result for `request_secrets_task` — the launched sub-workflow's id while pending, or a confirmation
+ * string once the user has stored the secrets.
+ *
+ * @public
+ */
 export type RequestSecretsTaskResult = { workflowId: string } | string;
 
+/**
+ * Tool that requests secrets from the user by launching `SecretsRequestWorkflow` as a callback-driven
+ * sub-workflow; the agent-friendly variant of `request_secrets` for use inside agent loops.
+ *
+ * @providedBy SecretsModule
+ * @public
+ */
 @Tool({
   name: 'request_secrets_task',
   description:

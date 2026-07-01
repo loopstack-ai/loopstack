@@ -13,8 +13,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListDirectoryTool`: the repository `owner`, `repo`, directory `path`
+ * (defaults to the repo root) and optional `ref`.
+ *
+ * @public
+ */
 export type GitHubListDirectoryArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListDirectoryTool`: an `entries` array of files and subdirectories, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListDirectoryResult = {
   entries?: Array<{
     name: string;
@@ -28,6 +39,12 @@ export type GitHubListDirectoryResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists the contents of a directory in a GitHub repository.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_directory',
   description:

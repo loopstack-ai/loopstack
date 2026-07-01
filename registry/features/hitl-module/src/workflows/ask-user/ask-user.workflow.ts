@@ -5,21 +5,48 @@ import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-documen
 import { AskUserDocument } from '../../documents/ask-user-document.js';
 import { AskUserOptionsDocument } from '../../documents/ask-user-options-document.js';
 
-const AskUserArgsSchema = z.object({
+/**
+ * Zod schema for `AskUserWorkflow` args (what callers pass to `run()`).
+ *
+ * @public
+ */
+export const AskUserArgsSchema = z.object({
   question: z.string(),
   mode: z.enum(['text', 'options', 'confirm']).optional(),
   options: z.array(z.string()).optional(),
   allowCustomAnswer: z.boolean().optional(),
 });
 
-type AskUserArgs = z.infer<typeof AskUserArgsSchema>;
+/**
+ * Args for `AskUserWorkflow` (passed to `run()`).
+ *
+ * Holds `question`, optional `mode`, `options`, and `allowCustomAnswer`.
+ *
+ * @public
+ */
+export type AskUserArgs = z.infer<typeof AskUserArgsSchema>;
 
-const AskUserAnswerSchema = z.object({
+/**
+ * Zod schema for the answer `AskUserWorkflow` waits on (the user's reply).
+ *
+ * @public
+ */
+export const AskUserAnswerSchema = z.object({
   answer: z.string(),
 });
 
 type AskUserState = AskUserArgs;
 
+/**
+ * Workflow that presents a question to the user and waits for their answer.
+ *
+ * Takes a `question` plus an optional `mode` of `text` (free-text, the default), `options`
+ * (pick from the supplied `options`, optionally allowing a custom answer), or `confirm` (yes/no).
+ * Renders the matching document, blocks on the user's input, and publishes the result as `{ answer }`.
+ *
+ * @providedBy HitlModule
+ * @public
+ */
 @Workflow({
   name: 'ask_user',
   title: 'Ask User',

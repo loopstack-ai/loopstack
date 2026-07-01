@@ -6,7 +6,7 @@ import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/
 })
 export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  async message(_state: Record<string, unknown>) {
+  async message() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Sub workflow completed.',

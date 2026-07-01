@@ -16,6 +16,14 @@ interface OAuthState {
   authUrl?: string;
 }
 
+/**
+ * Workflow that runs the OAuth 2.0 authorization code flow for a provider: it builds the auth URL, prompts
+ * the user via an `OAuthPromptDocument`, and exchanges the returned code for stored tokens. Run it standalone
+ * to pre-authenticate or invoke it from another workflow when authentication is required.
+ *
+ * @providedBy OAuthModule
+ * @public
+ */
 @Workflow({
   name: 'oauth',
   title: 'OAuth',

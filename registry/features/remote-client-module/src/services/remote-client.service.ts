@@ -1,31 +1,61 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+/**
+ * Response from `RemoteClient.readFile` — the file `content`.
+ *
+ * @public
+ */
 export interface FileReadResponse {
   content: string;
 }
 
+/**
+ * Response from `RemoteClient.editFile` — success flag, path, and the number of replacements made.
+ *
+ * @public
+ */
 export interface FileEditResponse {
   success: boolean;
   path: string;
   replacements: number;
 }
 
+/**
+ * Response from `RemoteClient.executeCommand` — stdout, stderr, and the process exit code.
+ *
+ * @public
+ */
 export interface ExecResponse {
   stdout: string;
   stderr: string;
   exitCode: number;
 }
 
+/**
+ * Response from `RemoteClient.glob` — the matched file paths.
+ *
+ * @public
+ */
 export interface GlobResponse {
   files: string[];
 }
 
+/**
+ * A single `RemoteClient.grep` match — the file, line number, and matching line content.
+ *
+ * @public
+ */
 export interface GrepMatch {
   file: string;
   line: number;
   content: string;
 }
 
+/**
+ * Response from `RemoteClient.grep` — the list of matches.
+ *
+ * @public
+ */
 export interface GrepResponse {
   matches: GrepMatch[];
 }
@@ -109,6 +139,13 @@ export interface GitWorktreeAddResponse {
   output?: string;
 }
 
+/**
+ * Service that wraps the remote server's HTTP API — file operations, shell execution, app lifecycle,
+ * and git commands; inject it for low-level remote access when the higher-level tools are not enough.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Injectable()
 export class RemoteClient {
   private readonly logger = new Logger(RemoteClient.name);

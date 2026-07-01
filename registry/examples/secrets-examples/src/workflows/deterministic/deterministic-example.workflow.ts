@@ -20,7 +20,7 @@ export class DeterministicExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'requesting_secrets' })
-  async requestSecretsFromUser(_state: DeterministicState) {
+  async requestSecretsFromUser() {
     await this.requestSecrets.call({
       variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
     });
@@ -31,7 +31,7 @@ export class DeterministicExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'requesting_secrets', to: 'verifying', wait: true })
-  async secretsSubmitted(_state: DeterministicState) {
+  async secretsSubmitted() {
     const result = await this.getSecretKeys.call();
     this.assignState({ secretKeys: result.data });
   }

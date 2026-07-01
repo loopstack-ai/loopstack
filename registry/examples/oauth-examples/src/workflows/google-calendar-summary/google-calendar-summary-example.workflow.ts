@@ -59,7 +59,7 @@ export class GoogleCalendarSummaryExampleWorkflow extends BaseWorkflow<CalendarS
   // If unauthorized -> launch OAuth as sub-workflow
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(_state: CalendarSummaryState) {
+  async authRequired() {
     await this.oAuthWorkflow.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },

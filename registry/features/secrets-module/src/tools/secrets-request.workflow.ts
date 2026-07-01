@@ -11,6 +11,13 @@ interface SecretsRequestState {
   variables: { key: string }[];
 }
 
+/**
+ * Workflow that presents a secrets request form to the user and waits for submission, completing once
+ * the user has entered and stored the requested secret values.
+ *
+ * @providedBy SecretsModule
+ * @public
+ */
 @Workflow({
   name: 'secrets_request',
   title: 'Secrets Request',

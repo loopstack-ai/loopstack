@@ -47,7 +47,19 @@ export const SequenceArgsSchema = SequenceInputObject.transform((input) => {
   };
 });
 
+/**
+ * Call-site input for `SequenceWorkflow.run()` — the workflow to run, the items
+ * (array or keyed record), and the `mode` (`'all'` | `'allSettled'`).
+ *
+ * @public
+ */
 export type SequenceInput = z.input<typeof SequenceArgsSchema>;
+
+/**
+ * Validated/persisted args for `SequenceWorkflow` (the parsed form of `SequenceInput`).
+ *
+ * @public
+ */
 export type SequenceArgs = z.output<typeof SequenceArgsSchema>;
 
 export const SequenceResultEntrySchema = z.object({
@@ -66,13 +78,16 @@ export interface SequenceResult {
 }
 
 /**
- * Schema for the `data` field of the `TransitionInput` delivered to a parent's callback
- * after `SequenceWorkflow` settles.
+ * Zod schema for the aggregated `SequenceWorkflow` result delivered as the `data` field of the
+ * `TransitionInput` in a parent's callback.
  *
- * ```ts
- * @Transition({ from: 'awaiting', to: 'end', wait: true, schema: SequenceResultSchema })
- * async onComplete(state, input: TransitionInput<SequenceResult>) { input.data.results }
- * ```
+ * Fields:
+ * - `results` — an array of entries (each with a `key`) if items were an array, otherwise a
+ *   keyed record of entries; every entry carries a `status`, optional `data`, and optional `error`.
+ * - `hasErrors` — true when any item did not complete successfully.
+ * - `errorCount` — number of items that did not complete successfully.
+ *
+ * @public
  */
 export const SequenceResultSchema = z.object({
   results: z.union([

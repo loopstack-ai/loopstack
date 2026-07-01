@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetIssueTool`: the repository `owner`, `repo` and `issueNumber`.
+ *
+ * @public
+ */
 export type GitHubGetIssueArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetIssueTool`: an `issue` object with title, body, state, labels,
+ * assignees and timestamps, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetIssueResult =
   | {
       issue: {
@@ -35,6 +46,12 @@ export type GitHubGetIssueResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that fetches detailed information about a single GitHub issue.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_issue',
   description:

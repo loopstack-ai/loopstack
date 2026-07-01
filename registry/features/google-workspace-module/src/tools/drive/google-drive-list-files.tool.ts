@@ -14,8 +14,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleDriveListFilesTool`.
+ *
+ * @public
+ */
 export type GoogleDriveListFilesArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleDriveListFilesTool`.
+ *
+ * @public
+ */
 export type GoogleDriveListFilesResult =
   | {
       files: Array<{
@@ -33,6 +43,14 @@ export type GoogleDriveListFilesResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that lists and searches files in Google Drive. Supports Drive query syntax, folder browsing,
+ * ordering, and pagination, and returns file metadata plus a `nextPageToken`, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_drive_list_files',
   description:

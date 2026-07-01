@@ -26,6 +26,8 @@ import { Injectable } from '@nestjs/common';
  *   }
  * }
  * ```
+ *
+ * @public
  */
 @Injectable()
 export abstract class ServerTool<TConfig extends object = object> {

@@ -38,6 +38,42 @@ npm install @loopstack/git-examples
 import { GitExamplesModule } from '@loopstack/git-examples';
 ```
 
+## Required app-module configuration
+
+Both examples invoke git tools that execute on a **remote agent**, so the workspace needs a connected `sandbox` environment. `GitExamplesModule` declares the slot via `RemoteClientModule.forFeature(...)`, but the consumer must register at least one matching environment in their root module via `RemoteClientModule.forRoot(...)`:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { GitExamplesModule } from '@loopstack/git-examples';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+import { RemoteClientModule } from '@loopstack/remote-client';
+
+@Module({
+  imports: [
+    LoopstackModule.forRoot(),
+    RemoteClientModule.forRoot({
+      environments: {
+        available: [
+          {
+            type: 'sandbox',
+            name: 'Local Remote Server',
+            connectionUrl: process.env.SANDBOX_URL ?? 'http://localhost:3080',
+            agentUrl: process.env.SANDBOX_AGENT_URL ?? 'http://localhost:3001',
+            local: true,
+          },
+        ],
+      },
+    }),
+    GitExamplesModule,
+  ],
+})
+export class AppModule {}
+```
+
+The `type: 'sandbox'` must match the slot type declared by `GitExamplesModule`. The simplest remote agent option is `@loopstack/remote-server` on `localhost:3001`.
+
+`GitExamplesModule` re-imports `GitModule.forFeature()` and `GitHubIntegrationModule`, which transitively brings in the global `OAuthModule` and the GitHub OAuth provider — no additional OAuth wiring required in your AppModule. You just need to set the GitHub OAuth client env vars (see [Environment](#environment) below).
+
 ## Environment
 
 The repo-sync example requires GitHub OAuth credentials:

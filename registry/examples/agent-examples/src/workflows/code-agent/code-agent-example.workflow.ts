@@ -25,12 +25,12 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'verified' })
-  async verifyEnvironment(_state: Record<string, unknown>) {
+  async verifyEnvironment() {
     await this.environments.assertReachable('sandbox');
   }
 
   @Transition({ from: 'verified', to: 'exploring' })
-  async startExploration(_state: Record<string, unknown>) {
+  async startExploration() {
     await this.agentWorkflow.run(
       {
         system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',

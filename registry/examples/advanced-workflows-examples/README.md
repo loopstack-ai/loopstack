@@ -38,6 +38,30 @@ npm install @loopstack/advanced-workflows-examples
 import { AdvancedWorkflowsExamplesModule } from '@loopstack/advanced-workflows-examples';
 ```
 
+## Required app-module configuration
+
+Examples that exercise LLM tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool` — used by Sub-Workflow, Fan-Out, Sequence, Batch Processing, Custom Tool, Module Config) call into `@loopstack/llm-provider-module`. That module is `@Global` and must be configured once in your root module to set the default model:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { AdvancedWorkflowsExamplesModule } from '@loopstack/advanced-workflows-examples';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+
+@Module({
+  imports: [
+    LoopstackModule.forRoot(),
+    LlmProviderModule.forRoot({ model: 'claude-sonnet-4-6' }),
+    AdvancedWorkflowsExamplesModule,
+  ],
+})
+export class AppModule {}
+```
+
+`AdvancedWorkflowsExamplesModule` already re-imports `ClaudeModule` to register the Claude provider; `LlmProviderModule.forRoot(...)` sets the default model the tools dispatch to. Pure pattern demos that don't call an LLM (Workflow State, Dynamic Routing, Error Retry, UI Documents) work without it.
+
+Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
+
 ## Examples
 
 | Example                               | Studio title                                    | Description                                                                             |

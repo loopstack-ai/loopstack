@@ -1,1 +1,6 @@
-export { ExploreTask } from './explore-task.tool.js';
+export {
+  ExploreTask,
+  ExploreTaskInputSchema,
+  type ExploreTaskInput,
+  type ExploreTaskResult,
+} from './explore-task.tool.js';

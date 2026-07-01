@@ -32,8 +32,24 @@ const AskClarificationInputSchema = z
 
 type AskClarificationInput = z.infer<typeof AskClarificationInputSchema>;
 
+/**
+ * Result returned by `AskClarificationTool` — the pending `workflowId` while waiting,
+ * then the user's answer once they respond.
+ *
+ * @public
+ */
 export type AskClarificationResult = { workflowId: string } | string | Record<string, unknown>;
 
+/**
+ * Tool that asks the user a clarification question and waits for their answer.
+ *
+ * Runs the {@link AskUserWorkflow} as an inline sub-workflow in `text`, `options`, or
+ * `confirm` mode, pausing the agent loop until the user responds. Returns an
+ * {@link AskClarificationResult}.
+ *
+ * @providedBy HitlModule
+ * @public
+ */
 @Tool({
   name: 'ask_clarification',
   description:

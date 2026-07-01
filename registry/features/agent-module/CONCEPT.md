@@ -24,7 +24,7 @@ z.object({
 start ──[setup]──→ ready
 ready ──[llmTurn]──→ prompt_executed
 prompt_executed ──[executeToolCalls]──→ awaiting_tools       (priority:10, guard: hasToolCalls)
-prompt_executed ──[respond]──→ end                           (Final, guard: isEndTurn)
+prompt_executed ──[respond]──→ end                           (Final, guard: isDone)
 awaiting_tools ──[toolResultReceived]──→ awaiting_tools      (wait:true)
 awaiting_tools ──[toolsComplete]──→ ready                    (guard: allToolsComplete)
 awaiting_tools ──[cancelPendingTools]──→ ready               (wait:true)

@@ -8,6 +8,11 @@ export const MessageDocumentSchema = z
   })
   .strict();
 
+/**
+ * Document that renders a chat message (`role` plus optional `text`) in Studio.
+ *
+ * @public
+ */
 @Document({
   schema: MessageDocumentSchema,
   widget: './message-document.yaml',

@@ -6,10 +6,26 @@ import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
 import { McpConnectionArgsSchema } from './mcp-connection-args.schema.js';
 import { McpToolBase } from './mcp-tool-base.js';
 
+/**
+ * Zod schema for `mcp_list_tools` tool arguments.
+ *
+ * @public
+ */
 export const McpListToolsArgsSchema = McpConnectionArgsSchema;
 
+/**
+ * Args for `McpListToolsTool` (`mcp_list_tools`).
+ *
+ * @public
+ */
 export type McpListToolsArgs = z.infer<typeof McpListToolsArgsSchema>;
 
+/**
+ * Tool that lists the tool definitions exposed by a remote MCP server.
+ *
+ * @providedBy McpModule
+ * @public
+ */
 @Tool({
   name: 'mcp_list_tools',
   description:

@@ -16,16 +16,37 @@ Strategy:
 Be thorough but efficient. Don't read entire files when grep
 can pinpoint the relevant sections.`;
 
-const ExploreTaskInputSchema = z
+/**
+ * Zod schema for `ExploreTask` args.
+ *
+ * @public
+ */
+export const ExploreTaskInputSchema = z
   .object({
     instructions: z.string().describe('Detailed instructions for what to explore in the codebase'),
   })
   .strict();
 
-type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
+/**
+ * Args for `ExploreTask`.
+ *
+ * @public
+ */
+export type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
 
+/**
+ * Result for `ExploreTask` (`explore_task`) — the synthesized exploration summary or its pending workflow reference.
+ *
+ * @public
+ */
 export type ExploreTaskResult = { workflowId: string } | string | Record<string, unknown>;
 
+/**
+ * Tool that launches an `AgentWorkflow` sub-agent to explore and analyze a codebase with the `glob`/`grep`/`read` tools and return a synthesized summary.
+ *
+ * @providedBy CodeAgentModule
+ * @public
+ */
 @Tool({
   name: 'explore_task',
   description:

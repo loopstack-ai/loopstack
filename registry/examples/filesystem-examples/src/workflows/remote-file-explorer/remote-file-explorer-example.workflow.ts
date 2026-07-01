@@ -19,7 +19,7 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'listed' })
-  async listFiles(_state: RemoteFileExplorerState) {
+  async listFiles() {
     const result = await this.glob.call({ pattern: '**/*.md' });
     const files = (result.data as { files?: string[] })?.files ?? [];
 

@@ -13,8 +13,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListReposTool`: `visibility`, `sort`, `perPage` and `page` paging controls.
+ *
+ * @public
+ */
 export type GitHubListReposArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListReposTool`: a `repos` array of repository summaries, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListReposResult = {
   repos?: Array<{
     id: number;
@@ -32,6 +42,13 @@ export type GitHubListReposResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists repositories for the authenticated GitHub user, with visibility,
+ * sort and paging options.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_repos',
   description:

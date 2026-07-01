@@ -13,7 +13,7 @@ type FeedbackPayload = z.infer<typeof FeedbackFormDocumentSchema>;
 })
 export class InlineFormExampleWorkflow extends BaseWorkflow {
   @Transition({ to: 'waiting_for_feedback' })
-  async showForm(_state: Record<string, unknown>) {
+  async showForm() {
     await this.documentStore.save(FeedbackFormDocument, { rating: 3, comment: '' }, { key: 'feedback' });
   }
 

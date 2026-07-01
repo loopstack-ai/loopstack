@@ -14,13 +14,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxWriteFileArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxWriteFile`.
+ *
+ * Identifies the container, target path, content, encoding, and whether to create parent directories.
+ *
+ * @public
+ */
+export type SandboxWriteFileArgs = z.infer<typeof inputSchema>;
 
-interface SandboxWriteFileResult {
+/**
+ * Result of `SandboxWriteFile`.
+ *
+ * Reports the written path and the number of bytes written.
+ *
+ * @public
+ */
+export interface SandboxWriteFileResult {
   path: string;
   bytesWritten: number;
 }
 
+/**
+ * Tool that writes content to a file in a sandbox container, optionally creating parent directories.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_write_file',
   description: 'Write content to a file in a sandbox container',

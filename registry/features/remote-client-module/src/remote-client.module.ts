@@ -22,12 +22,23 @@ import {
   WriteTool,
 } from './tools/index.js';
 
+/**
+ * Options for `RemoteClientModule.forRoot` — the list of environment types users can provision via
+ * `environments.available`.
+ *
+ * @public
+ */
 export interface RemoteClientModuleOptions {
   environments?: {
     available?: AvailableEnvironmentInterface[];
   };
 }
 
+/**
+ * Options for `RemoteClientModule.forFeature` — the environment `slots` a feature module contributes.
+ *
+ * @public
+ */
 export interface RemoteClientFeatureOptions {
   slots: EnvironmentConfigInterface[];
 }
@@ -96,11 +107,28 @@ class RemoteClientRootModule {}
 class RemoteClientFeatureModule {}
 
 /**
- * Remote Client Module — wires the RemoteClient and environment tools.
+ * NestJS module that provides the `RemoteClient` HTTP client, environment
+ * services (`EnvironmentService`, `EnvironmentConfigService`), the
+ * `EnvironmentController`, and the remote workflow tools (`ReadTool`, `WriteTool`,
+ * `EditTool`, `BashTool`, `GlobTool`, `GrepTool`, `RebuildAppTool`,
+ * `ResetWorkspaceTool`, `LogsTool`, `SyncSecretsTool`) for operating on a remote
+ * workspace's filesystem and shell.
  *
- * - Bare import (`RemoteClientModule`) — registers the global root with default config.
- * - `forRoot(options)` — sets the global config (e.g. available environments).
- * - `forFeature(options)` — registers environment slots for the current module.
+ * Registration:
+ * - `RemoteClientModule` — bare import. Registers the global root with default
+ *   (empty) config; enough when you don't need to declare available environment types.
+ * - `RemoteClientModule.forRoot(options?: RemoteClientModuleOptions)` — use once at
+ *   the app root to set the global config, notably the list of available
+ *   environment types (`options.environments.available`) users can provision.
+ * - `RemoteClientModule.forFeature(options: RemoteClientFeatureOptions)` — use in a
+ *   feature module to register environment slot configurations (`options.slots`)
+ *   scoped to that module; does not re-import the global root.
+ *
+ * Requires: a configured TypeORM database connection — the module registers the
+ * `WorkspaceEntity` and `WorkspaceEnvironmentEntity` and co-imports `SecretsModule`.
+ * `forFeature` additionally requires a non-empty `slots` array.
+ *
+ * @public
  */
 @Module({ imports: [RemoteClientRootModule] })
 export class RemoteClientModule {

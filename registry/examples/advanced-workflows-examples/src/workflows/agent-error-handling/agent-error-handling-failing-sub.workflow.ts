@@ -7,7 +7,7 @@ import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 @Workflow({ title: 'Agent Error Handling - Failing Sub-Workflow' })
 export class AgentErrorHandlingFailingSubWorkflow extends BaseWorkflow {
   @Transition({ to: 'done' })
-  start(_state: Record<string, unknown>) {
+  start() {
     return Promise.reject(new Error('Simulated sub-workflow failure.'));
   }
 }

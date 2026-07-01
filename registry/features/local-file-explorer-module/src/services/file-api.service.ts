@@ -5,6 +5,13 @@ import type { FileContentDto } from '../dtos/file-content.dto.js';
 import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto.js';
 import { FileSystemService } from './file-system.service.js';
 
+/**
+ * Service that exposes workspace-scoped file tree and file content reads, parsing workflow YAML into
+ * `workflowConfig` where present; inject it for higher-level local file access.
+ *
+ * @providedBy LocalFileExplorerModule
+ * @public
+ */
 @Injectable()
 export class FileApiService {
   private readonly logger = new Logger(FileApiService.name);

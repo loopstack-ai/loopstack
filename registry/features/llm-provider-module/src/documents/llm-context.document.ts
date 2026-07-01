@@ -14,12 +14,15 @@ export const LlmContextDocumentContentSchema = z.object({
 export type LlmContextDocumentContentType = z.infer<typeof LlmContextDocumentContentSchema>;
 
 /**
- * Hidden LLM conversation context. Persisted server-side and included by LLM providers
- * when building conversation history (`tag: 'message'`), but excluded from Studio's
- * document responses (`internal: true`) so it never renders as a chat bubble.
+ * Document that represents hidden LLM conversation context (never shown in Studio).
  *
- * Use to seed the model with system context, prior steps, or workflow background that
- * the end user shouldn't see in the UI.
+ * Persisted server-side and included by LLM providers when building conversation history
+ * (tagged `'message'`), but marked `internal: true` so it is excluded from Studio's document
+ * responses and never renders as a chat bubble. Its `role` is narrowed to `'user' | 'assistant'`.
+ * Use it to seed the model with system context, prior steps, or workflow background the end user
+ * should not see.
+ *
+ * @public
  */
 @Document({
   schema: LlmContextDocumentContentSchema,

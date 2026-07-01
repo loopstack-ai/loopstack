@@ -15,8 +15,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListPullRequestsTool`: the repository `owner`, `repo`, PR `state`,
+ * optional `base` branch filter and `perPage`/`page` paging.
+ *
+ * @public
+ */
 export type GitHubListPullRequestsArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListPullRequestsTool`: a `pullRequests` array of PR summaries, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListPullRequestsResult = {
   pullRequests?: Array<{
     id: number;
@@ -36,6 +47,12 @@ export type GitHubListPullRequestsResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists pull requests for a GitHub repository, with state and base-branch filters.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_pull_requests',
   description:

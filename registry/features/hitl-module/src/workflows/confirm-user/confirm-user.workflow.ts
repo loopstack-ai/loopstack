@@ -7,12 +7,34 @@ interface ConfirmUserState {
   markdown: string;
 }
 
-const ConfirmUserArgsSchema = z.object({
+/**
+ * Zod schema for `ConfirmUserWorkflow` args (what callers pass to `run()`).
+ *
+ * @public
+ */
+export const ConfirmUserArgsSchema = z.object({
   markdown: z.string(),
 });
 
-type ConfirmUserArgs = z.infer<typeof ConfirmUserArgsSchema>;
+/**
+ * Args for `ConfirmUserWorkflow` (passed to `run()`).
+ *
+ * Holds the `markdown` content presented for approval.
+ *
+ * @public
+ */
+export type ConfirmUserArgs = z.infer<typeof ConfirmUserArgsSchema>;
 
+/**
+ * Workflow that presents markdown content to the user and waits for an approve/deny decision.
+ *
+ * Renders the `markdown` argument as a confirmation document, then blocks until the user
+ * responds. Publishes the result as `{ confirmed, markdown }`, where `confirmed` is `true`
+ * when approved and `false` when denied.
+ *
+ * @providedBy HitlModule
+ * @public
+ */
 @Workflow({
   name: 'confirm_user',
   title: 'Confirm User',

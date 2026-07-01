@@ -27,6 +27,8 @@ import type { TemplateRenderFn } from './workflow-templates.js';
  * - `TConfig` — config, validated against `@Tool({ configSchema })`
  * - `TResult` — typed return data in `ToolResult<TResult>`
  * - `TMeta` — typed metadata in `ToolResult<TResult, TMeta>` (defaults to `Record<string, unknown>`)
+ *
+ * @public
  */
 @Injectable()
 export abstract class BaseTool<

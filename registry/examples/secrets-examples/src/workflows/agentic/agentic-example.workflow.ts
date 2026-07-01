@@ -36,7 +36,7 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'ready' })
-  async setup(_state: AgenticState) {
+  async setup() {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
       text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
@@ -44,7 +44,7 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(_state: AgenticState) {
+  async llmTurn() {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -84,7 +84,7 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  allToolsCompleteTransition(_state: AgenticState) {}
+  allToolsCompleteTransition() {}
 
   allToolsComplete(state: AgenticState): boolean {
     return state.delegateResult?.allCompleted ?? false;
@@ -96,5 +96,5 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  respond(_state: AgenticState) {}
+  respond() {}
 }

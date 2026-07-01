@@ -4,6 +4,12 @@ import { QuotaCheckResult, QuotaClientServiceInterface } from '../interfaces/ind
 
 export const QUOTA_REDIS = 'QUOTA_REDIS';
 
+/**
+ * Service that reads and reports Redis-backed quota counters; inject it to check usage or report consumption.
+ *
+ * @providedBy QuotaModule
+ * @public
+ */
 @Injectable()
 export class QuotaClientService implements QuotaClientServiceInterface {
   private readonly logger = new Logger(QuotaClientService.name);

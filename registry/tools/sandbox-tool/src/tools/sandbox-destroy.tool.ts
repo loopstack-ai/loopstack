@@ -13,13 +13,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxDestroyArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxDestroy`.
+ *
+ * Identifies the container to destroy and whether to remove it or merely stop it.
+ *
+ * @public
+ */
+export type SandboxDestroyArgs = z.infer<typeof inputSchema>;
 
-interface SandboxDestroyResult {
+/**
+ * Result of `SandboxDestroy`.
+ *
+ * Reports the affected container id and whether it was removed.
+ *
+ * @public
+ */
+export interface SandboxDestroyResult {
   containerId: string;
   removed: boolean;
 }
 
+/**
+ * Tool that stops a sandbox container and optionally removes it, then unregisters its config.
+ *
+ * @providedBy SandboxToolModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_destroy',
   description: 'Stop and destroy a sandbox container',

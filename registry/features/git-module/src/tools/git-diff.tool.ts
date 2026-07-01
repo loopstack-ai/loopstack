@@ -2,19 +2,40 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitDiffTool`.
+ *
+ * @public
+ */
 export type GitDiffArgs = {
   staged?: boolean;
 };
 
+/**
+ * A single changed file entry returned by `GitDiffTool`.
+ *
+ * @public
+ */
 export type GitDiffFile = {
   path: string;
   status: string;
 };
 
+/**
+ * Result for `GitDiffTool`.
+ *
+ * @public
+ */
 export type GitDiffResult = {
   files: GitDiffFile[];
 };
 
+/**
+ * Tool that lists changed files in the workspace with their change status.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_diff',
   description: 'Shows changed files in the workspace. Returns file paths and their change status.',

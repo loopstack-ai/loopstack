@@ -29,30 +29,19 @@ interface SequenceState {
 }
 
 /**
- * Runs N sub-workflows one at a time, awaits each, and fires a single aggregated
- * callback to the parent.
+ * Workflow that runs N sub-workflows one at a time, awaits each, and fires a single
+ * aggregated callback to the parent.
  *
- * Sub-workflows are referenced by their canonical name (string) — set via
- * `@Workflow({ name })` or auto-derived from the class name (e.g. `MyWorkflow` → `'my'`).
- *
- * ```ts
- * constructor(private readonly sequence: SequenceWorkflow) { super(); }
- *
- * @Transition({ to: 'awaiting' })
- * async start() {
- *   await this.sequence.run({
- *     items: [
- *       { workflow: 'step_a', args: {...} },
- *       { workflow: 'step_b', args: {...} },
- *     ],
- *   }, { callback: { transition: 'onComplete' } });
- * }
- * ```
+ * Sub-workflows are referenced by their canonical name (string) — set via `@Workflow({ name })`
+ * or auto-derived from the class name. Items may be passed as an array or a keyed record.
  *
  * Modes:
- * - `'all'` *(default)* — first failure aborts the sequence; remaining items are
- *   marked as `'skipped'` in the result.
+ * - `'all'` (default) — first failure aborts the sequence; remaining items are marked as
+ *   `'skipped'` in the result.
  * - `'allSettled'` — every item runs regardless of prior failures.
+ *
+ * @providedBy LoopCoreModule
+ * @public
  */
 @Workflow({
   name: 'sequence',

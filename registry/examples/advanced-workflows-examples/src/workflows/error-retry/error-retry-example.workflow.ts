@@ -45,7 +45,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'step1_done' })
-  async setup(_state: ErrorRetryState) {
+  async setup() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: '# Error Retry Example\n\nThis workflow tests seven retry/error modes in sequence.',
@@ -81,7 +81,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Bridge: instructions for step 2 --
   @Transition({ from: 'step2_done', to: 'step2_ready' })
-  async step2Instructions(_state: ErrorRetryState) {
+  async step2Instructions() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -105,7 +105,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Bridge: instructions for step 3 --
   @Transition({ from: 'step3_done', to: 'step3_ready' })
-  async step3Instructions(_state: ErrorRetryState) {
+  async step3Instructions() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -117,12 +117,12 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Step 3: Custom error place --
   @Transition({ from: 'step3_ready', to: 'step4_done', errorPlace: 'error_custom' })
-  async customErrorStep(_state: ErrorRetryState) {
+  async customErrorStep() {
     await this.step2Tool.call({ shouldFail: true });
   }
 
   @Transition({ from: 'error_custom', to: 'step4_done', wait: true })
-  async handleCustomError(_state: ErrorRetryState) {
+  async handleCustomError() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Recovered via custom error handler!',
@@ -131,7 +131,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Bridge: instructions for step 4 --
   @Transition({ from: 'step4_done', to: 'step4_ready' })
-  async step4Instructions(_state: ErrorRetryState) {
+  async step4Instructions() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -156,7 +156,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Bridge: instructions for step 5 --
   @Transition({ from: 'step5_done', to: 'step5_ready' })
-  async step5Instructions(_state: ErrorRetryState) {
+  async step5Instructions() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -168,12 +168,12 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Step 5: Hybrid --
   @Transition({ from: 'step5_ready', to: 'step6_done', retryAttempts: 1, errorPlace: 'error_hybrid' })
-  async hybridStep(_state: ErrorRetryState) {
+  async hybridStep() {
     await this.step2Tool.call({ shouldFail: true });
   }
 
   @Transition({ from: 'error_hybrid', to: 'step6_done', wait: true })
-  async handleHybridError(_state: ErrorRetryState) {
+  async handleHybridError() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Recovered via hybrid error handler!',
@@ -182,7 +182,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Bridge: instructions for step 6 --
   @Transition({ from: 'step6_done', to: 'step6_ready' })
-  async step6Instructions(_state: ErrorRetryState) {
+  async step6Instructions() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -228,7 +228,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // Reached only if retryTargetStep keeps failing past its budget.
   @Transition({ from: 'error_retry_target', to: 'step7_done', wait: true })
-  async handleRetryTargetError(_state: ErrorRetryState) {
+  async handleRetryTargetError() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'retryTarget budget exhausted — recovered via error handler.',
@@ -237,7 +237,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Bridge: instructions for step 7 --
   @Transition({ from: 'step7_done', to: 'step7_ready' })
-  async step7Instructions(_state: ErrorRetryState) {
+  async step7Instructions() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: [
@@ -254,7 +254,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // -- Step 7: Sub-workflow + errorPlace --
   @Transition({ from: 'step7_ready', to: 'awaiting_child' })
-  async spawnFailingChild(_state: ErrorRetryState) {
+  async spawnFailingChild() {
     await this.failingChild.run({}, { callback: { transition: 'childCompleted' } });
   }
 
@@ -269,7 +269,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
 
   // Failure recovery transition for the failing child.
   @Transition({ from: 'sub_failed', to: 'done', wait: true })
-  async handleSubFailed(_state: ErrorRetryState) {
+  async handleSubFailed() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Recovered from sub-workflow failure via errorPlace routing.',
@@ -277,7 +277,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'done', to: 'end' })
-  async showResult(_state: ErrorRetryState) {
+  async showResult() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'All seven retry modes completed successfully!',

@@ -6,6 +6,8 @@
  *
  * - `args` — validated workflow input args (frozen at job start)
  * - `execution` — present in workflow transitions, absent in tools
+ *
+ * @public
  */
 export interface RunContext<TArgs = unknown> {
   userId: string;

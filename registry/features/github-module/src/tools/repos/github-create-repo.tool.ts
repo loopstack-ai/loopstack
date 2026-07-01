@@ -13,8 +13,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreateRepoTool`: repository `name`, optional `description`,
+ * `private` visibility and `autoInit` to seed an initial commit.
+ *
+ * @public
+ */
 export type GitHubCreateRepoArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreateRepoTool`: the created `repo` summary, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreateRepoResult = {
   repo?: {
     id: number;
@@ -28,6 +39,12 @@ export type GitHubCreateRepoResult = {
   message?: string;
 };
 
+/**
+ * Tool that creates a new GitHub repository for the authenticated user.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_repo',
   description:

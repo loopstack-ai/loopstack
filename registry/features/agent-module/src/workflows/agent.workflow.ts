@@ -28,23 +28,43 @@ import {
  *
  * Tools are resolved from the current workflow first, then from the workspace.
  */
-const AgentArgsSchema = z.object({
+/**
+ * Zod schema for `AgentWorkflow` args (what callers pass to `run()`).
+ *
+ * @public
+ */
+export const AgentArgsSchema = z.object({
   system: z.string(),
   tools: z.array(z.string()),
   userMessage: z.string(),
   context: z.string().optional(),
 });
 
-type AgentArgs = z.infer<typeof AgentArgsSchema>;
+/**
+ * Args for `AgentWorkflow` (passed to `run()`).
+ *
+ * Holds `system`, `tools`, `userMessage`, and optional `context`.
+ *
+ * @public
+ */
+export type AgentArgs = z.infer<typeof AgentArgsSchema>;
 
 /**
- * Schema for the `data` field of the `TransitionInput` delivered to a parent's
- * callback transition after AgentWorkflow completes.
+ * Zod schema for the result published by AgentWorkflow.
  *
- * Use as the `schema:` on the callback wait-transition and as the generic
- * parameter to `TransitionInput<AgentResult>`.
+ * Validates a single `response` string holding the final assistant message.
+ * Reusable as the `schema:` on a parent's callback wait-transition.
+ *
+ * @public
  */
 export const AgentResultSchema = z.object({ response: z.string() });
+/**
+ * Result returned by AgentWorkflow, inferred from {@link AgentResultSchema}.
+ *
+ * Holds the final assistant `response` text.
+ *
+ * @public
+ */
 export type AgentResult = z.infer<typeof AgentResultSchema>;
 
 interface AgentState {
@@ -56,6 +76,17 @@ interface AgentState {
   delegateResult?: LlmDelegateResult;
 }
 
+/**
+ * Workflow that runs a generic LLM agent loop: prompt the LLM, delegate any tool
+ * calls, feed their results back, and repeat until the model returns `end_turn`.
+ *
+ * Args (per `run()`): `system`, `tools`, `userMessage`, and optional `context`.
+ * Tools are resolved from the current workflow first, then from the workspace.
+ * On completion it publishes an {@link AgentResult} with the final assistant `response`.
+ *
+ * @public
+ * @providedBy AgentModule
+ */
 @Workflow({
   name: 'agent',
   title: 'Agent',
@@ -136,7 +167,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  @Guard('isEndTurn')
+  @Guard('isDone')
   respond(state: AgentState) {
     const result: AgentResult = { response: state.llmResult?.message.text ?? '' };
     this.setResult(result);
@@ -150,7 +181,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
     return !!state.delegateResult?.allCompleted;
   }
 
-  private isEndTurn(state: AgentState): boolean {
+  private isDone(state: AgentState): boolean {
     return state.llmResult?.message.stopReason === 'end_turn';
   }
 }

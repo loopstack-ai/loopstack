@@ -22,7 +22,7 @@ export class AgentAskForApprovalExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'running' })
-  async start(_state: Record<string, unknown>) {
+  async start() {
     await this.agentWorkflow.run(
       {
         system: SYSTEM_PROMPT,

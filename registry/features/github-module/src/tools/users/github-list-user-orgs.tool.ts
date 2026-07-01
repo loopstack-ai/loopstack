@@ -10,8 +10,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListUserOrgsTool`: the `perPage` page size.
+ *
+ * @public
+ */
 export type GitHubListUserOrgsArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListUserOrgsTool`: an `orgs` array with login, description and avatar, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListUserOrgsResult = {
   orgs?: Array<{
     id: number;
@@ -23,6 +33,12 @@ export type GitHubListUserOrgsResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists the organizations the authenticated GitHub user belongs to.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_user_orgs',
   description:

@@ -2,16 +2,32 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitFetchTool`.
+ *
+ * @public
+ */
 export type GitFetchArgs = {
   remote?: string;
   token?: string;
 };
 
+/**
+ * Result for `GitFetchTool`.
+ *
+ * @public
+ */
 export type GitFetchResult = {
   success: boolean;
   output?: string;
 };
 
+/**
+ * Tool that fetches refs and objects from a remote repository without merging.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_fetch',
   description: 'Fetches refs and objects from a remote repository without merging.',

@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListPrReviewsTool`: the repository `owner`, `repo` and `pullNumber`.
+ *
+ * @public
+ */
 export type GitHubListPrReviewsArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListPrReviewsTool`: a `reviews` array with reviewer, body, state
+ * and submission time, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListPrReviewsResult =
   | {
       reviews: Array<{
@@ -27,6 +38,12 @@ export type GitHubListPrReviewsResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that lists reviews submitted on a GitHub pull request.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_pr_reviews',
   description:

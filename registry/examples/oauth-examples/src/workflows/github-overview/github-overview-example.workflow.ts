@@ -111,7 +111,7 @@ export class GithubOverviewExampleWorkflow extends BaseWorkflow<GitHubReposOverv
   // If unauthorized -> launch OAuth
   @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(_state: GitHubReposOverviewState) {
+  async authRequired() {
     await this.oAuthWorkflow.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
@@ -133,7 +133,7 @@ export class GithubOverviewExampleWorkflow extends BaseWorkflow<GitHubReposOverv
   // --- Step 2: Fetch user orgs ---
 
   @Transition({ from: 'user_fetched', to: 'orgs_fetched' })
-  async fetchOrgs(_state: GitHubReposOverviewState) {
+  async fetchOrgs() {
     const result = await this.gitHubListUserOrgs.call({ perPage: 10 });
     this.assignState({ orgs: result.data.orgs });
   }

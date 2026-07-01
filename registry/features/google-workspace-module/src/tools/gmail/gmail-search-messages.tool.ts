@@ -13,8 +13,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GmailSearchMessagesTool`.
+ *
+ * @public
+ */
 export type GmailSearchMessagesArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GmailSearchMessagesTool`.
+ *
+ * @public
+ */
 export type GmailSearchMessagesResult =
   | {
       messages: Array<{
@@ -31,6 +41,14 @@ export type GmailSearchMessagesResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that searches Gmail messages using Gmail query syntax. Takes a `query`, optional `labelIds`,
+ * and pagination, and returns message summaries with headers and snippets plus a `nextPageToken`, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'gmail_search_messages',
   description:

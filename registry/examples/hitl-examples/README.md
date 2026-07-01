@@ -46,6 +46,24 @@ npm install @loopstack/hitl-examples
 import { HitlExamplesModule } from '@loopstack/hitl-examples';
 ```
 
+## Required app-module configuration
+
+`HitlExamplesModule` brings its own `HitlModule`, `AgentModule`, and `ClaudeModule`. The Meeting Notes and Agent examples additionally call `LlmGenerateObjectTool` / `LlmGenerateTextTool` from `@loopstack/llm-provider-module`. That module is `@Global` and must be configured once in your root module to set the default model:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { HitlExamplesModule } from '@loopstack/hitl-examples';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+
+@Module({
+  imports: [LoopstackModule.forRoot(), LlmProviderModule.forRoot({ model: 'claude-sonnet-4-6' }), HitlExamplesModule],
+})
+export class AppModule {}
+```
+
+`ClaudeModule` (re-exported from `HitlExamplesModule`) registers the Claude provider with the LLM registry; `LlmProviderModule.forRoot(...)` sets the default model the tools dispatch to. The non-agent examples (Inline Form, Prompt Input Chat, Ask User \*, Confirm Content) work without it.
+
 ## Environment
 
 The agent and meeting-notes examples require Claude credentials:

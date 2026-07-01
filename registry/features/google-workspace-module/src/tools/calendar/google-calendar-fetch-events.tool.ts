@@ -14,8 +14,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleCalendarFetchEventsTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarFetchEventsArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleCalendarFetchEventsTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarFetchEventsResult = {
   events?: Array<{
     id: string;
@@ -31,6 +41,14 @@ export type GoogleCalendarFetchEventsResult = {
   message?: string;
 };
 
+/**
+ * Tool that fetches events from a Google Calendar within a time range. Takes a `timeMin`/`timeMax`
+ * window (and optional `calendarId`, `query`, `maxResults`) and returns matching events with
+ * start/end, attendees, and links, or `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_calendar_fetch_events',
   description:

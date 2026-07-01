@@ -1,10 +1,6 @@
 import { BaseWorkflow, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import { FileSystemService } from '@loopstack/local-file-explorer-module';
 
-interface LocalFileExplorerState {
-  fileCount?: number;
-}
-
 @Workflow({
   title: 'Filesystem - Local File Explorer Example',
   description:
@@ -16,7 +12,7 @@ export class LocalFileExplorerExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'end' })
-  async listTree(_state: LocalFileExplorerState) {
+  async listTree() {
     const tree = await this.fileSystem.buildFileTree(process.cwd());
     const lines = tree.slice(0, 50).map((node) => `- ${node.path} (${node.type})`);
 

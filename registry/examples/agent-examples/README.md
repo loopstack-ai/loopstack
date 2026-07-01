@@ -38,6 +38,26 @@ npm install @loopstack/agent-examples
 import { AgentExamplesModule } from '@loopstack/agent-examples';
 ```
 
+## Required app-module configuration
+
+All four examples use LLM tools (`LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, etc.) from `@loopstack/llm-provider-module`. That module is `@Global` and must be configured once in your root module to set the default model:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { AgentExamplesModule } from '@loopstack/agent-examples';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+
+@Module({
+  imports: [LoopstackModule.forRoot(), LlmProviderModule.forRoot({ model: 'claude-sonnet-4-6' }), AgentExamplesModule],
+})
+export class AppModule {}
+```
+
+`AgentExamplesModule` re-imports `ClaudeModule` (provider), `AgentModule` (the `AgentWorkflow` / `ChatAgentWorkflow` classes), `CodeAgentModule`, `McpModule`, and `RemoteClientModule.forFeature({ type: 'sandbox' })`. `LlmProviderModule.forRoot(...)` sets the default model the tools dispatch to.
+
+The Code Agent example additionally requires `RemoteClientModule.forRoot({ environments })` — see [Code Agent → Setup](#code-agent) below.
+
 ## Environment
 
 ```bash

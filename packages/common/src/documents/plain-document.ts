@@ -7,6 +7,11 @@ export const PlainDocumentSchema = z
   })
   .strict();
 
+/**
+ * Document that renders plain text in Studio.
+ *
+ * @public
+ */
 @Document({
   schema: PlainDocumentSchema,
   widget: './plain-document.yaml',

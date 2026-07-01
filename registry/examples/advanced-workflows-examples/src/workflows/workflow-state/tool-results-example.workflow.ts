@@ -10,7 +10,7 @@ interface ToolResultsState {
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow {
   @Transition({ to: 'data_created' })
-  async createSomeData(_state: ToolResultsState) {
+  async createSomeData() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: `Stored in initial transition: Hello World.`,

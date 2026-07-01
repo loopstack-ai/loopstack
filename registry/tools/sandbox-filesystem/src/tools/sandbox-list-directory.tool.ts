@@ -11,7 +11,14 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxListDirectoryArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxListDirectory`.
+ *
+ * Identifies the container and directory path, with an optional recursive flag.
+ *
+ * @public
+ */
+export type SandboxListDirectoryArgs = z.infer<typeof inputSchema>;
 
 interface FileEntry {
   name: string;
@@ -20,11 +27,24 @@ interface FileEntry {
   path: string;
 }
 
-interface SandboxListDirectoryResult {
+/**
+ * Result of `SandboxListDirectory`.
+ *
+ * Reports the listed directory path and its entries (name, type, size, path).
+ *
+ * @public
+ */
+export interface SandboxListDirectoryResult {
   path: string;
   entries: FileEntry[];
 }
 
+/**
+ * Tool that lists files and directories in a sandbox container, optionally recursively, with type and size.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_list_directory',
   description: 'List files and directories in a sandbox container',

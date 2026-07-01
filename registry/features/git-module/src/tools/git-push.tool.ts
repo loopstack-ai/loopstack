@@ -2,6 +2,11 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitPushTool`.
+ *
+ * @public
+ */
 export type GitPushArgs = {
   remote?: string;
   branch?: string;
@@ -9,11 +14,22 @@ export type GitPushArgs = {
   token?: string;
 };
 
+/**
+ * Result for `GitPushTool`.
+ *
+ * @public
+ */
 export type GitPushResult = {
   success: boolean;
   output?: string;
 };
 
+/**
+ * Tool that pushes commits to a remote repository.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_push',
   description: 'Pushes commits to a remote repository.',

@@ -14,6 +14,11 @@ export interface RedirectInfo {
   statusCode: number;
 }
 
+/**
+ * Result for `WebFetchTool` — the fetched URL, response metadata, the Markdown or summarized content, and optional redirect details.
+ *
+ * @public
+ */
 export interface WebFetchResult {
   url: string;
   bytes: number;

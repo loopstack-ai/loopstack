@@ -13,8 +13,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetFileContentTool`: the repository `owner`, `repo`, file `path`
+ * and optional `ref` (branch, tag or commit SHA).
+ *
+ * @public
+ */
 export type GitHubGetFileContentArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetFileContentTool`: a `file` object with decoded text `content`
+ * plus path, sha and size, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetFileContentResult =
   | {
       file: {
@@ -29,6 +41,13 @@ export type GitHubGetFileContentResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that reads the content of a file from a GitHub repository, decoding the
+ * base64 payload returned by the API into plain text.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_file_content',
   description:

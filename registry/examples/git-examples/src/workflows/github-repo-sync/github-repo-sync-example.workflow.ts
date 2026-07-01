@@ -20,7 +20,7 @@ export class GithubRepoSyncExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'connecting' })
-  async connect(_state: Record<string, unknown>) {
+  async connect() {
     await this.connectGitHubWorkflow.run(
       {},
       { callback: { transition: 'connectComplete' }, show: 'inline', label: 'Connecting to GitHub...' },

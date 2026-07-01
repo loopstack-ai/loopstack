@@ -48,7 +48,11 @@ export interface BlockOptions {
   internal?: boolean;
 }
 
-/** Options for @Tool() decorator */
+/**
+ * Options for the `@Tool()` decorator.
+ *
+ * @public
+ */
 export interface ToolOptions {
   /** Explicit name for this tool (used as identifier in LLM wire format, e.g. 'git_status'). Falls back to class name if omitted. */
   name?: string;
@@ -62,7 +66,11 @@ export interface ToolOptions {
   configSchema?: z.ZodType;
 }
 
-/** Options for @Workflow() decorator */
+/**
+ * Options for the `@Workflow()` decorator.
+ *
+ * @public
+ */
 export interface WorkflowOptions {
   /** Explicit snake_case name for this workflow (e.g. 'agent_example'). Falls back to auto-derived name from class. */
   name?: string;
@@ -80,7 +88,11 @@ export interface WorkflowOptions {
   stateSchema?: z.ZodType;
 }
 
-/** Options for @Document() decorator */
+/**
+ * Options for the `@Document()` decorator.
+ *
+ * @public
+ */
 export interface DocumentOptions {
   /** Explicit snake_case name (e.g. 'ask_user'). Falls back to auto-derived from class name. */
   name?: string;
@@ -159,6 +171,8 @@ export function Block(type: BlockType, options?: BlockOptions, callerFile?: stri
  * against this file's directory at decorator-evaluation time.
  *
  * @see WorkflowOptions for available options.
+ *
+ * @public
  */
 export function Workflow(options?: WorkflowOptions): ClassDecorator {
   return Block('workflow', options as BlockOptions, getCallerFile());
@@ -178,6 +192,8 @@ export function Workflow(options?: WorkflowOptions): ClassDecorator {
  * against this file's directory at decorator-evaluation time.
  *
  * @see ToolOptions for available options.
+ *
+ * @public
  */
 export function Tool(options?: ToolOptions): ClassDecorator {
   return Block('tool', options as BlockOptions, getCallerFile());
@@ -194,6 +210,8 @@ export function Tool(options?: ToolOptions): ClassDecorator {
  * stripped, snake_cased (e.g. `AskUserDocument` → `ask_user`).
  *
  * @see DocumentOptions for available options.
+ *
+ * @public
  */
 export function Document(options?: DocumentOptions): ClassDecorator {
   const sourceFile = getCallerFile();
@@ -255,6 +273,13 @@ export interface GuardMetadata {
   guardMethodName: string;
 }
 
+/**
+ * Options for the `@Transition()` decorator — routing (`from`/`to`), `wait`,
+ * `priority`, the payload/args `schema`, and the retry / error-place / timeout
+ * controls.
+ *
+ * @public
+ */
 export interface TransitionOptions {
   /** Source state. Defaults to 'start' (initial transition) when omitted. */
   from?: string;
@@ -285,6 +310,19 @@ function addTransitionMetadata(target: object, metadata: TransitionMetadata): vo
   Reflect.defineMetadata(TRANSITIONS_METADATA_KEY, [...existing, metadata], target.constructor);
 }
 
+/**
+ * Marks a workflow method as a transition between two states (places).
+ *
+ * The method fires when the workflow is in its `from` place and moves it to `to`.
+ * `from` defaults to `'start'` (the initial transition); use `to: 'end'` for the
+ * final transition. Set `wait: true` to pause until an external trigger (user
+ * input or a sub-workflow callback) resumes the workflow. Transitions mutate
+ * state via setters and return nothing.
+ *
+ * @see TransitionOptions for routing, retry, error-place, and timeout options.
+ *
+ * @public
+ */
 export function Transition(options: TransitionOptions): MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     // When `errorPlace` is set without `retryAttempts`, default to 0 auto-retries
@@ -309,6 +347,15 @@ export function Transition(options: TransitionOptions): MethodDecorator {
   };
 }
 
+/**
+ * Gates a transition behind a guard predicate method.
+ *
+ * `guardMethodName` names a pure, side-effect-free method on the workflow that
+ * returns a boolean. When several transitions share a `from` place, the
+ * highest-priority transition whose guard returns true is the one that fires.
+ *
+ * @public
+ */
 export function Guard(guardMethodName: string): MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     const existing = (Reflect.getMetadata(GUARDS_METADATA_KEY, target.constructor) as GuardMetadata[]) ?? [];

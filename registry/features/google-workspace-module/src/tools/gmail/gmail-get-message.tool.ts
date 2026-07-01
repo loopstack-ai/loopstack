@@ -11,8 +11,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GmailGetMessageTool`.
+ *
+ * @public
+ */
 export type GmailGetMessageArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GmailGetMessageTool`.
+ *
+ * @public
+ */
 export type GmailGetMessageResult =
   | {
       id: string;
@@ -38,6 +48,14 @@ interface GmailMessagePart {
   parts?: GmailMessagePart[];
 }
 
+/**
+ * Tool that gets the full content of a single Gmail message. Takes a `messageId` and `format`, and
+ * returns headers, decoded body text, snippet, label ids, and attachment metadata, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'gmail_get_message',
   description:

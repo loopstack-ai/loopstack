@@ -11,13 +11,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxReadFileArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxReadFile`.
+ *
+ * Identifies the container, file path, and read encoding (utf8 or base64).
+ *
+ * @public
+ */
+export type SandboxReadFileArgs = z.infer<typeof inputSchema>;
 
-interface SandboxReadFileResult {
+/**
+ * Result of `SandboxReadFile`.
+ *
+ * Reports the file content and the encoding it was read with.
+ *
+ * @public
+ */
+export interface SandboxReadFileResult {
   content: string;
   encoding: string;
 }
 
+/**
+ * Tool that reads a file's contents from a sandbox container, as utf8 or base64.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_read_file',
   description: 'Read file contents from a sandbox container',

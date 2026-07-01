@@ -2,6 +2,11 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Result for `GitStatusTool`.
+ *
+ * @public
+ */
 export type GitStatusResult = {
   branch: string;
   staged: string[];
@@ -10,6 +15,13 @@ export type GitStatusResult = {
   deleted: string[];
 };
 
+/**
+ * Tool that reports the git status of the workspace: current branch plus staged, modified,
+ * untracked, and deleted files.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_status',
   description:

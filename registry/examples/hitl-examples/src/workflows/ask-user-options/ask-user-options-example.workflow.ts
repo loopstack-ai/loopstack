@@ -18,7 +18,7 @@ export class AskUserOptionsExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_choice' })
-  async askEnvironment(_state: Record<string, unknown>) {
+  async askEnvironment() {
     await this.askUserWorkflow.run(
       {
         question: 'Which environment should we deploy to?',

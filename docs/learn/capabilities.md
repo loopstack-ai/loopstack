@@ -41,12 +41,13 @@ Quick reference for what Loopstack can do. Each entry links to the relevant buil
 
 ## Integrations
 
-| Capability             | Description                                             | Guide                                                                     |
-| ---------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------- |
-| OAuth 2.0              | Provider-agnostic OAuth with Google and GitHub built-in | [OAuth](../build/integrations/oauth.md)                                   |
-| Docker sandboxes       | Run untrusted code in isolated containers               | [Sandbox](../build/integrations/sandbox.md)                               |
-| Secrets management     | Request and store API keys/tokens from users at runtime | [Secrets](../build/integrations/secrets.md)                               |
-| Programmatic execution | Trigger workflows from APIs, webhooks, cron jobs        | [Programmatic Execution](../build/integrations/programmatic-execution.md) |
+| Capability             | Description                                                          | Guide                                                                                  |
+| ---------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| OAuth 2.0              | Provider-agnostic OAuth with Google and GitHub built-in              | [OAuth](../build/integrations/oauth.md)                                                |
+| Docker sandboxes       | Run untrusted code in isolated containers                            | [Sandbox](../build/integrations/sandbox.md)                                            |
+| Secrets management     | Request and store API keys/tokens from users at runtime              | [Secrets](../build/integrations/secrets.md)                                            |
+| Programmatic execution | Trigger workflows from APIs, webhooks, cron jobs                     | [Scheduling & Programmatic Execution](../build/integrations/programmatic-execution.md) |
+| Scheduling             | Cron, webhooks, delayed runs, and batch fan-out via `WorkflowRunner` | [Scheduling & Programmatic Execution](../build/integrations/programmatic-execution.md) |
 
 ## UI & Studio
 

@@ -15,7 +15,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'sub_workflow_started' })
-  async runWorkflow(_state: Record<string, unknown>) {
+  async runWorkflow() {
     await this.subWorkflow.run(
       {},
       { callback: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
@@ -36,7 +36,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'sub_workflow_ended', to: 'sub_workflow2_started' })
-  async runWorkflow2(_state: Record<string, unknown>) {
+  async runWorkflow2() {
     await this.subWorkflow.run(
       {},
       { callback: { transition: 'subWorkflow2Callback' }, show: 'link', label: 'Sub-Workflow 2' },

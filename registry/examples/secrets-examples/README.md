@@ -40,6 +40,28 @@ npm install @loopstack/secrets-examples
 import { SecretsExamplesModule } from '@loopstack/secrets-examples';
 ```
 
+## Required app-module configuration
+
+The Agentic example calls `LlmGenerateTextTool` from `@loopstack/llm-provider-module`. That module is `@Global` and must be configured once in your root module to set the default model:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+import { SecretsExamplesModule } from '@loopstack/secrets-examples';
+
+@Module({
+  imports: [
+    LoopstackModule.forRoot(),
+    LlmProviderModule.forRoot({ model: 'claude-sonnet-4-6' }),
+    SecretsExamplesModule,
+  ],
+})
+export class AppModule {}
+```
+
+`SecretsExamplesModule` already re-imports `ClaudeModule` (provider) and `SecretsModule.forFeature()` (entity + REST surface). `LlmProviderModule.forRoot(...)` sets the default model the agent dispatches to. The Deterministic example doesn't call an LLM and works without it.
+
 ## Environment
 
 The agentic example requires Claude credentials:
