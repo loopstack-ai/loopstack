@@ -23,7 +23,7 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'inline_started' })
-  async runInline(_state: Record<string, unknown>) {
+  async runInline() {
     await this.sub.run(
       {},
       { callback: { transition: 'onInlineDone' }, show: 'inline', label: 'Inline embed (iframe)' },

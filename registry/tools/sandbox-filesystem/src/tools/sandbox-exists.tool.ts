@@ -10,14 +10,34 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxExistsArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxExists`.
+ *
+ * Identifies the container and the path to check for existence.
+ *
+ * @public
+ */
+export type SandboxExistsArgs = z.infer<typeof inputSchema>;
 
-interface SandboxExistsResult {
+/**
+ * Result of `SandboxExists`.
+ *
+ * Reports whether the path exists and, if so, its type (or `null` when absent).
+ *
+ * @public
+ */
+export interface SandboxExistsResult {
   path: string;
   exists: boolean;
   type: 'file' | 'directory' | 'symlink' | 'other' | null;
 }
 
+/**
+ * Tool that checks whether a path exists in a sandbox container and reports its type.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_exists',
   description: 'Check if a file or directory exists in a sandbox container',

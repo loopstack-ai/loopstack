@@ -19,6 +19,11 @@ import type {
   LlmStreamEvent,
 } from '../types/index.js';
 
+/**
+ * Zod schema for `llm_generate_text` tool args (`prompt` and/or `messages`).
+ *
+ * @public
+ */
 export const LlmGenerateTextArgsSchema = z.object({
   prompt: z.string().optional(),
   messages: z
@@ -31,6 +36,12 @@ export const LlmGenerateTextArgsSchema = z.object({
     .optional(),
 });
 
+/**
+ * Zod schema for `llm_generate_text` tool config (`provider`, `model`, `system`,
+ * `tools`, `providerConfig`, and persistence options).
+ *
+ * @public
+ */
 export const LlmGenerateTextConfigSchema = z.object({
   provider: z.string().optional(),
   system: z.string().optional(),
@@ -48,6 +59,17 @@ type LlmGenerateTextConfig = z.infer<typeof LlmGenerateTextConfigSchema>;
 /** @deprecated Use LlmGenerateTextArgsSchema + LlmGenerateTextConfigSchema instead */
 export const LlmGenerateTextToolSchema = LlmGenerateTextArgsSchema;
 
+/**
+ * Tool that generates text with the configured LLM provider.
+ *
+ * Accepts a `prompt` or a `messages` array and resolves provider, model, system prompt,
+ * and tool names from `options.config`. Resolved tool names are turned into provider tool
+ * definitions, and output is streamed to the client when streaming is available.
+ * Returns an {@link LlmGenerateTextResult} with provider/model usage in {@link LlmResultMeta}.
+ *
+ * @providedBy LlmProviderModule
+ * @public
+ */
 @Tool({
   name: 'llm_generate_text',
   description:

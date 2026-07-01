@@ -13,8 +13,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreateIssueCommentTool`: the repository `owner`, `repo`,
+ * `issueNumber` (issue or pull request) and comment `body`.
+ *
+ * @public
+ */
 export type GitHubCreateIssueCommentArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreateIssueCommentTool`: the created `comment` summary, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreateIssueCommentResult =
   | {
       comment: {
@@ -26,6 +37,12 @@ export type GitHubCreateIssueCommentResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that adds a comment to a GitHub issue or pull request.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_issue_comment',
   description:

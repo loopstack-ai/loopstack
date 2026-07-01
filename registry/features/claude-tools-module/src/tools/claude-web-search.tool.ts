@@ -11,12 +11,22 @@ const MAX_RESULT_SIZE_CHARS = 20_000;
 const SOURCES_REMINDER =
   'REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.';
 
+/**
+ * Zod schema for `ClaudeWebSearch` arguments.
+ *
+ * @public
+ */
 export const ClaudeWebSearchArgsSchema = z
   .object({
     query: z.string().min(2).describe('The search query to execute'),
   })
   .strict();
 
+/**
+ * Zod schema for `ClaudeWebSearch` configuration.
+ *
+ * @public
+ */
 export const ClaudeWebSearchConfigSchema = z.object({
   model: z.string().optional(),
   maxTokens: z.number().optional(),
@@ -24,9 +34,26 @@ export const ClaudeWebSearchConfigSchema = z.object({
   cache: z.boolean().optional(),
 });
 
-type ClaudeWebSearchArgs = z.infer<typeof ClaudeWebSearchArgsSchema>;
-type ClaudeWebSearchConfig = z.infer<typeof ClaudeWebSearchConfigSchema>;
+/**
+ * Args for `ClaudeWebSearch`.
+ *
+ * @public
+ */
+export type ClaudeWebSearchArgs = z.infer<typeof ClaudeWebSearchArgsSchema>;
 
+/**
+ * Config for `ClaudeWebSearch`.
+ *
+ * @public
+ */
+export type ClaudeWebSearchConfig = z.infer<typeof ClaudeWebSearchConfigSchema>;
+
+/**
+ * Tool that runs a web search through the Claude provider's built-in `web_search` server tool, returning search hits and model commentary.
+ *
+ * @providedBy ClaudeToolsModule
+ * @public
+ */
 @Tool({
   name: 'claude_web_search',
   description:

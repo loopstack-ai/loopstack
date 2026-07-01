@@ -2,13 +2,29 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitConfigUserTool`.
+ *
+ * @public
+ */
 export type GitConfigUserArgs = {
   name: string;
   email: string;
 };
 
+/**
+ * Result for `GitConfigUserTool`.
+ *
+ * @public
+ */
 export type GitConfigUserResult = { success: boolean };
 
+/**
+ * Tool that configures git `user.name` and `user.email` for the workspace repository.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_config_user',
   description: 'Configures git user.name and user.email for the workspace repository.',

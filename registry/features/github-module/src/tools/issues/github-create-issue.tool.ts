@@ -15,8 +15,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreateIssueTool`: the repository `owner`, `repo`, issue `title` and
+ * optional `body`, `labels` and `assignees`.
+ *
+ * @public
+ */
 export type GitHubCreateIssueArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreateIssueTool`: the created `issue` summary, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreateIssueResult =
   | {
       issue: {
@@ -29,6 +40,12 @@ export type GitHubCreateIssueResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that creates a new issue in a GitHub repository.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_issue',
   description:

@@ -4,6 +4,11 @@ import { AiGenerateTextQuotaCalculator } from './calculators/index.js';
 import { QUOTA_CLIENT_SERVICE } from './interfaces/index.js';
 import { QUOTA_REDIS, QuotaCalculatorRegistry, QuotaClientService, QuotaInterceptor } from './services/index.js';
 
+/**
+ * Options for `QuotaModule.forRoot()` — toggles quota tracking and configures the Redis connection.
+ *
+ * @public
+ */
 export interface QuotaModuleOptions {
   enabled: boolean;
   redisHost?: string;
@@ -11,6 +16,24 @@ export interface QuotaModuleOptions {
   redisPassword?: string;
 }
 
+/**
+ * NestJS module that provides opt-in quota tracking and enforcement for tool calls — the
+ * `QuotaInterceptor`, `QuotaClientService`, `QuotaCalculatorRegistry`, and built-in
+ * AI-cost and processing-time calculators.
+ *
+ * Registration:
+ * - `QuotaModule.forRoot(QuotaModuleOptions)` — use when you configure the module in code; sets the
+ *   `enabled` flag and the Redis connection (`redisHost`/`redisPort`/`redisPassword`) explicitly and
+ *   registers the module globally.
+ * - `QuotaModule.forRootAsync()` — use when configuration comes from the environment at runtime; reads
+ *   `QUOTA_ENABLED`, `QUOTA_REDIS_HOST` (fallback `REDIS_HOST`), `QUOTA_REDIS_PORT` (fallback
+ *   `REDIS_PORT`), and `QUOTA_REDIS_PASSWORD` (fallback `REDIS_PASSWORD`), then delegates to `forRoot`.
+ *
+ * Requires: a reachable Redis instance when `enabled: true` (usage counters are Redis-backed). When
+ * `enabled` is `false` (the default), the Redis connection is skipped and the interceptor is a no-op.
+ *
+ * @public
+ */
 @Module({
   providers: [
     { provide: QUOTA_REDIS, useValue: null },

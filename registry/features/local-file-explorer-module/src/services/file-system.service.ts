@@ -4,6 +4,13 @@ import * as fs from 'fs/promises';
 import * as path from 'node:path';
 import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto.js';
 
+/**
+ * Service that performs path-safe local filesystem access — resolves the workspace root, builds the file
+ * tree, reads file contents, and guards against directory traversal; inject it for programmatic file access.
+ *
+ * @providedBy LocalFileExplorerModule
+ * @public
+ */
 @Injectable()
 export class FileSystemService {
   private readonly logger = new Logger(FileSystemService.name);

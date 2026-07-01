@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListBranchesTool`: the repository `owner`, `repo` and `perPage` page size.
+ *
+ * @public
+ */
 export type GitHubListBranchesArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListBranchesTool`: a `branches` array with name, commit SHA and
+ * protection flag, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListBranchesResult = {
   branches?: Array<{
     name: string;
@@ -24,6 +35,12 @@ export type GitHubListBranchesResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists branches for a GitHub repository.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_branches',
   description:

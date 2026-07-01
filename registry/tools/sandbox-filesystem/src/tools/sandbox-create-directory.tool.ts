@@ -11,13 +11,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxCreateDirectoryArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxCreateDirectory`.
+ *
+ * Identifies the container and target directory path, with an optional recursive flag.
+ *
+ * @public
+ */
+export type SandboxCreateDirectoryArgs = z.infer<typeof inputSchema>;
 
-interface SandboxCreateDirectoryResult {
+/**
+ * Result of `SandboxCreateDirectory`.
+ *
+ * Reports the directory path and whether it was created.
+ *
+ * @public
+ */
+export interface SandboxCreateDirectoryResult {
   path: string;
   created: boolean;
 }
 
+/**
+ * Tool that creates a directory in a sandbox container, optionally creating parent directories.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_create_directory',
   description: 'Create a directory in a sandbox container',

@@ -15,7 +15,7 @@ import {
 })
 export class TestUiDocumentsWorkflow extends BaseWorkflow {
   @Transition({ to: 'rendered' })
-  async renderAll(_state: Record<string, unknown>) {
+  async renderAll() {
     // Message
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -39,5 +39,5 @@ export class TestUiDocumentsWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'rendered', to: 'end' })
-  done(_state: Record<string, unknown>) {}
+  done() {}
 }

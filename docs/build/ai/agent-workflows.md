@@ -189,7 +189,7 @@ export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
   toolsComplete(state: AgentState) {}
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  @Guard('isEndTurn')
+  @Guard('isDone')
   respond(_state: AgentState) {}
 
   private hasToolCalls(state: AgentState): boolean {
@@ -200,7 +200,7 @@ export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
     return state.delegateResult?.allCompleted ?? false;
   }
 
-  private isEndTurn(state: AgentState): boolean {
+  private isDone(state: AgentState): boolean {
     return state.llmResult?.message.stopReason === 'end_turn';
   }
 }
@@ -215,7 +215,7 @@ Pause for user input between LLM turns:
 ```typescript
 // Instead of final transition, go to waiting_for_user
 @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-@Guard('isEndTurn')
+@Guard('isDone')
 respondToUser(state: AgentState) {}
 
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })

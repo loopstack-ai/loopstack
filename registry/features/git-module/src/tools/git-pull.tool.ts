@@ -2,17 +2,33 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitPullTool`.
+ *
+ * @public
+ */
 export type GitPullArgs = {
   remote?: string;
   branch?: string;
   token?: string;
 };
 
+/**
+ * Result for `GitPullTool`.
+ *
+ * @public
+ */
 export type GitPullResult = {
   success: boolean;
   output?: string;
 };
 
+/**
+ * Tool that pulls changes from a remote repository.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_pull',
   description: 'Pulls changes from a remote repository.',

@@ -62,7 +62,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<CustomToolExampleArg
   }
 
   @Transition({ from: 'waiting_for_user', to: 'resumed', wait: true })
-  userContinue(_state: CustomToolExampleState) {
+  userContinue() {
     // User pressed Next — counter state should persist from checkpoint
   }
 

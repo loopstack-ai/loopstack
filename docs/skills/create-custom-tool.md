@@ -109,14 +109,14 @@ Tools have two independent validation surfaces:
 | **args**   | `@Tool({ schema })`       | first arg of `tool.call()`   | LLM (when tool-calling) or workflow code |
 | **config** | `@Tool({ configSchema })` | `options.config` of `call()` | the workflow author at the call site     |
 
-Use `args` for the **per-call input** (what the tool acts on) and `config` for **behaviour knobs** (which provider, which model, retry budget, etc.). Config is optional; most tools only need `schema`.
+Use `args` for the **per-call input** (what the tool acts on) and `config` for **behavior knobs** (which provider, which model, retry budget, etc.). Config is optional; most tools only need `schema`.
 
 ```typescript
 @Tool({
   name: 'summarize',
   description: 'Summarize text using an LLM.',
   schema: z.object({ text: z.string() }), // args — the input
-  configSchema: z.object({ model: z.string() }), // config — behaviour
+  configSchema: z.object({ model: z.string() }), // config — behavior
 })
 export class Summarize extends BaseTool<{ text: string }, { model: string }, string> {
   protected async handle(args, ctx, options): Promise<ToolEnvelope<string>> {

@@ -1,3 +1,8 @@
+/**
+ * Result of `QuotaClientService.checkQuota()` — whether the limit is exceeded plus current used and limit values.
+ *
+ * @public
+ */
 export type QuotaCheckResult = {
   exceeded: boolean;
   used: number;

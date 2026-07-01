@@ -7,6 +7,12 @@ import { LlmDelegateService } from '../services/llm-delegate.service.js';
 import { LlmNormalizedMessageSchema } from '../types/index.js';
 import type { LlmContentBlock, LlmDelegateResult, LlmNormalizedMessage } from '../types/index.js';
 
+/**
+ * Zod schema for `llm_delegate_tool_calls` tool args (the LLM `message` and the
+ * `callback.transition` to fire on completion).
+ *
+ * @public
+ */
 export const LlmDelegateToolCallsToolSchema = z.object({
   message: LlmNormalizedMessageSchema,
   callback: z.object({
@@ -14,6 +20,11 @@ export const LlmDelegateToolCallsToolSchema = z.object({
   }),
 });
 
+/**
+ * Zod schema for `llm_delegate_tool_calls` tool config (result persistence options).
+ *
+ * @public
+ */
 export const LlmDelegateToolCallsConfigSchema = z.object({
   save: z.boolean().optional(),
   meta: z.record(z.string(), z.unknown()).optional(),
@@ -22,6 +33,18 @@ export const LlmDelegateToolCallsConfigSchema = z.object({
 type LlmDelegateToolCallsToolArgs = z.infer<typeof LlmDelegateToolCallsToolSchema>;
 type LlmDelegateToolCallsConfig = z.infer<typeof LlmDelegateToolCallsConfigSchema>;
 
+/**
+ * Tool that executes the tool calls contained in an LLM response.
+ *
+ * Extracts tool-use blocks from the normalized `message`, resolves them via the ToolRegistry,
+ * and runs them through {@link LlmDelegateService}, scheduling async completions against the
+ * provided `callback.transition`. Returns an {@link LlmDelegateResult} summarizing completed,
+ * pending, and errored tool calls, and saves the results as an {@link LlmMessageDocument}
+ * unless `config.save` is `false`.
+ *
+ * @providedBy LlmProviderModule
+ * @public
+ */
 @Tool({
   name: 'llm_delegate_tool_calls',
   description: 'Delegates tool calls from an LLM response. Resolves tools via ToolRegistry.',

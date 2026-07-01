@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetCommitTool`: the repository `owner`, `repo` and `ref` (commit SHA, branch or tag).
+ *
+ * @public
+ */
 export type GitHubGetCommitArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetCommitTool`: a `commit` object with author, committer, diff `stats`
+ * and changed `files`, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetCommitResult =
   | {
       commit: {
@@ -42,6 +53,13 @@ export type GitHubGetCommitResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that fetches detailed information about a single commit in a GitHub repository,
+ * including diff stats and changed files.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_commit',
   description:

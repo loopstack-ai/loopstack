@@ -7,6 +7,11 @@ export const MarkdownDocumentSchema = z
   })
   .strict();
 
+/**
+ * Document that renders Markdown content in Studio.
+ *
+ * @public
+ */
 @Document({
   schema: MarkdownDocumentSchema,
   widget: './markdown-document.yaml',

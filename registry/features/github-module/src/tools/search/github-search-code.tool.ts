@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubSearchCodeTool`: the GitHub code-search `query` and `perPage`/`page` paging.
+ *
+ * @public
+ */
 export type GitHubSearchCodeArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubSearchCodeTool`: `totalCount` and a `results` array of matching files
+ * with their repository, or an `error`.
+ *
+ * @public
+ */
 export type GitHubSearchCodeResult = {
   totalCount?: number;
   results?: Array<{
@@ -27,6 +38,12 @@ export type GitHubSearchCodeResult = {
   message?: string;
 };
 
+/**
+ * Tool that searches for code across GitHub repositories using the GitHub search syntax.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_search_code',
   description:

@@ -3,17 +3,33 @@ import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
+/**
+ * Args for `read` — the `file_path` to read, with optional `offset` and `limit` for a line range.
+ *
+ * @public
+ */
 export type ReadArgs = {
   file_path: string;
   offset?: number;
   limit?: number;
 };
 
+/**
+ * Result for `read` — the file `content` and its `path`.
+ *
+ * @public
+ */
 export type ReadResult = {
   content: string;
   path: string;
 };
 
+/**
+ * Tool that reads a file from the remote instance, optionally limited to a line range.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Tool({
   name: 'read',
   description:

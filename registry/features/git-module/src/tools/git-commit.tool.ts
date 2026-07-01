@@ -2,12 +2,28 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitCommitTool`.
+ *
+ * @public
+ */
 export type GitCommitArgs = {
   message: string;
 };
 
+/**
+ * Result for `GitCommitTool`.
+ *
+ * @public
+ */
 export type GitCommitResult = { hash: string; message: string };
 
+/**
+ * Tool that creates a git commit from the currently staged changes.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_commit',
   description: 'Creates a git commit with the currently staged changes.',

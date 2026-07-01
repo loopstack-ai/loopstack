@@ -18,7 +18,7 @@ export class RunSubWorkflowExampleErrorHandlingWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'inline_awaiting' })
-  async launchInline(_state: Record<string, unknown>) {
+  async launchInline() {
     await this.failingSub.run(
       {},
       { callback: { transition: 'onInlineFinished' }, show: 'inline', label: 'Failing sub-workflow (inline)' },

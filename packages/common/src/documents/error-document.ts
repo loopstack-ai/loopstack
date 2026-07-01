@@ -7,6 +7,11 @@ export const ErrorDocumentSchema = z
   })
   .strict();
 
+/**
+ * Document that renders an error message in Studio.
+ *
+ * @public
+ */
 @Document({
   schema: ErrorDocumentSchema,
   widget: './error-document.yaml',

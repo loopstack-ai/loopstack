@@ -47,7 +47,7 @@ export class AgentErrorHandlingWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'ready' })
-  async setup(_state: AgentErrorHandlingState) {
+  async setup() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text:
@@ -105,7 +105,7 @@ export class AgentErrorHandlingWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  toolsComplete(_state: AgentErrorHandlingState) {}
+  toolsComplete() {}
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
   async cancelPendingTools(state: AgentErrorHandlingState, ctx: RunContext) {
@@ -113,8 +113,8 @@ export class AgentErrorHandlingWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  @Guard('isEndTurn')
-  respond(_state: AgentErrorHandlingState) {}
+  @Guard('isDone')
+  respond() {}
 
   private hasToolCalls(state: AgentErrorHandlingState): boolean {
     return state.llmResult?.message.stopReason === 'tool_use';
@@ -124,7 +124,7 @@ export class AgentErrorHandlingWorkflow extends BaseWorkflow {
     return !!state.delegateResult?.allCompleted;
   }
 
-  private isEndTurn(state: AgentErrorHandlingState): boolean {
+  private isDone(state: AgentErrorHandlingState): boolean {
     return state.llmResult?.message.stopReason === 'end_turn';
   }
 }

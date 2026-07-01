@@ -4,20 +4,41 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { OAuthProviderRegistry } from '../services/index.js';
 
-const BuildOAuthUrlSchema = z
+/**
+ * Zod schema for `BuildOAuthUrlTool` args.
+ *
+ * @public
+ */
+export const BuildOAuthUrlSchema = z
   .object({
     provider: z.string(),
     scopes: z.array(z.string()),
   })
   .strict();
 
-type BuildOAuthUrlArgs = z.infer<typeof BuildOAuthUrlSchema>;
+/**
+ * Args for `BuildOAuthUrlTool`.
+ *
+ * @public
+ */
+export type BuildOAuthUrlArgs = z.infer<typeof BuildOAuthUrlSchema>;
 
+/**
+ * Result for `BuildOAuthUrlTool`.
+ *
+ * @public
+ */
 export interface BuildOAuthUrlResult {
   authUrl: string;
   state: string;
 }
 
+/**
+ * Tool that builds an OAuth 2.0 authorization URL for a provider, including a CSRF state parameter.
+ *
+ * @providedBy OAuthModule
+ * @public
+ */
 @Tool({
   name: 'build_oauth_url',
   description: 'Builds an OAuth 2.0 authorization URL for the given provider with CSRF state parameter.',

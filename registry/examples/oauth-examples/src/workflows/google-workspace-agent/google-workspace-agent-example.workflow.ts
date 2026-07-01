@@ -64,7 +64,7 @@ export class GoogleWorkspaceAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async setup(_state: GoogleWorkspaceAgentState) {
+  async setup() {
     await this.documentStore.save(LlmContextDocument, {
       role: 'user',
       text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
@@ -81,7 +81,7 @@ export class GoogleWorkspaceAgentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(_state: GoogleWorkspaceAgentState) {
+  async llmTurn() {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -136,12 +136,12 @@ then retry. Be concise and format results using markdown.`,
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  allToolsCompleteTransition(_state: GoogleWorkspaceAgentState) {}
+  allToolsCompleteTransition() {}
 
   allToolsComplete(state: GoogleWorkspaceAgentState): boolean {
     return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  respond(_state: GoogleWorkspaceAgentState) {}
+  respond() {}
 }

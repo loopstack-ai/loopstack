@@ -3,15 +3,31 @@ import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
+/**
+ * Args for `glob` — the glob `pattern` and an optional `path` to search within.
+ *
+ * @public
+ */
 export type GlobArgs = {
   pattern: string;
   path?: string;
 };
 
+/**
+ * Result for `glob` — the matched relative file paths.
+ *
+ * @public
+ */
 export type GlobResult = {
   files: string[];
 };
 
+/**
+ * Tool that finds files on the remote instance by glob pattern.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Tool({
   name: 'glob',
   description:

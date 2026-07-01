@@ -48,6 +48,8 @@ export interface QueueResult {
  *
  * `hasError` / `errorMessage` / `status` reflect the terminal state of the trigger so the
  * receiver can branch on failure without separate lookups.
+ *
+ * @public
  */
 export interface TransitionInput<TData = unknown, TMeta = unknown> {
   workflowId: string;
@@ -89,17 +91,10 @@ export interface TransitionInput<TData = unknown, TMeta = unknown> {
  * - Args are available via `ctx.args` — type with `RunContext<TArgs>` to drop the cast
  * - Use `from: 'start'` (or omit `from`) for initial, `to: 'end'` for final
  *
- * Launch sub-workflows via `run()`:
- * ```ts
- * constructor(
- *   private agentWorkflow: AgentWorkflow,
- * ) { super(); }
+ * Launch sub-workflows by injecting the workflow class and calling `run()` with a
+ * `callback.transition` that resumes the parent when the child completes.
  *
- * await this.agentWorkflow.run(
- *   { system: '...', userMessage: '...' },
- *   { callback: { transition: 'onComplete' } },
- * );
- * ```
+ * @public
  */
 @Injectable()
 export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TInput = TArgs> {

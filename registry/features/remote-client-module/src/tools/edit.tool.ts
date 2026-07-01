@@ -3,6 +3,12 @@ import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
+/**
+ * Args for `edit` — the `file_path`, the `old_string` to find, the `new_string` replacement, and an
+ * optional `replace_all` flag.
+ *
+ * @public
+ */
 export type EditArgs = {
   file_path: string;
   old_string: string;
@@ -10,12 +16,23 @@ export type EditArgs = {
   replace_all?: boolean;
 };
 
+/**
+ * Result for `edit` — success flag, the edited `path`, and the number of replacements made.
+ *
+ * @public
+ */
 export type EditResult = {
   success: boolean;
   path: string;
   replacements: number;
 };
 
+/**
+ * Tool that performs an exact string replacement in a file on the remote instance.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Tool({
   name: 'edit',
   description:

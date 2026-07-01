@@ -8,6 +8,8 @@ export interface OpenAiModelConfig {
 /**
  * Provider-specific configuration for the OpenAI LLM provider.
  * Passed via `providerConfig` in LlmGenerateTextArgs / LlmGenerateObjectArgs.
+ *
+ * @public
  */
 export interface OpenAiProviderConfig {
   maxTokens?: number;

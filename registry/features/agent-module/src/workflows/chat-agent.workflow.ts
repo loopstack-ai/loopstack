@@ -35,7 +35,12 @@ import { AgentFinishTool } from '../tools/agent-finish.tool.js';
  *
  * Tools are resolved from the current workflow first, then from the workspace.
  */
-const ChatAgentArgsSchema = z.object({
+/**
+ * Zod schema for `ChatAgentWorkflow` args (what callers pass to `run()`).
+ *
+ * @public
+ */
+export const ChatAgentArgsSchema = z.object({
   system: z.string(),
   tools: z.array(z.string()),
   userMessage: z.string(),
@@ -43,7 +48,14 @@ const ChatAgentArgsSchema = z.object({
   taskMode: z.boolean().optional(),
 });
 
-type ChatAgentArgs = z.infer<typeof ChatAgentArgsSchema>;
+/**
+ * Args for `ChatAgentWorkflow` (passed to `run()`).
+ *
+ * Holds `system`, `tools`, `userMessage`, optional `context`, and optional `taskMode`.
+ *
+ * @public
+ */
+export type ChatAgentArgs = z.infer<typeof ChatAgentArgsSchema>;
 
 interface ChatAgentState {
   system: string;
@@ -56,6 +68,17 @@ interface ChatAgentState {
   finishResult?: unknown;
 }
 
+/**
+ * Workflow that runs an interactive LLM agent loop with user chat between turns.
+ *
+ * Behaves like {@link AgentWorkflow}, but instead of exiting on `end_turn` it
+ * transitions to `waiting_for_user` and resumes on the next user message. When
+ * the `taskMode` arg is set, the `agent_finish` tool is added and the LLM
+ * calling it ends the workflow with that tool's result.
+ *
+ * @public
+ * @providedBy AgentModule
+ */
 @Workflow({
   name: 'chat_agent',
   title: 'Chat Agent',

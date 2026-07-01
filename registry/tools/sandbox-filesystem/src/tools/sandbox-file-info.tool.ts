@@ -10,9 +10,23 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxFileInfoArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxFileInfo`.
+ *
+ * Identifies the container and the path to inspect.
+ *
+ * @public
+ */
+export type SandboxFileInfoArgs = z.infer<typeof inputSchema>;
 
-interface SandboxFileInfoResult {
+/**
+ * Result of `SandboxFileInfo`.
+ *
+ * Detailed metadata for a path — type, size, permissions, owner/group, and timestamps.
+ *
+ * @public
+ */
+export interface SandboxFileInfoResult {
   path: string;
   name: string;
   type: 'file' | 'directory' | 'symlink' | 'other';
@@ -25,6 +39,13 @@ interface SandboxFileInfoResult {
   createdAt: string;
 }
 
+/**
+ * Tool that returns detailed metadata for a file or directory in a sandbox container — type, size,
+ * permissions, owner/group, and timestamps.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_file_info',
   description: 'Get detailed information about a file or directory in a sandbox container',

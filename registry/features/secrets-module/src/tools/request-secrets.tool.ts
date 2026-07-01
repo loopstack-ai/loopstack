@@ -13,8 +13,20 @@ const RequestSecretsInputSchema = z
 
 type RequestSecretsInput = z.infer<typeof RequestSecretsInputSchema>;
 
+/**
+ * Result for `request_secrets` — the list of requested secret keys after the user submits the form.
+ *
+ * @public
+ */
 export type RequestSecretsResult = { variables: { key: string }[] };
 
+/**
+ * Tool that asks the user for secret values through a secure Studio form; values are stored server-side
+ * and only the key names are returned, never the secrets themselves.
+ *
+ * @providedBy SecretsModule
+ * @public
+ */
 @Tool({
   name: 'request_secrets',
   description:

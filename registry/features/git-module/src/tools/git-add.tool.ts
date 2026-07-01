@@ -2,12 +2,28 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitAddTool`.
+ *
+ * @public
+ */
 export type GitAddArgs = {
   files: string[];
 };
 
+/**
+ * Result for `GitAddTool`.
+ *
+ * @public
+ */
 export type GitAddResult = { success: boolean };
 
+/**
+ * Tool that stages files for the next git commit.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_add',
   description: 'Stages files for the next git commit.',

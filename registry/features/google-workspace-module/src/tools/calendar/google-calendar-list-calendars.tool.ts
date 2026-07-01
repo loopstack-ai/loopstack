@@ -10,8 +10,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleCalendarListCalendarsTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarListCalendarsArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleCalendarListCalendarsTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarListCalendarsResult =
   | {
       calendars: Array<{
@@ -25,6 +35,14 @@ export type GoogleCalendarListCalendarsResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that lists all Google Calendars the authenticated user has access to. Returns each
+ * calendar's id, summary, time zone, and primary flag, or `{ error: 'unauthorized' }` when no
+ * valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_calendar_list_calendars',
   description:

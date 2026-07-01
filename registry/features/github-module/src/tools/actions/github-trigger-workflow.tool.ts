@@ -14,8 +14,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubTriggerWorkflowTool`: the repository `owner`, `repo`, `workflowId`,
+ * `ref` to run against and optional `inputs` for the dispatch event.
+ *
+ * @public
+ */
 export type GitHubTriggerWorkflowArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubTriggerWorkflowTool`: a `triggered` flag with a message, or an `error`.
+ *
+ * @public
+ */
 export type GitHubTriggerWorkflowResult =
   | {
       triggered: boolean;
@@ -23,6 +34,12 @@ export type GitHubTriggerWorkflowResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that triggers a GitHub Actions workflow dispatch event on a given ref.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_trigger_workflow',
   description:

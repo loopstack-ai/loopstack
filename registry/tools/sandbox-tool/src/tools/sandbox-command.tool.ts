@@ -14,8 +14,22 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxCommandArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxCommand`.
+ *
+ * Identifies the target container and the executable to run, with optional args, working directory,
+ * environment variables, and timeout.
+ *
+ * @public
+ */
+export type SandboxCommandArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Tool that executes a command inside a sandbox container and captures its stdout, stderr, and exit code.
+ *
+ * @providedBy SandboxToolModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_command',
   description: 'Execute a command in the sandbox environment',

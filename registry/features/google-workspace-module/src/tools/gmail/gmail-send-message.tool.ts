@@ -15,13 +15,31 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GmailSendMessageTool`.
+ *
+ * @public
+ */
 export type GmailSendMessageArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GmailSendMessageTool`.
+ *
+ * @public
+ */
 export type GmailSendMessageResult =
   | { id: string; threadId: string; labelIds: string[] }
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that sends a new email via Gmail. Takes `to`/`cc`/`bcc` recipients, a subject, and plain-text
+ * (and optional HTML) body, and returns the sent message's id, thread id, and label ids, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'gmail_send_message',
   description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',

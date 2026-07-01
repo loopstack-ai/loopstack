@@ -26,7 +26,7 @@ export class ConfirmContentExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_confirmation' })
-  async showSummary(_state: Record<string, unknown>) {
+  async showSummary() {
     await this.confirmUserWorkflow.run(
       { markdown: DEPLOY_SUMMARY },
       { callback: { transition: 'decisionReceived' }, show: 'inline', label: 'Waiting for confirmation...' },

@@ -27,7 +27,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<DynamicRoutingAr
   async createMockData(state: DynamicRoutingState, ctx: RunContext<DynamicRoutingArgs>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Analysing value = ${ctx.args.value}`,
+      text: `Analyzing value = ${ctx.args.value}`,
     });
     this.assignState({ value: ctx.args.value });
   }
@@ -36,32 +36,32 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<DynamicRoutingAr
 
   @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
   @Guard('isAbove100')
-  routeToPlaceA(_state: DynamicRoutingState) {}
+  routeToPlaceA() {}
 
   isAbove100(state: DynamicRoutingState): boolean {
     return state.value > 100;
   }
 
   @Transition({ from: 'prepared', to: 'placeB' })
-  routeToPlaceB(_state: DynamicRoutingState) {} // no priority -> evaluated last, acts as fallback
+  routeToPlaceB() {} // no priority -> evaluated last, acts as fallback
 
   // --- Second routing fork (from 'placeA') ---
 
   @Transition({ from: 'placeA', to: 'placeC', priority: 10 })
   @Guard('isAbove200')
-  routeToPlaceC(_state: DynamicRoutingState) {}
+  routeToPlaceC() {}
 
   isAbove200(state: DynamicRoutingState): boolean {
     return state.value > 200;
   }
 
   @Transition({ from: 'placeA', to: 'placeD' })
-  routeToPlaceD(_state: DynamicRoutingState) {} // no priority -> evaluated last, acts as fallback
+  routeToPlaceD() {} // no priority -> evaluated last, acts as fallback
 
   // --- Terminal transitions ---
 
   @Transition({ from: 'placeB', to: 'end' })
-  async showMessagePlaceB(_state: DynamicRoutingState) {
+  async showMessagePlaceB() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Value is less or equal 100',
@@ -69,7 +69,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<DynamicRoutingAr
   }
 
   @Transition({ from: 'placeC', to: 'end' })
-  async showMessagePlaceC(_state: DynamicRoutingState) {
+  async showMessagePlaceC() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Value is greater than 200',
@@ -77,7 +77,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<DynamicRoutingAr
   }
 
   @Transition({ from: 'placeD', to: 'end' })
-  async showMessagePlaceD(_state: DynamicRoutingState) {
+  async showMessagePlaceD() {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: 'Value is less or equal 200, but greater than 100',

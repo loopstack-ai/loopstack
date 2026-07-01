@@ -15,8 +15,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubSearchIssuesTool`: the GitHub search `query`, optional `sort` and
+ * `perPage`/`page` paging.
+ *
+ * @public
+ */
 export type GitHubSearchIssuesArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubSearchIssuesTool`: `totalCount` and a `results` array of matching
+ * issues and pull requests (each flagged with `isPullRequest`), or an `error`.
+ *
+ * @public
+ */
 export type GitHubSearchIssuesResult =
   | {
       totalCount: number;
@@ -34,6 +46,12 @@ export type GitHubSearchIssuesResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that searches for issues and pull requests across GitHub using the GitHub search syntax.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_search_issues',
   description:

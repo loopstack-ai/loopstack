@@ -2,6 +2,11 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * A single worktree entry returned by `GitWorktreeListTool`.
+ *
+ * @public
+ */
 export type GitWorktree = {
   path: string;
   head?: string;
@@ -12,10 +17,21 @@ export type GitWorktree = {
   prunable?: string;
 };
 
+/**
+ * Result for `GitWorktreeListTool`.
+ *
+ * @public
+ */
 export type GitWorktreeListResult = {
   worktrees: GitWorktree[];
 };
 
+/**
+ * Tool that lists all git worktrees attached to the repository, including path, HEAD, branch, and flags.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_worktree_list',
   description:

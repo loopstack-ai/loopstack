@@ -11,8 +11,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleDriveDownloadFileTool`.
+ *
+ * @public
+ */
 export type GoogleDriveDownloadFileArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleDriveDownloadFileTool`.
+ *
+ * @public
+ */
 export type GoogleDriveDownloadFileResult =
   | { content: string; mimeType: string }
   | { content: string; mimeType: string; encoding: 'base64' }
@@ -25,6 +35,15 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
   'application/vnd.google-apps.presentation': 'text/plain',
 };
 
+/**
+ * Tool that downloads or exports a file from Google Drive. Takes a `fileId` and optional
+ * `exportMimeType`, automatically handles Google Docs/Sheets/Slides export, and returns text or
+ * base64-encoded content with its mime type, or `{ error: 'unauthorized' }` when no valid Google
+ * token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_drive_download_file',
   description:

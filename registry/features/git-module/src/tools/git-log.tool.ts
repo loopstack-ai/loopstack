@@ -2,10 +2,20 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitLogTool`.
+ *
+ * @public
+ */
 export type GitLogArgs = {
   limit?: number;
 };
 
+/**
+ * A single commit entry returned by `GitLogTool`.
+ *
+ * @public
+ */
 export type GitCommit = {
   hash: string;
   shortHash: string;
@@ -14,10 +24,21 @@ export type GitCommit = {
   date: string;
 };
 
+/**
+ * Result for `GitLogTool`.
+ *
+ * @public
+ */
 export type GitLogResult = {
   commits: GitCommit[];
 };
 
+/**
+ * Tool that returns the git commit log for the workspace repository.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_log',
   description: 'Shows the git commit log for the workspace repository.',

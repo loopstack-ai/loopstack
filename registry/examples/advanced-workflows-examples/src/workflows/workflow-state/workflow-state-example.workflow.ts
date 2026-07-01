@@ -10,7 +10,7 @@ interface WorkflowStateState {
 })
 export class WorkflowStateWorkflow extends BaseWorkflow {
   @Transition({ to: 'data_created' })
-  createSomeData(_state: WorkflowStateState) {
+  createSomeData() {
     this.assignState({ message: 'Hello :)' });
   }
 

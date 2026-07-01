@@ -10,6 +10,24 @@ const PROVIDERS = [AgentWorkflow, ChatAgentWorkflow, AgentFinishTool];
 @Module({})
 class AgentRootModule {}
 
+/**
+ * NestJS module that provides the agent workflows (`AgentWorkflow`,
+ * `ChatAgentWorkflow`) and the `AgentFinishTool`.
+ *
+ * Registration:
+ * - `AgentModule` (bare import) — registers the agent workflows; the LLM
+ *   provider/model defaults come from whatever `LlmProviderModule` is configured
+ *   app-wide.
+ * - `AgentModule.forFeature({ llm })` — same workflows, but with a feature-scoped
+ *   `LlmProviderModule.forFeature(llm)` so this scope uses its own provider/model
+ *   defaults.
+ *
+ * Requires: `LlmProviderModule` plus a registered provider module (e.g.
+ * `ClaudeModule` / `OpenAiModule`) available in the app — the agent loop runs its
+ * turns through that provider.
+ *
+ * @public
+ */
 @Module({
   providers: PROVIDERS,
   exports: PROVIDERS,

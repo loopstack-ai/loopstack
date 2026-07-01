@@ -19,7 +19,7 @@ export class RunSubWorkflowExampleSequenceWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(_state: Record<string, unknown>) {
+  async launch() {
     await this.sequence.run(
       {
         items: [

@@ -13,6 +13,14 @@ interface ScopeAccessor {
   getOrLoad<T>(key: symbol, loader: () => Promise<T>): Promise<T>;
 }
 
+/**
+ * Service that resolves the remote agent URL for the current execution scope (preferring the `sandbox`
+ * slot) and manages a workspace's environment records; inject it in tools and transitions to reach the
+ * right remote server, or to read, replace, and delete a workspace's environments.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Injectable()
 export class EnvironmentService {
   constructor(

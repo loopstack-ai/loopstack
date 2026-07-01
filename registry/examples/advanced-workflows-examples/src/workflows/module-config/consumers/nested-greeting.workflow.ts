@@ -12,7 +12,7 @@ export class NestedGreetingWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'done' })
-  async greet(_state: Record<string, unknown>) {
+  async greet() {
     const result = await this.greeter.call({ name: 'Mundo' });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -21,5 +21,5 @@ export class NestedGreetingWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'done', to: 'end' })
-  finish(_state: Record<string, unknown>) {}
+  finish() {}
 }

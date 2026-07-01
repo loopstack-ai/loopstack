@@ -69,5 +69,5 @@ export class MultiProviderExampleWorkflow extends BaseWorkflow<MultiProviderArgs
   }
 
   @Transition({ from: 'openai_done', to: 'end' })
-  done(_state: MultiProviderState) {}
+  done() {}
 }

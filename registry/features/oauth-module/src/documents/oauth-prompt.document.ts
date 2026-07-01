@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { Document } from '@loopstack/common';
 
+/**
+ * Zod schema for `OAuthPromptDocument`.
+ *
+ * @public
+ */
 export const OAuthPromptDocumentSchema = z
   .object({
     provider: z.string(),
@@ -11,6 +16,11 @@ export const OAuthPromptDocumentSchema = z
   })
   .strict();
 
+/**
+ * Document that renders the OAuth authorization prompt (provider, auth URL, and connection status) in Studio.
+ *
+ * @public
+ */
 @Document({
   schema: OAuthPromptDocumentSchema,
   widget: './oauth-prompt.ui.yaml',

@@ -8,6 +8,12 @@ import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
 import type { LlmGenerateObjectResult, LlmMessage, LlmResultMeta } from '../types/index.js';
 
+/**
+ * Zod schema for `llm_generate_object` tool args (`prompt`/`messages` plus the
+ * `outputSchema` the result must conform to).
+ *
+ * @public
+ */
 export const LlmGenerateObjectArgsSchema = z.object({
   prompt: z.string().optional(),
   messages: z
@@ -23,6 +29,12 @@ export const LlmGenerateObjectArgsSchema = z.object({
   }),
 });
 
+/**
+ * Zod schema for `llm_generate_object` tool config (`provider`, `model`, `system`,
+ * `providerConfig`).
+ *
+ * @public
+ */
 export const LlmGenerateObjectConfigSchema = z.object({
   provider: z.string().optional(),
   system: z.string().optional(),
@@ -37,6 +49,16 @@ type LlmGenerateObjectConfig = z.infer<typeof LlmGenerateObjectConfigSchema>;
 /** @deprecated Use LlmGenerateObjectArgsSchema + LlmGenerateObjectConfigSchema instead */
 export const LlmGenerateObjectToolSchema = LlmGenerateObjectArgsSchema;
 
+/**
+ * Tool that generates a structured object conforming to a Zod/JSON schema via the configured LLM provider.
+ *
+ * Takes a `prompt` or `messages` plus an `outputSchema` (a Zod schema converted to JSON Schema)
+ * and resolves provider, model, and system prompt from `options.config`. Returns an
+ * {@link LlmGenerateObjectResult} whose `data` matches the schema, with usage in {@link LlmResultMeta}.
+ *
+ * @providedBy LlmProviderModule
+ * @public
+ */
 @Tool({
   name: 'llm_generate_object',
   description:

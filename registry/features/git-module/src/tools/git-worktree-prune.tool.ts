@@ -2,11 +2,22 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Result for `GitWorktreePruneTool`.
+ *
+ * @public
+ */
 export type GitWorktreePruneResult = {
   success: boolean;
   output?: string;
 };
 
+/**
+ * Tool that prunes worktree administrative files for worktrees whose directories no longer exist.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_worktree_prune',
   description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',

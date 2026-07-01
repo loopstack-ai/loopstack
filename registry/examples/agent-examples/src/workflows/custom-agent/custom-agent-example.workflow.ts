@@ -48,7 +48,7 @@ export class CustomAgentExampleWorkflow extends BaseWorkflow {
    * conversation with the user's request, and initialises the turn counter.
    */
   @Transition({ to: 'ready' })
-  async setup(_state: CustomAgentState) {
+  async setup() {
     await this.documentStore.save(MarkdownDocument, {
       markdown:
         '# Custom Agent Example\n\n' +
@@ -101,7 +101,7 @@ export class CustomAgentExampleWorkflow extends BaseWorkflow {
    */
   @Transition({ from: 'ready', to: 'over_budget' })
   @Guard('isOverBudget')
-  async notifyOverBudget(_state: CustomAgentState) {
+  async notifyOverBudget() {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       text:
@@ -116,7 +116,7 @@ export class CustomAgentExampleWorkflow extends BaseWorkflow {
    * summary based on whatever results were gathered before the budget hit.
    */
   @Transition({ from: 'over_budget', to: 'end' })
-  async wrapUp(_state: CustomAgentState) {
+  async wrapUp() {
     await this.llmGenerateText.call(
       {},
       {
@@ -164,7 +164,7 @@ export class CustomAgentExampleWorkflow extends BaseWorkflow {
    */
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  toolsComplete(_state: CustomAgentState) {}
+  toolsComplete() {}
 
   /**
    * The LLM emitted `end_turn` instead of more tool calls — it considers the
@@ -172,8 +172,8 @@ export class CustomAgentExampleWorkflow extends BaseWorkflow {
    * just close the workflow.
    */
   @Transition({ from: 'prompt_executed', to: 'end' })
-  @Guard('isEndTurn')
-  respond(_state: CustomAgentState) {}
+  @Guard('isDone')
+  respond() {}
 
   /** True while the model is still allowed to take another tool-using turn. */
   private hasBudget(state: CustomAgentState): boolean {
@@ -196,7 +196,7 @@ export class CustomAgentExampleWorkflow extends BaseWorkflow {
   }
 
   /** True when the last LLM response was a final plain-text answer (no tools). */
-  private isEndTurn(state: CustomAgentState): boolean {
+  private isDone(state: CustomAgentState): boolean {
     return state.llmResult?.message.stopReason === 'end_turn';
   }
 }

@@ -32,8 +32,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListWorkflowRunsTool`: the repository `owner`, `repo`, optional `branch`
+ * and `status` filters and `perPage`/`page` paging.
+ *
+ * @public
+ */
 export type GitHubListWorkflowRunsArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListWorkflowRunsTool`: `totalCount` and a `runs` array of workflow-run
+ * summaries with status and conclusion, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListWorkflowRunsResult = {
   totalCount?: number;
   runs?: Array<{
@@ -52,6 +64,12 @@ export type GitHubListWorkflowRunsResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists GitHub Actions workflow runs for a repository, with branch and status filters.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_workflow_runs',
   description:

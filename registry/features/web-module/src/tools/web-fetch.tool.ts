@@ -5,6 +5,11 @@ import { MAX_MARKDOWN_LENGTH, MAX_RESULT_SIZE_CHARS } from '../constants.js';
 import { WebFetchFetcherService, WebFetchSummarizerService } from '../services/index.js';
 import { WebFetchResult } from '../types/index.js';
 
+/**
+ * Zod schema for `WebFetchTool` arguments.
+ *
+ * @public
+ */
 export const WebFetchSchema = z
   .object({
     url: z.url().describe('The URL to fetch content from'),
@@ -21,8 +26,19 @@ export const WebFetchSchema = z
   })
   .strict();
 
-type WebFetchArgs = z.infer<typeof WebFetchSchema>;
+/**
+ * Args for `WebFetchTool`.
+ *
+ * @public
+ */
+export type WebFetchArgs = z.infer<typeof WebFetchSchema>;
 
+/**
+ * Tool that fetches a URL, converts HTML to Markdown, and optionally summarizes the content with a small Claude model.
+ *
+ * @providedBy WebModule
+ * @public
+ */
 @Tool({
   name: 'web_fetch',
   description:

@@ -1,9 +1,9 @@
 ---
-title: Programmatic Workflow Execution
-description: Starting and managing workflows from code using WorkflowRunner. Covers triggering from API requests, webhooks, cron jobs, batch processing, and internal events.
+title: Scheduling & Programmatic Execution
+description: Scheduling and programmatic workflow execution with WorkflowRunner — cron (@Cron), webhook endpoints, delayed runs (SchedulerRegistry), batch fan-out, and triggering from API requests or internal events. run vs runSync, appName/userId context.
 ---
 
-# Running Workflows Programmatically
+# Scheduling & Programmatic Execution
 
 Start and manage workflows programmatically from your NestJS application — in response to API requests, webhook events, cron jobs, or internal application logic — without going through the Studio UI.
 

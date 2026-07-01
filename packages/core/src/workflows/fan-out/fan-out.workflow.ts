@@ -27,30 +27,19 @@ interface FanOutState {
 }
 
 /**
- * Launches N sub-workflows in parallel, awaits all of them, and fires a single
- * aggregated callback to the parent.
+ * Workflow that launches N sub-workflows in parallel, awaits all of them, and fires a
+ * single aggregated callback to the parent.
  *
- * Sub-workflows are referenced by their canonical name (string) — set via
- * `@Workflow({ name })` or auto-derived from the class name (e.g. `MyWorkflow` → `'my'`).
- *
- * ```ts
- * constructor(private readonly fanOut: FanOutWorkflow) { super(); }
- *
- * @Transition({ to: 'awaiting' })
- * async start() {
- *   await this.fanOut.run({
- *     items: {
- *       fetchUser:   { workflow: 'fetch_user',   args: { id: 1 } },
- *       fetchOrders: { workflow: 'fetch_orders', args: { id: 1 } },
- *     },
- *   }, { callback: { transition: 'onAllDone' } });
- * }
- * ```
+ * Sub-workflows are referenced by their canonical name (string) — set via `@Workflow({ name })`
+ * or auto-derived from the class name. Items may be passed as an array or a keyed record.
  *
  * Modes:
- * - `'all'` *(default)* — first failure cancels in-flight siblings; callback fires
- *   once every child has settled (canceled siblings also send callbacks).
- * - `'allSettled'` — every child runs to completion; callback aggregates all results.
+ * - `'all'` (default) — first failure cancels in-flight siblings; the callback fires once
+ *   every child has settled (canceled siblings also send callbacks).
+ * - `'allSettled'` — every child runs to completion; the callback aggregates all results.
+ *
+ * @providedBy LoopCoreModule
+ * @public
  */
 @Workflow({
   name: 'fan_out',

@@ -14,13 +14,31 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GmailReplyToMessageTool`.
+ *
+ * @public
+ */
 export type GmailReplyToMessageArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GmailReplyToMessageTool`.
+ *
+ * @public
+ */
 export type GmailReplyToMessageResult =
   | { id: string; threadId: string; labelIds: string[] }
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that replies to an existing Gmail message in-thread. Fetches the original message to set
+ * proper reply headers, supports `replyAll`, and returns the sent reply's id, thread id, and label
+ * ids, or `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'gmail_reply_to_message',
   description:

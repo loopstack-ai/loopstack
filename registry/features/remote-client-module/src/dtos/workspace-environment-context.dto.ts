@@ -1,6 +1,12 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { WorkspaceEnvironmentEntity } from '../entities/index.js';
 
+/**
+ * Result describing a workspace environment in execution context — slot, type, and the resolved
+ * connection and agent URLs returned by `EnvironmentService`.
+ *
+ * @public
+ */
 export class WorkspaceEnvironmentContextDto {
   @Expose()
   slotId: string;

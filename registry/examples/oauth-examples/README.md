@@ -1,6 +1,6 @@
 ---
 title: OAuth Examples
-description: Workflow examples for OAuth-protected integrations in Loopstack — GitHub repos overview and chat agent, Google Calendar summary and Google Workspace chat agent. Each pair demonstrates the same shape: scripted single-pass workflow + interactive agent with auto-OAuth retry.
+description: Workflow examples for OAuth-protected integrations in Loopstack — GitHub repos overview and chat agent, Google Calendar summary and Google Workspace chat agent. Each pair demonstrates the same shape - scripted single-pass workflow + interactive agent with auto-OAuth retry.
 ---
 
 # @loopstack/oauth-examples
@@ -42,6 +42,26 @@ npm install @loopstack/oauth-examples
 ```typescript
 import { OAuthExamplesModule } from '@loopstack/oauth-examples';
 ```
+
+## Required app-module configuration
+
+The Agent examples (`GitHub Agent`, `Google Workspace Agent`) use Claude via `@loopstack/llm-provider-module` — `@Global`, configured once in your root module to set the default model:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+import { OAuthExamplesModule } from '@loopstack/oauth-examples';
+
+@Module({
+  imports: [LoopstackModule.forRoot(), LlmProviderModule.forRoot({ model: 'claude-sonnet-4-6' }), OAuthExamplesModule],
+})
+export class AppModule {}
+```
+
+`OAuthExamplesModule` re-imports `ClaudeModule`, `GitHubModule`, and `GoogleWorkspaceModule`. The latter two transitively pull in the global `OAuthModule` and register the provider implementations — no additional OAuth wiring required in your AppModule. `LlmProviderModule.forRoot(...)` sets the default model for the agent workflows.
+
+The scripted (non-agent) overview/summary workflows also use Claude for the markdown rendering step, so `LlmProviderModule.forRoot(...)` is required for them too.
 
 ## Environment
 

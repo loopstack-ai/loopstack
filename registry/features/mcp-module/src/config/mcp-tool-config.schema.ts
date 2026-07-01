@@ -21,6 +21,11 @@ function rejectSecretsInDefaults(defaults: Record<string, string> | undefined, c
   }
 }
 
+/**
+ * Zod schema for MCP tool configuration — host allowlist and auth header mappings.
+ *
+ * @public
+ */
 export const McpToolConfigSchema = z
   .object({
     allowedHosts: z
@@ -56,5 +61,15 @@ export const McpToolConfigSchema = z
     rejectSecretsInDefaults(cfg.defaultHeaders, ctx);
   });
 
+/**
+ * Config for the MCP tools (`McpCallTool`, `McpListToolsTool`).
+ *
+ * @public
+ */
 export type McpToolConfig = z.infer<typeof McpToolConfigSchema>;
+/**
+ * Input config for `McpModule.forRoot()` (the pre-parse shape of `McpToolConfig`).
+ *
+ * @public
+ */
 export type McpToolConfigInput = z.input<typeof McpToolConfigSchema>;

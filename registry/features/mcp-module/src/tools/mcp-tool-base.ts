@@ -5,8 +5,12 @@ import { McpClientService } from '../services/mcp-client.service.js';
 import { MCP_DEFAULT_CONFIG } from '../tokens.js';
 
 /**
+ * Abstract base for tools that call a remote MCP server; extend it to add custom MCP-backed tools.
+ *
  * Concrete subclasses must repeat the `@Tool({ schema, configSchema })` decorator —
  * decorator metadata is not inherited.
+ *
+ * @public
  */
 export abstract class McpToolBase<TArgs extends object> extends BaseTool<TArgs, McpToolConfig> {
   @Inject() protected readonly mcp!: McpClientService;

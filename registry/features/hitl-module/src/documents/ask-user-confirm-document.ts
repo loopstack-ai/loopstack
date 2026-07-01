@@ -10,6 +10,11 @@ export const AskUserConfirmDocumentSchema = z
 
 export type AskUserConfirmDocumentType = z.infer<typeof AskUserConfirmDocumentSchema>;
 
+/**
+ * Document that presents a yes/no question to the user and captures their answer.
+ *
+ * @public
+ */
 @Document({
   widget: './ask-user-confirm-document.yaml',
   schema: AskUserConfirmDocumentSchema,

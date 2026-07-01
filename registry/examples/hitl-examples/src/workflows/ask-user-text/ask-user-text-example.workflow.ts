@@ -16,7 +16,7 @@ export class AskUserTextExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_answer' })
-  async askName(_state: Record<string, unknown>) {
+  async askName() {
     await this.askUserWorkflow.run(
       { question: 'What is your name?' },
       { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },

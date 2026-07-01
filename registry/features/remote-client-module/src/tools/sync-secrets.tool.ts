@@ -9,8 +9,19 @@ const SyncSecretsInputSchema = z.object({}).strict();
 
 type SyncSecretsInput = z.infer<typeof SyncSecretsInputSchema>;
 
+/**
+ * Result for `sync_secrets` — the number of secrets synced, or a message when no secrets exist.
+ *
+ * @public
+ */
 export type SyncSecretsResult = { success: true; count: 0; message: string } | { success: boolean; count: number };
 
+/**
+ * Tool that syncs all workspace secrets to the remote environment as `.env` variables and restarts the app.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Tool({
   name: 'sync_secrets',
   description:

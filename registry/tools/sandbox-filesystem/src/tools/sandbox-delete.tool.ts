@@ -12,13 +12,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxDeleteArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxDelete`.
+ *
+ * Identifies the container and target path, with optional recursive and force flags.
+ *
+ * @public
+ */
+export type SandboxDeleteArgs = z.infer<typeof inputSchema>;
 
-interface SandboxDeleteResult {
+/**
+ * Result of `SandboxDelete`.
+ *
+ * Reports the target path and whether it was deleted.
+ *
+ * @public
+ */
+export interface SandboxDeleteResult {
   path: string;
   deleted: boolean;
 }
 
+/**
+ * Tool that deletes a file or directory in a sandbox container, with optional recursive and force flags.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_delete',
   description: 'Delete a file or directory in a sandbox container',

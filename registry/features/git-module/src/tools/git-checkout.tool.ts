@@ -2,13 +2,29 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitCheckoutTool`.
+ *
+ * @public
+ */
 export type GitCheckoutArgs = {
   branch: string;
   create?: boolean;
 };
 
+/**
+ * Result for `GitCheckoutTool`.
+ *
+ * @public
+ */
 export type GitCheckoutResult = { branch: string };
 
+/**
+ * Tool that switches to a different git branch, optionally creating it.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_checkout',
   description: 'Switches to a different git branch, optionally creating it.',

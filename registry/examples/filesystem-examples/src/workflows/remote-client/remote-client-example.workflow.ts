@@ -20,7 +20,7 @@ export class RemoteClientExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'file_written' })
-  async writeFile(_state: RemoteClientState) {
+  async writeFile() {
     const filePath = '/tmp/remote-client-example.txt';
     await this.write.call({
       file_path: filePath,

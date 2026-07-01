@@ -16,7 +16,7 @@ export class AskUserConfirmExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting_for_yes_no' })
-  async askToSend(_state: Record<string, unknown>) {
+  async askToSend() {
     await this.askUserWorkflow.run(
       { question: 'Send the email now?', mode: 'confirm' },
       { callback: { transition: 'decisionReceived' }, show: 'inline', label: 'Waiting for yes/no...' },

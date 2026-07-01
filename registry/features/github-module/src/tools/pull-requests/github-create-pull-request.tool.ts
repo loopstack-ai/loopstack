@@ -16,8 +16,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreatePullRequestTool`: the repository `owner`, `repo`, `title`,
+ * `head` and `base` branches, optional `body` and `draft` flag.
+ *
+ * @public
+ */
 export type GitHubCreatePullRequestArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreatePullRequestTool`: the created `pullRequest` summary, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreatePullRequestResult =
   | {
       pullRequest: {
@@ -31,6 +42,12 @@ export type GitHubCreatePullRequestResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that opens a new pull request in a GitHub repository from a head branch into a base branch.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_pull_request',
   description:
