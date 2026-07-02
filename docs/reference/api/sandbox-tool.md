@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/sandbox-tool
-description: Public API reference for @loopstack/sandbox-tool
+title: 'API: @loopstack/sandbox-tool'
+description: 'Public API reference for @loopstack/sandbox-tool'
 includeInLlmsFullTxt: false
 ---
 

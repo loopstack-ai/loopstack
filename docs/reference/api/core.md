@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/core
-description: Public API reference for @loopstack/core
+title: 'API: @loopstack/core'
+description: 'Public API reference for @loopstack/core'
 includeInLlmsFullTxt: false
 ---
 

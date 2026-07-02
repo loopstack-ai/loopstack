@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/secrets-module
-description: Public API reference for @loopstack/secrets-module
+title: 'API: @loopstack/secrets-module'
+description: 'Public API reference for @loopstack/secrets-module'
 includeInLlmsFullTxt: false
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/hitl
-description: Public API reference for @loopstack/hitl
+title: 'API: @loopstack/hitl'
+description: 'Public API reference for @loopstack/hitl'
 includeInLlmsFullTxt: false
 ---
 

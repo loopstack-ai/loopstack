@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/common
-description: Public API reference for @loopstack/common
+title: 'API: @loopstack/common'
+description: 'Public API reference for @loopstack/common'
 includeInLlmsFullTxt: false
 ---
 
@@ -162,12 +162,6 @@ validated config from `toServerToolConfig` directly to the provider.
 Use the standard `@Tool()` decorator for metadata and constructor injection.
 Configuration from `options.config` is validated against the
 `configSchema` and passed as the `config` argument to `toServerToolConfig`.
-
-const ConfigSchema = z.object({
-maxUses: z.number().default(8),
-allowedDomains: z.array(z.string()).optional(),
-});
-type Config = z.infer<typeof ConfigSchema>;
 
 ```ts
 import { ServerTool } from '@loopstack/common';

@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/mcp-module
-description: Public API reference for @loopstack/mcp-module
+title: 'API: @loopstack/mcp-module'
+description: 'Public API reference for @loopstack/mcp-module'
 includeInLlmsFullTxt: false
 ---
 

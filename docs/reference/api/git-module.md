@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/git-module
-description: Public API reference for @loopstack/git-module
+title: 'API: @loopstack/git-module'
+description: 'Public API reference for @loopstack/git-module'
 includeInLlmsFullTxt: false
 ---
 

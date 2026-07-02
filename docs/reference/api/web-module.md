@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/web-module
-description: Public API reference for @loopstack/web-module
+title: 'API: @loopstack/web-module'
+description: 'Public API reference for @loopstack/web-module'
 includeInLlmsFullTxt: false
 ---
 

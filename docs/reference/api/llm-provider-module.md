@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/llm-provider-module
-description: Public API reference for @loopstack/llm-provider-module
+title: 'API: @loopstack/llm-provider-module'
+description: 'Public API reference for @loopstack/llm-provider-module'
 includeInLlmsFullTxt: false
 ---
 

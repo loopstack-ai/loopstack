@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/remote-client
-description: Public API reference for @loopstack/remote-client
+title: 'API: @loopstack/remote-client'
+description: 'Public API reference for @loopstack/remote-client'
 includeInLlmsFullTxt: false
 ---
 

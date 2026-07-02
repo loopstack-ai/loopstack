@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/openai-module
-description: Public API reference for @loopstack/openai-module
+title: 'API: @loopstack/openai-module'
+description: 'Public API reference for @loopstack/openai-module'
 includeInLlmsFullTxt: false
 ---
 
