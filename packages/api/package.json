@@ -22,7 +22,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
@@ -43,10 +43,14 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",
     "@nestjs/event-emitter": "^3.0.1",
+    "@nestjs/platform-express": "^11.1.19",
+    "@nestjs/testing": "^11.1.19",
     "@types/cors": "^2.8.19",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",

@@ -1,4 +1,5 @@
 import type { CorsOptions } from 'cors';
+import type { SseStreamOptionsInterface } from '@loopstack/api';
 
 export interface LoopstackDatabaseOptions {
   /**
@@ -45,4 +46,8 @@ export interface LoopstackModuleOptions {
    * Set to `false` to disable CORS entirely.
    */
   cors?: CorsOptions | false;
+  /**
+   * Event stream tuning — replay buffer size/TTL and heartbeat interval.
+   */
+  sse?: SseStreamOptionsInterface;
 }

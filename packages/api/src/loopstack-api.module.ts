@@ -14,7 +14,7 @@ import { ProcessorController } from './controllers/processor.controller.js';
 import { SseController } from './controllers/sse.controller.js';
 import { WorkflowController } from './controllers/workflow.controller.js';
 import { WorkspaceController } from './controllers/workspace.controller.js';
-import { ModuleOptionsInterface } from './interfaces/index.js';
+import { ModuleOptionsInterface, SSE_STREAM_OPTIONS } from './interfaces/index.js';
 import { AdminRoleApiService } from './services/admin-role-api.service.js';
 import { AdminSystemApiService } from './services/admin-system-api.service.js';
 import { AdminUserApiService } from './services/admin-user-api.service.js';
@@ -90,7 +90,7 @@ export class LoopstackApiModule implements NestModule {
       module: LoopstackApiModule,
       imports: [TypeOrmModule.forFeature(ENTITIES, connection), AuthModule.forRoot(connection)],
       controllers: CONTROLLERS,
-      providers: PROVIDERS,
+      providers: [...PROVIDERS, { provide: SSE_STREAM_OPTIONS, useValue: options.sse ?? {} }],
       exports: EXPORTS,
     };
   }
