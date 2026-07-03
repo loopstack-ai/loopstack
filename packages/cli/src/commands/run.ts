@@ -3,6 +3,7 @@ import pc from 'picocolors';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { createClientFor, resolveConnection } from '../config/resolve.js';
 import { ExitCode } from '../errors.js';
+import { createIdleHandler } from '../hitl/idle-handler.js';
 import { formatDuration, printData } from '../output/format.js';
 import { parseRunArgs } from '../run/args.js';
 import { followRun } from '../run/follow.js';
@@ -38,7 +39,9 @@ export function registerRunCommand(program: Command): void {
         process.exit(ExitCode.Success);
       }
 
-      const outcome = await followRun(events, run.workflowId, out);
+      const outcome = await followRun(events, run.workflowId, out, {
+        onIdle: createIdleHandler(client, run.workflowId, out),
+      });
       client.stream.close();
       const durationMs = Date.now() - startedAt;
 
@@ -65,7 +68,7 @@ export function registerRunCommand(program: Command): void {
       }
       if (outcome.status === WorkflowState.Waiting || outcome.status === WorkflowState.Paused) {
         out.write(
-          `${pc.yellow('⏸')} run is waiting for input — answer it in Studio (terminal prompts arrive with \`loopstack trace\`)\n`,
+          `${pc.yellow('⏸')} run is waiting for input — resume with \`loopstack trace ${run.workflowId} --follow\`\n`,
         );
         process.exit(ExitCode.NeedsInput);
       }

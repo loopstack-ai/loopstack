@@ -9,6 +9,15 @@ export interface FollowOutcome {
   durationMs: number;
 }
 
+export interface FollowOptions {
+  /**
+   * Called when the run parks in waiting/paused — the HITL hook. Return
+   * `true` to keep following (the prompt was answered), `false` to stop.
+   * While the handler runs, events keep queueing; none are lost.
+   */
+  onIdle?: () => Promise<boolean>;
+}
+
 const TERMINAL_STATES: readonly WorkflowState[] = [
   WorkflowState.Completed,
   WorkflowState.Failed,
@@ -27,6 +36,7 @@ export async function followRun(
   events: AsyncIterableIterator<ClientMessage>,
   workflowId: string,
   out: NodeJS.WritableStream,
+  options: FollowOptions = {},
 ): Promise<FollowOutcome> {
   const startedAt = Date.now();
   let currentPlace: string | undefined;
@@ -76,6 +86,7 @@ export async function followRun(
         }
         if (IDLE_STATES.includes(event.status)) {
           finishStep(pc.yellow('⏸'));
+          if (options.onIdle && (await options.onIdle())) break;
           return { status: event.status, durationMs: Date.now() - startedAt };
         }
         break;

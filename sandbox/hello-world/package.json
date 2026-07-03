@@ -22,6 +22,7 @@
   "dependencies": {
     "@loopstack/claude-module": "^0.25.5",
     "@loopstack/common": "^0.36.0",
+    "@loopstack/hitl-examples": "^0.1.1",
     "@loopstack/llm-provider-module": "^0.7.0",
     "@loopstack/loopstack-module": "^0.31.5",
     "@nestjs/common": "^11.0.1",

@@ -5,6 +5,8 @@ import { registerEnvCommand } from './commands/env.js';
 import { registerListCommand } from './commands/list.js';
 import { registerLoginCommand } from './commands/login.js';
 import { registerRunCommand } from './commands/run.js';
+import { registerTraceCommand } from './commands/trace.js';
+import { registerWatchCommand } from './commands/watch.js';
 import { handleError } from './errors.js';
 
 const { version } = createRequire(import.meta.url)('../package.json') as { version: string };
@@ -20,6 +22,8 @@ const program = new Command('loopstack')
 registerLoginCommand(program);
 registerEnvCommand(program);
 registerRunCommand(program);
+registerTraceCommand(program);
+registerWatchCommand(program);
 registerListCommand(program);
 
 try {
