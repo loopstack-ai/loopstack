@@ -18,47 +18,11 @@ export function getHealthCacheKey(envKey: string) {
   return ['health', envKey];
 }
 
-// --- Config ---
-export function getAppTypesCacheKey(envKey: string) {
-  return ['app-types', envKey];
-}
-
-export function getWorkflowTypesCacheKey(envKey: string, appBlockName: string) {
-  return ['workflowTypes', envKey, appBlockName];
-}
-
-export function getStudioAppsCacheKey(envKey: string) {
-  return ['studio-apps', envKey];
-}
-
-export function getAvailableEnvironmentsCacheKey(envKey: string) {
-  return ['available-environments', envKey];
-}
-
-// --- Dashboard ---
-export function getDashboardStatsCacheKey(envKey: string) {
-  return ['dashboard', 'stats', envKey];
-}
-
-// --- Workflows ---
-// Pilot-slice keys (workflow, workflows, childWorkflows, document, documents, …)
-// live in the SDK: import { queryKeys } from '@loopstack/client'.
-
-export function getToolConfigsCacheKey(envKey: string) {
-  return ['toolConfigs', envKey];
-}
-
-export function getToolConfigCacheKey(envKey: string, toolName: string) {
-  return ['toolConfig', envKey, toolName];
-}
-
-export function getWorkflowConfigCacheKey(envKey: string, alias: string) {
-  return ['workflowConfig', envKey, alias];
-}
-
-export function getWorkflowSourceCacheKey(envKey: string, alias: string) {
-  return ['workflowSource', envKey, alias];
-}
+// --- Config / Dashboard / Workflows ---
+// SDK-slice keys (workflow, workflows, childWorkflows, document, documents,
+// apps, workflowConfig, workflowSource, toolConfigs, toolConfig,
+// availableEnvironments, dashboardStats, …) live in the SDK:
+// import { queryKeys } from '@loopstack/client'.
 
 // --- Workspaces ---
 // Workspace keys (workspace, workspaces, workspaceList) live in the SDK:

@@ -1,15 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@loopstack/client';
-import type {
-  WorkflowConfigInterface,
-  WorkflowFilterInterface,
-  WorkflowSortByInterface,
-  WorkflowSourceInterface,
-} from '@loopstack/contracts/api';
-import { useLoopstackClient, useChildWorkflows as useSdkChildWorkflows, useWorkflowList } from '@loopstack/react';
-import { getWorkflowConfigCacheKey, getWorkflowSourceCacheKey } from './query-keys.ts';
-import { useApiClient } from './useApi.ts';
+import type { WorkflowFilterInterface, WorkflowSortByInterface } from '@loopstack/contracts/api';
+import {
+  useLoopstackClient,
+  useChildWorkflows as useSdkChildWorkflows,
+  useWorkflowConfig,
+  useWorkflowList,
+} from '@loopstack/react';
 
 export {
   useCreateWorkflow,
@@ -17,6 +14,7 @@ export {
   useUpdateWorkflow,
   useWorkflow,
   useWorkflowCheckpoints,
+  useWorkflowSource,
   useWorkflowStatus,
 } from '@loopstack/react';
 
@@ -66,24 +64,5 @@ export function useChildWorkflows(parentId: string | undefined, enabled: boolean
  * Fetch workflow config by workflow name (the identifier stored on the workflow entity).
  */
 export function useWorkflowConfigByName(workflowName: string | undefined) {
-  const { envKey, api } = useApiClient();
-
-  return useQuery<WorkflowConfigInterface>({
-    queryKey: getWorkflowConfigCacheKey(envKey, workflowName!),
-    queryFn: () => api.config.getWorkflowConfig({ workflowName: workflowName! }),
-    enabled: !!workflowName,
-  });
-}
-
-/**
- * Fetch workflow source by workflow name (class name).
- */
-export function useWorkflowSource(workflowName: string | undefined) {
-  const { envKey, api } = useApiClient();
-
-  return useQuery<WorkflowSourceInterface>({
-    queryKey: getWorkflowSourceCacheKey(envKey, workflowName!),
-    queryFn: () => api.config.getWorkflowSource({ workflowName: workflowName! }),
-    enabled: !!workflowName,
-  });
+  return useWorkflowConfig(workflowName);
 }

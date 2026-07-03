@@ -2,11 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import type { WorkflowListParams, WorkspaceListParams } from '@loopstack/client';
 import type {
+  AvailableEnvironmentInterface,
+  DashboardStatsInterface,
   DocumentItemInterface,
   PaginatedInterface,
+  StudioAppConfig,
+  ToolConfigInterface,
   WorkflowCheckpointInterface,
+  WorkflowConfigInterface,
   WorkflowFullInterface,
   WorkflowItemInterface,
+  WorkflowSourceInterface,
   WorkflowStatusInterface,
   WorkspaceInterface,
 } from '@loopstack/contracts/api';
@@ -135,6 +141,89 @@ export function useWorkspaceList<TData = PaginatedInterface<WorkspaceInterface>>
   const client = useLoopstackClient();
   return useQuery({
     ...client.queries.workspaceList(params),
+    ...options,
+  });
+}
+
+/** Fetch every @StudioApp of the backend with its workflows, documents, and UI config. */
+export function useAppsConfig<TData = StudioAppConfig[]>(
+  options?: QueryHookOptions<StudioAppConfig[], TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.apps(),
+    ...options,
+  });
+}
+
+/** Fetch the resolved config (transitions, args schema, UI) of a workflow by name. */
+export function useWorkflowConfig<TData = WorkflowConfigInterface>(
+  workflowName: string | undefined,
+  options?: QueryHookOptions<WorkflowConfigInterface, TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.workflowConfig(workflowName!),
+    ...options,
+    enabled: !!workflowName && (options?.enabled ?? true),
+  });
+}
+
+/** Fetch the source file of a workflow by name, when the backend can resolve it. */
+export function useWorkflowSource<TData = WorkflowSourceInterface>(
+  workflowName: string | undefined,
+  options?: QueryHookOptions<WorkflowSourceInterface, TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.workflowSource(workflowName!),
+    ...options,
+    enabled: !!workflowName && (options?.enabled ?? true),
+  });
+}
+
+/** Fetch the configs of all registered tools. */
+export function useToolConfigs<TData = ToolConfigInterface[]>(
+  options?: QueryHookOptions<ToolConfigInterface[], TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.toolConfigs(),
+    ...options,
+  });
+}
+
+/** Fetch a single tool config by name. */
+export function useToolConfig<TData = ToolConfigInterface>(
+  toolName: string | undefined,
+  options?: QueryHookOptions<ToolConfigInterface, TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.toolConfig(toolName!),
+    ...options,
+    enabled: !!toolName && (options?.enabled ?? true),
+  });
+}
+
+/** Fetch the environments the backend offers for workspace slots. */
+export function useAvailableEnvironments<TData = AvailableEnvironmentInterface[]>(
+  options?: QueryHookOptions<AvailableEnvironmentInterface[], TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.availableEnvironments(),
+    ...options,
+  });
+}
+
+/** Fetch aggregated run statistics across all workspaces. */
+export function useDashboardStats<TData = DashboardStatsInterface>(
+  options?: QueryHookOptions<DashboardStatsInterface, TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.dashboardStats(),
     ...options,
   });
 }

@@ -1,13 +1,21 @@
 import type {
+  AvailableEnvironmentInterface,
+  DashboardStatsInterface,
   DocumentItemInterface,
   PaginatedInterface,
+  StudioAppConfig,
+  ToolConfigInterface,
   WorkflowCheckpointInterface,
+  WorkflowConfigInterface,
   WorkflowFullInterface,
   WorkflowItemInterface,
+  WorkflowSourceInterface,
   WorkflowStatusInterface,
   WorkspaceInterface,
 } from '@loopstack/contracts/api';
 import { SortOrder } from '@loopstack/contracts/enums';
+import type { ConfigResource } from '../resources/config.js';
+import type { DashboardResource } from '../resources/dashboard.js';
 import type { DocumentsResource } from '../resources/documents.js';
 import type { WorkflowListParams, WorkflowsResource } from '../resources/workflows.js';
 import type { WorkspaceListParams, WorkspacesResource } from '../resources/workspaces.js';
@@ -18,6 +26,8 @@ interface QueryResources {
   workflows: WorkflowsResource;
   documents: DocumentsResource;
   workspaces: WorkspacesResource;
+  config: ConfigResource;
+  dashboard: DashboardResource;
 }
 
 /** A `queryOptions`-shaped descriptor consumable by any TanStack Query version. */
@@ -37,13 +47,27 @@ export interface LoopstackQueries {
   documents: (workflowId: string) => QueryDescriptor<PaginatedInterface<DocumentItemInterface>>;
   workspace: (id: string) => QueryDescriptor<WorkspaceInterface>;
   workspaceList: (params?: WorkspaceListParams) => QueryDescriptor<PaginatedInterface<WorkspaceInterface>>;
+  apps: () => QueryDescriptor<StudioAppConfig[]>;
+  workflowConfig: (workflowName: string) => QueryDescriptor<WorkflowConfigInterface>;
+  workflowSource: (workflowName: string) => QueryDescriptor<WorkflowSourceInterface>;
+  toolConfigs: () => QueryDescriptor<ToolConfigInterface[]>;
+  toolConfig: (toolName: string) => QueryDescriptor<ToolConfigInterface>;
+  availableEnvironments: () => QueryDescriptor<AvailableEnvironmentInterface[]>;
+  dashboardStats: () => QueryDescriptor<DashboardStatsInterface>;
 }
 
 /**
  * `{ queryKey, queryFn }` descriptors — the host application owns the
  * QueryClient; the SDK only describes what to fetch and under which key.
  */
-export function createQueries({ envKey, workflows, documents, workspaces }: QueryResources): LoopstackQueries {
+export function createQueries({
+  envKey,
+  workflows,
+  documents,
+  workspaces,
+  config,
+  dashboard,
+}: QueryResources): LoopstackQueries {
   return {
     workflow: (id: string) => ({
       queryKey: queryKeys.workflow(envKey, id),
@@ -98,6 +122,41 @@ export function createQueries({ envKey, workflows, documents, workspaces }: Quer
     workspaceList: (params: WorkspaceListParams = {}) => ({
       queryKey: queryKeys.workspaceList(envKey, params),
       queryFn: () => workspaces.list(params),
+    }),
+
+    apps: () => ({
+      queryKey: queryKeys.apps(envKey),
+      queryFn: () => config.apps(),
+    }),
+
+    workflowConfig: (workflowName: string) => ({
+      queryKey: queryKeys.workflowConfig(envKey, workflowName),
+      queryFn: () => config.workflowConfig(workflowName),
+    }),
+
+    workflowSource: (workflowName: string) => ({
+      queryKey: queryKeys.workflowSource(envKey, workflowName),
+      queryFn: () => config.workflowSource(workflowName),
+    }),
+
+    toolConfigs: () => ({
+      queryKey: queryKeys.toolConfigs(envKey),
+      queryFn: () => config.tools(),
+    }),
+
+    toolConfig: (toolName: string) => ({
+      queryKey: queryKeys.toolConfig(envKey, toolName),
+      queryFn: () => config.tool(toolName),
+    }),
+
+    availableEnvironments: () => ({
+      queryKey: queryKeys.availableEnvironments(envKey),
+      queryFn: () => config.availableEnvironments(),
+    }),
+
+    dashboardStats: () => ({
+      queryKey: queryKeys.dashboardStats(envKey),
+      queryFn: () => dashboard.stats(),
     }),
   };
 }

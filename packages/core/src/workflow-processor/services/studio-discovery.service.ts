@@ -14,37 +14,10 @@ import {
   getRegisteredDocuments,
   getWorkflowIdentifier,
 } from '@loopstack/common';
-import type { FeatureRegistration, StudioAppExtension, StudioAppMetadata, StudioUiConfig } from '@loopstack/common';
+import type { FeatureRegistration, StudioAppExtension, StudioAppMetadata } from '@loopstack/common';
+import type { StudioAppConfig, StudioDocumentConfig, StudioWorkflowConfig } from '@loopstack/contracts/api';
 import type { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
 import type { StaticDocumentMeta, UiFormType } from '@loopstack/contracts/types';
-
-export interface StudioWorkflowConfig {
-  workflowName: string;
-  title?: string;
-  description?: string;
-  schema?: JSONSchemaDefinition;
-}
-
-export interface StudioDocumentConfig {
-  documentName: string;
-  title?: string;
-  description?: string;
-  ui?: UiFormType;
-  tags?: string[];
-  meta?: StaticDocumentMeta;
-  schema?: JSONSchemaDefinition;
-}
-
-export interface StudioAppConfig {
-  appName: string;
-  title: string;
-  description?: string;
-  ui?: StudioUiConfig;
-  features: FeatureRegistration[];
-  extensions: Record<string, unknown[]>;
-  workflows: StudioWorkflowConfig[];
-  documents: StudioDocumentConfig[];
-}
 
 @Injectable()
 export class StudioDiscoveryService implements OnApplicationBootstrap {

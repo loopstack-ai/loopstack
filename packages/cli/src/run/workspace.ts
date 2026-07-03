@@ -2,15 +2,6 @@ import type { LoopstackClient } from '@loopstack/client';
 import { SortOrder } from '@loopstack/contracts/enums';
 import { CliError } from '../errors.js';
 
-/*
- * The config endpoint joins the SDK with its Phase 4 slice — until then the
- * CLI types this call locally.
- */
-interface StudioAppConfig {
-  appName: string;
-  workflows?: { workflowName: string }[];
-}
-
 /**
  * Picks the workspace for a run: the explicit flag, then the environment's
  * pinned `workspaceId` from the config file, then the newest workspace of the
@@ -25,7 +16,7 @@ export async function resolveWorkspaceId(
   if (explicit) return explicit;
   if (pinned) return pinned;
 
-  const apps = await client.http.get<StudioAppConfig[]>('/api/v1/config/apps');
+  const apps = await client.config.apps();
   const app = apps.find((candidate) => candidate.workflows?.some((workflow) => workflow.workflowName === workflowName));
   if (!app) {
     const available = apps.flatMap((candidate) => candidate.workflows?.map((w) => w.workflowName) ?? []);

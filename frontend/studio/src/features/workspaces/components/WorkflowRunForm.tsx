@@ -1,8 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
-import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
-import type { StudioWorkflowConfig } from '@/api/types';
+import type { StudioWorkflowConfig, WorkflowConfigInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import ArgumentsView from '@/features/workspaces/components/workflow-form/ArgumentsView.tsx';
 import SelectionView from '@/features/workspaces/components/workflow-form/SelectionView.tsx';

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
-import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { StudioDocumentConfig, WorkflowFullInterface } from '@loopstack/contracts/api';
 import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
-import type { StudioDocumentConfig } from '@/api/types';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 
 /**

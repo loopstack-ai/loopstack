@@ -8,21 +8,16 @@ export interface WidgetConfig {
   options?: Record<string, unknown>;
 }
 
-interface AppDocumentConfig {
-  documentName: string;
-  ui?: { widgets?: WidgetConfig[] };
-}
-
 /** Widgets the terminal can answer. Everything else falls back to the transition picker. */
 const PROMPT_WIDGETS = new Set(['text-prompt', 'confirm-prompt', 'choices', 'form']);
 
 /** documentName → widget config, from the same app config Studio's renderers use. */
 export async function fetchDocumentWidgets(client: LoopstackClient): Promise<Map<string, WidgetConfig>> {
-  const apps = await client.http.get<{ documents?: AppDocumentConfig[] }[]>('/api/v1/config/apps');
+  const apps = await client.config.apps();
   const widgets = new Map<string, WidgetConfig>();
   for (const app of apps) {
     for (const document of app.documents ?? []) {
-      const widget = document.ui?.widgets?.[0];
+      const widget = document.ui?.widgets?.[0] as WidgetConfig | undefined;
       if (widget) widgets.set(document.documentName, widget);
     }
   }

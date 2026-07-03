@@ -231,11 +231,6 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
             {staticMeta.level}
           </Badge>
         )}
-        {staticMeta?.hidden && (
-          <Badge variant="outline" className="text-xs">
-            Hidden
-          </Badge>
-        )}
         {dynMeta.invalidate && (
           <Badge variant="outline" className="text-xs">
             Invalidates on update

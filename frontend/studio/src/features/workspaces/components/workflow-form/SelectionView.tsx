@@ -1,5 +1,5 @@
 import { Loader2, Play } from 'lucide-react';
-import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import HeaderSection from '@/features/workspaces/components/workflow-form/HeaderSection.tsx';

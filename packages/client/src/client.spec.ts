@@ -139,6 +139,28 @@ describe('query descriptors', () => {
   });
 });
 
+describe('config and dashboard resources', () => {
+  it('URL-encodes workflow and tool names', async () => {
+    const { calls, fetchFn } = createMockFetch();
+    const client = createClient({ url: URL_BASE, fetch: fetchFn });
+
+    await client.config.workflowConfig('my workflow');
+    await client.config.tool('a/b');
+
+    expect(new URL(calls[0].url).pathname).toBe('/api/v1/config/workflows/my%20workflow');
+    expect(new URL(calls[1].url).pathname).toBe('/api/v1/config/tools/a%2Fb');
+  });
+
+  it('exposes envKey-scoped descriptors for config and dashboard', () => {
+    const { fetchFn } = createMockFetch();
+    const client = createClient({ url: URL_BASE, envKey: 'local', fetch: fetchFn });
+
+    expect(client.queries.apps().queryKey).toEqual(['apps', 'local']);
+    expect(client.queries.workflowSource('wf').queryKey).toEqual(['workflowSource', 'local', 'wf']);
+    expect(client.queries.dashboardStats().queryKey).toEqual(['dashboardStats', 'local']);
+  });
+});
+
 describe('workspaces resource', () => {
   it('setFavourite sends a PATCH to the favourite endpoint', async () => {
     const { calls, fetchFn } = createMockFetch([{ body: { id: 'ws-1' } }]);

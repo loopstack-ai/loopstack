@@ -75,11 +75,3 @@ export interface WorkspaceEnvironmentInterface {
   workerUrl?: string;
   local?: boolean;
 }
-
-export interface AvailableEnvironmentInterface {
-  type: string;
-  name: string;
-  connectionUrl: string;
-  agentUrl?: string;
-  local?: boolean;
-}

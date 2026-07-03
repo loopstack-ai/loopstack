@@ -1,17 +1,7 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Inject,
-  Optional,
-  Param,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
+import { BadRequestException, Controller, Get, Inject, Optional, Param } from '@nestjs/common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { toJSONSchema } from 'zod';
+import { toJSONSchema, z } from 'zod';
 import {
   BLOCK_CONFIG_METADATA_KEY,
   BlockOptions,
@@ -22,21 +12,27 @@ import {
   getBlockConfig,
   getBlockName,
 } from '@loopstack/common';
-import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
+import {
+  AvailableEnvironmentInterface,
+  AvailableEnvironmentSchema,
+  StudioAppConfig,
+  StudioAppConfigSchema,
+  ToolConfigInterface,
+  ToolConfigSchema,
+  WorkflowConfigInterface,
+  WorkflowConfigSchema,
+  WorkflowSourceInterface,
+  WorkflowSourceSchema,
+} from '@loopstack/contracts/api';
 import { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
 import type { ToolConfigType, WorkflowType } from '@loopstack/contracts/types';
 import { StudioDiscoveryService, ToolRegistryService, WorkflowRegistryService } from '@loopstack/core';
-import type { StudioAppConfig } from '@loopstack/core';
-import { AvailableEnvironmentDto } from '../dtos/available-environment.dto.js';
-import { ToolConfigDto } from '../dtos/tool-config.dto.js';
-import { WorkflowConfigDto } from '../dtos/workflow-config.dto.js';
-import { WorkflowSourceDto } from '../dtos/workflow-source.dto.js';
+import { assertResponse } from '../mappers/assert-response.util.js';
 
 interface EnvironmentConfig {
   readonly available: AvailableEnvironmentInterface[];
 }
 
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/config')
 export class ConfigController {
   constructor(
@@ -50,14 +46,20 @@ export class ConfigController {
 
   @Get('apps')
   getApps(): StudioAppConfig[] {
-    return this.studioDiscoveryService.getApps();
+    return assertResponse(z.array(StudioAppConfigSchema), this.studioDiscoveryService.getApps());
   }
 
   @Get('environments')
-  getAvailableEnvironments(): AvailableEnvironmentDto[] {
-    return plainToInstance(AvailableEnvironmentDto, this.envConfig?.available ?? [], {
-      excludeExtraneousValues: true,
-    });
+  getAvailableEnvironments(): AvailableEnvironmentInterface[] {
+    return (this.envConfig?.available ?? []).map((env) =>
+      assertResponse(AvailableEnvironmentSchema, {
+        type: env.type,
+        name: env.name,
+        connectionUrl: env.connectionUrl,
+        agentUrl: env.agentUrl,
+        local: env.local,
+      }),
+    );
   }
 
   private resolveWorkflow(workflowName: string): WorkflowInterface {
@@ -68,7 +70,7 @@ export class ConfigController {
     }
   }
 
-  private buildWorkflowConfig(workflow: WorkflowInterface): WorkflowConfigDto {
+  private buildWorkflowConfig(workflowName: string, workflow: WorkflowInterface): WorkflowConfigInterface {
     const config = getBlockConfig<WorkflowType>(workflow);
     if (!config) {
       throw new Error(`Block ${workflow.constructor.name} is missing @Workflow decorator`);
@@ -78,24 +80,23 @@ export class ConfigController {
     const argsSchema = getBlockArgsSchema(workflow);
     const argsJsonSchema = argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined;
 
-    return plainToInstance(
-      WorkflowConfigDto,
-      {
-        ...config,
-        transitions: transitions.length > 0 ? transitions : (config.transitions ?? []),
-        schema: argsJsonSchema,
-      },
-      { excludeExtraneousValues: true },
-    );
+    return assertResponse(WorkflowConfigSchema, {
+      workflowName,
+      title: config.title,
+      description: config.description,
+      schema: argsJsonSchema,
+      ui: config.ui,
+      transitions: transitions.length > 0 ? transitions : (config.transitions ?? []),
+    });
   }
 
   @Get('tools')
-  getToolConfigs(): ToolConfigDto[] {
+  getToolConfigs(): ToolConfigInterface[] {
     return this.toolRegistryService.getAll().map((tool) => this.buildToolConfig(tool));
   }
 
   @Get('tools/:toolName')
-  getToolConfig(@Param('toolName') toolName: string): ToolConfigDto {
+  getToolConfig(@Param('toolName') toolName: string): ToolConfigInterface {
     try {
       const tool = this.toolRegistryService.get(toolName);
       return this.buildToolConfig(tool);
@@ -104,29 +105,25 @@ export class ConfigController {
     }
   }
 
-  private buildToolConfig(tool: object): ToolConfigDto {
+  private buildToolConfig(tool: object): ToolConfigInterface {
     const config = getBlockConfig<ToolConfigType>(tool);
     const name = getBlockName(tool);
 
-    return plainToInstance(
-      ToolConfigDto,
-      {
-        name,
-        description: config?.description,
-        ui: config?.ui,
-      },
-      { excludeExtraneousValues: true },
-    );
+    return assertResponse(ToolConfigSchema, {
+      name,
+      description: config?.description,
+      ui: config?.ui,
+    });
   }
 
   @Get('workflows/:workflowName')
-  getWorkflowConfig(@Param('workflowName') workflowName: string): WorkflowConfigDto {
+  getWorkflowConfig(@Param('workflowName') workflowName: string): WorkflowConfigInterface {
     const workflow = this.resolveWorkflow(workflowName);
-    return this.buildWorkflowConfig(workflow);
+    return this.buildWorkflowConfig(workflowName, workflow);
   }
 
   @Get('workflows/:workflowName/source')
-  getWorkflowSource(@Param('workflowName') workflowName: string): WorkflowSourceDto {
+  getWorkflowSource(@Param('workflowName') workflowName: string): WorkflowSourceInterface {
     const workflow = this.resolveWorkflow(workflowName);
 
     const ctor = workflow.constructor;
@@ -168,10 +165,10 @@ export class ConfigController {
       }
     }
 
-    return {
+    return assertResponse(WorkflowSourceSchema, {
       name: workflowName,
       filePath,
       raw,
-    };
+    });
   }
 }

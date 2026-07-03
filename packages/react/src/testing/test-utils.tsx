@@ -2,7 +2,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { vi } from 'vitest';
 import { createQueries } from '@loopstack/client';
-import type { DocumentsResource, LoopstackClient, WorkflowsResource, WorkspacesResource } from '@loopstack/client';
+import type {
+  ConfigResource,
+  DashboardResource,
+  DocumentsResource,
+  LoopstackClient,
+  WorkflowsResource,
+  WorkspacesResource,
+} from '@loopstack/client';
 import { LoopstackProvider } from '../provider.js';
 
 export const TEST_ENV_KEY = 'env-1';
@@ -67,6 +74,24 @@ export function createTestClient() {
     delete: vi.fn(async () => undefined),
     batchDelete: vi.fn(async (ids: string[]) => ({ deleted: ids, failed: [] })),
   };
+  const config = {
+    apps: vi.fn(async () => []),
+    workflowConfig: vi.fn(async (workflowName: string) => ({ workflowName })),
+    workflowSource: vi.fn(async (name: string) => ({ name, filePath: null, raw: null })),
+    tools: vi.fn(async () => []),
+    tool: vi.fn(async (name: string) => ({ name })),
+    availableEnvironments: vi.fn(async () => []),
+  };
+  const dashboard = {
+    stats: vi.fn(async () => ({
+      totalAutomationRuns: 0,
+      completedRuns: 0,
+      errorRuns: 0,
+      inProgressRuns: 0,
+      recentErrors: [],
+      recentRuns: [],
+    })),
+  };
   const stream = createMockStream();
 
   const client = {
@@ -76,16 +101,20 @@ export function createTestClient() {
     documents,
     processor,
     workspaces,
+    config,
+    dashboard,
     queries: createQueries({
       envKey: TEST_ENV_KEY,
       workflows: workflows as unknown as WorkflowsResource,
       documents: documents as unknown as DocumentsResource,
       workspaces: workspaces as unknown as WorkspacesResource,
+      config: config as unknown as ConfigResource,
+      dashboard: dashboard as unknown as DashboardResource,
     }),
     stream,
   } as unknown as LoopstackClient;
 
-  return { client, stream, workflows, documents, processor, workspaces };
+  return { client, stream, workflows, documents, processor, workspaces, config, dashboard };
 }
 
 /** Wrapper mounting QueryClientProvider + LoopstackProvider around a hook under test. */

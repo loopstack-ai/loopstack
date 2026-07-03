@@ -1,7 +1,15 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { TEST_ENV_KEY, createTestClient, createWrapper } from '../testing/test-utils.js';
-import { useChildWorkflows, useWorkflow, useWorkflowDocuments, useWorkspace, useWorkspaceList } from './queries.js';
+import {
+  useChildWorkflows,
+  useDashboardStats,
+  useWorkflow,
+  useWorkflowConfig,
+  useWorkflowDocuments,
+  useWorkspace,
+  useWorkspaceList,
+} from './queries.js';
 
 describe('query hooks', () => {
   it('useWorkflow fetches and caches under the SDK query key', async () => {
@@ -88,5 +96,27 @@ describe('query hooks', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(workspaces.list).toHaveBeenCalledWith(params);
     expect(queryClient.getQueryData(['workspaces', TEST_ENV_KEY, 'list', params])).toEqual(result.current.data);
+  });
+
+  it('useWorkflowConfig fetches by name and stays idle without one', async () => {
+    const { client, config } = createTestClient();
+    const { wrapper } = createWrapper(client);
+
+    const idle = renderHook(() => useWorkflowConfig(undefined), { wrapper });
+    expect(idle.result.current.fetchStatus).toBe('idle');
+
+    const { result } = renderHook(() => useWorkflowConfig('hello'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(config.workflowConfig).toHaveBeenCalledWith('hello');
+  });
+
+  it('useDashboardStats caches under the SDK query key', async () => {
+    const { client, dashboard } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+
+    const { result } = renderHook(() => useDashboardStats(), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(dashboard.stats).toHaveBeenCalled();
+    expect(queryClient.getQueryData(['dashboardStats', TEST_ENV_KEY])).toEqual(result.current.data);
   });
 });

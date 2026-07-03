@@ -1,6 +1,6 @@
 import { Loader2, Zap } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import Form from '@/components/dynamic-form/Form.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import HeaderSection from '@/features/workspaces/components/workflow-form/HeaderSection.tsx';

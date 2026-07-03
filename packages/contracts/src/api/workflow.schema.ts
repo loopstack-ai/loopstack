@@ -101,9 +101,3 @@ export const WorkflowRunResultSchema = z.object({
   status: z.enum(WorkflowState),
 });
 export type WorkflowRunResult = z.infer<typeof WorkflowRunResultSchema>;
-
-export interface WorkflowSourceInterface {
-  name: string;
-  filePath: string | null;
-  raw: string | null;
-}

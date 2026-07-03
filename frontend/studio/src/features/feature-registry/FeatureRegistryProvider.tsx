@@ -1,5 +1,5 @@
 import { type ReactNode, createContext, useContext, useMemo } from 'react';
-import type { StudioFeatureRegistration } from '@/api/types';
+import type { StudioFeatureRegistration } from '@loopstack/contracts/api';
 import { useAppsConfig } from '@/hooks/useConfig';
 import { AVAILABLE_FEATURES } from './available-features';
 import type { StudioFeature } from './types';
