@@ -20,9 +20,7 @@
 // import { queryKeys } from '@loopstack/client'.
 
 // --- Secrets ---
-export function getSecretsCacheKey(envKey: string, workspaceId: string) {
-  return ['secrets', envKey, workspaceId];
-}
+// Secret keys live in the SDK: import { queryKeys } from '@loopstack/client'.
 
 // --- Git ---
 export function getGitStatusCacheKey(envKey: string, workspaceId: string) {
