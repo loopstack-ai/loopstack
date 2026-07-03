@@ -1,8 +1,7 @@
 import { Outlet, useSearchParams } from 'react-router-dom';
 import LocalHealthCheck from '../features/health/LocalHealthCheck.tsx';
-import { InvalidationEventsProvider } from '../providers/InvalidationEventsProvider.tsx';
+import { LoopstackClientProvider } from '../providers/LoopstackClientProvider.tsx';
 import { QueryProvider } from '../providers/QueryProvider.tsx';
-import { SseProvider } from '../providers/SseProvider.tsx';
 import { StudioProvider } from '../providers/StudioProvider.tsx';
 import { useRouter } from '../routing/LocalRouter.tsx';
 import type { Environment } from '../types';
@@ -23,10 +22,10 @@ export default function EnvironmentEmbedRoot() {
   return (
     <QueryProvider>
       <StudioProvider router={router} environment={environment}>
-        <LocalHealthCheck />
-        <SseProvider />
-        <InvalidationEventsProvider />
-        <Outlet />
+        <LoopstackClientProvider>
+          <LocalHealthCheck />
+          <Outlet />
+        </LoopstackClientProvider>
       </StudioProvider>
     </QueryProvider>
   );

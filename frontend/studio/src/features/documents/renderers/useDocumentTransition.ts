@@ -36,7 +36,7 @@ export function useDocumentTransition(
       if (!transitionId || !canSubmit) return;
       runWorkflow.mutate({
         workflowId: parentWorkflow.id,
-        runWorkflowPayloadDto: {
+        payload: {
           transition: {
             id: transitionId,
             workflowId: workflow.id,

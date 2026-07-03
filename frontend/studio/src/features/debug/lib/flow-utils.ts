@@ -1,7 +1,7 @@
 import Dagre from '@dagrejs/dagre';
 import { type Edge, MarkerType, type Node, Position } from '@xyflow/react';
+import type { WorkflowCheckpointInterface } from '@loopstack/contracts/api';
 import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
-import type { WorkflowCheckpoint } from '@/api/workflows.ts';
 import type {
   BuildWorkflowGraphOptions,
   FlowDirection,
@@ -23,7 +23,7 @@ const CONDITION_OPERATORS: Record<string, string> = {
 };
 
 // Checkpoint-based history entry (from WorkflowCheckpointEntity)
-type CheckpointEntry = WorkflowCheckpoint;
+type CheckpointEntry = WorkflowCheckpointInterface;
 
 export function getLayoutedElements(
   nodes: Node<StateNodeData>[],

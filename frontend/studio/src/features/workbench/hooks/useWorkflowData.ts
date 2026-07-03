@@ -77,7 +77,7 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
     (transition: string, data: Record<string, unknown> | string | undefined) => {
       runWorkflow.mutate({
         workflowId: workflowId,
-        runWorkflowPayloadDto: {
+        payload: {
           transition: {
             id: transition,
             workflowId: workflowId,

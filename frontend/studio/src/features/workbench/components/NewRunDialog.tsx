@@ -148,11 +148,9 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
 
       startWorkflow.mutate(
         {
-          payload: {
-            workflowName: selectedWorkflow.workflowName,
-            workspaceId: selectedWorkspaceId,
-            args: args ?? {},
-          },
+          workflowName: selectedWorkflow.workflowName,
+          workspaceId: selectedWorkspaceId,
+          args: args ?? {},
         },
         { onSuccess: (result) => onSuccess(result.workflowId) },
       );

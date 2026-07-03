@@ -65,15 +65,3 @@ export interface WorkflowPayload<TArgs = Record<string, unknown>> {
     payload?: Record<string, unknown>;
   };
 }
-
-export interface StartWorkflowPayload {
-  workflowName: string;
-  workspaceId: string;
-  args?: Record<string, unknown>;
-}
-
-export interface WorkflowRunResult {
-  workflowId: string;
-  workspaceId: string;
-  status: string;
-}

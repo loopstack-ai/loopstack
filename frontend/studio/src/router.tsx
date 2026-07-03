@@ -22,9 +22,8 @@ import WorkflowDebugPage from './pages/WorkflowDebugPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspaceRunsPage from './pages/WorkspaceRunsPage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
-import { InvalidationEventsProvider } from './providers/InvalidationEventsProvider.tsx';
+import { LoopstackClientProvider } from './providers/LoopstackClientProvider.tsx';
 import { QueryProvider } from './providers/QueryProvider.tsx';
-import { SseProvider } from './providers/SseProvider.tsx';
 import { StudioPreferencesProvider, useStudioPreferences } from './providers/StudioPreferencesProvider.tsx';
 import { StudioProvider } from './providers/StudioProvider.tsx';
 import { useRouter } from './routing/LocalRouter.tsx';
@@ -48,10 +47,10 @@ function AppRoot() {
       <Toaster richColors position="top-center" />
       <StudioPreferencesProvider>
         <StudioProvider router={router} environment={config.environment}>
-          <LocalHealthCheck />
-          <SseProvider />
-          <InvalidationEventsProvider />
-          <AppSidebar />
+          <LoopstackClientProvider>
+            <LocalHealthCheck />
+            <AppSidebar />
+          </LoopstackClientProvider>
         </StudioProvider>
       </StudioPreferencesProvider>
     </QueryProvider>
@@ -63,9 +62,9 @@ function EmbedRoot() {
   return (
     <QueryProvider>
       <StudioProvider router={router} environment={config.environment}>
-        <SseProvider />
-        <InvalidationEventsProvider />
-        <WorkerLayout />
+        <LoopstackClientProvider>
+          <WorkerLayout />
+        </LoopstackClientProvider>
       </StudioProvider>
     </QueryProvider>
   );

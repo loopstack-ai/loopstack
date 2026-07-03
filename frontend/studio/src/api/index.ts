@@ -4,9 +4,7 @@ import { createGitApi } from '../features/git/api/git';
 import { createAuthApi } from './auth';
 import { createConfigApi } from './config';
 import { createDashboardApi } from './dashboard';
-import { createDocumentsApi } from './documents';
 import { createEnvironmentsApi } from './environments';
-import { createProcessorApi } from './processor';
 import { createSecretsApi } from './secrets';
 import { createWorkflowsApi } from './workflows';
 import { createWorkspacesApi } from './workspaces';
@@ -18,14 +16,12 @@ export function createApi(http: AxiosInstance) {
     auth: createAuthApi(http),
     config: createConfigApi(http),
     dashboard: createDashboardApi(http),
-    documents: createDocumentsApi(http),
     environments: createEnvironmentsApi(http),
     files: {
       local: createFilesApi(http, 'local'),
       remote: createFilesApi(http, 'remote'),
     },
     git: createGitApi(http),
-    processor: createProcessorApi(http),
     secrets: createSecretsApi(http),
     workflows: createWorkflowsApi(http),
     workspaces: createWorkspacesApi(http),

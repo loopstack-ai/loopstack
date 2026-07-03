@@ -1,9 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import type { GitUpdatedEvent } from '@loopstack/contracts/events';
+import { useLoopstackClient } from '@loopstack/react';
 import { getGitLogCacheKey, getGitRemoteCacheKey, getGitStatusCacheKey } from '@/hooks/query-keys';
 import { useApiClient } from '@/hooks/useApi';
-import { eventBus } from '@/services';
 
 export function useGitStatus(workspaceId: string | undefined) {
   const { envKey, api } = useApiClient();
@@ -44,21 +43,20 @@ export function useGitRemote(workspaceId: string | undefined) {
  */
 export function useGitInvalidation(workspaceId: string | undefined) {
   const { envKey } = useApiClient();
+  const client = useLoopstackClient();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!workspaceId) return;
 
-    const unsub = eventBus.on('git.updated', (payload: GitUpdatedEvent) => {
+    return client.stream.on('git.updated', (payload) => {
       if (payload.workspaceId === workspaceId) {
         void queryClient.invalidateQueries({ queryKey: getGitStatusCacheKey(envKey, workspaceId) });
         void queryClient.invalidateQueries({ queryKey: getGitLogCacheKey(envKey, workspaceId) });
         void queryClient.invalidateQueries({ queryKey: getGitRemoteCacheKey(envKey, workspaceId) });
       }
     });
-
-    return unsub;
-  }, [envKey, workspaceId, queryClient]);
+  }, [client, envKey, workspaceId, queryClient]);
 }
 
 export function useRemoveGitRemote() {

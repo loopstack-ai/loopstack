@@ -34,22 +34,16 @@ const WorkflowButtons: React.FC<{
   const handleRepeat = () => {
     createWorkflow.mutate(
       {
-        workflowCreateDto: {
-          workflowName: workflow.workflowName,
-          title: null,
-          workspaceId: workflow.workspaceId,
-          transition: null,
-          args: (workflow.args ?? {}) as Record<string, unknown>,
-        },
+        workflowName: workflow.workflowName,
+        title: null,
+        workspaceId: workflow.workspaceId,
+        transition: null,
+        args: (workflow.args ?? {}) as Record<string, unknown>,
       },
       {
         onSuccess: (createdWorkflow) => {
           runWorkflow.mutate(
-            {
-              workflowId: createdWorkflow.id,
-              runWorkflowPayloadDto: {},
-              force: true,
-            },
+            { workflowId: createdWorkflow.id },
             {
               onSuccess: () => {
                 void router.navigateToWorkflow(createdWorkflow.id);
@@ -64,12 +58,11 @@ const WorkflowButtons: React.FC<{
   const handleUnlock = () => {
     runWorkflow.mutate({
       workflowId: workflow.id,
-      runWorkflowPayloadDto: {
+      payload: {
         transition: {
           workflowId: workflowId,
         },
       },
-      force: false,
     });
   };
 

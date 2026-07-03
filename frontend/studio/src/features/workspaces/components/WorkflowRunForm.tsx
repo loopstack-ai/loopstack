@@ -87,11 +87,9 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
 
     startWorkflow.mutate(
       {
-        payload: {
-          workflowName: selectedWorkflow.workflowName,
-          workspaceId: workspace.id,
-          args: data ?? {},
-        },
+        workflowName: selectedWorkflow.workflowName,
+        workspaceId: workspace.id,
+        args: data ?? {},
       },
       {
         onSuccess: (result) => void router.navigateToWorkflow(result.workflowId),

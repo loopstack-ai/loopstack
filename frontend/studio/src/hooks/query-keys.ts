@@ -41,21 +41,8 @@ export function getDashboardStatsCacheKey(envKey: string) {
 }
 
 // --- Workflows ---
-export function getWorkflowCacheKey(envKey: string, id: string) {
-  return ['workflow', envKey, id];
-}
-
-export function getWorkflowStatusCacheKey(envKey: string, id: string) {
-  return ['workflowStatus', envKey, id];
-}
-
-export function getWorkflowsCacheKey(envKey: string) {
-  return ['workflows', envKey];
-}
-
-export function getChildWorkflowsCacheKey(envKey: string, parentId: string) {
-  return ['childWorkflows', envKey, parentId];
-}
+// Pilot-slice keys (workflow, workflows, childWorkflows, document, documents, …)
+// live in the SDK: import { queryKeys } from '@loopstack/client'.
 
 export function getToolConfigsCacheKey(envKey: string) {
   return ['toolConfigs', envKey];
@@ -80,15 +67,6 @@ export function getWorkspaceCacheKey(envKey: string, id: string) {
 
 export function getWorkspacesCacheKey(envKey: string) {
   return ['workspaces', envKey];
-}
-
-// --- Documents ---
-export function getDocumentCacheKey(envKey: string, documentId: string) {
-  return ['document', envKey, documentId];
-}
-
-export function getDocumentsCacheKey(envKey: string, workflowId: string) {
-  return ['documents', envKey, workflowId];
 }
 
 // --- Secrets ---

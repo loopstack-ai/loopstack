@@ -3,24 +3,24 @@ import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import { useApiClient } from './useApi.ts';
 
 export function useWorkspaceEnvironments(workspaceId?: string) {
-  const { api } = useApiClient();
+  const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: ['workspace-environments', workspaceId],
+    queryKey: ['workspace-environments', envKey, workspaceId],
     queryFn: () => api.environments.getByWorkspace(workspaceId!),
     enabled: !!workspaceId,
   });
 }
 
 export function useReplaceEnvironments() {
-  const { api } = useApiClient();
+  const { envKey, api } = useApiClient();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (params: { workspaceId: string; environments: WorkspaceEnvironmentInterface[] }) =>
       api.environments.replaceEnvironments(params.workspaceId, params.environments),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-environments', variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-environments', envKey, variables.workspaceId] });
     },
   });
 }

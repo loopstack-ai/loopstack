@@ -1,6 +1,5 @@
 import axios, { type AxiosError, type AxiosInstance } from 'axios';
-import { ApiClientEvents } from '@/events';
-import { eventBus } from '@/services';
+import { ApiClientEvents, apiClientEvents } from '@/events';
 
 export function createAxiosClient(baseURL: string, environmentId: string): AxiosInstance {
   const instance = axios.create({
@@ -15,12 +14,12 @@ export function createAxiosClient(baseURL: string, environmentId: string): Axios
     (response) => response,
     (error: AxiosError) => {
       if (error.response?.status && [401, 403].includes(error.response.status)) {
-        eventBus.emit(ApiClientEvents.UNAUTHORIZED, environmentId);
+        apiClientEvents.emit(ApiClientEvents.UNAUTHORIZED, environmentId);
       }
 
       if (error.code === 'ERR_NETWORK') {
         console.error('Connection refused - server may be down');
-        eventBus.emit(ApiClientEvents.ERR_NETWORK, environmentId);
+        apiClientEvents.emit(ApiClientEvents.ERR_NETWORK, environmentId);
       }
 
       return Promise.reject(error as Error);
