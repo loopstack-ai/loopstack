@@ -1,4 +1,4 @@
-import { SortByInterface } from './common.interface.js';
+import { SortByInterface } from './common.schema.js';
 
 export interface EnvironmentConfigInterface {
   id: string;

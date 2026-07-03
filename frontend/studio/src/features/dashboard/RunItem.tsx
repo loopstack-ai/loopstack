@@ -5,7 +5,7 @@ export interface Run {
   id: string;
   run?: number;
   index?: number;
-  title?: string;
+  title?: string | null;
   status: string;
   updatedAt: string | Date;
 }

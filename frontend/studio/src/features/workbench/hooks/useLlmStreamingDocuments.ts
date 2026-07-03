@@ -44,7 +44,7 @@ function createStreamingDocument(
   blocks.push({ type: 'text', text });
   blocks.push(...state.toolCalls);
 
-  const now = new Date();
+  const now = new Date().toISOString();
 
   return {
     id: `streaming-${state.messageId}`,

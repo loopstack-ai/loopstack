@@ -66,7 +66,6 @@ const WorkflowButtons: React.FC<{
       workflowId: workflow.id,
       runWorkflowPayloadDto: {
         transition: {
-          name: 'unlock',
           workflowId: workflowId,
         },
       },

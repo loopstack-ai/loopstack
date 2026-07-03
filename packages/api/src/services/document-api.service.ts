@@ -3,8 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Repository } from 'typeorm';
 import { DocumentEntity } from '@loopstack/common';
-import { DocumentFilterDto } from '../dtos/document-filter.dto.js';
-import { DocumentSortByDto } from '../dtos/document-sort-by.dto.js';
+import type { DocumentFilterInterface, DocumentSortByInterface } from '@loopstack/contracts/api';
 
 @Injectable()
 export class DocumentApiService {
@@ -19,8 +18,8 @@ export class DocumentApiService {
    */
   async findAll(
     user: string,
-    filter: DocumentFilterDto,
-    sortBy: DocumentSortByDto[],
+    filter: DocumentFilterInterface | undefined,
+    sortBy: DocumentSortByInterface[] | undefined,
     pagination: {
       page: number | undefined;
       limit: number | undefined;
@@ -32,10 +31,10 @@ export class DocumentApiService {
     limit: number;
   }> {
     const defaultLimit = this.configService.get<number>('DOCUMENT_DEFAULT_LIMIT', 100);
-    const defaultSortBy = this.configService.get<DocumentSortByDto[]>('DOCUMENT_DEFAULT_SORT_BY', []);
+    const defaultSortBy = this.configService.get<DocumentSortByInterface[]>('DOCUMENT_DEFAULT_SORT_BY', []);
 
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
+      Object.entries(filter ?? {}).map(([key, value]) => [key, value === null ? IsNull() : value]),
     );
 
     const findOptions: FindManyOptions<DocumentEntity> = {

@@ -1,30 +1,28 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-  Query,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { BatchDeleteDto } from '../dtos/batch-delete.dto.js';
-import { PaginatedDto } from '../dtos/paginated.dto.js';
-import { WorkflowCreateDto } from '../dtos/workflow-create.dto.js';
-import { WorkflowFilterDto } from '../dtos/workflow-filter.dto.js';
-import { WorkflowItemDto } from '../dtos/workflow-item.dto.js';
-import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto.js';
-import { WorkflowStatusDto } from '../dtos/workflow-status.dto.js';
-import { WorkflowUpdateDto } from '../dtos/workflow-update.dto.js';
-import { WorkflowDto } from '../dtos/workflow.dto.js';
-import { ParseJsonPipe } from '../pipes/parse-json.pipe.js';
+import {
+  BatchDeleteInterface,
+  BatchDeleteResultInterface,
+  BatchDeleteSchema,
+  PaginatedInterface,
+  WorkflowCheckpointInterface,
+  WorkflowCreateInterface,
+  WorkflowCreateSchema,
+  WorkflowFilterInterface,
+  WorkflowFilterSchema,
+  WorkflowFullInterface,
+  WorkflowItemInterface,
+  WorkflowSortByInterface,
+  WorkflowStatusInterface,
+  WorkflowUpdateInterface,
+  WorkflowUpdateSchema,
+} from '@loopstack/contracts/api';
+import { toPaginated } from '../mappers/paginated.util.js';
+import { toWorkflowCheckpoint, toWorkflowFull, toWorkflowItem, toWorkflowStatus } from '../mappers/workflow.mapper.js';
+import { ZodJsonQueryPipe, ZodValidationPipe } from '../pipes/zod-validation.pipe.js';
+import { WorkflowSortByQuerySchema } from '../schemas/sort-by.schemas.js';
 import { WorkflowApiService } from '../services/workflow-api.service.js';
 
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workflows')
 export class WorkflowController {
   constructor(private readonly workflowService: WorkflowApiService) {}
@@ -35,12 +33,12 @@ export class WorkflowController {
   @Get()
   async getWorkflows(
     @CurrentUser() user: CurrentUserInterface,
-    @Query('filter', new ParseJsonPipe(WorkflowFilterDto)) filter: WorkflowFilterDto,
-    @Query('sortBy', new ParseJsonPipe(WorkflowSortByDto)) sortBy: WorkflowSortByDto[],
+    @Query('filter', new ZodJsonQueryPipe(WorkflowFilterSchema)) filter: WorkflowFilterInterface | undefined,
+    @Query('sortBy', new ZodJsonQueryPipe(WorkflowSortByQuerySchema)) sortBy: WorkflowSortByInterface[] | undefined,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('search') search?: string,
-  ): Promise<PaginatedDto<WorkflowItemDto>> {
+  ): Promise<PaginatedInterface<WorkflowItemInterface>> {
     const result = await this.workflowService.findAll(
       user.userId,
       filter,
@@ -51,16 +49,19 @@ export class WorkflowController {
       },
       search,
     );
-    return PaginatedDto.create(WorkflowItemDto, result);
+    return toPaginated(result, toWorkflowItem);
   }
 
   /**
    * Retrieves a workflow by its ID.
    */
   @Get(':id')
-  async getWorkflowById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkflowDto> {
+  async getWorkflowById(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<WorkflowFullInterface> {
     const workflow = await this.workflowService.findOneById(id, user.userId);
-    return WorkflowDto.create(workflow);
+    return toWorkflowFull(workflow);
   }
 
   /**
@@ -71,9 +72,9 @@ export class WorkflowController {
   async getWorkflowStatus(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserInterface,
-  ): Promise<WorkflowStatusDto> {
+  ): Promise<WorkflowStatusInterface> {
     const workflow = await this.workflowService.findStatusById(id, user.userId);
-    return WorkflowStatusDto.create(workflow);
+    return toWorkflowStatus(workflow);
   }
 
   /**
@@ -81,11 +82,11 @@ export class WorkflowController {
    */
   @Post()
   async createWorkflow(
-    @Body() workflowCreateDto: WorkflowCreateDto,
+    @Body(new ZodValidationPipe(WorkflowCreateSchema)) payload: WorkflowCreateInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ): Promise<WorkflowDto> {
-    const workflow = await this.workflowService.create(workflowCreateDto, user.userId);
-    return WorkflowDto.create(workflow);
+  ): Promise<WorkflowFullInterface> {
+    const workflow = await this.workflowService.create(payload, user.userId);
+    return toWorkflowFull(workflow);
   }
 
   /**
@@ -94,11 +95,11 @@ export class WorkflowController {
   @Put(':id')
   async updateWorkflow(
     @Param('id') id: string,
-    @Body() workflowUpdateDto: WorkflowUpdateDto,
+    @Body(new ZodValidationPipe(WorkflowUpdateSchema)) payload: WorkflowUpdateInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ): Promise<WorkflowDto> {
-    const workflow = await this.workflowService.update(id, workflowUpdateDto, user.userId);
-    return WorkflowDto.create(workflow);
+  ): Promise<WorkflowFullInterface> {
+    const workflow = await this.workflowService.update(id, payload, user.userId);
+    return toWorkflowFull(workflow);
   }
 
   /**
@@ -114,20 +115,21 @@ export class WorkflowController {
    */
   @Delete('batch')
   async batchDeleteWorkflows(
-    @Body() batchDeleteDto: BatchDeleteDto,
+    @Body(new ZodValidationPipe(BatchDeleteSchema)) payload: BatchDeleteInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ): Promise<{
-    deleted: string[];
-    failed: Array<{ id: string; error: string }>;
-  }> {
-    return await this.workflowService.batchDelete(batchDeleteDto.ids, user.userId);
+  ): Promise<BatchDeleteResultInterface> {
+    return await this.workflowService.batchDelete(payload.ids, user.userId);
   }
 
   /**
    * Retrieves the checkpoint history for a workflow.
    */
   @Get(':id/checkpoints')
-  async getCheckpointHistory(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface) {
-    return this.workflowService.getCheckpointHistory(id, user.userId);
+  async getCheckpointHistory(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<WorkflowCheckpointInterface[]> {
+    const checkpoints = await this.workflowService.getCheckpointHistory(id, user.userId);
+    return checkpoints.map(toWorkflowCheckpoint);
   }
 }

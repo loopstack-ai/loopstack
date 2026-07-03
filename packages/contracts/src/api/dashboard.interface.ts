@@ -1,5 +1,5 @@
 import { WorkflowInterface } from '../types/interfaces/workflow.interface.js';
-import { WorkflowItemInterface } from './workflow.interface.js';
+import { WorkflowItemInterface } from './workflow.schema.js';
 
 export interface DashboardStatsInterface {
   workspaceCount: number;

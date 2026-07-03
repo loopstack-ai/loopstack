@@ -1,11 +1,15 @@
-import { Body, Controller, Param, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import type { WorkflowRunResult } from '@loopstack/common';
-import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto.js';
-import { StartWorkflowPayloadDto } from '../dtos/start-workflow-payload.dto.js';
+import {
+  RunWorkflowPayloadInterface,
+  RunWorkflowPayloadSchema,
+  StartWorkflowPayloadInterface,
+  StartWorkflowPayloadSchema,
+  WorkflowRunResult,
+} from '@loopstack/contracts/api';
+import { ZodValidationPipe } from '../pipes/zod-validation.pipe.js';
 import { ProcessorApiService } from '../services/processor-api.service.js';
 
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/processor')
 export class ProcessorController {
   constructor(private readonly processorApiService: ProcessorApiService) {}
@@ -15,7 +19,7 @@ export class ProcessorController {
    */
   @Post('start')
   async startWorkflow(
-    @Body() payload: StartWorkflowPayloadDto,
+    @Body(new ZodValidationPipe(StartWorkflowPayloadSchema)) payload: StartWorkflowPayloadInterface,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkflowRunResult> {
     return this.processorApiService.startWorkflow(payload, user.userId);
@@ -28,7 +32,7 @@ export class ProcessorController {
   @Post('run/:workflowId')
   async runWorkflow(
     @Param('workflowId') workflowId: string,
-    @Body() payload: RunWorkflowPayloadDto,
+    @Body(new ZodValidationPipe(RunWorkflowPayloadSchema)) payload: RunWorkflowPayloadInterface,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<void> {
     await this.processorApiService.processWorkflow(workflowId, user.userId, payload ?? {});
