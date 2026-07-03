@@ -97,6 +97,29 @@ export default tseslint.config(
     },
   },
 
+  // Boundary: @loopstack/react is a browser-side adapter — no server-only dependencies
+  {
+    files: ['packages/react/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@nestjs/*', 'class-validator', 'class-transformer', 'typeorm', 'reflect-metadata'],
+              message: '@loopstack/react must stay free of server-only dependencies.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Boundary: @loopstack/contracts is shared with browser clients
   {
     files: ['packages/contracts/**/*.ts'],

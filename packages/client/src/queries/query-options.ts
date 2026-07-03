@@ -57,7 +57,13 @@ export function createQueries({ envKey, workflows, documents }: QueryResources):
 
     childWorkflows: (parentId: string) => ({
       queryKey: queryKeys.childWorkflows(envKey, parentId),
-      queryFn: () => workflows.list({ filter: { parentId } }),
+      queryFn: () =>
+        workflows.list({
+          filter: { parentId },
+          sortBy: [{ field: 'createdAt', order: SortOrder.ASC }],
+          page: 0,
+          limit: 100,
+        }),
     }),
 
     workflowCheckpoints: (id: string) => ({
