@@ -40,6 +40,7 @@ export class ClientMessageService {
       workflowId: entity.id,
       parentId: entity.parentId ?? undefined,
       status: entity.status,
+      place: entity.place,
       userId: entity.createdBy,
       workerId: this.clientId,
     });

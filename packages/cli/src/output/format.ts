@@ -30,6 +30,12 @@ export function colorStatus(status: string): string {
   }
 }
 
+export function formatDuration(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s`;
+}
+
 /** Data goes to stdout (pipe-safe); everything else belongs on stderr. */
 export function printData(text: string): void {
   console.log(text);

@@ -40,6 +40,8 @@ export const WorkflowFullSchema = WorkflowItemSchema.extend({
   args: z.any(),
   context: z.record(z.string(), z.unknown()),
   callbackTransition: z.string().nullable(),
+  /** The run's published result, built via `assignResult`/`setResult`. */
+  result: z.record(z.string(), z.unknown()).nullable(),
 });
 export type WorkflowFullInterface = z.infer<typeof WorkflowFullSchema>;
 

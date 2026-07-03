@@ -40,6 +40,7 @@ export function toWorkflowFull(entity: WorkflowEntity): WorkflowFullInterface {
     args: entity.args,
     context: entity.context ?? {},
     callbackTransition: entity.callbackTransition ?? null,
+    result: entity.result ?? null,
   });
 }
 

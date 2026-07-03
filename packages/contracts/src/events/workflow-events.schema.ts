@@ -15,8 +15,8 @@ export type WorkflowCreatedEvent = z.infer<typeof WorkflowCreatedEventSchema>;
 
 /**
  * Emitted whenever a workflow's persisted state changes (transitions, status
- * changes, result updates). Carries the current `status` so consumers tracing
- * a run do not need a status round-trip per transition.
+ * changes, result updates). Carries the current `status` and `place` so
+ * consumers tracing a run do not need a round-trip per transition.
  */
 export const WorkflowUpdatedEventSchema = ClientMessageBaseSchema.extend({
   type: z.literal('workflow.updated'),
@@ -24,6 +24,7 @@ export const WorkflowUpdatedEventSchema = ClientMessageBaseSchema.extend({
   workflowId: z.string(),
   parentId: z.string().optional(),
   status: z.enum(WorkflowState),
+  place: z.string().optional(),
 });
 export type WorkflowUpdatedEvent = z.infer<typeof WorkflowUpdatedEventSchema>;
 

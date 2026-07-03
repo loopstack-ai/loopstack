@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { registerEnvCommand } from './commands/env.js';
 import { registerListCommand } from './commands/list.js';
 import { registerLoginCommand } from './commands/login.js';
+import { registerRunCommand } from './commands/run.js';
 import { handleError } from './errors.js';
 
 const { version } = createRequire(import.meta.url)('../package.json') as { version: string };
@@ -18,6 +19,7 @@ const program = new Command('loopstack')
 
 registerLoginCommand(program);
 registerEnvCommand(program);
+registerRunCommand(program);
 registerListCommand(program);
 
 try {
