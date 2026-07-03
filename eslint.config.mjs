@@ -69,6 +69,52 @@ export default tseslint.config(
     },
   },
 
+  // Node scripts (plain ESM, no TypeScript)
+  {
+    files: ['packages/*/scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
+  // Boundary: @loopstack/client is a headless SDK — it must run in bare Node
+  {
+    files: ['packages/client/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['react', 'react-dom', 'react/*', 'react-dom/*', '@tanstack/react-query'],
+              message: '@loopstack/client must stay React-free — presentation adapters belong in @loopstack/react.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // Boundary: @loopstack/contracts is shared with browser clients
+  {
+    files: ['packages/contracts/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@nestjs/*', 'class-validator', 'class-transformer', 'typeorm', 'reflect-metadata'],
+              message: '@loopstack/contracts must stay free of server-only dependencies.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Test files (NestJS) - Relaxed rules for test flexibility
   {
     files: [
