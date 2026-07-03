@@ -26,6 +26,7 @@
       "@loopstack/contracts": ["./packages/contracts/src"],
       "@loopstack/client": ["./packages/client/src"],
       "@loopstack/react": ["./packages/react/src"],
+      "@loopstack/cli": ["./packages/cli/src"],
       "@loopstack/common": ["./packages/common/src"],
       "@loopstack/core": ["./packages/core/src"],
       "@loopstack/auth": ["./packages/auth/src"],

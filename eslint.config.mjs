@@ -97,6 +97,24 @@ export default tseslint.config(
     },
   },
 
+  // Boundary: @loopstack/cli talks HTTP via @loopstack/client only
+  {
+    files: ['packages/cli/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@nestjs/*', 'typeorm', 'reflect-metadata', 'axios', 'react', 'react-dom'],
+              message: '@loopstack/cli must stay a thin terminal layer over @loopstack/client.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Boundary: @loopstack/react is a browser-side adapter — no server-only dependencies
   {
     files: ['packages/react/**/*.{ts,tsx}'],

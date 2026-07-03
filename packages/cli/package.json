@@ -1,0 +1,40 @@
+{
+  "name": "@loopstack/cli",
+  "displayName": "Loopstack CLI",
+  "description": "Run, trace, and watch Loopstack workflows from the terminal",
+  "version": "0.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "type": "module",
+  "bin": {
+    "loopstack": "dist/main.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "watch": "tsc -p tsconfig.build.json --watch"
+  },
+  "dependencies": {
+    "@loopstack/client": "^0.36.0",
+    "@loopstack/contracts": "^0.36.0",
+    "commander": "^15.0.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.6"
+  },
+  "files": [
+    "dist"
+  ]
+}
