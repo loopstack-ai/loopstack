@@ -1,5 +1,5 @@
 import { GitBranch } from 'lucide-react';
-import type { GitStatusResponse } from '../api/git';
+import type { GitStatusResponse } from '../types';
 
 interface GitBranchBadgeProps {
   status: GitStatusResponse;

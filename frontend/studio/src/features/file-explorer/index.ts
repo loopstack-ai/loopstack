@@ -2,4 +2,4 @@ export { localFileExplorerFeature, remoteFileExplorerFeature } from './file-expl
 export { FileExplorerProvider, useFileExplorer, useOptionalFileExplorer } from './providers/FileExplorerProvider';
 export type { FileExplorerContextValue } from './providers/FileExplorerProvider';
 export type { FileExplorerNode, FileContent } from './types';
-export type { FileExplorerVariant } from './api/files';
+export type { FileExplorerVariant } from './hooks/useFileExplorer';

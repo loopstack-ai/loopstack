@@ -43,7 +43,7 @@ export function EmbedLogsContent() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const logsQuery = useQuery({
-    queryKey: ['remote-agent-app-logs'],
+    queryKey: ['remote-agent-app-logs', base],
     queryFn: async (): Promise<LogsResponse> => {
       const res = await fetch(`${base}/api/v1/app/logs?lines=200`, { credentials: 'include' });
       if (!res.ok) {
