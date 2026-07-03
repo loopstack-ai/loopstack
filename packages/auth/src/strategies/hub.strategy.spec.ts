@@ -21,7 +21,7 @@ describe('HubStrategy', () => {
   let strategy: HubStrategy;
   let configGet: Mock;
   let findById: Mock;
-  let findLocalUser: Mock;
+  let findOrCreateLocalUser: Mock;
   let createUser: Mock;
 
   // RSA key pair generated once for all tests
@@ -37,13 +37,13 @@ describe('HubStrategy', () => {
   beforeEach(() => {
     configGet = vi.fn();
     findById = vi.fn();
-    findLocalUser = vi.fn();
+    findOrCreateLocalUser = vi.fn();
     createUser = vi.fn();
 
     const configService = { get: configGet } as unknown as ConfigService;
     const userRepository = {
       findById,
-      findLocalUser,
+      findOrCreateLocalUser,
       create: createUser,
     };
 
@@ -106,32 +106,14 @@ describe('HubStrategy', () => {
       setupLocalConfig();
     });
 
-    it('should return existing local user', async () => {
+    it('should resolve the local user through the repository', async () => {
       const existing = mockUser({ type: UserTypeEnum.Local });
-      findLocalUser.mockResolvedValue(existing);
+      findOrCreateLocalUser.mockResolvedValue(existing);
 
       const result = await strategy.validate(mockRequest({}));
 
       expect(result).toBe(existing);
-      expect(findLocalUser).toHaveBeenCalled();
-      expect(createUser).not.toHaveBeenCalled();
-    });
-
-    it('should create local user if none exists', async () => {
-      const created = mockUser({ type: UserTypeEnum.Local });
-      findLocalUser.mockResolvedValue(null);
-      createUser.mockResolvedValue(created);
-
-      const result = await strategy.validate(mockRequest({}));
-
-      expect(result).toBe(created);
-      expect(createUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: UserTypeEnum.Local,
-          isActive: true,
-          roles: [],
-        }),
-      );
+      expect(findOrCreateLocalUser).toHaveBeenCalled();
     });
   });
 

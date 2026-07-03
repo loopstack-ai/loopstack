@@ -1,8 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
+import { ZodJsonQueryPipe, ZodValidationPipe } from '@loopstack/common';
 import { DocumentSortByQuerySchema, WorkflowSortByQuerySchema } from '../schemas/sort-by.schemas.js';
-import { ZodJsonQueryPipe, ZodValidationPipe } from './zod-validation.pipe.js';
 
 const schema = z.object({ name: z.string().min(1), count: z.number().optional() });
 

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface, ZodJsonQueryPipe, ZodValidationPipe } from '@loopstack/common';
 import {
   BatchDeleteInterface,
   BatchDeleteResultInterface,
@@ -19,7 +19,6 @@ import {
 } from '@loopstack/contracts/api';
 import { toPaginated } from '../mappers/paginated.util.js';
 import { toWorkflowCheckpoint, toWorkflowFull, toWorkflowItem, toWorkflowStatus } from '../mappers/workflow.mapper.js';
-import { ZodJsonQueryPipe, ZodValidationPipe } from '../pipes/zod-validation.pipe.js';
 import { WorkflowSortByQuerySchema } from '../schemas/sort-by.schemas.js';
 import { WorkflowApiService } from '../services/workflow-api.service.js';
 

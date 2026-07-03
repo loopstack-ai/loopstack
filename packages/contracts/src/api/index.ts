@@ -1,3 +1,4 @@
+export * from './api-token.schema.js';
 export * from './auth.interface.js';
 export * from './common.schema.js';
 export * from './dashboard.interface.js';

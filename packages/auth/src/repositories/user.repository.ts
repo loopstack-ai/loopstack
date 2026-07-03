@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { User } from '@loopstack/common';
 import { UserTypeEnum } from '@loopstack/common';
@@ -24,6 +25,19 @@ export class UserRepository {
         type: UserTypeEnum.Local,
       },
       relations: ['roles'],
+    });
+  }
+
+  /** The single local-mode identity — created lazily on first use. */
+  async findOrCreateLocalUser(): Promise<User> {
+    const existing = await this.findLocalUser();
+    if (existing) return existing;
+
+    return this.create({
+      id: randomUUID(),
+      type: UserTypeEnum.Local,
+      isActive: true,
+      roles: [],
     });
   }
 

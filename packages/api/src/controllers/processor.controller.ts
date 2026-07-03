@@ -1,5 +1,5 @@
 import { Body, Controller, Param, Post } from '@nestjs/common';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface, ZodValidationPipe } from '@loopstack/common';
 import {
   RunWorkflowPayloadInterface,
   RunWorkflowPayloadSchema,
@@ -7,7 +7,6 @@ import {
   StartWorkflowPayloadSchema,
   WorkflowRunResult,
 } from '@loopstack/contracts/api';
-import { ZodValidationPipe } from '../pipes/zod-validation.pipe.js';
 import { ProcessorApiService } from '../services/processor-api.service.js';
 
 @Controller('api/v1/processor')

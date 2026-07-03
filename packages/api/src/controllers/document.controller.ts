@@ -1,5 +1,5 @@
 import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface, ZodJsonQueryPipe } from '@loopstack/common';
 import {
   DocumentFilterInterface,
   DocumentFilterSchema,
@@ -9,7 +9,6 @@ import {
 } from '@loopstack/contracts/api';
 import { toDocumentItem } from '../mappers/document.mapper.js';
 import { toPaginated } from '../mappers/paginated.util.js';
-import { ZodJsonQueryPipe } from '../pipes/zod-validation.pipe.js';
 import { DocumentSortByQuerySchema } from '../schemas/sort-by.schemas.js';
 import { DocumentApiService } from '../services/document-api.service.js';
 

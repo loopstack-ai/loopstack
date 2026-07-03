@@ -4,13 +4,21 @@
 import { createClient } from '@loopstack/client';
 
 const url = process.env.LOOPSTACK_URL ?? 'http://localhost:3000';
-const token = process.env.LOOPSTACK_TOKEN ?? (await localLogin(url));
-
-const client = createClient({ url, token, envKey: 'local' });
-const workspace = await client.http.post('/api/v1/workspaces', {
-  title: 'sdk-demo',
-  appName: 'hello_app',
+const client = createClient({
+  url,
+  token: process.env.LOOPSTACK_TOKEN,
+  envKey: 'local',
 });
+
+const workspace = await client.http
+  .post('/api/v1/workspaces', { title: 'sdk-demo', appName: 'hello_app' })
+  .catch((error) => {
+    console.error(
+      `✖ Cannot reach the Loopstack backend at ${url} — start it first: node dist/main`,
+      error.message,
+    );
+    process.exit(2);
+  });
 
 const events = client.stream.events(); // subscribe before starting so no event is missed
 const run = await client.processor.start({
@@ -31,23 +39,3 @@ for await (const event of events) {
   }
 }
 client.stream.close();
-
-/** Local-mode bootstrap: mints the dev session and reuses its JWT as bearer (PATs land with the auth work package). */
-async function localLogin(baseUrl) {
-  let response;
-  try {
-    response = await fetch(`${baseUrl}/api/v1/auth/oauth/hub`, {
-      method: 'POST',
-    });
-  } catch {
-    console.error(
-      `✖ Cannot reach the Loopstack backend at ${baseUrl} — start it first: node dist/main`,
-    );
-    process.exit(2);
-  }
-  const cookie =
-    response.headers
-      .getSetCookie()
-      .find((value) => value.includes('-access=')) ?? '';
-  return decodeURIComponent(cookie.match(/-access=([^;]+)/)?.[1] ?? '');
-}
