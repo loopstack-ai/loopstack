@@ -24,7 +24,7 @@ function createApiClientEventEmitter() {
 
 /**
  * Narrow channel for API transport errors (unauthorized, network down) feeding
- * the health-check escalation flow. Both the axios client and the Loopstack
- * SDK's fetch wrapper emit here.
+ * the health-check escalation flow. The Loopstack SDK's reporting fetch
+ * wrapper emits here.
  */
 export const apiClientEvents = createApiClientEventEmitter();
