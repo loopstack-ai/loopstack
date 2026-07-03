@@ -9,16 +9,7 @@
  * - Use `select` (not `.then()` in queryFn) for response transformations.
  */
 
-// --- Auth ---
-export function getMeCacheKey(envKey: string) {
-  return ['me', envKey];
-}
-
-export function getHealthCacheKey(envKey: string) {
-  return ['health', envKey];
-}
-
-// --- Config / Dashboard / Workflows ---
+// --- Auth / Config / Dashboard / Workflows ---
 // SDK-slice keys (workflow, workflows, childWorkflows, document, documents,
 // apps, workflowConfig, workflowSource, toolConfigs, toolConfig,
 // availableEnvironments, dashboardStats, …) live in the SDK:

@@ -1,4 +1,4 @@
-import { WorkflowCheckpointEntity, WorkflowEntity } from '@loopstack/common';
+import { WorkflowCheckpointEntity, WorkflowEntity, assertResponse } from '@loopstack/common';
 import {
   WorkflowCheckpointInterface,
   WorkflowCheckpointSchema,
@@ -9,7 +9,6 @@ import {
   WorkflowStatusInterface,
   WorkflowStatusSchema,
 } from '@loopstack/contracts/api';
-import { assertResponse } from './assert-response.util.js';
 
 /** `loadRelationCountAndMap` attaches the children count dynamically. */
 type WorkflowEntityWithChildCount = WorkflowEntity & { hasChildren?: number };

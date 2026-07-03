@@ -1,6 +1,5 @@
-import { DocumentEntity } from '@loopstack/common';
+import { DocumentEntity, assertResponse } from '@loopstack/common';
 import { DocumentItemInterface, DocumentItemSchema } from '@loopstack/contracts/api';
-import { assertResponse } from './assert-response.util.js';
 
 export function toDocumentItem(entity: DocumentEntity): DocumentItemInterface {
   return assertResponse(DocumentItemSchema, {

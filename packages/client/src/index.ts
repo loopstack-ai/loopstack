@@ -5,6 +5,7 @@ export * from './queries/query-options.js';
 export * from './resources/workflows.js';
 export * from './resources/workspaces.js';
 export * from './resources/documents.js';
+export * from './resources/auth.js';
 export * from './resources/config.js';
 export * from './resources/dashboard.js';
 export * from './resources/processor.js';

@@ -1,5 +1,5 @@
 export * from './api-token.schema.js';
-export * from './auth.interface.js';
+export * from './auth.schema.js';
 export * from './common.schema.js';
 export * from './config.schema.js';
 export * from './dashboard.schema.js';

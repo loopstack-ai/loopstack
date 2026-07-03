@@ -1,7 +1,6 @@
 import type { AxiosInstance } from 'axios';
 import { createFilesApi } from '../features/file-explorer/api/files';
 import { createGitApi } from '../features/git/api/git';
-import { createAuthApi } from './auth';
 import { createEnvironmentsApi } from './environments';
 import { createSecretsApi } from './secrets';
 import { createWorkflowsApi } from './workflows';
@@ -10,7 +9,6 @@ export { createAxiosClient } from './client';
 
 export function createApi(http: AxiosInstance) {
   return {
-    auth: createAuthApi(http),
     environments: createEnvironmentsApi(http),
     files: {
       local: createFilesApi(http, 'local'),

@@ -1,10 +1,12 @@
 import type {
+  AuthUserInterface,
   AvailableEnvironmentInterface,
   DashboardStatsInterface,
   DocumentItemInterface,
   PaginatedInterface,
   StudioAppConfig,
   ToolConfigInterface,
+  WorkerInfoInterface,
   WorkflowCheckpointInterface,
   WorkflowConfigInterface,
   WorkflowFullInterface,
@@ -14,6 +16,7 @@ import type {
   WorkspaceInterface,
 } from '@loopstack/contracts/api';
 import { SortOrder } from '@loopstack/contracts/enums';
+import type { AuthResource } from '../resources/auth.js';
 import type { ConfigResource } from '../resources/config.js';
 import type { DashboardResource } from '../resources/dashboard.js';
 import type { DocumentsResource } from '../resources/documents.js';
@@ -28,6 +31,7 @@ interface QueryResources {
   workspaces: WorkspacesResource;
   config: ConfigResource;
   dashboard: DashboardResource;
+  auth: AuthResource;
 }
 
 /** A `queryOptions`-shaped descriptor consumable by any TanStack Query version. */
@@ -54,6 +58,8 @@ export interface LoopstackQueries {
   toolConfig: (toolName: string) => QueryDescriptor<ToolConfigInterface>;
   availableEnvironments: () => QueryDescriptor<AvailableEnvironmentInterface[]>;
   dashboardStats: () => QueryDescriptor<DashboardStatsInterface>;
+  me: () => QueryDescriptor<AuthUserInterface>;
+  workerHealth: () => QueryDescriptor<WorkerInfoInterface>;
 }
 
 /**
@@ -67,6 +73,7 @@ export function createQueries({
   workspaces,
   config,
   dashboard,
+  auth,
 }: QueryResources): LoopstackQueries {
   return {
     workflow: (id: string) => ({
@@ -157,6 +164,16 @@ export function createQueries({
     dashboardStats: () => ({
       queryKey: queryKeys.dashboardStats(envKey),
       queryFn: () => dashboard.stats(),
+    }),
+
+    me: () => ({
+      queryKey: queryKeys.me(envKey),
+      queryFn: () => auth.me(),
+    }),
+
+    workerHealth: () => ({
+      queryKey: queryKeys.workerHealth(envKey),
+      queryFn: () => auth.workerHealth(),
     }),
   };
 }

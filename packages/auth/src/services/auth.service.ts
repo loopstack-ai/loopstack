@@ -1,10 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { plainToInstance } from 'class-transformer';
-import { JwtPayloadInterface, User } from '@loopstack/common';
+import { JwtPayloadInterface, User, assertResponse } from '@loopstack/common';
+import { AuthUserInterface, AuthUserSchema, WorkerInfoInterface, WorkerInfoSchema } from '@loopstack/contracts/api';
 import { AuthResponseDto } from '../dtos/auth-response.dto.js';
-import { UserResponseDto } from '../dtos/user-response.dto.js';
-import { WorkerInfoDto } from '../dtos/worker-info.dto.js';
 import { UserRepository } from '../repositories/index.js';
 import { TokenService } from './token.service.js';
 
@@ -59,17 +57,17 @@ export class AuthService {
     }
   }
 
-  mapUserToResponse(user: User): UserResponseDto {
-    return {
+  mapUserToResponse(user: User): AuthUserInterface {
+    return assertResponse(AuthUserSchema, {
       id: user.id,
       isActive: user.isActive,
       roles: user.roles?.map((role) => role.name) || [],
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+    });
   }
 
-  async getCurrentUser(userId: string): Promise<UserResponseDto> {
+  async getCurrentUser(userId: string): Promise<AuthUserInterface> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -77,18 +75,12 @@ export class AuthService {
     return this.mapUserToResponse(user);
   }
 
-  getWorkerHealthInfo(): WorkerInfoDto {
+  getWorkerHealthInfo(): WorkerInfoInterface {
     const enableAuth = this.configService.get<boolean>('app.enableAuth');
-    return plainToInstance(
-      WorkerInfoDto,
-      {
-        clientId: enableAuth ? this.configService.get<string>('auth.clientId') : 'local',
-        isConfigured: !enableAuth || !!this.configService.get<string>('auth.hub.jwksUri'),
-        timestamp: new Date(),
-      },
-      {
-        excludeExtraneousValues: true,
-      },
-    );
+    return assertResponse(WorkerInfoSchema, {
+      clientId: enableAuth ? this.configService.get<string>('auth.clientId') : 'local',
+      isConfigured: !enableAuth || !!this.configService.get<string>('auth.hub.jwksUri'),
+      timestamp: new Date().toISOString(),
+    });
   }
 }

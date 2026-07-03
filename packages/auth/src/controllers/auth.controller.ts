@@ -1,11 +1,15 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { CurrentUser, CurrentUserInterface, Public, User } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface, Public, User, ZodValidationPipe } from '@loopstack/common';
+import {
+  AuthMessageInterface,
+  AuthUserInterface,
+  HubLoginRequestInterface,
+  HubLoginRequestSchema,
+  HubLoginResponseInterface,
+  WorkerInfoInterface,
+} from '@loopstack/contracts/api';
 import { AuthResponseDto } from '../dtos/auth-response.dto.js';
-import { HubLoginRequestDto } from '../dtos/hub-login-request.dto.js';
-import { HubLoginResponseDto } from '../dtos/hub-login-response.dto.js';
-import { UserResponseDto } from '../dtos/user-response.dto.js';
-import { WorkerInfoDto } from '../dtos/worker-info.dto.js';
 import { HubAuthGuard } from '../guards/hub-auth.guard.js';
 import { AuthService, TokenService } from '../services/index.js';
 
@@ -32,7 +36,7 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<AuthMessageInterface> {
     const refreshTokenName = this.tokenService.getCookieName('refresh');
     const refreshToken = (req.cookies as Record<string, string>)?.[refreshTokenName] ?? '';
 
@@ -45,20 +49,20 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('logout')
-  logout(@Res({ passthrough: true }) res: Response): { message: string } {
+  logout(@Res({ passthrough: true }) res: Response): AuthMessageInterface {
     res.clearCookie(this.tokenService.getCookieName('access'));
     res.clearCookie(this.tokenService.getCookieName('refresh'));
     return { message: 'Logout successful' };
   }
 
   @Get('me')
-  async me(@CurrentUser() user: CurrentUserInterface): Promise<UserResponseDto> {
+  async me(@CurrentUser() user: CurrentUserInterface): Promise<AuthUserInterface> {
     return this.authService.getCurrentUser(user.userId);
   }
 
   @Public()
   @Get('worker/health')
-  getInfo(): WorkerInfoDto {
+  getInfo(): WorkerInfoInterface {
     return this.authService.getWorkerHealthInfo();
   }
 
@@ -67,10 +71,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(HubAuthGuard)
   async hubLogin(
-    @Body() _hubLoginRequestDto: HubLoginRequestDto,
+    @Body(new ZodValidationPipe(HubLoginRequestSchema)) _payload: HubLoginRequestInterface,
     @Req() req: Request & { user: User },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<HubLoginResponseDto> {
+  ): Promise<HubLoginResponseInterface> {
     const tokens = await this.authService.login(req.user);
 
     this.setCookies(res, tokens);

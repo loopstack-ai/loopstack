@@ -2,6 +2,8 @@ import { createHttpClient } from './http.js';
 import type { HttpClient, LoopstackClientConfig } from './http.js';
 import { createQueries } from './queries/query-options.js';
 import type { LoopstackQueries } from './queries/query-options.js';
+import { createAuthResource } from './resources/auth.js';
+import type { AuthResource } from './resources/auth.js';
 import { createConfigResource } from './resources/config.js';
 import type { ConfigResource } from './resources/config.js';
 import { createDashboardResource } from './resources/dashboard.js';
@@ -26,6 +28,7 @@ export interface LoopstackClient {
   workspaces: WorkspacesResource;
   config: ConfigResource;
   dashboard: DashboardResource;
+  auth: AuthResource;
   queries: LoopstackQueries;
   /**
    * The live event stream. Lazy: no connection is opened until the first
@@ -43,6 +46,7 @@ export function createClient(config: LoopstackClientConfig): LoopstackClient {
   const workspaces = createWorkspacesResource(http);
   const configResource = createConfigResource(http);
   const dashboard = createDashboardResource(http);
+  const auth = createAuthResource(http);
 
   return {
     envKey,
@@ -53,7 +57,8 @@ export function createClient(config: LoopstackClientConfig): LoopstackClient {
     workspaces,
     config: configResource,
     dashboard,
-    queries: createQueries({ envKey, workflows, documents, workspaces, config: configResource, dashboard }),
+    auth,
+    queries: createQueries({ envKey, workflows, documents, workspaces, config: configResource, dashboard, auth }),
     stream: new LoopstackStream(config),
   };
 }

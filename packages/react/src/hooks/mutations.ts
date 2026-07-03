@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@loopstack/client';
 import type {
+  HubLoginRequestInterface,
   RunWorkflowPayloadInterface,
   StartWorkflowPayloadInterface,
   WorkflowCreateInterface,
@@ -151,6 +152,47 @@ export function useBatchDeleteWorkspaces() {
         queryClient.removeQueries({ queryKey: queryKeys.workspace(client.envKey, id) });
       }
       void queryClient.invalidateQueries({ queryKey: queryKeys.workspaces(client.envKey) });
+    },
+  });
+}
+
+/** Exchange a hub-issued id token for a cookie session. Stales me + health. */
+export function useHubLogin() {
+  const client = useLoopstackClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: HubLoginRequestInterface) => client.auth.hubLogin(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.me(client.envKey) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workerHealth(client.envKey) });
+    },
+  });
+}
+
+/** Rotate the cookie session using the refresh-token cookie. Stales me + health. */
+export function useRefreshSession() {
+  const client = useLoopstackClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => client.auth.refresh(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.me(client.envKey) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workerHealth(client.envKey) });
+    },
+  });
+}
+
+/** End the cookie session. Drops the cached user. */
+export function useLogout() {
+  const client = useLoopstackClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => client.auth.logout(),
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: queryKeys.me(client.envKey) });
     },
   });
 }

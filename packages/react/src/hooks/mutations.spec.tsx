@@ -5,6 +5,7 @@ import {
   useBatchDeleteWorkspaces,
   useCreateWorkspace,
   useDeleteWorkflow,
+  useRefreshSession,
   useRunWorkflow,
   useSetFavouriteWorkspace,
   useStartWorkflow,
@@ -117,5 +118,20 @@ describe('mutation hooks', () => {
     expect(queryClient.getQueryData(['workspace', TEST_ENV_KEY, 'ws-1'])).toBeUndefined();
     expect(queryClient.getQueryData(['workspace', TEST_ENV_KEY, 'ws-2'])).toBeUndefined();
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workspaces', TEST_ENV_KEY] });
+  });
+
+  it('useRefreshSession stales the user and the health probe', async () => {
+    const { client, auth } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useRefreshSession(), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync();
+    });
+
+    expect(auth.refresh).toHaveBeenCalled();
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['me', TEST_ENV_KEY] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workerHealth', TEST_ENV_KEY] });
   });
 });

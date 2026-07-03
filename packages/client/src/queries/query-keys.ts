@@ -20,6 +20,8 @@ export const queryKeys = {
   workspace: (envKey: string, id: string) => ['workspace', envKey, id] as const,
   workspaces: (envKey: string) => ['workspaces', envKey] as const,
   workspaceList: (envKey: string, params: WorkspaceListParams = {}) => ['workspaces', envKey, 'list', params] as const,
+  me: (envKey: string) => ['me', envKey] as const,
+  workerHealth: (envKey: string) => ['workerHealth', envKey] as const,
   apps: (envKey: string) => ['apps', envKey] as const,
   workflowConfig: (envKey: string, workflowName: string) => ['workflowConfig', envKey, workflowName] as const,
   workflowSource: (envKey: string, workflowName: string) => ['workflowSource', envKey, workflowName] as const,

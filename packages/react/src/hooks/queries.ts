@@ -2,12 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import type { WorkflowListParams, WorkspaceListParams } from '@loopstack/client';
 import type {
+  AuthUserInterface,
   AvailableEnvironmentInterface,
   DashboardStatsInterface,
   DocumentItemInterface,
   PaginatedInterface,
   StudioAppConfig,
   ToolConfigInterface,
+  WorkerInfoInterface,
   WorkflowCheckpointInterface,
   WorkflowConfigInterface,
   WorkflowFullInterface,
@@ -224,6 +226,32 @@ export function useDashboardStats<TData = DashboardStatsInterface>(
   const client = useLoopstackClient();
   return useQuery({
     ...client.queries.dashboardStats(),
+    ...options,
+  });
+}
+
+/**
+ * Fetch the authenticated user. Errors with 401 on backends with auth
+ * enabled and no session — defaults to no retries so hosts can react fast.
+ */
+export function useMe<TData = AuthUserInterface>(
+  options?: QueryHookOptions<AuthUserInterface, TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.me(),
+    retry: false,
+    ...options,
+  });
+}
+
+/** Fetch the backend's public liveness/config probe. */
+export function useWorkerHealth<TData = WorkerInfoInterface>(
+  options?: QueryHookOptions<WorkerInfoInterface, TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.workerHealth(),
     ...options,
   });
 }

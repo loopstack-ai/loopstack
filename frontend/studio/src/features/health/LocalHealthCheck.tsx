@@ -47,9 +47,7 @@ const LocalHealthCheck = () => {
       if (environment.getIdToken) {
         idToken = await environment.getIdToken();
       }
-      authenticateWorkerRef.current.mutate({
-        hubLoginRequestDto: { idToken },
-      });
+      authenticateWorkerRef.current.mutate({ idToken });
     } catch {
       setEscalation(Escalation.Debug);
     }
@@ -81,10 +79,10 @@ const LocalHealthCheck = () => {
 
   // Token refresh success → clear escalation
   useEffect(() => {
-    if ((tokenRefresh.data as { status?: number } | undefined)?.status === 200) {
+    if (tokenRefresh.isSuccess) {
       setEscalation(Escalation.None);
     }
-  }, [tokenRefresh.data]);
+  }, [tokenRefresh.isSuccess]);
 
   // Login error → escalate to Debug
   useEffect(() => {
@@ -95,10 +93,10 @@ const LocalHealthCheck = () => {
 
   // Login success → clear escalation
   useEffect(() => {
-    if ((authenticateWorker.data as { status?: number } | undefined)?.status === 200) {
+    if (authenticateWorker.isSuccess) {
       setEscalation(Escalation.None);
     }
-  }, [authenticateWorker.data]);
+  }, [authenticateWorker.isSuccess]);
 
   // Act on escalation level changes
   useEffect(() => {

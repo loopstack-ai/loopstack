@@ -1,7 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface, assertResponse } from '@loopstack/common';
 import { DashboardStatsInterface, DashboardStatsSchema } from '@loopstack/contracts/api';
-import { assertResponse } from '../mappers/assert-response.util.js';
 import { toWorkflowItem } from '../mappers/workflow.mapper.js';
 import { DashboardService } from '../services/dashboard.service.js';
 

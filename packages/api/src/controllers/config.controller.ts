@@ -7,6 +7,7 @@ import {
   BlockOptions,
   ENVIRONMENT_CONFIG,
   WorkflowInterface,
+  assertResponse,
   buildWorkflowTransitions,
   getBlockArgsSchema,
   getBlockConfig,
@@ -27,7 +28,6 @@ import {
 import { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
 import type { ToolConfigType, WorkflowType } from '@loopstack/contracts/types';
 import { StudioDiscoveryService, ToolRegistryService, WorkflowRegistryService } from '@loopstack/core';
-import { assertResponse } from '../mappers/assert-response.util.js';
 
 interface EnvironmentConfig {
   readonly available: AvailableEnvironmentInterface[];

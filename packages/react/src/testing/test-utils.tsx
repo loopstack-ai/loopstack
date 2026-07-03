@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { vi } from 'vitest';
 import { createQueries } from '@loopstack/client';
 import type {
+  AuthResource,
   ConfigResource,
   DashboardResource,
   DocumentsResource,
@@ -92,6 +93,13 @@ export function createTestClient() {
       recentRuns: [],
     })),
   };
+  const auth = {
+    me: vi.fn(async () => ({ id: 'user-1', isActive: true, roles: ['admin'] })),
+    workerHealth: vi.fn(async () => ({ isConfigured: true, timestamp: '2026-01-01T00:00:00.000Z' })),
+    hubLogin: vi.fn(async () => ({ id: 'user-1', message: 'Login successful' })),
+    refresh: vi.fn(async () => ({ message: 'Token refreshed successfully' })),
+    logout: vi.fn(async () => ({ message: 'Logout successful' })),
+  };
   const stream = createMockStream();
 
   const client = {
@@ -103,6 +111,7 @@ export function createTestClient() {
     workspaces,
     config,
     dashboard,
+    auth,
     queries: createQueries({
       envKey: TEST_ENV_KEY,
       workflows: workflows as unknown as WorkflowsResource,
@@ -110,11 +119,12 @@ export function createTestClient() {
       workspaces: workspaces as unknown as WorkspacesResource,
       config: config as unknown as ConfigResource,
       dashboard: dashboard as unknown as DashboardResource,
+      auth: auth as unknown as AuthResource,
     }),
     stream,
   } as unknown as LoopstackClient;
 
-  return { client, stream, workflows, documents, processor, workspaces, config, dashboard };
+  return { client, stream, workflows, documents, processor, workspaces, config, dashboard, auth };
 }
 
 /** Wrapper mounting QueryClientProvider + LoopstackProvider around a hook under test. */
