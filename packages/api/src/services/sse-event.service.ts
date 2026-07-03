@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Subject } from 'rxjs';
-import type { ClientMessageInterface } from '@loopstack/contracts/types';
+import type { ClientMessage } from '@loopstack/contracts/events';
 
 interface SseConnection {
   id: string;
   workerId: string;
   userId: string;
-  subject: Subject<ClientMessageInterface>;
+  subject: Subject<ClientMessage>;
 }
 
 let connectionIdCounter = 0;
@@ -21,9 +21,9 @@ export class SseEventService {
     return `worker:${workerId}-user:${userId}`;
   }
 
-  registerConnection(workerId: string, userId: string): Subject<ClientMessageInterface> {
+  registerConnection(workerId: string, userId: string): Subject<ClientMessage> {
     const key = this.getConnectionKey(workerId, userId);
-    const subject = new Subject<ClientMessageInterface>();
+    const subject = new Subject<ClientMessage>();
     const id = String(++connectionIdCounter);
 
     this.logger.debug(`Registering SSE connection ${id} for user ${userId} on worker ${workerId}`);
@@ -35,7 +35,7 @@ export class SseEventService {
     this.connections.get(key)!.push({ id, workerId, userId, subject });
 
     // Attach the connection id so the controller can pass it back on unregister
-    (subject as Subject<ClientMessageInterface> & { __sseConnectionId: string }).__sseConnectionId = id;
+    (subject as Subject<ClientMessage> & { __sseConnectionId: string }).__sseConnectionId = id;
 
     return subject;
   }
@@ -67,7 +67,7 @@ export class SseEventService {
     }
   }
 
-  private sendToConnection(workerId: string, userId: string, message: ClientMessageInterface): void {
+  private sendToConnection(workerId: string, userId: string, message: ClientMessage): void {
     const key = this.getConnectionKey(workerId, userId);
     const connections = this.connections.get(key);
 
@@ -88,7 +88,7 @@ export class SseEventService {
   }
 
   @OnEvent('client.message')
-  handleClientMessage(payload: ClientMessageInterface): void {
+  handleClientMessage(payload: ClientMessage): void {
     if (payload.userId && payload.workerId) {
       this.sendToConnection(payload.workerId, payload.userId, payload);
     } else {

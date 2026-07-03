@@ -77,7 +77,7 @@ export class WorkflowService {
   async create(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
     const dto = this.workflowRepository.create(data);
     const entity = await this.workflowRepository.save(dto);
-    this.clientMessageService.dispatchWorkflowEvent('workflow.created', entity);
+    this.clientMessageService.dispatchWorkflowCreated(entity);
 
     const loaded = await this.findById(entity.id);
     if (!loaded) {
@@ -92,9 +92,9 @@ export class WorkflowService {
       ? await queryRunner.manager.save(WorkflowEntity, entity)
       : await this.workflowRepository.save(entity);
 
-    this.clientMessageService.dispatchWorkflowEvent('workflow.updated', savedEntity);
+    this.clientMessageService.dispatchWorkflowUpdated(savedEntity);
     if (persistenceState.documentsUpdated) {
-      this.clientMessageService.dispatchDocumentEvent('document.created', savedEntity);
+      this.clientMessageService.dispatchDocumentCreated(savedEntity);
     }
   }
 }

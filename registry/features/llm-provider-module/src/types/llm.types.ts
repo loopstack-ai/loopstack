@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { UIContentBlockSchema, UIMessageSchema } from '@loopstack/contracts/types';
+import type { LlmNormalizedMessage } from '@loopstack/contracts/events';
+import { UIContentBlockSchema } from '@loopstack/contracts/types';
 import type { UIContentBlock } from '@loopstack/contracts/types';
 
 // ---------------------------------------------------------------------------
@@ -42,22 +43,19 @@ export type LlmContentBlock = UIContentBlock;
 
 /**
  * Zod schema for a normalized LLM message, with optional `id`, `text`, structured
- * blocks, and `stopReason`.
+ * blocks, and `stopReason`. Defined in `@loopstack/contracts/events` — the same
+ * schema types the `llm.response.done` client event.
  *
  * @public
  */
-export const LlmNormalizedMessageSchema = UIMessageSchema.extend({
-  id: z.string().optional(),
-  text: z.string(),
-  stopReason: z.enum(['end_turn', 'tool_use', 'max_tokens', 'stop_sequence']).optional(),
-});
+export { LlmNormalizedMessageSchema } from '@loopstack/contracts/events';
 
 /**
  * A provider-normalized LLM message, inferred from {@link LlmNormalizedMessageSchema}.
  *
  * @public
  */
-export type LlmNormalizedMessage = z.infer<typeof LlmNormalizedMessageSchema>;
+export type { LlmNormalizedMessage };
 
 /**
  * The reason an LLM turn stopped (`end_turn`, `tool_use`, `max_tokens`, `stop_sequence`).

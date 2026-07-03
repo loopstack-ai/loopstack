@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import type { GitUpdatedEvent } from '@loopstack/contracts/events';
 import { getGitLogCacheKey, getGitRemoteCacheKey, getGitStatusCacheKey } from '@/hooks/query-keys';
 import { useApiClient } from '@/hooks/useApi';
 import { eventBus } from '@/services';
@@ -38,7 +39,7 @@ export function useGitRemote(workspaceId: string | undefined) {
 }
 
 /**
- * Subscribes to workspace.updated SSE events and invalidates all git caches
+ * Subscribes to git.updated SSE events and invalidates all git caches
  * for the given workspace. Call this once in the git panel component.
  */
 export function useGitInvalidation(workspaceId: string | undefined) {
@@ -48,7 +49,7 @@ export function useGitInvalidation(workspaceId: string | undefined) {
   useEffect(() => {
     if (!workspaceId) return;
 
-    const unsub = eventBus.on('git.updated', (payload: { workspaceId?: string }) => {
+    const unsub = eventBus.on('git.updated', (payload: GitUpdatedEvent) => {
       if (payload.workspaceId === workspaceId) {
         void queryClient.invalidateQueries({ queryKey: getGitStatusCacheKey(envKey, workspaceId) });
         void queryClient.invalidateQueries({ queryKey: getGitLogCacheKey(envKey, workspaceId) });

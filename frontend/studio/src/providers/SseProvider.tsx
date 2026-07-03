@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import type { ClientMessage } from '@loopstack/contracts/events';
 import { useMe } from '../hooks/useAuth.ts';
 import { eventBus } from '../services';
 import { useStudio } from './StudioProvider.tsx';
@@ -33,7 +34,7 @@ export function SseProvider() {
 
       es.onmessage = (event: MessageEvent<string>) => {
         try {
-          const payload = JSON.parse(event.data) as { type: string };
+          const payload = JSON.parse(event.data) as ClientMessage;
           eventBus.emit(payload.type, payload);
         } catch (error) {
           console.error('Error parsing SSE event:', error);

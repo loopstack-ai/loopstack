@@ -1,7 +1,13 @@
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import debounce from 'lodash/debounce';
 import { useEffect, useRef } from 'react';
-import { SseClientEvents } from '@/events';
+import type {
+  DocumentCreatedEvent,
+  SecretDeletedEvent,
+  SecretUpsertedEvent,
+  WorkflowCreatedEvent,
+  WorkflowUpdatedEvent,
+} from '@loopstack/contracts/events';
 import {
   getChildWorkflowsCacheKey,
   getDocumentsCacheKey,
@@ -13,19 +19,6 @@ import { eventBus } from '@/services';
 import { useStudio } from './StudioProvider';
 
 type DebouncedInvalidator = ReturnType<typeof debounce<() => void>>;
-
-interface WorkflowEventPayload {
-  id?: string;
-  parentId?: string;
-}
-
-interface DocumentEventPayload {
-  workflowId?: string;
-}
-
-interface SecretEventPayload {
-  workspaceId?: string;
-}
 
 const DEBOUNCE_MS = 300;
 
@@ -56,35 +49,29 @@ export function InvalidationEventsProvider() {
       cache.get(keyStr)!();
     }
 
-    const unsubWorkflowCreated = eventBus.on(SseClientEvents.WORKFLOW_CREATED, (payload: WorkflowEventPayload) => {
+    const unsubWorkflowCreated = eventBus.on('workflow.created', (payload: WorkflowCreatedEvent) => {
       if (payload.parentId) {
         invalidate(getChildWorkflowsCacheKey(envKey, payload.parentId));
       }
     });
 
-    const unsubWorkflowUpdated = eventBus.on(SseClientEvents.WORKFLOW_UPDATED, (payload: WorkflowEventPayload) => {
-      if (payload.id) {
-        invalidate(getWorkflowCacheKey(envKey, payload.id));
-        invalidate(getWorkflowStatusCacheKey(envKey, payload.id));
-      }
+    const unsubWorkflowUpdated = eventBus.on('workflow.updated', (payload: WorkflowUpdatedEvent) => {
+      invalidate(getWorkflowCacheKey(envKey, payload.id));
+      invalidate(getWorkflowStatusCacheKey(envKey, payload.id));
       if (payload.parentId) {
         invalidate(getChildWorkflowsCacheKey(envKey, payload.parentId));
       }
     });
 
-    const unsubDocumentCreated = eventBus.on(SseClientEvents.DOCUMENT_CREATED, (payload: DocumentEventPayload) => {
-      if (payload.workflowId) {
-        invalidate(getDocumentsCacheKey(envKey, payload.workflowId));
-      }
+    const unsubDocumentCreated = eventBus.on('document.created', (payload: DocumentCreatedEvent) => {
+      invalidate(getDocumentsCacheKey(envKey, payload.workflowId));
     });
 
-    const invalidateSecrets = (payload: SecretEventPayload) => {
-      if (payload.workspaceId) {
-        invalidate(getSecretsCacheKey(envKey, payload.workspaceId));
-      }
+    const invalidateSecrets = (payload: SecretUpsertedEvent | SecretDeletedEvent) => {
+      invalidate(getSecretsCacheKey(envKey, payload.workspaceId));
     };
-    const unsubSecretUpserted = eventBus.on(SseClientEvents.SECRET_UPSERTED, invalidateSecrets);
-    const unsubSecretDeleted = eventBus.on(SseClientEvents.SECRET_DELETED, invalidateSecrets);
+    const unsubSecretUpserted = eventBus.on('secret.upserted', invalidateSecrets);
+    const unsubSecretDeleted = eventBus.on('secret.deleted', invalidateSecrets);
 
     return () => {
       unsubWorkflowCreated();

@@ -1,18 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { DocumentItemInterface, UIContentBlock, UIMessage } from '@loopstack/contracts/types';
-import { SseClientEvents } from '@/events';
+import type {
+  LlmResponseDoneEvent,
+  LlmResponseErrorEvent,
+  LlmResponseEvent,
+  LlmResponseStartEvent,
+  LlmResponseTextDeltaEvent,
+  LlmResponseThinkingDeltaEvent,
+  LlmResponseToolCallEvent,
+} from '@loopstack/contracts/events';
+import type { DocumentItemInterface, UIContentBlock } from '@loopstack/contracts/types';
 import { eventBus } from '@/services';
-
-interface LlmStreamPayload {
-  workflowId?: string;
-  messageId?: string;
-  delta?: string;
-  error?: string;
-  id?: string;
-  name?: string;
-  args?: Record<string, unknown>;
-  message?: UIMessage;
-}
 
 interface StreamingMessageState {
   messageId: string;
@@ -143,8 +140,11 @@ export function useLlmStreamingDocuments(workflowId: string, place: string | und
       }
     }
 
-    function queueDelta(payload: LlmStreamPayload, field: 'text' | 'thinking') {
-      if (payload.workflowId !== workflowId || !payload.messageId || !payload.delta) return;
+    function queueDelta(
+      payload: LlmResponseTextDeltaEvent | LlmResponseThinkingDeltaEvent,
+      field: 'text' | 'thinking',
+    ) {
+      if (payload.workflowId !== workflowId || !payload.delta) return;
 
       const pending = pendingDeltas.current[payload.messageId] ?? { text: '', thinking: '' };
       pending[field] += payload.delta;
@@ -153,16 +153,16 @@ export function useLlmStreamingDocuments(workflowId: string, place: string | und
     }
 
     function updateStream(
-      payload: LlmStreamPayload,
+      payload: LlmResponseEvent,
       updater: (current: StreamingMessageState) => StreamingMessageState,
     ) {
-      if (payload.workflowId !== workflowId || !payload.messageId) return;
+      if (payload.workflowId !== workflowId) return;
 
       setStreams((current) => ({
         ...current,
-        [payload.messageId!]: updater(
-          current[payload.messageId!] ?? {
-            messageId: payload.messageId!,
+        [payload.messageId]: updater(
+          current[payload.messageId] ?? {
+            messageId: payload.messageId,
             text: '',
             thinking: '',
             toolCalls: [],
@@ -173,40 +173,38 @@ export function useLlmStreamingDocuments(workflowId: string, place: string | und
       }));
     }
 
-    const unsubStart = eventBus.on(SseClientEvents.LLM_RESPONSE_START, (payload: LlmStreamPayload) => {
+    const unsubStart = eventBus.on('llm.response.start', (payload: LlmResponseStartEvent) => {
       updateStream(payload, (current) => ({ ...current, completed: false, readyForFinal: false, error: undefined }));
     });
 
-    const unsubText = eventBus.on(SseClientEvents.LLM_RESPONSE_TEXT_DELTA, (payload: LlmStreamPayload) => {
+    const unsubText = eventBus.on('llm.response.text_delta', (payload: LlmResponseTextDeltaEvent) => {
       queueDelta(payload, 'text');
     });
 
-    const unsubThinking = eventBus.on(SseClientEvents.LLM_RESPONSE_THINKING_DELTA, (payload: LlmStreamPayload) => {
+    const unsubThinking = eventBus.on('llm.response.thinking_delta', (payload: LlmResponseThinkingDeltaEvent) => {
       queueDelta(payload, 'thinking');
     });
 
-    const unsubTool = eventBus.on(SseClientEvents.LLM_RESPONSE_TOOL_CALL, (payload: LlmStreamPayload) => {
+    const unsubTool = eventBus.on('llm.response.tool_call', (payload: LlmResponseToolCallEvent) => {
       updateStream(payload, (current) => ({
         ...current,
-        toolCalls: payload.id
-          ? [
-              ...current.toolCalls,
-              { type: 'tool_call', id: payload.id, name: payload.name ?? 'tool', args: payload.args ?? {} },
-            ]
-          : current.toolCalls,
+        toolCalls: [
+          ...current.toolCalls,
+          { type: 'tool_call', id: payload.id, name: payload.name, args: payload.args },
+        ],
       }));
     });
 
-    const unsubDone = eventBus.on(SseClientEvents.LLM_RESPONSE_DONE, (payload: LlmStreamPayload) => {
+    const unsubDone = eventBus.on('llm.response.done', (payload: LlmResponseDoneEvent) => {
       updateStream(payload, (current) => ({
         ...current,
         completed: true,
-        readyForFinal: !payload.messageId || !pendingDeltas.current[payload.messageId],
+        readyForFinal: !pendingDeltas.current[payload.messageId],
       }));
     });
 
-    const unsubError = eventBus.on(SseClientEvents.LLM_RESPONSE_ERROR, (payload: LlmStreamPayload) => {
-      updateStream(payload, (current) => ({ ...current, completed: true, error: payload.error ?? 'Unknown error' }));
+    const unsubError = eventBus.on('llm.response.error', (payload: LlmResponseErrorEvent) => {
+      updateStream(payload, (current) => ({ ...current, completed: true, error: payload.error }));
     });
 
     return () => {
