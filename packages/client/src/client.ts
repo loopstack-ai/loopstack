@@ -8,6 +8,7 @@ import { createProcessorResource } from './resources/processor.js';
 import type { ProcessorResource } from './resources/processor.js';
 import { createWorkflowsResource } from './resources/workflows.js';
 import type { WorkflowsResource } from './resources/workflows.js';
+import { LoopstackStream } from './stream/stream.js';
 
 export interface LoopstackClient {
   /** Cache-scoping key derived from the environment (see {@link LoopstackClientConfig.envKey}). */
@@ -17,6 +18,11 @@ export interface LoopstackClient {
   documents: DocumentsResource;
   processor: ProcessorResource;
   queries: LoopstackQueries;
+  /**
+   * The live event stream. Lazy: no connection is opened until the first
+   * subscriber attaches (`on`, `onAny`, or `events()`).
+   */
+  stream: LoopstackStream;
 }
 
 export function createClient(config: LoopstackClientConfig): LoopstackClient {
@@ -33,5 +39,6 @@ export function createClient(config: LoopstackClientConfig): LoopstackClient {
     documents,
     processor,
     queries: createQueries({ envKey, workflows, documents }),
+    stream: new LoopstackStream(config),
   };
 }
