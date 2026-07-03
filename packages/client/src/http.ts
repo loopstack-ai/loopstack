@@ -35,6 +35,7 @@ export interface HttpClient {
   get<T>(path: string, query?: QueryParams): Promise<T>;
   post<T>(path: string, body?: unknown): Promise<T>;
   put<T>(path: string, body?: unknown): Promise<T>;
+  patch<T>(path: string, body?: unknown): Promise<T>;
   delete<T>(path: string, body?: unknown): Promise<T>;
 }
 
@@ -87,6 +88,7 @@ export function createHttpClient(config: LoopstackClientConfig): HttpClient {
     get: (path, query) => request('GET', path, { query }),
     post: (path, body) => request('POST', path, { body }),
     put: (path, body) => request('PUT', path, { body }),
+    patch: (path, body) => request('PATCH', path, { body }),
     delete: (path, body) => request('DELETE', path, { body }),
   };
 }

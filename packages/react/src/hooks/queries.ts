@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
-import type { WorkflowListParams } from '@loopstack/client';
+import type { WorkflowListParams, WorkspaceListParams } from '@loopstack/client';
 import type {
   DocumentItemInterface,
   PaginatedInterface,
@@ -8,6 +8,7 @@ import type {
   WorkflowFullInterface,
   WorkflowItemInterface,
   WorkflowStatusInterface,
+  WorkspaceInterface,
 } from '@loopstack/contracts/api';
 import { useLoopstackClient } from '../provider.js';
 
@@ -110,5 +111,30 @@ export function useWorkflowDocuments<TData = PaginatedInterface<DocumentItemInte
     ...client.queries.documents(workflowId!),
     ...options,
     enabled: !!workflowId && (options?.enabled ?? true),
+  });
+}
+
+/** Fetch a single workspace by ID. */
+export function useWorkspace<TData = WorkspaceInterface>(
+  id: string | undefined,
+  options?: QueryHookOptions<WorkspaceInterface, TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.workspace(id!),
+    ...options,
+    enabled: !!id && (options?.enabled ?? true),
+  });
+}
+
+/** Fetch a filtered, sorted, paginated list of workspaces. */
+export function useWorkspaceList<TData = PaginatedInterface<WorkspaceInterface>>(
+  params?: WorkspaceListParams,
+  options?: QueryHookOptions<PaginatedInterface<WorkspaceInterface>, TData>,
+): UseQueryResult<TData> {
+  const client = useLoopstackClient();
+  return useQuery({
+    ...client.queries.workspaceList(params),
+    ...options,
   });
 }

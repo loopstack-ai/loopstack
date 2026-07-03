@@ -8,6 +8,8 @@ import { createProcessorResource } from './resources/processor.js';
 import type { ProcessorResource } from './resources/processor.js';
 import { createWorkflowsResource } from './resources/workflows.js';
 import type { WorkflowsResource } from './resources/workflows.js';
+import { createWorkspacesResource } from './resources/workspaces.js';
+import type { WorkspacesResource } from './resources/workspaces.js';
 import { LoopstackStream } from './stream/stream.js';
 
 export interface LoopstackClient {
@@ -17,6 +19,7 @@ export interface LoopstackClient {
   workflows: WorkflowsResource;
   documents: DocumentsResource;
   processor: ProcessorResource;
+  workspaces: WorkspacesResource;
   queries: LoopstackQueries;
   /**
    * The live event stream. Lazy: no connection is opened until the first
@@ -31,6 +34,7 @@ export function createClient(config: LoopstackClientConfig): LoopstackClient {
   const workflows = createWorkflowsResource(http);
   const documents = createDocumentsResource(http);
   const processor = createProcessorResource(http);
+  const workspaces = createWorkspacesResource(http);
 
   return {
     envKey,
@@ -38,7 +42,8 @@ export function createClient(config: LoopstackClientConfig): LoopstackClient {
     workflows,
     documents,
     processor,
-    queries: createQueries({ envKey, workflows, documents }),
+    workspaces,
+    queries: createQueries({ envKey, workflows, documents, workspaces }),
     stream: new LoopstackStream(config),
   };
 }

@@ -1,4 +1,5 @@
 import type { WorkflowListParams } from '../resources/workflows.js';
+import type { WorkspaceListParams } from '../resources/workspaces.js';
 
 /**
  * Cache key builders shared by every Loopstack client surface.
@@ -16,6 +17,9 @@ export const queryKeys = {
   workflowList: (envKey: string, params: WorkflowListParams = {}) => ['workflows', envKey, 'list', params] as const,
   childWorkflows: (envKey: string, parentId: string) => ['childWorkflows', envKey, parentId] as const,
   workflowCheckpoints: (envKey: string, id: string) => ['workflow', envKey, id, 'checkpoints'] as const,
+  workspace: (envKey: string, id: string) => ['workspace', envKey, id] as const,
+  workspaces: (envKey: string) => ['workspaces', envKey] as const,
+  workspaceList: (envKey: string, params: WorkspaceListParams = {}) => ['workspaces', envKey, 'list', params] as const,
   document: (envKey: string, id: string) => ['document', envKey, id] as const,
   documents: (envKey: string, workflowId: string) => ['documents', envKey, workflowId] as const,
   secrets: (envKey: string, workspaceId: string) => ['secrets', envKey, workspaceId] as const,

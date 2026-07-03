@@ -1,7 +1,7 @@
 import { Star } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { WorkspaceItemInterface } from '@loopstack/contracts/api';
+import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import type { StudioEnvironmentSlot } from '../../api/types.ts';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column, OriginalRowAction } from '../../components/lists/ListView.tsx';
@@ -37,7 +37,7 @@ const Workspaces = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const [open, setOpen] = useState(false);
-  const [openEdit, setOpenEdit] = useState<WorkspaceItemInterface | undefined>(undefined);
+  const [openEdit, setOpenEdit] = useState<WorkspaceInterface | undefined>(undefined);
 
   useEffect(() => {
     if (searchParams.get('create') === 'true') {
@@ -86,7 +86,7 @@ const Workspaces = () => {
     void router.navigateToWorkspace(id);
   };
 
-  const handleEdit = (workspace: WorkspaceItemInterface) => {
+  const handleEdit = (workspace: WorkspaceInterface) => {
     setOpenEdit(workspace);
   };
 
@@ -215,8 +215,8 @@ const Workspaces = () => {
               id: 'add-favourite',
               label: 'Add to favourites',
               icon: <Star className="h-4 w-4" />,
-              condition: (item: WorkspaceItemInterface) => !item.isFavourite,
-              action: (item: WorkspaceItemInterface) => {
+              condition: (item: WorkspaceInterface) => !item.isFavourite,
+              action: (item: WorkspaceInterface) => {
                 setFavourite.mutate({ id: item.id, isFavourite: true });
               },
             },
@@ -224,12 +224,12 @@ const Workspaces = () => {
               id: 'remove-favourite',
               label: 'Remove from favourites',
               icon: <Star className="h-4 w-4 fill-current" />,
-              condition: (item: WorkspaceItemInterface) => !!item.isFavourite,
-              action: (item: WorkspaceItemInterface) => {
+              condition: (item: WorkspaceInterface) => !!item.isFavourite,
+              action: (item: WorkspaceInterface) => {
                 setFavourite.mutate({ id: item.id, isFavourite: false });
               },
             },
-          ] as OriginalRowAction<WorkspaceItemInterface>[]
+          ] as OriginalRowAction<WorkspaceInterface>[]
         }
       />
 

@@ -1,7 +1,15 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { TEST_ENV_KEY, createTestClient, createWrapper } from '../testing/test-utils.js';
-import { useDeleteWorkflow, useRunWorkflow, useStartWorkflow, useUpdateWorkflow } from './mutations.js';
+import {
+  useBatchDeleteWorkspaces,
+  useCreateWorkspace,
+  useDeleteWorkflow,
+  useRunWorkflow,
+  useSetFavouriteWorkspace,
+  useStartWorkflow,
+  useUpdateWorkflow,
+} from './mutations.js';
 
 describe('mutation hooks', () => {
   it('useStartWorkflow starts a run and stales the workflow lists', async () => {
@@ -62,5 +70,52 @@ describe('mutation hooks', () => {
     expect(workflows.delete).toHaveBeenCalledWith('wf-1');
     expect(queryClient.getQueryData(['workflow', TEST_ENV_KEY, 'wf-1'])).toBeUndefined();
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workflows', TEST_ENV_KEY] });
+  });
+
+  it('useCreateWorkspace stales the workspace lists', async () => {
+    const { client, workspaces } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useCreateWorkspace(), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync({ appName: 'hello-app', title: 'My Workspace' });
+    });
+
+    expect(workspaces.create).toHaveBeenCalledWith({ appName: 'hello-app', title: 'My Workspace' });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workspaces', TEST_ENV_KEY] });
+  });
+
+  it('useSetFavouriteWorkspace stales the workspace and the lists', async () => {
+    const { client, workspaces } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useSetFavouriteWorkspace(), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync({ id: 'ws-1', isFavourite: true });
+    });
+
+    expect(workspaces.setFavourite).toHaveBeenCalledWith('ws-1', true);
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workspace', TEST_ENV_KEY, 'ws-1'] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workspaces', TEST_ENV_KEY] });
+  });
+
+  it('useBatchDeleteWorkspaces drops every cache entry and stales the lists', async () => {
+    const { client, workspaces } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+    queryClient.setQueryData(['workspace', TEST_ENV_KEY, 'ws-1'], { id: 'ws-1' });
+    queryClient.setQueryData(['workspace', TEST_ENV_KEY, 'ws-2'], { id: 'ws-2' });
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useBatchDeleteWorkspaces(), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync(['ws-1', 'ws-2']);
+    });
+
+    expect(workspaces.batchDelete).toHaveBeenCalledWith(['ws-1', 'ws-2']);
+    expect(queryClient.getQueryData(['workspace', TEST_ENV_KEY, 'ws-1'])).toBeUndefined();
+    expect(queryClient.getQueryData(['workspace', TEST_ENV_KEY, 'ws-2'])).toBeUndefined();
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workspaces', TEST_ENV_KEY] });
   });
 });

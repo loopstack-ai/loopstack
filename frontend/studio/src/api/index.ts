@@ -7,7 +7,6 @@ import { createDashboardApi } from './dashboard';
 import { createEnvironmentsApi } from './environments';
 import { createSecretsApi } from './secrets';
 import { createWorkflowsApi } from './workflows';
-import { createWorkspacesApi } from './workspaces';
 
 export { createAxiosClient } from './client';
 
@@ -24,7 +23,6 @@ export function createApi(http: AxiosInstance) {
     git: createGitApi(http),
     secrets: createSecretsApi(http),
     workflows: createWorkflowsApi(http),
-    workspaces: createWorkspacesApi(http),
   };
 }
 

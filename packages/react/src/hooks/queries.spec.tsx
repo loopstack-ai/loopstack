@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { TEST_ENV_KEY, createTestClient, createWrapper } from '../testing/test-utils.js';
-import { useChildWorkflows, useWorkflow, useWorkflowDocuments } from './queries.js';
+import { useChildWorkflows, useWorkflow, useWorkflowDocuments, useWorkspace, useWorkspaceList } from './queries.js';
 
 describe('query hooks', () => {
   it('useWorkflow fetches and caches under the SDK query key', async () => {
@@ -63,5 +63,30 @@ describe('query hooks', () => {
       limit: 100,
     });
     expect(result.current.data).toEqual([{ id: 'child-1' }]);
+  });
+
+  it('useWorkspace fetches and caches under the SDK query key, idle without an id', async () => {
+    const { client, workspaces } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+
+    const idle = renderHook(() => useWorkspace(undefined), { wrapper });
+    expect(idle.result.current.fetchStatus).toBe('idle');
+
+    const { result } = renderHook(() => useWorkspace('ws-1'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(workspaces.get).toHaveBeenCalledWith('ws-1');
+    expect(queryClient.getQueryData(['workspace', TEST_ENV_KEY, 'ws-1'])).toEqual(result.current.data);
+  });
+
+  it('useWorkspaceList forwards list params and keys by them', async () => {
+    const { client, workspaces } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+
+    const params = { filter: { appName: 'hello-app' }, page: 0, limit: 10 };
+    const { result } = renderHook(() => useWorkspaceList(params), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(workspaces.list).toHaveBeenCalledWith(params);
+    expect(queryClient.getQueryData(['workspaces', TEST_ENV_KEY, 'list', params])).toEqual(result.current.data);
   });
 });

@@ -61,13 +61,8 @@ export function getWorkflowSourceCacheKey(envKey: string, alias: string) {
 }
 
 // --- Workspaces ---
-export function getWorkspaceCacheKey(envKey: string, id: string) {
-  return ['workspace', envKey, id];
-}
-
-export function getWorkspacesCacheKey(envKey: string) {
-  return ['workspaces', envKey];
-}
+// Workspace keys (workspace, workspaces, workspaceList) live in the SDK:
+// import { queryKeys } from '@loopstack/client'.
 
 // --- Secrets ---
 export function getSecretsCacheKey(envKey: string, workspaceId: string) {

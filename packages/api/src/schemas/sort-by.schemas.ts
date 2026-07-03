@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
+import { DocumentEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
 import { SortBySchema } from '@loopstack/contracts/api';
 import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 
@@ -17,5 +17,13 @@ export const WorkflowSortByQuerySchema = z.array(
 export const DocumentSortByQuerySchema = z.array(
   SortBySchema.refine((sort) => documentColumns.includes(sort.field), {
     message: 'field must be a sortable document column',
+  }),
+);
+
+const workspaceColumns = getEntityColumns(WorkspaceEntity);
+
+export const WorkspaceSortByQuerySchema = z.array(
+  SortBySchema.refine((sort) => workspaceColumns.includes(sort.field), {
+    message: 'field must be a sortable workspace column',
   }),
 );

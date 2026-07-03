@@ -1,18 +1,14 @@
 import type { LoopstackClient } from '@loopstack/client';
+import { SortOrder } from '@loopstack/contracts/enums';
 import { CliError } from '../errors.js';
 
 /*
- * The workspaces and config endpoints join the SDK with the Phase 4 slices —
- * until then the CLI types these two calls locally.
+ * The config endpoint joins the SDK with its Phase 4 slice — until then the
+ * CLI types this call locally.
  */
 interface StudioAppConfig {
   appName: string;
   workflows?: { workflowName: string }[];
-}
-
-interface WorkspaceItem {
-  id: string;
-  appName: string;
 }
 
 /**
@@ -38,17 +34,15 @@ export async function resolveWorkspaceId(
     );
   }
 
-  const page = await client.http.get<{ data: WorkspaceItem[] }>('/api/v1/workspaces', {
-    sortBy: [{ field: 'createdAt', order: 'DESC' }],
+  const page = await client.workspaces.list({
+    filter: { appName: app.appName },
+    sortBy: [{ field: 'createdAt', order: SortOrder.DESC }],
     page: 0,
-    limit: 100,
+    limit: 1,
   });
-  const existing = page.data.find((workspace) => workspace.appName === app.appName);
+  const existing = page.data[0];
   if (existing) return existing.id;
 
-  const created = await client.http.post<WorkspaceItem>('/api/v1/workspaces', {
-    title: 'CLI',
-    appName: app.appName,
-  });
+  const created = await client.workspaces.create({ title: 'CLI', appName: app.appName });
   return created.id;
 }

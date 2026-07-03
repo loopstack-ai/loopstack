@@ -132,5 +132,34 @@ describe('query descriptors', () => {
     const listKey = client.queries.workflowList({ page: 1 }).queryKey;
     const pluralKey = queryKeys.workflows('local');
     expect(listKey.slice(0, pluralKey.length)).toEqual(pluralKey);
+
+    const workspaceListKey = client.queries.workspaceList({ page: 1 }).queryKey;
+    const workspacesKey = queryKeys.workspaces('local');
+    expect(workspaceListKey.slice(0, workspacesKey.length)).toEqual(workspacesKey);
+  });
+});
+
+describe('workspaces resource', () => {
+  it('setFavourite sends a PATCH to the favourite endpoint', async () => {
+    const { calls, fetchFn } = createMockFetch([{ body: { id: 'ws-1' } }]);
+    const client = createClient({ url: URL_BASE, fetch: fetchFn });
+
+    await client.workspaces.setFavourite('ws-1', true);
+
+    expect(calls[0].init?.method).toBe('PATCH');
+    expect(new URL(calls[0].url).pathname).toBe('/api/v1/workspaces/ws-1/favourite');
+    expect(JSON.parse(calls[0].init?.body as string)).toEqual({ isFavourite: true });
+  });
+
+  it('delete and batchDelete hit the id/ and batch routes', async () => {
+    const { calls, fetchFn } = createMockFetch([{ body: undefined }, { body: { deleted: ['a'], failed: [] } }]);
+    const client = createClient({ url: URL_BASE, fetch: fetchFn });
+
+    await client.workspaces.delete('ws-1');
+    await client.workspaces.batchDelete(['a']);
+
+    expect(new URL(calls[0].url).pathname).toBe('/api/v1/workspaces/id/ws-1');
+    expect(new URL(calls[1].url).pathname).toBe('/api/v1/workspaces/batch');
+    expect(JSON.parse(calls[1].init?.body as string)).toEqual({ ids: ['a'] });
   });
 });

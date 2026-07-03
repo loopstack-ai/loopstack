@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { vi } from 'vitest';
 import { createQueries } from '@loopstack/client';
-import type { DocumentsResource, LoopstackClient, WorkflowsResource } from '@loopstack/client';
+import type { DocumentsResource, LoopstackClient, WorkflowsResource, WorkspacesResource } from '@loopstack/client';
 import { LoopstackProvider } from '../provider.js';
 
 export const TEST_ENV_KEY = 'env-1';
@@ -58,6 +58,15 @@ export function createTestClient() {
     start: vi.fn(async () => ({ workflowId: 'wf-started' })),
     run: vi.fn(async () => undefined),
   };
+  const workspaces = {
+    get: vi.fn(async (id: string) => ({ id, title: 'Workspace' })),
+    list: vi.fn(async () => emptyPage()),
+    create: vi.fn(async (payload: object) => ({ id: 'ws-created', ...payload })),
+    update: vi.fn(async (id: string, payload: object) => ({ id, ...payload })),
+    setFavourite: vi.fn(async (id: string, isFavourite: boolean) => ({ id, isFavourite })),
+    delete: vi.fn(async () => undefined),
+    batchDelete: vi.fn(async (ids: string[]) => ({ deleted: ids, failed: [] })),
+  };
   const stream = createMockStream();
 
   const client = {
@@ -66,15 +75,17 @@ export function createTestClient() {
     workflows,
     documents,
     processor,
+    workspaces,
     queries: createQueries({
       envKey: TEST_ENV_KEY,
       workflows: workflows as unknown as WorkflowsResource,
       documents: documents as unknown as DocumentsResource,
+      workspaces: workspaces as unknown as WorkspacesResource,
     }),
     stream,
   } as unknown as LoopstackClient;
 
-  return { client, stream, workflows, documents, processor };
+  return { client, stream, workflows, documents, processor, workspaces };
 }
 
 /** Wrapper mounting QueryClientProvider + LoopstackProvider around a hook under test. */

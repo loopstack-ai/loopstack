@@ -3,6 +3,7 @@ export * from './http.js';
 export * from './queries/query-keys.js';
 export * from './queries/query-options.js';
 export * from './resources/workflows.js';
+export * from './resources/workspaces.js';
 export * from './resources/documents.js';
 export * from './resources/processor.js';
 export * from './stream/stream.js';

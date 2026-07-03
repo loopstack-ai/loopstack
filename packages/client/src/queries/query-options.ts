@@ -5,16 +5,19 @@ import type {
   WorkflowFullInterface,
   WorkflowItemInterface,
   WorkflowStatusInterface,
+  WorkspaceInterface,
 } from '@loopstack/contracts/api';
 import { SortOrder } from '@loopstack/contracts/enums';
 import type { DocumentsResource } from '../resources/documents.js';
 import type { WorkflowListParams, WorkflowsResource } from '../resources/workflows.js';
+import type { WorkspaceListParams, WorkspacesResource } from '../resources/workspaces.js';
 import { queryKeys } from './query-keys.js';
 
 interface QueryResources {
   envKey: string;
   workflows: WorkflowsResource;
   documents: DocumentsResource;
+  workspaces: WorkspacesResource;
 }
 
 /** A `queryOptions`-shaped descriptor consumable by any TanStack Query version. */
@@ -32,13 +35,15 @@ export interface LoopstackQueries {
   document: (id: string) => QueryDescriptor<DocumentItemInterface>;
   /** The visible documents of a workflow run, in display order. */
   documents: (workflowId: string) => QueryDescriptor<PaginatedInterface<DocumentItemInterface>>;
+  workspace: (id: string) => QueryDescriptor<WorkspaceInterface>;
+  workspaceList: (params?: WorkspaceListParams) => QueryDescriptor<PaginatedInterface<WorkspaceInterface>>;
 }
 
 /**
  * `{ queryKey, queryFn }` descriptors — the host application owns the
  * QueryClient; the SDK only describes what to fetch and under which key.
  */
-export function createQueries({ envKey, workflows, documents }: QueryResources): LoopstackQueries {
+export function createQueries({ envKey, workflows, documents, workspaces }: QueryResources): LoopstackQueries {
   return {
     workflow: (id: string) => ({
       queryKey: queryKeys.workflow(envKey, id),
@@ -83,6 +88,16 @@ export function createQueries({ envKey, workflows, documents }: QueryResources):
           filter: { workflowId, isInvalidated: false },
           sortBy: [{ field: 'index', order: SortOrder.ASC }],
         }),
+    }),
+
+    workspace: (id: string) => ({
+      queryKey: queryKeys.workspace(envKey, id),
+      queryFn: () => workspaces.get(id),
+    }),
+
+    workspaceList: (params: WorkspaceListParams = {}) => ({
+      queryKey: queryKeys.workspaceList(envKey, params),
+      queryFn: () => workspaces.list(params),
     }),
   };
 }

@@ -5,7 +5,7 @@ export * from './dashboard.interface.js';
 export * from './document.schema.js';
 export * from './file.interface.js';
 export * from './pagination.schema.js';
-export * from './workspace.interface.js';
+export * from './workspace.schema.js';
 export * from './workflow.schema.js';
 
 // Re-export existing interfaces for convenience
