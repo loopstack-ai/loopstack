@@ -6,6 +6,8 @@ import { SortOrder, WorkflowState } from '@loopstack/contracts/enums';
 export interface WidgetConfig {
   widget: string;
   options?: Record<string, unknown>;
+  /** The document's JSON schema — seeds the $EDITOR payload skeleton for forms. */
+  schema?: Record<string, unknown>;
 }
 
 /** Widgets the terminal can answer. Everything else falls back to the transition picker. */
@@ -18,7 +20,12 @@ export async function fetchDocumentWidgets(client: LoopstackClient): Promise<Map
   for (const app of apps) {
     for (const document of app.documents ?? []) {
       const widget = document.ui?.widgets?.[0] as WidgetConfig | undefined;
-      if (widget) widgets.set(document.documentName, widget);
+      if (widget) {
+        widgets.set(document.documentName, {
+          ...widget,
+          schema: document.schema as Record<string, unknown> | undefined,
+        });
+      }
     }
   }
   return widgets;

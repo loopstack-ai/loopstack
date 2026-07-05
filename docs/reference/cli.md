@@ -1,6 +1,6 @@
 ---
 title: CLI Reference
-description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline, inspect and watch runs, manage backend environments and API tokens, jump into Studio via deep links. Covers loopstack create, list, run, runs, watch, login, env, the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
+description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline or hand forms off to Studio (answers given in Studio resume the terminal session), inspect and watch runs, manage backend environments and API tokens. Covers loopstack create, list, run, runs, watch, login, env, the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, --editor ($EDITOR form fallback), and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
 ---
 
 # CLI Reference
@@ -81,7 +81,11 @@ What is your name?
 ■ run completed in 920ms
 ```
 
-Free-text questions, yes/no confirmations, option choices, and approval buttons are all supported. In non-interactive shells (CI), the question is printed to stderr and the command exits with code `3`.
+Free-text questions, yes/no confirmations, option choices, and approval buttons are all answered inline. The terminal prompt and Studio race fairly: while a prompt is open the CLI stays attached to the event stream, so an answer given in Studio (or by anyone else) is picked up immediately — the CLI prints `✓ answered in Studio` and keeps following.
+
+Forms with input fields hand off to Studio: the pause message carries the deep link, and the run continues in the terminal once the form is submitted in the browser. Without a Studio URL — or with `--editor` — the CLI opens the form payload in `$EDITOR` instead: a JSON file seeded from the form's schema and defaults, submitted on save, so no prompt type ever dead-ends in the terminal.
+
+In non-interactive shells (CI), the question is printed to stderr and the command exits with code `3`.
 
 ### JSON mode and exit codes
 

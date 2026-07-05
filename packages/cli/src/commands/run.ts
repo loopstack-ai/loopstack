@@ -21,6 +21,7 @@ interface RunOptions {
   detach?: boolean;
   quiet?: boolean;
   open?: boolean;
+  editor?: boolean;
 }
 
 export function registerRunCommand(program: Command): void {
@@ -37,6 +38,7 @@ export function registerRunCommand(program: Command): void {
     .option('--detach', 'start the run, print its id, exit immediately')
     .option('--quiet', 'no progress — print only the final result')
     .option('--open', 'open the run in Studio')
+    .option('--editor', 'answer field forms in $EDITOR instead of handing off to Studio')
     .action(async (workflowName: string, options: RunOptions, cmd) => {
       const globals = cmd.optsWithGlobals() as { env?: string; url?: string; token?: string; json?: boolean };
       const connection = resolveConnection(globals);
@@ -72,7 +74,7 @@ export function registerRunCommand(program: Command): void {
       }
 
       const outcome = await followRun(events, run.workflowId, out, {
-        onIdle: createIdleHandler(client, run.workflowId, statusOut, link),
+        onIdle: createIdleHandler(client, run.workflowId, statusOut, { studioUrl: link, editor: options.editor }),
       });
       client.stream.close();
       const durationMs = Date.now() - startedAt;

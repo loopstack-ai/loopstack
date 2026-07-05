@@ -9,13 +9,25 @@ export interface FollowOutcome {
   durationMs: number;
 }
 
+/**
+ * How an idle (HITL) phase ended: `answered` — submitted from the terminal,
+ * keep following; `external` — resolved outside the terminal (Studio),
+ * keep following; `stop` — nothing to collect here (non-TTY or user abort),
+ * stop following.
+ */
+export type IdleOutcome = 'answered' | 'external' | 'stop';
+
 export interface FollowOptions {
   /**
-   * Called when the run parks in waiting/paused — the HITL hook. Return
-   * `true` to keep following (the prompt was answered), `false` to stop.
-   * While the handler runs, events keep queueing; none are lost.
+   * Called when the run parks in waiting/paused — the HITL hook. Runs
+   * concurrently with event consumption: when the prompt's workflow leaves
+   * its wait state (answered in Studio), the signal aborts the prompt.
+   * `onPromptWorkflow` reports which workflow actually carries the prompt
+   * (often a sub-workflow) once discovered.
    */
-  onIdle?: () => Promise<boolean>;
+  onIdle?: (signal: AbortSignal, onPromptWorkflow: (id: string) => void) => Promise<IdleOutcome>;
+  /** Start the idle hook immediately — attaching to an already-waiting run. */
+  initiallyIdle?: boolean;
 }
 
 const TERMINAL_STATES: readonly WorkflowState[] = [
@@ -26,11 +38,21 @@ const TERMINAL_STATES: readonly WorkflowState[] = [
 
 const IDLE_STATES: readonly WorkflowState[] = [WorkflowState.Waiting, WorkflowState.Paused];
 
+interface PendingPrompt {
+  result: Promise<IdleOutcome>;
+  controller: AbortController;
+  /** The prompting workflow, once discovery finds it (may be a sub-workflow). */
+  workflowId?: string;
+}
+
 /**
  * Consumes the event stream for one run and renders it live: a step line per
  * place (with duration), LLM tokens inline, until the run reaches a terminal
  * or waiting state. Rendering goes to `out` — stderr in `--json` mode so
  * stdout stays machine-readable.
+ *
+ * While an idle prompt is open the stream keeps being consumed — an answer
+ * given in Studio aborts the terminal prompt and following resumes seamlessly.
  */
 export async function followRun(
   events: AsyncIterableIterator<ClientMessage>,
@@ -56,8 +78,11 @@ export async function followRun(
     currentPlace = undefined;
   };
 
-  for await (const event of events) {
-    if (!('workflowId' in event) || event.workflowId !== workflowId) continue;
+  const outcome = (status: WorkflowState): FollowOutcome => ({ status, durationMs: Date.now() - startedAt });
+
+  /** Renders one event; returns the follow outcome when the run ended, 'idle' on pause. */
+  const handleEvent = (event: ClientMessage): FollowOutcome | 'idle' | undefined => {
+    if (!('workflowId' in event) || event.workflowId !== workflowId) return undefined;
 
     switch (event.type) {
       case 'llm.response.text_delta':
@@ -82,17 +107,76 @@ export async function followRun(
         }
         if (TERMINAL_STATES.includes(event.status)) {
           endTokenLine();
-          return { status: event.status, durationMs: Date.now() - startedAt };
+          return outcome(event.status);
         }
         if (IDLE_STATES.includes(event.status)) {
           finishStep(pc.yellow('⏸'));
-          if (options.onIdle && (await options.onIdle())) break;
-          return { status: event.status, durationMs: Date.now() - startedAt };
+          return 'idle';
         }
         break;
       }
     }
-  }
+    return undefined;
+  };
 
-  throw new CliError('Event stream ended before the run reached a final state.');
+  const startPrompt = (): PendingPrompt => {
+    const controller = new AbortController();
+    const pending: PendingPrompt = { controller } as PendingPrompt;
+    pending.result = options.onIdle!(controller.signal, (id) => {
+      pending.workflowId = id;
+    });
+    return pending;
+  };
+
+  /** True when this event shows the prompt's workflow leaving its wait state. */
+  const resolvesPrompt = (prompt: PendingPrompt, event: ClientMessage): boolean => {
+    if (event.type !== 'workflow.updated' || !('workflowId' in event)) return false;
+    const promptWorkflowId = prompt.workflowId ?? workflowId;
+    return event.workflowId === promptWorkflowId && !IDLE_STATES.includes(event.status);
+  };
+
+  let prompt: PendingPrompt | null = options.initiallyIdle && options.onIdle ? startPrompt() : null;
+  let pendingNext: Promise<IteratorResult<ClientMessage>> | null = null;
+  const pullNext = () => (pendingNext ??= events.next());
+
+  while (true) {
+    let event: ClientMessage;
+
+    if (prompt) {
+      const raced = await Promise.race([
+        pullNext().then((result) => ({ kind: 'event' as const, result })),
+        prompt.result.then((idle) => ({ kind: 'idle' as const, idle })),
+      ]);
+      if (raced.kind === 'idle') {
+        prompt = null;
+        if (raced.idle === 'stop') return outcome(WorkflowState.Waiting);
+        if (raced.idle === 'external') out.write(`${pc.green('✓')} answered in Studio\n`);
+        continue;
+      }
+      pendingNext = null;
+      if (raced.result.done) throw new CliError('Event stream ended before the run reached a final state.');
+      event = raced.result.value;
+
+      if (resolvesPrompt(prompt, event)) {
+        prompt.controller.abort();
+        const idle = await prompt.result;
+        prompt = null;
+        if (idle === 'stop') return outcome(WorkflowState.Waiting);
+        if (idle === 'external') out.write(`${pc.green('✓')} answered in Studio\n`);
+      }
+    } else {
+      const { value, done } = await pullNext();
+      pendingNext = null;
+      if (done) throw new CliError('Event stream ended before the run reached a final state.');
+      event = value;
+    }
+
+    const handled = handleEvent(event);
+    if (handled === 'idle') {
+      if (!options.onIdle) return outcome(WorkflowState.Waiting);
+      prompt ??= startPrompt();
+    } else if (handled) {
+      return handled;
+    }
+  }
 }

@@ -25,6 +25,7 @@ interface RunsOptions {
   search?: string;
   status?: string;
   open?: boolean;
+  editor?: boolean;
 }
 
 interface Globals {
@@ -44,6 +45,7 @@ export function registerRunsCommand(program: Command): void {
     .option('--search <text>', 'search runs')
     .option('--status <status>', 'filter by status (e.g. waiting, completed, failed)')
     .option('--open', 'open the run in Studio (requires a run id)')
+    .option('--editor', 'answer field forms in $EDITOR instead of handing off to Studio')
     .action(async (runId: string | undefined, options: RunsOptions, cmd) => {
       const globals = cmd.optsWithGlobals() as Globals;
       const connection = resolveConnection(globals);
@@ -165,20 +167,15 @@ async function showRun(
   }
 
   out.write(pc.dim('— attached, following live —\n'));
-  const onIdle = createIdleHandler(client, runId, out, link);
+  const onIdle = createIdleHandler(client, runId, out, { studioUrl: link, editor: options.editor });
 
-  // An already-waiting run emits no further events until answered —
-  // trigger the prompt directly before entering the event loop.
-  if (IDLE_STATES.includes(workflow.status)) {
-    const resumed = await onIdle();
-    if (!resumed) {
-      client.stream.close();
-      out.write(`${pc.yellow('⏸')} run is still waiting for input\n`);
-      process.exit(ExitCode.NeedsInput);
-    }
-  }
-
-  const outcome = await followRun(events!, runId, out, { onIdle });
+  // An already-waiting run emits no further events until answered — the
+  // prompt starts immediately and races the stream, so an answer given in
+  // Studio meanwhile resumes the session too.
+  const outcome = await followRun(events!, runId, out, {
+    onIdle,
+    initiallyIdle: IDLE_STATES.includes(workflow.status),
+  });
   client.stream.close();
 
   const full = await client.workflows.get(runId);

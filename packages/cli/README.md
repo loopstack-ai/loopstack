@@ -23,7 +23,7 @@ $ loopstack run hello --arg name=Maya
 ■ run completed in 2.4s
 ```
 
-When a run asks a question, answer it right there:
+When a run asks a question, answer it right there — or in Studio; whichever answers first wins, and the CLI keeps following either way. Field forms hand off to Studio via deep link (or open in `$EDITOR` with `--editor`):
 
 ```
 ⏸ waiting_for_answer
