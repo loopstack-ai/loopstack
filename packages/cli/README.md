@@ -1,6 +1,6 @@
 # @loopstack/cli
 
-Scaffold, run, trace, and watch [Loopstack](https://loopstack.ai) workflows from the terminal — live transition and LLM token streaming, human-in-the-loop prompts answered inline, and CI-ready JSON output with meaningful exit codes.
+Scaffold, run, inspect, and watch [Loopstack](https://loopstack.ai) workflows from the terminal — live transition and LLM token streaming, human-in-the-loop prompts answered inline, and CI-ready JSON output with meaningful exit codes.
 
 ```bash
 npm install -g @loopstack/cli
@@ -37,15 +37,15 @@ answer: 2
 
 ## Commands
 
-| Command                    | What it does                                                                               |
-| -------------------------- | ------------------------------------------------------------------------------------------ |
-| `loopstack create <dir>`   | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)  |
-| `loopstack run <workflow>` | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--no-follow`, `--json` |
-| `loopstack trace <run-id>` | Audit trail of a run; `--follow` attaches live and answers prompts                         |
-| `loopstack watch`          | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                            |
-| `loopstack list`           | Recent runs                                                                                |
-| `loopstack login`          | Save a backend environment to `~/.loopstack/config.json`                                   |
-| `loopstack env list\|use`  | Manage saved environments                                                                  |
+| Command                    | What it does                                                                                              |
+| -------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `loopstack create <dir>`   | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)                 |
+| `loopstack list`           | Workflows you can run in the current environment                                                          |
+| `loopstack run <workflow>` | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--detach`, `--json`                   |
+| `loopstack runs [run-id]`  | Recent runs (waiting-for-input first) or one run’s audit trail; `--follow` reattaches and answers prompts |
+| `loopstack watch`          | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                                           |
+| `loopstack login`          | Save a backend environment to `~/.loopstack/config.json`                                                  |
+| `loopstack env list\|use`  | Manage saved environments                                                                                 |
 
 ## CI
 

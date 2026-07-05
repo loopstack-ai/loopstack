@@ -6,14 +6,14 @@ import { registerEnvCommand } from './commands/env.js';
 import { registerListCommand } from './commands/list.js';
 import { registerLoginCommand } from './commands/login.js';
 import { registerRunCommand } from './commands/run.js';
-import { registerTraceCommand } from './commands/trace.js';
+import { registerRunsCommand } from './commands/runs.js';
 import { registerWatchCommand } from './commands/watch.js';
 import { handleError } from './errors.js';
 
 const { version } = createRequire(import.meta.url)('../package.json') as { version: string };
 
 const program = new Command('loopstack')
-  .description('Run, trace, and watch Loopstack workflows from the terminal')
+  .description('Scaffold, run, inspect, and watch Loopstack workflows from the terminal')
   .version(version)
   .option('--env <name>', 'named environment from ~/.loopstack/config.json')
   .option('--url <url>', 'backend URL (overrides --env and the config file)')
@@ -24,7 +24,7 @@ registerCreateCommand(program);
 registerLoginCommand(program);
 registerEnvCommand(program);
 registerRunCommand(program);
-registerTraceCommand(program);
+registerRunsCommand(program);
 registerWatchCommand(program);
 registerListCommand(program);
 

@@ -17,8 +17,8 @@ export function registerRunCommand(program: Command): void {
     .description('Start a workflow run and follow it live (exit 0 completed / 1 failed / 3 waiting for input)')
     .option('--arg <key=value>', 'workflow argument, repeatable; key=@file.json reads a file', collect, [] as string[])
     .option('--workspace <id>', 'workspace to run in (default: newest workspace of the workflow’s app)')
-    .option('--no-follow', 'start the run and exit immediately')
-    .action(async (workflowName: string, options: { arg: string[]; workspace?: string; follow: boolean }, cmd) => {
+    .option('--detach', 'start the run, print its id, exit immediately')
+    .action(async (workflowName: string, options: { arg: string[]; workspace?: string; detach?: boolean }, cmd) => {
       const globals = cmd.optsWithGlobals() as { env?: string; url?: string; token?: string; json?: boolean };
       const connection = resolveConnection(globals);
       const client = createClientFor(connection);
@@ -29,7 +29,7 @@ export function registerRunCommand(program: Command): void {
       const workspaceId = await resolveWorkspaceId(client, workflowName, options.workspace, connection.workspaceId);
 
       // Subscribe before starting so no event of the run is missed.
-      const events = options.follow ? client.stream.events() : undefined;
+      const events = options.detach ? undefined : client.stream.events();
       const startedAt = Date.now();
       const run = await client.processor.start({ workflowName, workspaceId, args });
       out.write(pc.dim(`▸ run ${run.workflowId} started\n`));
@@ -68,7 +68,7 @@ export function registerRunCommand(program: Command): void {
       }
       if (outcome.status === WorkflowState.Waiting || outcome.status === WorkflowState.Paused) {
         out.write(
-          `${pc.yellow('⏸')} run is waiting for input — resume with \`loopstack trace ${run.workflowId} --follow\`\n`,
+          `${pc.yellow('⏸')} run is waiting for input — resume with \`loopstack runs ${run.workflowId} --follow\`\n`,
         );
         process.exit(ExitCode.NeedsInput);
       }

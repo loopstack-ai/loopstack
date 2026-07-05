@@ -1,6 +1,6 @@
 ---
 title: CLI Reference
-description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline, trace and watch runs, manage backend environments and API tokens. Covers loopstack create, run, trace, watch, list, login, env, the --json output mode, exit codes for CI, and LOOPSTACK_URL/LOOPSTACK_TOKEN configuration.
+description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline, inspect and watch runs, manage backend environments and API tokens. Covers loopstack create, list, run, runs, watch, login, env, the --json output mode, exit codes for CI, and LOOPSTACK_URL/LOOPSTACK_TOKEN configuration.
 ---
 
 # CLI Reference
@@ -57,7 +57,9 @@ loopstack run hello --arg name=Maya
 - `--arg key=value` — repeatable; values that parse as JSON are coerced (`count=3` → number, `flags={"a":1}` → object), everything else stays a string
 - `--arg ticket=@samples/ticket-042.json` — read the value from a file (parsed as JSON when it is JSON)
 - `--workspace <id>` — pin the workspace; by default the newest workspace of the workflow's app is used (created on demand)
-- `--no-follow` — start the run, print its id, exit immediately
+- `--detach` — start the run, print its id, exit immediately
+
+Not sure what you can run? `loopstack list` shows every workflow of the environment with its app and title.
 
 ### Human-in-the-loop prompts
 
@@ -102,15 +104,16 @@ A CI quality gate is the same command, unchanged:
 ## Inspecting runs
 
 ```bash
-loopstack list                          # recent runs, newest first
-loopstack list --limit 5 --json
-loopstack trace <run-id>                # audit trail: steps, durations
-loopstack trace <run-id> --follow       # attach live — answers prompts too
+loopstack runs                          # recent runs — waiting-for-input first
+loopstack runs --limit 5 --json
+loopstack runs --search invoice --status waiting
+loopstack runs <run-id>                 # audit trail: steps, durations
+loopstack runs <run-id> --follow        # reattach live — answers prompts too
 loopstack watch                         # the environment's event firehose
 loopstack watch --type workflow.updated --json   # NDJSON, filterable
 ```
 
-`trace` reconstructs a run from its checkpoints — one line per place with the time spent there — and `--follow` attaches to the live stream, including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
+`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it reconstructs the run from its checkpoints — one line per place with the time spent there — and `--follow` reattaches to the live stream, including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
 
 ## Output conventions
 

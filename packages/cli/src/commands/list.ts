@@ -1,43 +1,39 @@
 import type { Command } from 'commander';
-import { SortOrder } from '@loopstack/contracts/enums';
 import { createClientFor, resolveConnection } from '../config/resolve.js';
-import { colorStatus, printData, printStatus, renderTable } from '../output/format.js';
+import { printData, printStatus, renderTable } from '../output/format.js';
 
 export function registerListCommand(program: Command): void {
   program
     .command('list')
-    .description('List recent workflow runs')
-    .option('--limit <n>', 'maximum number of runs', '20')
-    .option('--workspace <id>', 'filter by workspace id')
-    .action(async (options: { limit: string; workspace?: string }, cmd) => {
+    .description('List the workflows you can run in this environment')
+    .action(async (_options: Record<string, never>, cmd) => {
       const globals = cmd.optsWithGlobals() as { env?: string; url?: string; token?: string; json?: boolean };
       const connection = resolveConnection(globals);
       const client = createClientFor(connection);
 
-      const page = await client.workflows.list({
-        ...(options.workspace && { filter: { workspaceId: options.workspace } }),
-        sortBy: [{ field: 'createdAt', order: SortOrder.DESC }],
-        page: 0,
-        limit: Number(options.limit),
-      });
+      const apps = await client.config.apps();
+      const workflows = apps.flatMap((app) =>
+        app.workflows.map((workflow) => ({
+          workflowName: workflow.workflowName,
+          title: workflow.title ?? '',
+          description: workflow.description ?? '',
+          appName: app.appName,
+          appTitle: app.title,
+        })),
+      );
 
       if (globals.json) {
-        printData(JSON.stringify(page.data, null, 2));
+        printData(JSON.stringify(workflows, null, 2));
         return;
       }
-      if (page.data.length === 0) {
-        printStatus(`No runs on ${connection.url} yet — start one with \`loopstack run <workflow>\`.`);
+      if (workflows.length === 0) {
+        printStatus(`No workflows on ${connection.url} — is a Loopstack app with @StudioApp modules running?`);
         return;
       }
-      const rows = page.data.map((run) => [
-        run.id,
-        run.workflowName,
-        `#${run.run}`,
-        colorStatus(run.status),
-        run.title ?? '',
-        new Date(run.createdAt).toLocaleString(),
-      ]);
-      printData(renderTable(['ID', 'WORKFLOW', 'RUN', 'STATUS', 'TITLE', 'CREATED'], rows));
-      printStatus(`${page.data.length} of ${page.total} runs (${connection.name})`);
+      const rows = workflows.map((workflow) => [workflow.workflowName, workflow.title, workflow.appTitle]);
+      printData(renderTable(['WORKFLOW', 'TITLE', 'APP'], rows));
+      printStatus(
+        `${workflows.length} workflows in ${apps.length} apps (${connection.name}) — start one with \`loopstack run <workflow>\``,
+      );
     });
 }
