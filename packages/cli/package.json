@@ -35,6 +35,7 @@
     "vitest": "^4.1.6"
   },
   "files": [
-    "dist"
+    "dist",
+    "fixtures"
   ]
 }

@@ -19,6 +19,7 @@ export default tseslint.config(
       'eslint.config.mjs',
       'prettier.config.mjs',
       'syncpack.config.mjs',
+      'packages/cli/fixtures/**',
       '**/src/components/ai-elements/**',
       '**/vitest.config.ts',
       '**/vite.config.ts',
