@@ -96,6 +96,8 @@ export function registerCreateCommand(program: Command): void {
           '  Studio: http://localhost:5173',
           '  Terminal: npx @loopstack/cli run hello --arg name=You',
           '',
+          '  CLAUDE.md primes coding agents with the conventions and the CLI feedback loop.',
+          '',
         ].join('\n'),
       );
     });
