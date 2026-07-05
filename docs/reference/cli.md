@@ -1,15 +1,33 @@
 ---
 title: CLI Reference
-description: The loopstack CLI — run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline, trace and watch runs, manage backend environments and API tokens. Covers loopstack run, trace, watch, list, login, env, the --json output mode, exit codes for CI, and LOOPSTACK_URL/LOOPSTACK_TOKEN configuration.
+description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline, trace and watch runs, manage backend environments and API tokens. Covers loopstack create, run, trace, watch, list, login, env, the --json output mode, exit codes for CI, and LOOPSTACK_URL/LOOPSTACK_TOKEN configuration.
 ---
 
 # CLI Reference
 
-The `loopstack` CLI keeps the edit-verify loop in the terminal: run a workflow, watch its transitions and LLM tokens stream live, answer human-in-the-loop prompts inline, and wire the same command into CI with JSON output and meaningful exit codes. It talks plain HTTP to your backend through `@loopstack/client` — the same API Studio uses.
+The `loopstack` CLI covers the whole loop: scaffold an app, run a workflow, watch its transitions and LLM tokens stream live, answer human-in-the-loop prompts inline, and wire the same command into CI with JSON output and meaningful exit codes. It talks plain HTTP to your backend through `@loopstack/client` — the same API Studio uses.
 
 ```bash
 npm install -g @loopstack/cli
 ```
+
+## Creating a new app
+
+```bash
+loopstack create my-app
+cd my-app
+docker compose up -d      # Postgres, Redis, and Studio
+npm run start:dev         # backend on http://localhost:3000
+```
+
+`create` scaffolds a fresh NestJS app via the official Nest CLI, wires in `LoopstackModule.forRoot()`, and adds a zero-config hello workflow — no API keys needed for the first run. The scaffold includes a docker-compose file for Postgres, Redis, and Studio (on [http://localhost:5173](http://localhost:5173)), a ready-to-edit `.env`, and an initialized git repository.
+
+```bash
+loopstack run hello --arg name=You    # your first run, from the terminal
+```
+
+- `--skip-install` — scaffold only; dependencies stay listed in `package.json`
+- `--no-git` — skip `git init`
 
 ## Connecting to a backend
 

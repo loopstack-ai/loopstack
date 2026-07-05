@@ -1,9 +1,16 @@
 # @loopstack/cli
 
-Run, trace, and watch [Loopstack](https://loopstack.ai) workflows from the terminal — live transition and LLM token streaming, human-in-the-loop prompts answered inline, and CI-ready JSON output with meaningful exit codes.
+Scaffold, run, trace, and watch [Loopstack](https://loopstack.ai) workflows from the terminal — live transition and LLM token streaming, human-in-the-loop prompts answered inline, and CI-ready JSON output with meaningful exit codes.
 
 ```bash
 npm install -g @loopstack/cli
+```
+
+Start a new app with a zero-config hello workflow:
+
+```bash
+loopstack create my-app
+cd my-app && docker compose up -d && npm run start:dev
 ```
 
 ```bash
@@ -32,6 +39,7 @@ answer: 2
 
 | Command                    | What it does                                                                               |
 | -------------------------- | ------------------------------------------------------------------------------------------ |
+| `loopstack create <dir>`   | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)  |
 | `loopstack run <workflow>` | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--no-follow`, `--json` |
 | `loopstack trace <run-id>` | Audit trail of a run; `--follow` attaches live and answers prompts                         |
 | `loopstack watch`          | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                            |
