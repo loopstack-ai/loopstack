@@ -37,15 +37,15 @@ answer: 2
 
 ## Commands
 
-| Command                    | What it does                                                                                              |
-| -------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `loopstack create <dir>`   | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)                 |
-| `loopstack list`           | Workflows you can run in the current environment                                                          |
-| `loopstack run <workflow>` | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--detach`, `--json`                   |
-| `loopstack runs [run-id]`  | Recent runs (waiting-for-input first) or one run’s audit trail; `--follow` reattaches and answers prompts |
-| `loopstack watch`          | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                                           |
-| `loopstack login`          | Save a backend environment to `~/.loopstack/config.json`                                                  |
-| `loopstack env list\|use`  | Manage saved environments                                                                                 |
+| Command                    | What it does                                                                                                                       |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `loopstack create <dir>`   | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)                                          |
+| `loopstack list`           | Workflows you can run in the current environment                                                                                   |
+| `loopstack run <workflow>` | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--arg k=@-` (stdin), `--detach`, `--quiet`, `--open`, `--json` |
+| `loopstack runs [run-id]`  | Recent runs (waiting-for-input first) or one run’s audit trail; `--follow` reattaches and answers prompts                          |
+| `loopstack watch`          | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                                                                    |
+| `loopstack login`          | Save a backend environment to `~/.loopstack/config.json`                                                                           |
+| `loopstack env list\|use`  | Manage saved environments                                                                                                          |
 
 ## CI
 
@@ -58,4 +58,4 @@ answer: 2
 
 Exit codes: `0` completed · `1` failed · `2` connection/config error · `3` waiting for input (non-interactive). `--json` prints one final object — `{ workflowId, status, result, errorMessage, durationMs }` — on a clean stdout.
 
-Local backends with auth disabled need no login or token at all. Full documentation: [CLI Reference](https://loopstack.ai/docs/reference/cli).
+Local backends with auth disabled need no login or token at all. When an environment has a Studio URL (saved via `login`, `LOOPSTACK_STUDIO_URL`, or the local default), run output includes deep links into Studio — and `--open` jumps straight there. Full documentation: [CLI Reference](https://loopstack.ai/docs/reference/cli).

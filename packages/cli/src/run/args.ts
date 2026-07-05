@@ -5,11 +5,13 @@ import { CliError } from '../errors.js';
  * Parses repeated `--arg` pairs into a workflow args object.
  * `key=value` coerces JSON-ish values (numbers, booleans, objects); anything
  * that does not parse stays a string. `key=@path` reads the file — parsed as
- * JSON when it is JSON, raw text otherwise.
+ * JSON when it is JSON, raw text otherwise. `key=@-` reads stdin the same way
+ * (`cat notes.txt | loopstack run summarize --arg notes=@-`).
  */
 export function parseRunArgs(
   pairs: string[],
   readFile: (path: string) => string = (path) => readFileSync(path, 'utf8'),
+  readStdin: () => string = () => readFileSync(0, 'utf8'),
 ): Record<string, unknown> {
   const args: Record<string, unknown> = {};
   for (const pair of pairs) {
@@ -19,9 +21,19 @@ export function parseRunArgs(
     }
     const key = pair.slice(0, separator);
     const raw = pair.slice(separator + 1);
-    args[key] = coerce(raw.startsWith('@') ? readArgFile(raw.slice(1), readFile) : raw);
+    const value =
+      raw === '@-' ? readStdinArg(readStdin) : raw.startsWith('@') ? readArgFile(raw.slice(1), readFile) : raw;
+    args[key] = coerce(value);
   }
   return args;
+}
+
+function readStdinArg(readStdin: () => string): string {
+  try {
+    return readStdin();
+  } catch {
+    throw new CliError('Cannot read --arg value from stdin (@-).');
+  }
 }
 
 function readArgFile(path: string, readFile: (path: string) => string): string {

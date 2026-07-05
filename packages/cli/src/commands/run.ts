@@ -1,29 +1,52 @@
 import type { Command } from 'commander';
+import { Writable } from 'node:stream';
 import pc from 'picocolors';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { createClientFor, resolveConnection } from '../config/resolve.js';
 import { ExitCode } from '../errors.js';
 import { createIdleHandler } from '../hitl/idle-handler.js';
-import { formatDuration, printData } from '../output/format.js';
+import { formatDuration, printData, printStatus } from '../output/format.js';
+import { openInBrowser, studioRunUrl } from '../output/studio-link.js';
 import { parseRunArgs } from '../run/args.js';
 import { followRun } from '../run/follow.js';
 import { resolveWorkspaceId } from '../run/workspace.js';
 
 const collect = (value: string, previous: string[]) => [...previous, value];
 
+const discard = () => new Writable({ write: (_chunk, _encoding, callback) => callback() });
+
+interface RunOptions {
+  arg: string[];
+  workspace?: string;
+  detach?: boolean;
+  quiet?: boolean;
+  open?: boolean;
+}
+
 export function registerRunCommand(program: Command): void {
   program
     .command('run <workflow>')
     .description('Start a workflow run and follow it live (exit 0 completed / 1 failed / 3 waiting for input)')
-    .option('--arg <key=value>', 'workflow argument, repeatable; key=@file.json reads a file', collect, [] as string[])
+    .option(
+      '--arg <key=value>',
+      'workflow argument, repeatable; key=@file.json reads a file, key=@- reads stdin',
+      collect,
+      [] as string[],
+    )
     .option('--workspace <id>', 'workspace to run in (default: newest workspace of the workflow’s app)')
     .option('--detach', 'start the run, print its id, exit immediately')
-    .action(async (workflowName: string, options: { arg: string[]; workspace?: string; detach?: boolean }, cmd) => {
+    .option('--quiet', 'no progress — print only the final result')
+    .option('--open', 'open the run in Studio')
+    .action(async (workflowName: string, options: RunOptions, cmd) => {
       const globals = cmd.optsWithGlobals() as { env?: string; url?: string; token?: string; json?: boolean };
       const connection = resolveConnection(globals);
       const client = createClientFor(connection);
       const json = !!globals.json;
-      const out = json ? process.stderr : process.stdout;
+      const quiet = !!options.quiet;
+      // Progress rendering; discarded under --quiet, stderr under --json.
+      const out = json ? process.stderr : quiet ? discard() : process.stdout;
+      // Prompts and final status lines stay visible even under --quiet.
+      const statusOut = json || quiet ? process.stderr : process.stdout;
 
       const args = parseRunArgs(options.arg);
       const workspaceId = await resolveWorkspaceId(client, workflowName, options.workspace, connection.workspaceId);
@@ -34,13 +57,22 @@ export function registerRunCommand(program: Command): void {
       const run = await client.processor.start({ workflowName, workspaceId, args });
       out.write(pc.dim(`▸ run ${run.workflowId} started\n`));
 
+      const link = studioRunUrl(connection, run.workflowId);
+      if (options.open) {
+        if (link) openInBrowser(link);
+        else printStatus('No Studio URL configured for this environment — set one with `loopstack login`.');
+      }
+
       if (!events) {
-        printData(json ? JSON.stringify({ workflowId: run.workflowId }) : run.workflowId);
+        if (link) printStatus(pc.dim(`⧉ ${link}`));
+        printData(
+          json ? JSON.stringify({ workflowId: run.workflowId, ...(link && { studioUrl: link }) }) : run.workflowId,
+        );
         process.exit(ExitCode.Success);
       }
 
       const outcome = await followRun(events, run.workflowId, out, {
-        onIdle: createIdleHandler(client, run.workflowId, out),
+        onIdle: createIdleHandler(client, run.workflowId, statusOut, link),
       });
       client.stream.close();
       const durationMs = Date.now() - startedAt;
@@ -55,6 +87,7 @@ export function registerRunCommand(program: Command): void {
               result: full.result,
               errorMessage: full.errorMessage,
               durationMs,
+              ...(link && { studioUrl: link }),
             },
             null,
             2,
@@ -63,16 +96,22 @@ export function registerRunCommand(program: Command): void {
       }
 
       if (outcome.status === WorkflowState.Completed) {
-        out.write(`${pc.green('■')} run completed in ${formatDuration(durationMs)}\n`);
+        if (!json && quiet) {
+          const result = full.result as unknown;
+          printData(typeof result === 'string' ? result : JSON.stringify(result ?? null, null, 2));
+        }
+        statusOut.write(`${pc.green('■')} run completed in ${formatDuration(durationMs)}\n`);
         process.exit(ExitCode.Success);
       }
       if (outcome.status === WorkflowState.Waiting || outcome.status === WorkflowState.Paused) {
-        out.write(
+        statusOut.write(
           `${pc.yellow('⏸')} run is waiting for input — resume with \`loopstack runs ${run.workflowId} --follow\`\n`,
         );
+        if (link) statusOut.write(pc.dim(`⧉ answer in Studio: ${link}\n`));
         process.exit(ExitCode.NeedsInput);
       }
-      out.write(`${pc.red('■')} run ${outcome.status}${full.errorMessage ? `: ${full.errorMessage}` : ''}\n`);
+      statusOut.write(`${pc.red('■')} run ${outcome.status}${full.errorMessage ? `: ${full.errorMessage}` : ''}\n`);
+      if (link) statusOut.write(pc.dim(`⧉ inspect in Studio: ${link}\n`));
       process.exit(ExitCode.RunFailed);
     });
 }

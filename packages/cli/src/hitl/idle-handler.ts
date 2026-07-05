@@ -15,6 +15,7 @@ export function createIdleHandler(
   client: LoopstackClient,
   rootWorkflowId: string,
   out: NodeJS.WritableStream,
+  studioUrl?: string,
 ): () => Promise<boolean> {
   let widgetsPromise: Promise<Map<string, WidgetConfig>> | undefined;
   let lastAnswerAt = 0;
@@ -38,6 +39,7 @@ export function createIdleHandler(
 
     if (!stdin.isTTY) {
       out.write(`${pc.yellow('⏸')} waiting for input: ${describePrompt(prompt)}\n`);
+      if (studioUrl) out.write(pc.dim(`⧉ answer in Studio: ${studioUrl}\n`));
       return false;
     }
 

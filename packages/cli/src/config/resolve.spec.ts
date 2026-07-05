@@ -62,4 +62,26 @@ describe('resolveConnection', () => {
       source: 'default',
     });
   });
+
+  it('resolves the saved studioUrl of an environment', () => {
+    const withStudio: CliConfig = {
+      defaultEnvironment: 'prod',
+      environments: { prod: { url: 'https://api.example.com', studioUrl: 'https://studio.example.com' } },
+    };
+    expect(resolveConnection({}, noEnv, withStudio).studioUrl).toBe('https://studio.example.com');
+    expect(resolveConnection({ env: 'prod' }, noEnv, withStudio).studioUrl).toBe('https://studio.example.com');
+  });
+
+  it('LOOPSTACK_STUDIO_URL overrides the saved studioUrl', () => {
+    const resolved = resolveConnection({ env: 'prod' }, { LOOPSTACK_STUDIO_URL: 'http://ci-studio:5173' }, config);
+    expect(resolved.studioUrl).toBe('http://ci-studio:5173');
+  });
+
+  it('local dev fallback defaults the studioUrl to localhost:5173', () => {
+    expect(resolveConnection({}, noEnv, { environments: {} }).studioUrl).toBe('http://localhost:5173');
+  });
+
+  it('saved environments without a studioUrl get none', () => {
+    expect(resolveConnection({ env: 'staging' }, noEnv, config).studioUrl).toBeUndefined();
+  });
 });

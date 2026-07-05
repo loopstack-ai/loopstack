@@ -17,9 +17,13 @@ export function registerLoginCommand(program: Command): void {
     .command('login')
     .description('Save a backend environment to ~/.loopstack/config.json (pass --url/--token or answer the prompts)')
     .option('--name <name>', 'environment name')
-    .action(async (_options: { name?: string }, cmd) => {
-      const merged = cmd.optsWithGlobals() as { url?: string; token?: string; name?: string };
-      let { url, token, name } = merged;
+    .option('--studio-url <url>', 'Studio frontend URL — enables deep links in run output')
+    .action(async (_options: { name?: string; studioUrl?: string }, cmd) => {
+      const merged = cmd.optsWithGlobals() as { url?: string; token?: string; name?: string; studioUrl?: string };
+      let { url, token, name, studioUrl } = merged;
+      // An empty --token/--studio-url means "none", not the empty string.
+      token = token || undefined;
+      studioUrl = studioUrl || undefined;
 
       if (!url && !stdin.isTTY) {
         throw new CliError('Non-interactive shell — pass --url (and --token for authenticated backends).');
@@ -33,6 +37,12 @@ export function registerLoginCommand(program: Command): void {
           }
           if (token === undefined) {
             token = (await rl.question('API token (lsk_…, empty for local no-auth): ')).trim() || undefined;
+          }
+          if (studioUrl === undefined) {
+            const isLocal = ['localhost', '127.0.0.1'].includes(new URL(url).hostname);
+            const suggestion = isLocal ? 'http://localhost:5173' : '';
+            const hint = suggestion ? ` [${suggestion}]` : ' (empty for none)';
+            studioUrl = (await rl.question(`Studio URL${hint}: `)).trim() || suggestion || undefined;
           }
           if (!name) {
             const suggested = suggestName(url);
@@ -49,7 +59,7 @@ export function registerLoginCommand(program: Command): void {
       await client.workflows.list({ limit: 1 });
 
       const config = loadConfig();
-      config.environments[name] = { ...config.environments[name], url, token };
+      config.environments[name] = { ...config.environments[name], url, token, ...(studioUrl && { studioUrl }) };
       config.defaultEnvironment ??= name;
       saveConfig(config);
 

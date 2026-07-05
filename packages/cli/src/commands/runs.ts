@@ -2,10 +2,12 @@ import type { Command } from 'commander';
 import pc from 'picocolors';
 import type { LoopstackClient } from '@loopstack/client';
 import { SortOrder, WorkflowState } from '@loopstack/contracts/enums';
+import type { ResolvedConnection } from '../config/resolve.js';
 import { createClientFor, resolveConnection } from '../config/resolve.js';
 import { CliError, ExitCode } from '../errors.js';
 import { createIdleHandler } from '../hitl/idle-handler.js';
 import { colorStatus, formatDuration, printData, printStatus, renderTable } from '../output/format.js';
+import { openInBrowser, studioRunUrl } from '../output/studio-link.js';
 import { followRun } from '../run/follow.js';
 
 const TERMINAL_STATES: readonly WorkflowState[] = [
@@ -22,6 +24,7 @@ interface RunsOptions {
   workspace?: string;
   search?: string;
   status?: string;
+  open?: boolean;
 }
 
 interface Globals {
@@ -40,6 +43,7 @@ export function registerRunsCommand(program: Command): void {
     .option('--workspace <id>', 'filter by workspace id')
     .option('--search <text>', 'search runs')
     .option('--status <status>', 'filter by status (e.g. waiting, completed, failed)')
+    .option('--open', 'open the run in Studio (requires a run id)')
     .action(async (runId: string | undefined, options: RunsOptions, cmd) => {
       const globals = cmd.optsWithGlobals() as Globals;
       const connection = resolveConnection(globals);
@@ -47,18 +51,18 @@ export function registerRunsCommand(program: Command): void {
 
       if (!runId) {
         if (options.follow) throw new CliError('--follow requires a run id: loopstack runs <run-id> --follow');
-        await listRuns(client, connection.name, connection.url, options, !!globals.json);
+        if (options.open) throw new CliError('--open requires a run id: loopstack runs <run-id> --open');
+        await listRuns(client, connection, options, !!globals.json);
         return;
       }
-      await showRun(client, runId, options, !!globals.json);
+      await showRun(client, connection, runId, options, !!globals.json);
     });
 }
 
 /** The runs listing — the inbox: runs waiting for input are surfaced first. */
 async function listRuns(
   client: LoopstackClient,
-  connectionName: string,
-  connectionUrl: string,
+  connection: ResolvedConnection,
   options: RunsOptions,
   json: boolean,
 ): Promise<void> {
@@ -79,11 +83,15 @@ async function listRuns(
   const ordered = [...needsInput, ...rest];
 
   if (json) {
-    printData(JSON.stringify(ordered, null, 2));
+    const withLinks = ordered.map((run) => {
+      const studioUrl = studioRunUrl(connection, run.id);
+      return { ...run, ...(studioUrl && { studioUrl }) };
+    });
+    printData(JSON.stringify(withLinks, null, 2));
     return;
   }
   if (ordered.length === 0) {
-    printStatus(`No runs on ${connectionUrl} yet — start one with \`loopstack run <workflow>\`.`);
+    printStatus(`No runs on ${connection.url} yet — start one with \`loopstack run <workflow>\`.`);
     return;
   }
   const rows = ordered.map((run) => [
@@ -100,12 +108,23 @@ async function listRuns(
       `${pc.yellow('⏸')} ${needsInput.length} waiting for input — answer with \`loopstack runs <run-id> --follow\``,
     );
   }
-  printStatus(`${ordered.length} of ${page.total} runs (${connectionName})`);
+  printStatus(`${ordered.length} of ${page.total} runs (${connection.name})`);
 }
 
 /** One run's audit trail; --follow attaches live and answers prompts. */
-async function showRun(client: LoopstackClient, runId: string, options: RunsOptions, json: boolean): Promise<void> {
+async function showRun(
+  client: LoopstackClient,
+  connection: ResolvedConnection,
+  runId: string,
+  options: RunsOptions,
+  json: boolean,
+): Promise<void> {
   const out = json ? process.stderr : process.stdout;
+  const link = studioRunUrl(connection, runId);
+  if (options.open) {
+    if (link) openInBrowser(link);
+    else printStatus('No Studio URL configured for this environment — set one with `loopstack login`.');
+  }
 
   // Subscribe before reading state so live attach misses nothing.
   const events = options.follow ? client.stream.events() : undefined;
@@ -114,13 +133,14 @@ async function showRun(client: LoopstackClient, runId: string, options: RunsOpti
   const checkpoints = await client.workflows.checkpoints(runId);
 
   if (json && !options.follow) {
-    printData(JSON.stringify({ workflow, checkpoints }, null, 2));
+    printData(JSON.stringify({ workflow, checkpoints, ...(link && { studioUrl: link }) }, null, 2));
     process.exit(ExitCode.Success);
   }
 
   const title = workflow.title ? ` (${workflow.title})` : '';
   out.write(`${pc.bold(workflow.workflowName)} #${workflow.run}${title} — ${colorStatus(workflow.status)}\n`);
   out.write(pc.dim(`started ${new Date(workflow.createdAt).toLocaleString()}  ${workflow.id}\n`));
+  if (link) out.write(pc.dim(`⧉ ${link}\n`));
 
   // Collapse consecutive checkpoints of the same place (state saves) into
   // one step line spanning entry to exit.
@@ -145,7 +165,7 @@ async function showRun(client: LoopstackClient, runId: string, options: RunsOpti
   }
 
   out.write(pc.dim('— attached, following live —\n'));
-  const onIdle = createIdleHandler(client, runId, out);
+  const onIdle = createIdleHandler(client, runId, out, link);
 
   // An already-waiting run emits no further events until answered —
   // trigger the prompt directly before entering the event loop.

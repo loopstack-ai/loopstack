@@ -31,6 +31,26 @@ describe('parseRunArgs', () => {
     });
   });
 
+  it('reads @- values from stdin and parses JSON', () => {
+    const read = () => {
+      throw new Error('files must not be touched for @-');
+    };
+    expect(parseRunArgs(['notes=@-'], read, () => 'from stdin')).toEqual({ notes: 'from stdin' });
+    expect(parseRunArgs(['ticket=@-'], read, () => '{"id": 42}')).toEqual({ ticket: { id: 42 } });
+  });
+
+  it('throws a CliError when stdin cannot be read for @-', () => {
+    expect(() =>
+      parseRunArgs(
+        ['x=@-'],
+        () => '',
+        () => {
+          throw new Error('EAGAIN');
+        },
+      ),
+    ).toThrow(CliError);
+  });
+
   it('throws a CliError for unreadable files', () => {
     expect(() =>
       parseRunArgs(['x=@missing.json'], () => {

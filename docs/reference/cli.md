@@ -1,6 +1,6 @@
 ---
 title: CLI Reference
-description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline, inspect and watch runs, manage backend environments and API tokens. Covers loopstack create, list, run, runs, watch, login, env, the --json output mode, exit codes for CI, and LOOPSTACK_URL/LOOPSTACK_TOKEN configuration.
+description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline, inspect and watch runs, manage backend environments and API tokens, jump into Studio via deep links. Covers loopstack create, list, run, runs, watch, login, env, the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
 ---
 
 # CLI Reference
@@ -46,6 +46,10 @@ loopstack env use staging       # switch the default
 
 `loopstack login` probes the backend before saving, so bad URLs or tokens fail immediately. The config file is written user-only (`0600`). API tokens for real deployments are created via `POST /api/v1/auth/tokens` (or Studio) and start with `lsk_`.
 
+### Studio deep links
+
+An environment can carry the URL of its Studio frontend — `loopstack login` asks for it (`--studio-url` non-interactively), `LOOPSTACK_STUDIO_URL` overrides it, and the zero-config local fallback assumes `http://localhost:5173`. When the CLI knows where Studio lives, its output links there: a detached run prints its Studio URL, a run waiting for input shows where to answer it in the browser, failures link to the run for inspection, and `loopstack runs --json` carries a `studioUrl` per run. `--open` (on `run` and `runs <run-id>`) opens the run in the browser directly.
+
 ## Running workflows
 
 ```bash
@@ -56,8 +60,11 @@ loopstack run hello --arg name=Maya
 
 - `--arg key=value` — repeatable; values that parse as JSON are coerced (`count=3` → number, `flags={"a":1}` → object), everything else stays a string
 - `--arg ticket=@samples/ticket-042.json` — read the value from a file (parsed as JSON when it is JSON)
+- `--arg notes=@-` — read the value from stdin: `cat notes.txt | loopstack run summarize --arg notes=@-`
 - `--workspace <id>` — pin the workspace; by default the newest workspace of the workflow's app is used (created on demand)
 - `--detach` — start the run, print its id, exit immediately
+- `--quiet` — no progress, print only the final result (pipe-friendly)
+- `--open` — open the run in Studio
 
 Not sure what you can run? `loopstack list` shows every workflow of the environment with its app and title.
 

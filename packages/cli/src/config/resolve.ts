@@ -16,16 +16,20 @@ export interface ResolvedConnection {
   url: string;
   token?: string;
   workspaceId?: string;
+  /** Studio frontend for deep links — saved via `login`, `LOOPSTACK_STUDIO_URL`, or the local default. */
+  studioUrl?: string;
   source: 'flags' | 'env-vars' | 'config' | 'default';
 }
 
 const LOCAL_URL = 'http://localhost:3000';
+const LOCAL_STUDIO_URL = 'http://localhost:5173';
 
 /**
  * Resolves which backend to talk to. Precedence:
  * `--url` / `--env` flags → `LOOPSTACK_URL`/`LOOPSTACK_TOKEN` env vars →
  * the config file's default environment → local dev fallback.
- * A `--token` flag or `LOOPSTACK_TOKEN` overrides a saved token either way.
+ * A `--token` flag or `LOOPSTACK_TOKEN` overrides a saved token either way;
+ * `LOOPSTACK_STUDIO_URL` overrides the saved Studio URL the same way.
  */
 export function resolveConnection(
   flags: ConnectionFlags,
@@ -33,9 +37,10 @@ export function resolveConnection(
   config: CliConfig = loadConfig(),
 ): ResolvedConnection {
   const tokenOverride = flags.token ?? env.LOOPSTACK_TOKEN;
+  const studioOverride = env.LOOPSTACK_STUDIO_URL;
 
   if (flags.url) {
-    return { name: flags.url, url: flags.url, token: tokenOverride, source: 'flags' };
+    return { name: flags.url, url: flags.url, token: tokenOverride, studioUrl: studioOverride, source: 'flags' };
   }
 
   if (flags.env) {
@@ -48,12 +53,19 @@ export function resolveConnection(
       url: saved.url,
       token: tokenOverride ?? saved.token,
       workspaceId: saved.workspaceId,
+      studioUrl: studioOverride ?? saved.studioUrl,
       source: 'flags',
     };
   }
 
   if (env.LOOPSTACK_URL) {
-    return { name: env.LOOPSTACK_URL, url: env.LOOPSTACK_URL, token: tokenOverride, source: 'env-vars' };
+    return {
+      name: env.LOOPSTACK_URL,
+      url: env.LOOPSTACK_URL,
+      token: tokenOverride,
+      studioUrl: studioOverride,
+      source: 'env-vars',
+    };
   }
 
   if (config.defaultEnvironment && config.environments[config.defaultEnvironment]) {
@@ -63,11 +75,18 @@ export function resolveConnection(
       url: saved.url,
       token: tokenOverride ?? saved.token,
       workspaceId: saved.workspaceId,
+      studioUrl: studioOverride ?? saved.studioUrl,
       source: 'config',
     };
   }
 
-  return { name: 'local', url: LOCAL_URL, token: tokenOverride, source: 'default' };
+  return {
+    name: 'local',
+    url: LOCAL_URL,
+    token: tokenOverride,
+    studioUrl: studioOverride ?? LOCAL_STUDIO_URL,
+    source: 'default',
+  };
 }
 
 export function createClientFor(connection: ResolvedConnection): LoopstackClient {
