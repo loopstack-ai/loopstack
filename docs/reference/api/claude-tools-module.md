@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/claude-tools-module
-description: Public API reference for @loopstack/claude-tools-module
+title: 'API: @loopstack/claude-tools-module'
+description: 'Public API reference for @loopstack/claude-tools-module'
 includeInLlmsFullTxt: false
 ---
 

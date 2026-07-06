@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/sandbox-filesystem
-description: Public API reference for @loopstack/sandbox-filesystem
+title: 'API: @loopstack/sandbox-filesystem'
+description: 'Public API reference for @loopstack/sandbox-filesystem'
 includeInLlmsFullTxt: false
 ---
 

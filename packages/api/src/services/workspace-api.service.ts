@@ -3,11 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
+import {
+  WorkspaceCreateInterface,
+  WorkspaceFilterInterface,
+  WorkspaceSortByInterface,
+  WorkspaceUpdateInterface,
+} from '@loopstack/contracts/api';
 import { StudioDiscoveryService } from '@loopstack/core';
-import { WorkspaceCreateDto } from '../dtos/workspace-create.dto.js';
-import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto.js';
-import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto.js';
-import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto.js';
 import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 
 @Injectable()
@@ -24,8 +26,8 @@ export class WorkspaceApiService {
    */
   async findAll(
     user: string,
-    filter: WorkspaceFilterDto,
-    sortBy: WorkspaceSortByDto[],
+    filter: WorkspaceFilterInterface | undefined,
+    sortBy: WorkspaceSortByInterface[] | undefined,
     pagination: {
       page: number | undefined;
       limit: number | undefined;
@@ -38,7 +40,7 @@ export class WorkspaceApiService {
     limit: number;
   }> {
     const defaultLimit = this.configService.get<number>('WORKSPACE_DEFAULT_LIMIT', 100);
-    const defaultSortBy = this.configService.get<WorkspaceSortByDto[]>('WORKSPACE_DEFAULT_SORT_BY', []);
+    const defaultSortBy = this.configService.get<WorkspaceSortByInterface[]>('WORKSPACE_DEFAULT_SORT_BY', []);
 
     const queryBuilder = this.workspaceRepository.createQueryBuilder('workspace');
 
@@ -109,7 +111,7 @@ export class WorkspaceApiService {
   /**
    * Creates a new workspace.
    */
-  async create(workspaceData: WorkspaceCreateDto, user: string): Promise<WorkspaceEntity> {
+  async create(workspaceData: WorkspaceCreateInterface, user: string): Promise<WorkspaceEntity> {
     const knownApps = this.studioDiscoveryService.getAppNames();
     if (!knownApps.includes(workspaceData.appName)) {
       throw new BadRequestException(`Unknown app "${workspaceData.appName}". Available apps: ${knownApps.join(', ')}`);
@@ -130,7 +132,7 @@ export class WorkspaceApiService {
   /**
    * Updates an existing workspace by ID.
    */
-  async update(id: string, workspaceData: WorkspaceUpdateDto, user: string): Promise<WorkspaceEntity> {
+  async update(id: string, workspaceData: WorkspaceUpdateInterface, user: string): Promise<WorkspaceEntity> {
     const workspace = await this.workspaceRepository.findOne({
       where: {
         id,

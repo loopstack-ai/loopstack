@@ -4,8 +4,7 @@ export * from './services';
 export * from './providers/StudioPreferencesProvider';
 export * from './providers/StudioProvider';
 export * from './providers/ComponentOverridesProvider';
-export { SseProvider } from './providers/SseProvider';
-export { InvalidationEventsProvider } from './providers/InvalidationEventsProvider';
+export { LoopstackClientProvider } from './providers/LoopstackClientProvider';
 export * from './routing/LocalRouter';
 export * from './components';
 

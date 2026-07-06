@@ -14,6 +14,29 @@ webhook endpoint, a delayed timeout, and a batch fan-out.
 
 Background reading: [Programmatic Execution](https://loopstack.ai/docs/build/integrations/programmatic-execution).
 
+## Install as Source (Recommended)
+
+Examples are meant to be read, copied, and adapted. Pull the source straight into your project with [giget](https://github.com/unjs/giget):
+
+```bash
+npx giget@latest gh:loopstack-ai/loopstack/registry/examples/scheduling-examples src/scheduling-examples
+```
+
+This copies the full `src/` tree into `src/scheduling-examples/` so you can read the trigger and workflow files, edit schedules and endpoints, and ship them as your own. Drop or keep individual fundamentals as you like.
+
+After copying, register the module in your app:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+import { SchedulingExamplesModule } from './scheduling-examples/scheduling-examples.module';
+
+@Module({
+  imports: [LoopstackModule.forRoot(), SchedulingExamplesModule],
+})
+export class AppModule {}
+```
+
 ## The core primitive: `WorkflowRunner`
 
 Every trigger boils down to injecting `WorkflowRunner` (from `@loopstack/core`, globally available

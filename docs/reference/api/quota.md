@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/quota
-description: Public API reference for @loopstack/quota
+title: 'API: @loopstack/quota'
+description: 'Public API reference for @loopstack/quota'
 includeInLlmsFullTxt: false
 ---
 

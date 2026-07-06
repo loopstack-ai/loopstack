@@ -1,14 +1,17 @@
-import { Controller, Get, Param, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { DocumentFilterDto } from '../dtos/document-filter.dto.js';
-import { DocumentItemDto } from '../dtos/document-item.dto.js';
-import { DocumentSortByDto } from '../dtos/document-sort-by.dto.js';
-import { DocumentDto } from '../dtos/document.dto.js';
-import { PaginatedDto } from '../dtos/paginated.dto.js';
-import { ParseJsonPipe } from '../pipes/parse-json.pipe.js';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { CurrentUser, CurrentUserInterface, ZodJsonQueryPipe } from '@loopstack/common';
+import {
+  DocumentFilterInterface,
+  DocumentFilterSchema,
+  DocumentItemInterface,
+  DocumentSortByInterface,
+  PaginatedInterface,
+} from '@loopstack/contracts/api';
+import { toDocumentItem } from '../mappers/document.mapper.js';
+import { toPaginated } from '../mappers/paginated.util.js';
+import { DocumentSortByQuerySchema } from '../schemas/sort-by.schemas.js';
 import { DocumentApiService } from '../services/document-api.service.js';
 
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/documents')
 export class DocumentController {
   constructor(private readonly documentService: DocumentApiService) {}
@@ -19,24 +22,27 @@ export class DocumentController {
   @Get()
   async getDocuments(
     @CurrentUser() user: CurrentUserInterface,
-    @Query('filter', new ParseJsonPipe(DocumentFilterDto)) filter: DocumentFilterDto,
-    @Query('sortBy', new ParseJsonPipe(DocumentSortByDto)) sortBy: DocumentSortByDto[],
+    @Query('filter', new ZodJsonQueryPipe(DocumentFilterSchema)) filter: DocumentFilterInterface | undefined,
+    @Query('sortBy', new ZodJsonQueryPipe(DocumentSortByQuerySchema)) sortBy: DocumentSortByInterface[] | undefined,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-  ): Promise<PaginatedDto<DocumentItemDto>> {
+  ): Promise<PaginatedInterface<DocumentItemInterface>> {
     const result = await this.documentService.findAll(user.userId, filter, sortBy, {
       page,
       limit,
     });
-    return PaginatedDto.create(DocumentItemDto, result);
+    return toPaginated(result, toDocumentItem);
   }
 
   /**
    * Retrieves a document by its ID.
    */
   @Get(':id')
-  async getDocumentById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<DocumentDto> {
+  async getDocumentById(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<DocumentItemInterface> {
     const document = await this.documentService.findOneById(id, user.userId);
-    return DocumentDto.create(document);
+    return toDocumentItem(document);
   }
 }

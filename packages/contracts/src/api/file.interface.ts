@@ -1,4 +1,4 @@
-import { WorkflowConfigInterface } from '../types/interfaces/workflow-config.interface.js';
+import { WorkflowConfigInterface } from './config.schema.js';
 
 export interface FileExplorerNodeInterface {
   id: string;

@@ -36,22 +36,16 @@ const WorkspaceHomePage = ({ workspace, action }: WorkspaceHomePageProps) => {
   const handleSubmit = (data: Record<string, any>) => {
     createWorkflow.mutate(
       {
-        workflowCreateDto: {
-          workflowName: workflow,
-          title: null,
-          workspaceId: workspace.id,
-          transition: null,
-          args: hasSchema ? data : undefined,
-        },
+        workflowName: workflow,
+        title: null,
+        workspaceId: workspace.id,
+        transition: null,
+        args: hasSchema ? data : undefined,
       },
       {
         onSuccess: (createdWorkflow) => {
           runWorkflow.mutate(
-            {
-              workflowId: createdWorkflow.id,
-              runWorkflowPayloadDto: {},
-              force: true,
-            },
+            { workflowId: createdWorkflow.id },
             {
               onSuccess: () => {
                 void router.navigateToWorkflow(createdWorkflow.id);

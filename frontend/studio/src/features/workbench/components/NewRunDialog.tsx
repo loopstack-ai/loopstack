@@ -2,7 +2,8 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, CheckIcon, ChevronDown, Loader2, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { StudioEnvironmentSlot, StudioWorkflowConfig } from '@/api/types';
+import type { StudioWorkflowConfig } from '@loopstack/contracts/api';
+import type { StudioEnvironmentSlot } from '@/api/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import { Button } from '@/components/ui/button.tsx';
@@ -148,11 +149,9 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
 
       startWorkflow.mutate(
         {
-          payload: {
-            workflowName: selectedWorkflow.workflowName,
-            workspaceId: selectedWorkspaceId,
-            args: args ?? {},
-          },
+          workflowName: selectedWorkflow.workflowName,
+          workspaceId: selectedWorkspaceId,
+          args: args ?? {},
         },
         { onSuccess: (result) => onSuccess(result.workflowId) },
       );

@@ -2,11 +2,7 @@ import { DialogTitle } from '@radix-ui/react-dialog';
 import { Loader2, Star } from 'lucide-react';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type {
-  AppConfigInterface,
-  WorkspaceEnvironmentInterface,
-  WorkspaceItemInterface,
-} from '@loopstack/contracts/api';
+import type { AppConfigInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import { Button } from '../../../components/ui/button.tsx';
 import { DialogHeader } from '../../../components/ui/dialog.tsx';
@@ -21,8 +17,8 @@ import { EnvironmentSlotSelector } from './EnvironmentSlotSelector.tsx';
 
 export interface CreateWorkspaceProps {
   types: AppConfigInterface[];
-  workspace?: WorkspaceItemInterface;
-  onSuccess: (workspace?: WorkspaceItemInterface) => void;
+  workspace?: WorkspaceInterface;
+  onSuccess: (workspace?: WorkspaceInterface) => void;
 }
 
 const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) => {
@@ -132,7 +128,7 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
     updateWorkspace.mutate(
       {
         id: workspace.id,
-        workspaceUpdateDto: {
+        payload: {
           title: name,
           isFavourite,
         },
@@ -157,11 +153,9 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
 
     createWorkspace.mutate(
       {
-        workspaceCreateDto: {
-          title: name || undefined,
-          appName: workspaceType,
-          isFavourite: isFavourite || undefined,
-        },
+        title: name || undefined,
+        appName: workspaceType,
+        isFavourite: isFavourite || undefined,
       },
       {
         onSuccess: async (createdWorkspace) => {

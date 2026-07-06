@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/oauth-module
-description: Public API reference for @loopstack/oauth-module
+title: 'API: @loopstack/oauth-module'
+description: 'Public API reference for @loopstack/oauth-module'
 includeInLlmsFullTxt: false
 ---
 

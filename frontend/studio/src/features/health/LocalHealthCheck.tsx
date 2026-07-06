@@ -1,9 +1,7 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiClientEvents } from '@/events';
+import { ApiClientEvents, apiClientEvents } from '@/events';
 import { useGetHealthInfo, useWorkerAuth, useWorkerAuthTokenRefresh } from '@/hooks/useAuth.ts';
-import { eventBus } from '@/services';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 
 export const Escalation = {
@@ -24,7 +22,6 @@ const LocalHealthCheck = () => {
   const authenticateWorker = useWorkerAuth();
   const tokenRefresh = useWorkerAuthTokenRefresh();
   const fetchHealthInfo = useGetHealthInfo(false);
-  const queryClient = useQueryClient();
 
   // Stabilize mutation references to avoid infinite loops.
   const tokenRefreshRef = useRef(tokenRefresh);
@@ -50,9 +47,7 @@ const LocalHealthCheck = () => {
       if (environment.getIdToken) {
         idToken = await environment.getIdToken();
       }
-      authenticateWorkerRef.current.mutate({
-        hubLoginRequestDto: { idToken },
-      });
+      authenticateWorkerRef.current.mutate({ idToken });
     } catch {
       setEscalation(Escalation.Debug);
     }
@@ -66,13 +61,14 @@ const LocalHealthCheck = () => {
     return () => clearInterval(interval);
   }, [escalation, handleCheckHealth]);
 
-  // Reset escalation when health check succeeds
+  // Reset escalation when health check succeeds. No cache flush here: on
+  // reconnect the event stream resumes or emits stream.reset, which triggers
+  // an environment-scoped invalidation via useLiveInvalidation.
   useEffect(() => {
     if (fetchHealthInfo.data) {
       setEscalation(Escalation.None);
-      void queryClient.invalidateQueries();
     }
-  }, [fetchHealthInfo.data, queryClient]);
+  }, [fetchHealthInfo.data]);
 
   // Token refresh error → escalate to Login
   useEffect(() => {
@@ -83,10 +79,10 @@ const LocalHealthCheck = () => {
 
   // Token refresh success → clear escalation
   useEffect(() => {
-    if ((tokenRefresh.data as { status?: number } | undefined)?.status === 200) {
+    if (tokenRefresh.isSuccess) {
       setEscalation(Escalation.None);
     }
-  }, [tokenRefresh.data]);
+  }, [tokenRefresh.isSuccess]);
 
   // Login error → escalate to Debug
   useEffect(() => {
@@ -97,10 +93,10 @@ const LocalHealthCheck = () => {
 
   // Login success → clear escalation
   useEffect(() => {
-    if ((authenticateWorker.data as { status?: number } | undefined)?.status === 200) {
+    if (authenticateWorker.isSuccess) {
       setEscalation(Escalation.None);
     }
-  }, [authenticateWorker.data]);
+  }, [authenticateWorker.isSuccess]);
 
   // Act on escalation level changes
   useEffect(() => {
@@ -113,10 +109,10 @@ const LocalHealthCheck = () => {
 
   // Subscribe to events
   useEffect(() => {
-    const unsubscribe1 = eventBus.on(ApiClientEvents.UNAUTHORIZED, () => {
+    const unsubscribe1 = apiClientEvents.on(ApiClientEvents.UNAUTHORIZED, () => {
       setEscalation(Escalation.Refresh);
     });
-    const unsubscribe2 = eventBus.on(ApiClientEvents.ERR_NETWORK, () => {
+    const unsubscribe2 = apiClientEvents.on(ApiClientEvents.ERR_NETWORK, () => {
       setEscalation(Escalation.Connection);
     });
     return () => {

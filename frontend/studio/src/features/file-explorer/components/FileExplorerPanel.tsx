@@ -3,7 +3,7 @@ import { FileContentViewer } from '@/features/code-explorer';
 import { useFeatureConfig } from '@/features/feature-registry';
 import { useWorkbenchLayout } from '@/features/workbench';
 import { SidebarPanel } from '@/features/workbench/components/SidebarPanel';
-import type { FileExplorerVariant } from '../api/files';
+import type { FileExplorerVariant } from '../hooks/useFileExplorer';
 import { FileExplorerProvider, useOptionalFileExplorer } from '../providers/FileExplorerProvider';
 import { FileTabsBar } from './FileTabsBar';
 import { FileTree } from './FileTree';

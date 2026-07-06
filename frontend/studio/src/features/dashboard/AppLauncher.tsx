@@ -1,8 +1,9 @@
 import { Boxes, FolderOpen, Plus, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { WorkspaceItemInterface } from '@loopstack/contracts/api';
-import type { StudioAppConfig, StudioEnvironmentSlot } from '../../api/types.ts';
+import type { WorkspaceInterface } from '@loopstack/contracts/api';
+import type { StudioAppConfig } from '@loopstack/contracts/api';
+import type { StudioEnvironmentSlot } from '../../api/types.ts';
 import { Button } from '../../components/ui/button.tsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card.tsx';
 import { Dialog, DialogContent } from '../../components/ui/dialog.tsx';
@@ -77,7 +78,7 @@ export default function AppLauncher({ apps }: AppLauncherProps) {
     [selectedApp],
   );
 
-  const handleSuccess = (workspace?: WorkspaceItemInterface) => {
+  const handleSuccess = (workspace?: WorkspaceInterface) => {
     setSelectedApp(null);
     if (workspace) {
       void router.navigateToWorkspace(workspace.id);

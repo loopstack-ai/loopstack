@@ -209,7 +209,7 @@ export class WorkflowRunner {
   async runById(
     workflowId: string,
     userId: string,
-    payload: { transition?: { id: string; workflowId?: string; payload?: unknown } } = {},
+    payload: { transition?: { id?: string; workflowId?: string; payload?: unknown } } = {},
   ): Promise<RunResult> {
     const workerId = this.configService.getOrThrow<string>('auth.clientId');
 

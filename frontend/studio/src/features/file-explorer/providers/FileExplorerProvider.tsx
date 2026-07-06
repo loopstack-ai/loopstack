@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
-import type { FileExplorerVariant } from '../api/files';
-import { useFileContent, useFileTree } from '../hooks/useFileExplorer';
+import { useLoopstackClient } from '@loopstack/react';
+import { type FileExplorerVariant, fileTreeKey, useFileContent, useFileTree } from '../hooks/useFileExplorer';
 import type { FileExplorerNode } from '../types';
 
 export interface FileExplorerContextValue {
@@ -35,6 +35,7 @@ interface FileExplorerProviderProps {
 }
 
 export function FileExplorerProvider({ variant, workspaceId, enabled = true, children }: FileExplorerProviderProps) {
+  const client = useLoopstackClient();
   const queryClient = useQueryClient();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [openFiles, setOpenFiles] = useState<FileExplorerNode[]>([]);
@@ -142,8 +143,8 @@ export function FileExplorerProvider({ variant, workspaceId, enabled = true, chi
   );
 
   const refreshTree = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: ['file-explorer-tree'] });
-  }, [queryClient]);
+    void queryClient.invalidateQueries({ queryKey: fileTreeKey(client.envKey) });
+  }, [queryClient, client.envKey]);
 
   const value = useMemo<FileExplorerContextValue>(
     () => ({

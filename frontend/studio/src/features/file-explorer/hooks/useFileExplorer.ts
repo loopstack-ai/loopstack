@@ -1,18 +1,31 @@
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
-import { useApiClient } from '@/hooks/useApi';
-import type { FileExplorerVariant } from '../api/files';
+import { useLoopstackClient } from '@loopstack/react';
 import type { FileContent, FileExplorerNode } from '../types';
+
+export type FileExplorerVariant = 'local' | 'remote';
+
+const VARIANT_BASE_PATH: Record<FileExplorerVariant, string> = {
+  local: 'local-files',
+  remote: 'remote-files',
+};
+
+const explorerPath = (variant: FileExplorerVariant, workspaceId: string) =>
+  `/api/v1/workspaces/${workspaceId}/${VARIANT_BASE_PATH[variant]}`;
+
+export function fileTreeKey(envKey: string, variant?: FileExplorerVariant, workspaceId?: string) {
+  return ['file-explorer-tree', envKey, ...(variant ? [variant] : []), ...(workspaceId ? [workspaceId] : [])];
+}
 
 export function useFileTree(
   variant: FileExplorerVariant,
   workspaceId: string | undefined,
   enabled = true,
 ): UseQueryResult<FileExplorerNode[], Error> {
-  const { envKey, api } = useApiClient();
+  const client = useLoopstackClient();
 
   return useQuery<FileExplorerNode[], Error>({
-    queryKey: ['file-explorer-tree', variant, envKey, workspaceId],
-    queryFn: () => api.files[variant].getTree({ workspaceId: workspaceId! }),
+    queryKey: fileTreeKey(client.envKey, variant, workspaceId),
+    queryFn: () => client.http.get<FileExplorerNode[]>(`${explorerPath(variant, workspaceId!)}/tree`),
     enabled: !!workspaceId && enabled,
     staleTime: 30_000,
     retry: false,
@@ -25,11 +38,11 @@ export function useFileContent(
   filePath: string | undefined,
   enabled = true,
 ): UseQueryResult<FileContent, Error> {
-  const { envKey, api } = useApiClient();
+  const client = useLoopstackClient();
 
   return useQuery<FileContent, Error>({
-    queryKey: ['file-explorer-content', variant, envKey, workspaceId, filePath],
-    queryFn: () => api.files[variant].readFile({ workspaceId: workspaceId!, path: filePath! }),
+    queryKey: ['file-explorer-content', client.envKey, variant, workspaceId, filePath],
+    queryFn: () => client.http.get<FileContent>(`${explorerPath(variant, workspaceId!)}/read`, { path: filePath! }),
     enabled: !!workspaceId && !!filePath && enabled,
     staleTime: 15_000,
     retry: false,

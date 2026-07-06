@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/remote-file-explorer-module
-description: Public API reference for @loopstack/remote-file-explorer-module
+title: 'API: @loopstack/remote-file-explorer-module'
+description: 'Public API reference for @loopstack/remote-file-explorer-module'
 includeInLlmsFullTxt: false
 ---
 

@@ -114,7 +114,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 
     runWorkflow.mutate({
       workflowId: parentWorkflow.id,
-      runWorkflowPayloadDto: {
+      payload: {
         transition: {
           id: transition,
           workflowId: workflow.id,

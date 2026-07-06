@@ -27,17 +27,23 @@
     "./api": {
       "types": "./dist/api/index.d.ts",
       "default": "./dist/api/index.js"
+    },
+    "./events": {
+      "types": "./dist/events/index.d.ts",
+      "default": "./dist/events/index.js"
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "watch": "tsc --watch"
+    "test": "vitest run",
+    "watch": "tsc -p tsconfig.build.json --watch"
   },
   "dependencies": {},
   "devDependencies": {
+    "vitest": "^4.1.6",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
@@ -59,6 +65,9 @@
       ],
       "api": [
         "./dist/api/index.d.ts"
+      ],
+      "events": [
+        "./dist/events/index.d.ts"
       ]
     }
   }

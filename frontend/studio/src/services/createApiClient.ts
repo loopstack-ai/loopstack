@@ -1,11 +1,18 @@
-import { type ApiClient, createApi, createAxiosClient } from '../api';
+import { createClient } from '@loopstack/client';
+import type { AuthResource } from '@loopstack/client';
 import type { Environment } from '../types';
+import { createReportingFetch } from './reporting-fetch';
 
-export function createApiClient(environment: Environment): { auth: ApiClient['auth'] } {
-  const http = createAxiosClient(environment.url, environment.id);
-  const api = createApi(http);
+/** Auth surface of an environment, for hosts that probe/login before mounting Studio. */
+export function createApiClient(environment: Environment): { auth: AuthResource } {
+  const client = createClient({
+    url: environment.url,
+    envKey: environment.id,
+    credentials: 'include',
+    fetch: createReportingFetch(environment.id),
+  });
 
   return {
-    auth: api.auth,
+    auth: client.auth,
   };
 }

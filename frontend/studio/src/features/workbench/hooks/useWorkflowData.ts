@@ -33,7 +33,7 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
       const docConfig = documentConfigs.get(item.documentName);
       const staticMeta = docConfig?.meta;
 
-      let hidden = staticMeta?.hidden || !!staticMeta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');
+      let hidden = !!staticMeta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');
 
       const isInternalMessage = false; //['tool'].includes(document.content.role);
 
@@ -77,7 +77,7 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
     (transition: string, data: Record<string, unknown> | string | undefined) => {
       runWorkflow.mutate({
         workflowId: workflowId,
-        runWorkflowPayloadDto: {
+        payload: {
           transition: {
             id: transition,
             workflowId: workflowId,

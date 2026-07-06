@@ -1,5 +1,4 @@
-export * from './query-keys.ts';
-export * from './useApi.ts';
+// Query cache keys live in the SDK: import { queryKeys } from '@loopstack/client'.
 export * from './use-mobile.ts';
 export { useAppsConfig, useAvailableEnvironments, useDocumentConfigs } from './useConfig.ts';
 export { useWorkspaceEnvironments, useReplaceEnvironments, useResetEnvironment } from './useEnvironments.ts';

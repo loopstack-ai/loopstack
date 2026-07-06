@@ -2,8 +2,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { format, formatDistanceToNow, isToday, isYesterday, parseISO } from 'date-fns';
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { queryKeys } from '@loopstack/client';
 import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
+import { useLoopstackClient } from '@loopstack/react';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import CustomListView from '../../../components/lists/CustomListView.tsx';
 import { Badge } from '../../../components/ui/badge.tsx';
@@ -67,6 +69,7 @@ interface ExecutionTimelineProps {
 const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
   const { router } = useStudio();
   const queryClient = useQueryClient();
+  const client = useLoopstackClient();
 
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(25);
@@ -87,8 +90,8 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
   };
 
   useEffect(() => {
-    void queryClient.invalidateQueries({ queryKey: ['workflows'] });
-  }, [queryClient]);
+    void queryClient.invalidateQueries({ queryKey: queryKeys.workflows(client.envKey) });
+  }, [client.envKey, queryClient]);
 
   // Format updated time to show relative time for recent updates using date-fns
   const formatUpdatedTime = (updatedAt: string) => {

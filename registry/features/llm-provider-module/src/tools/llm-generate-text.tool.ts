@@ -171,13 +171,38 @@ export class LlmGenerateTextTool extends BaseTool<
     const userId = ctx.userId;
     if (!workflowId || !userId) return;
 
-    this.clientMessageService.dispatch({
-      ...event,
-      eventType: event.type,
-      type: `llm.response.${event.type}`,
+    const base = {
       userId,
       workerId: this.clientMessageService.clientId,
       workflowId,
-    });
+      messageId: event.messageId,
+    };
+
+    switch (event.type) {
+      case 'start':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.start' });
+        break;
+      case 'text_delta':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.text_delta', delta: event.delta });
+        break;
+      case 'thinking_delta':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.thinking_delta', delta: event.delta });
+        break;
+      case 'tool_call':
+        this.clientMessageService.dispatch({
+          ...base,
+          type: 'llm.response.tool_call',
+          id: event.id,
+          name: event.name,
+          args: event.args,
+        });
+        break;
+      case 'done':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.done', message: event.message });
+        break;
+      case 'error':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.error', error: event.error });
+        break;
+    }
   }
 }

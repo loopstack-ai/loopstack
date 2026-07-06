@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/google-workspace-module
-description: Public API reference for @loopstack/google-workspace-module
+title: 'API: @loopstack/google-workspace-module'
+description: 'Public API reference for @loopstack/google-workspace-module'
 includeInLlmsFullTxt: false
 ---
 

@@ -1,4 +1,4 @@
-import type { GitCommit } from '../api/git';
+import type { GitCommit } from '../types';
 
 interface GitCommitListProps {
   commits: GitCommit[];

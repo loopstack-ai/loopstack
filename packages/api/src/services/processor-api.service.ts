@@ -1,10 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import type { WorkflowRunResult } from '@loopstack/common';
-import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
+import type { RunWorkflowPayloadInterface, StartWorkflowPayloadInterface } from '@loopstack/contracts/api';
 import { WorkflowRunner } from '@loopstack/core';
 import { StudioDiscoveryService } from '@loopstack/core';
-import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto.js';
-import { StartWorkflowPayloadDto } from '../dtos/start-workflow-payload.dto.js';
 import { WorkflowApiService } from './workflow-api.service.js';
 
 @Injectable()
@@ -15,7 +13,7 @@ export class ProcessorApiService {
     private readonly studioDiscoveryService: StudioDiscoveryService,
   ) {}
 
-  async processWorkflow(workflowId: string, user: string, payload: RunWorkflowPayloadDto): Promise<void> {
+  async processWorkflow(workflowId: string, user: string, payload: RunWorkflowPayloadInterface): Promise<void> {
     await this.workflowApiService.findOneById(workflowId, user);
 
     const transition = payload.transition
@@ -35,7 +33,9 @@ export class ProcessorApiService {
    * delivers for sub-workflow completions, so wait transitions see one consistent
    * `TransitionInput<TData>` regardless of trigger source.
    */
-  private buildTransitionEnvelope(transition: TransitionPayloadInterface): Record<string, unknown> {
+  private buildTransitionEnvelope(
+    transition: NonNullable<RunWorkflowPayloadInterface['transition']>,
+  ): Record<string, unknown> {
     const status = transition.status ?? 'completed';
     const errorMessage = transition.errorMessage ?? null;
     return {
@@ -47,7 +47,7 @@ export class ProcessorApiService {
     };
   }
 
-  async startWorkflow(payload: StartWorkflowPayloadDto, userId: string): Promise<WorkflowRunResult> {
+  async startWorkflow(payload: StartWorkflowPayloadInterface, userId: string): Promise<WorkflowRunResult> {
     const { workflowName } = payload;
 
     // Derive appName from which @StudioApp declares this workflow

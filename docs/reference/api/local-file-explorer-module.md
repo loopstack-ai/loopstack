@@ -1,6 +1,6 @@
 ---
-title: API: @loopstack/local-file-explorer-module
-description: Public API reference for @loopstack/local-file-explorer-module
+title: 'API: @loopstack/local-file-explorer-module'
+description: 'Public API reference for @loopstack/local-file-explorer-module'
 includeInLlmsFullTxt: false
 ---
 

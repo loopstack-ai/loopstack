@@ -51,11 +51,7 @@ const WorkflowItem: React.FC<{
   const canRetry = childWorkflow?.hasError && !isAutoRetrying && hasAutoTransition !== false;
 
   const handleRetry = () => {
-    runWorkflow.mutate({
-      workflowId: workflowId,
-      runWorkflowPayloadDto: {},
-      force: true,
-    });
+    runWorkflow.mutate({ workflowId: workflowId });
   };
 
   return (
