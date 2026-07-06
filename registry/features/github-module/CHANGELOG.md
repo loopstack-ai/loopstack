@@ -1,5 +1,13 @@
 # @loopstack/github-module
 
+## 0.4.6
+
+### Patch Changes
+
+- Updated dependencies [[`e67c62a`](https://github.com/loopstack-ai/loopstack/commit/e67c62aac7539e7d8c642d7f667327cb9d2aa91e), [`20970e9`](https://github.com/loopstack-ai/loopstack/commit/20970e90fee8bb9d72624928b45c73c65eb73f20), [`7ca82a0`](https://github.com/loopstack-ai/loopstack/commit/7ca82a028ef47285b80b62ad78209cc6531d3f0d), [`dcb4d09`](https://github.com/loopstack-ai/loopstack/commit/dcb4d09f06a0185921f6787a93287396bd7de841)]:
+  - @loopstack/common@0.37.0
+  - @loopstack/oauth-module@0.4.6
+
 ## 0.4.5
 
 ### Patch Changes

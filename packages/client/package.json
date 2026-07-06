@@ -2,7 +2,7 @@
   "name": "@loopstack/client",
   "displayName": "Loopstack Client",
   "description": "Headless TypeScript SDK for the Loopstack REST API and event stream",
-  "version": "0.36.0",
+  "version": "0.37.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -26,7 +26,7 @@
     "watch": "tsc -p tsconfig.build.json --watch"
   },
   "dependencies": {
-    "@loopstack/contracts": "^0.36.0"
+    "@loopstack/contracts": "^0.37.0"
   },
   "devDependencies": {
     "vitest": "^4.1.6",

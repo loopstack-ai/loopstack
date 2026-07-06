@@ -1,5 +1,0 @@
----
-'@loopstack/loopstack-studio': minor
----
-
-Studio's workflow run + live trace slice now runs on the Loopstack SDK. `LoopstackClientProvider` supplies an `@loopstack/client` instance per environment and mounts the SDK's `useLiveInvalidation()`; the SSE `EventSource` provider, the global event bus, and the invalidation provider are gone. Pilot data hooks (`useWorkflow`, `useFilterWorkflows`, `useFilterDocuments`, `useRunWorkflow`, `useStartWorkflow`, and friends) delegate to `@loopstack/react`, and the matching axios modules and cache-key builders are removed. `useLlmStreamingDocuments` keeps only the typewriter reveal and synthetic-document mapping on top of the SDK's `useLlmStream`. Reconnects now recover via the stream's resume/`stream.reset` protocol with environment-scoped invalidation instead of a whole-cache flush; `useRunWorkflow` drops the `force` flag and `useFilterWorkflows` the `searchColumns` param — both were ignored by the server. API transport errors reach the health banner through a dedicated `apiClientEvents` channel from both axios and the SDK's fetch.
