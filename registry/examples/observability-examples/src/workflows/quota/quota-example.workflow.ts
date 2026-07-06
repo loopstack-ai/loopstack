@@ -10,7 +10,7 @@ interface QuotaExampleState {
 }
 
 const QuotaExampleArgsSchema = z.object({
-  quotaType: z.string().default('ai_generate_text'),
+  quotaType: z.string().default('llm-cost'),
   reportAmount: z.number().default(1000),
 });
 
