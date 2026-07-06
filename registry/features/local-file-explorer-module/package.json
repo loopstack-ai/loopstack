@@ -8,7 +8,7 @@
     "filesystem",
     "workflow"
   ],
-  "version": "0.25.0",
+  "version": "0.25.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -31,9 +31,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.36.0",
-    "@loopstack/contracts": "^0.36.0",
-    "@loopstack/core": "^0.36.0",
+    "@loopstack/common": "^0.37.0",
+    "@loopstack/contracts": "^0.37.0",
+    "@loopstack/core": "^0.37.0",
     "yaml": "^2.8.3"
   },
   "devDependencies": {

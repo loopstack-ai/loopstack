@@ -9,7 +9,7 @@
     "workflow",
     "tools"
   ],
-  "version": "0.26.0",
+  "version": "0.26.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,8 +32,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.36.0",
-    "@loopstack/secrets-module": "^0.25.5"
+    "@loopstack/common": "^0.37.0",
+    "@loopstack/secrets-module": "^0.26.0"
   },
   "devDependencies": {
     "@nestjs/common": "^11.1.19",
