@@ -66,7 +66,7 @@ loopstack run hello --arg name=Maya
 - `--quiet` — no progress, print only the final result (pipe-friendly)
 - `--open` — open the run in Studio
 
-Not sure what you can run? `loopstack list` shows every workflow of the environment with its app and title.
+Not sure what you can run? `loopstack list` shows every workflow of the environment with its app and title — and `loopstack list <workflow>` shows one workflow's arguments (name, type, required, default, from its zod schema) plus a copy-pasteable `run` example. `--json` returns the raw schema for tooling.
 
 ### Human-in-the-loop prompts
 

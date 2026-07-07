@@ -38,15 +38,15 @@ answer: 2
 
 ## Commands
 
-| Command                    | What it does                                                                                                                       |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `loopstack create <dir>`   | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)                                          |
-| `loopstack list`           | Workflows you can run in the current environment                                                                                   |
-| `loopstack run <workflow>` | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--arg k=@-` (stdin), `--detach`, `--quiet`, `--open`, `--json` |
-| `loopstack runs [run-id]`  | Recent runs (waiting-for-input first) or one run’s audit trail; `--follow` reattaches and answers prompts                          |
-| `loopstack watch`          | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                                                                    |
-| `loopstack login`          | Save a backend environment to `~/.loopstack/config.json`                                                                           |
-| `loopstack env list\|use`  | Manage saved environments                                                                                                          |
+| Command                     | What it does                                                                                                                       |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `loopstack create <dir>`    | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)                                          |
+| `loopstack list [workflow]` | Workflows you can run; with a name: its arguments and a ready-to-run example                                                       |
+| `loopstack run <workflow>`  | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--arg k=@-` (stdin), `--detach`, `--quiet`, `--open`, `--json` |
+| `loopstack runs [run-id]`   | Recent runs (waiting-for-input first) or one run’s audit trail; `--follow` reattaches and answers prompts                          |
+| `loopstack watch`           | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                                                                    |
+| `loopstack login`           | Save a backend environment to `~/.loopstack/config.json`                                                                           |
+| `loopstack env list\|use`   | Manage saved environments                                                                                                          |
 
 ## CI
 
