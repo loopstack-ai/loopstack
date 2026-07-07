@@ -1,5 +1,24 @@
 # @loopstack/cli
 
+## 0.17.0
+
+### Minor Changes
+
+- [#240](https://github.com/loopstack-ai/loopstack/pull/240) [`ab0d9ab`](https://github.com/loopstack-ai/loopstack/commit/ab0d9ab809872c1bc0293dda8944d8171dacf6a1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Followed runs now show what the workflow actually produced: message documents render live as they are saved (from the run and its sub-workflows — prompts, LLM messages, and links excluded), LLM tokens stream from sub-workflows too, and the published result prints in human mode (`run` on completion and `runs <run-id>`).
+
+- [#240](https://github.com/loopstack-ai/loopstack/pull/240) [`743209b`](https://github.com/loopstack-ai/loopstack/commit/743209bee73cdc598c4a1d73f1387e42b77b79f8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `loopstack list <workflow>` shows what a workflow expects: description, owning app, an arguments table (name, type, required, default — from the workflow's zod schema), and a copy-pasteable `run` example. `--json` returns the raw schema.
+
+- [#240](https://github.com/loopstack-ai/loopstack/pull/240) [`39a6d4f`](https://github.com/loopstack-ai/loopstack/commit/39a6d4f1f6bed625c2f93b80bb473f912dc73f7b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Chat prompts work in the terminal: workflow-level `prompt-input` widgets (from `@Workflow({ widget })`) are discovered via the workflow config, render as a labeled input, and submit the raw message string the transition schema expects — chat-loop workflows like `prompt_input_chat_example` now converse round after round, in fresh and reattached sessions.
+
+### Patch Changes
+
+- [#240](https://github.com/loopstack-ai/loopstack/pull/240) [`e5f90da`](https://github.com/loopstack-ai/loopstack/commit/e5f90da6412b4cf15bc91c0d47d7e93c6e49c78d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Version line realigned to 0.16.x — continuing above the pre-rewrite 0.15.x releases so the newest version also reads as the highest.
+
+- [#240](https://github.com/loopstack-ai/loopstack/pull/240) [`cdf44e9`](https://github.com/loopstack-ai/loopstack/commit/cdf44e9a3a85c4ecb4b89c71f9c5733493e60f55) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Output polish: followed runs print their Studio deep link right at the top, `--detach` output includes the `resume with: loopstack runs <id> --follow` hint, and `list` spreads its columns with minimum widths plus spacing before the summary line.
+
+- Updated dependencies [[`e5f90da`](https://github.com/loopstack-ai/loopstack/commit/e5f90da6412b4cf15bc91c0d47d7e93c6e49c78d)]:
+  - @loopstack/client@0.37.1
+
 ## 0.1.0
 
 ### Minor Changes

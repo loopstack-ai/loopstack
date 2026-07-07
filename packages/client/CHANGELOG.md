@@ -1,5 +1,11 @@
 # @loopstack/client
 
+## 0.37.1
+
+### Patch Changes
+
+- [#240](https://github.com/loopstack-ai/loopstack/pull/240) [`e5f90da`](https://github.com/loopstack-ai/loopstack/commit/e5f90da6412b4cf15bc91c0d47d7e93c6e49c78d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - npm-facing READMEs: a verified under-20-line quickstart (start a run, stream it, read the result), the resource/hook surface, auth, live events, and multi-environment cache scoping.
+
 ## 0.37.0
 
 ### Minor Changes
