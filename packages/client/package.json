@@ -2,7 +2,7 @@
   "name": "@loopstack/client",
   "displayName": "Loopstack Client",
   "description": "Headless TypeScript SDK for the Loopstack REST API and event stream",
-  "version": "0.37.0",
+  "version": "0.37.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",

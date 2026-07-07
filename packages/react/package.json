@@ -2,7 +2,7 @@
   "name": "@loopstack/react",
   "displayName": "Loopstack React",
   "description": "React adapter for the Loopstack SDK — provider, TanStack Query hooks, and live stream bindings",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -29,12 +29,12 @@
     "@loopstack/contracts": "^0.37.0"
   },
   "peerDependencies": {
-    "@loopstack/client": "^0.37.0",
+    "@loopstack/client": "^0.37.1",
     "@tanstack/react-query": "^5.0.0",
     "react": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@loopstack/client": "^0.37.0",
+    "@loopstack/client": "^0.37.1",
     "@tanstack/react-query": "^5.99.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.3.2",
