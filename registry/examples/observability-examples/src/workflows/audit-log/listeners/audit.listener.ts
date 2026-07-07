@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import type { ClientMessageInterface } from '@loopstack/contracts/types';
+import type { ClientMessage } from '@loopstack/contracts/events';
 import { AuditLogService } from '../services/audit-log.service';
 
 @Injectable()
@@ -10,12 +10,13 @@ export class AuditListener {
   constructor(private readonly auditLog: AuditLogService) {}
 
   @OnEvent('client.message')
-  handle(payload: ClientMessageInterface): void {
+  handle(payload: ClientMessage): void {
+    const workflowId = 'workflowId' in payload ? payload.workflowId : undefined;
     this.auditLog.record({
       type: payload.type,
-      workflowId: payload.workflowId,
+      workflowId,
       userId: payload.userId,
     });
-    this.logger.log(`${payload.type} (workflow ${payload.workflowId ?? '-'})`);
+    this.logger.log(`${payload.type} (workflow ${workflowId ?? '-'})`);
   }
 }
