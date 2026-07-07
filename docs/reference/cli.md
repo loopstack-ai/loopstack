@@ -56,7 +56,7 @@ An environment can carry the URL of its Studio frontend — `loopstack login` as
 loopstack run hello --arg name=Maya
 ```
 
-`run` starts the workflow, subscribes to the event stream _before_ starting (no event is missed), and renders the run live: one step line per place with its duration, LLM tokens streamed inline, and a final status line.
+`run` starts the workflow, subscribes to the event stream _before_ starting (no event is missed), and renders the run live: one step line per place with its duration, LLM tokens streamed inline, messages the run saves (from the run and its sub-workflows), the published result, and a final status line.
 
 - `--arg key=value` — repeatable; values that parse as JSON are coerced (`count=3` → number, `flags={"a":1}` → object), everything else stays a string
 - `--arg ticket=@samples/ticket-042.json` — read the value from a file (parsed as JSON when it is JSON)
@@ -124,7 +124,7 @@ loopstack watch                         # the environment's event firehose
 loopstack watch --type workflow.updated --json   # NDJSON, filterable
 ```
 
-`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it reconstructs the run from its checkpoints — one line per place with the time spent there — and `--follow` reattaches to the live stream, including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
+`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it reconstructs the run from its checkpoints — one line per place with the time spent there, plus the run's published result — and `--follow` reattaches to the live stream, including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
 
 ## Output conventions
 

@@ -18,9 +18,10 @@ $ loopstack run hello --arg name=Maya
 
 ▸ run 088cd19c… started
 ▸ start
-"Hey there, Maya! 👋 Ready to make some terminal magic happen today?"
-✓ start (2.3s)
-■ run completed in 2.4s
+✓ start (9ms)
+Hello, Maya! 👋
+result: {"greeting":"Hello, Maya! 👋"}
+■ run completed in 96ms
 ```
 
 When a run asks a question, answer it right there — or in Studio; whichever answers first wins, and the CLI keeps following either way. Field forms hand off to Studio via deep link (or open in `$EDITOR` with `--editor`):

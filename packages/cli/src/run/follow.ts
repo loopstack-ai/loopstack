@@ -28,6 +28,12 @@ export interface FollowOptions {
   onIdle?: (signal: AbortSignal, onPromptWorkflow: (id: string) => void) => Promise<IdleOutcome>;
   /** Start the idle hook immediately — attaching to an already-waiting run. */
   initiallyIdle?: boolean;
+  /**
+   * Called when the run (or one of its sub-workflows) saved a document —
+   * the hook behind live message rendering. The event carries no content;
+   * the handler fetches.
+   */
+  onDocument?: (workflowId: string) => Promise<void>;
 }
 
 const TERMINAL_STATES: readonly WorkflowState[] = [
@@ -80,9 +86,18 @@ export async function followRun(
 
   const outcome = (status: WorkflowState): FollowOutcome => ({ status, durationMs: Date.now() - startedAt });
 
+  // The run's family: the followed root plus every sub-workflow spawned
+  // under it — LLM tokens and documents from sub-workflows render too.
+  const family = new Set([workflowId]);
+
   /** Renders one event; returns the follow outcome when the run ended, 'idle' on pause. */
   const handleEvent = (event: ClientMessage): FollowOutcome | 'idle' | undefined => {
-    if (!('workflowId' in event) || event.workflowId !== workflowId) return undefined;
+    if (!('workflowId' in event)) return undefined;
+    if (event.type === 'workflow.created') {
+      if (event.parentId && family.has(event.parentId)) family.add(event.workflowId);
+      return undefined;
+    }
+    if (!family.has(event.workflowId)) return undefined;
 
     switch (event.type) {
       case 'llm.response.text_delta':
@@ -94,6 +109,7 @@ export async function followRun(
         endTokenLine();
         break;
       case 'workflow.updated': {
+        if (event.workflowId !== workflowId) break;
         if (event.place && event.place !== currentPlace) {
           finishStep();
           // 'end' is the framework's terminal place — the summary line covers it.
@@ -169,6 +185,17 @@ export async function followRun(
       pendingNext = null;
       if (done) throw new CliError('Event stream ended before the run reached a final state.');
       event = value;
+    }
+
+    if (
+      event.type === 'document.created' &&
+      'workflowId' in event &&
+      family.has(event.workflowId) &&
+      options.onDocument
+    ) {
+      endTokenLine();
+      await options.onDocument(event.workflowId);
+      continue;
     }
 
     const handled = handleEvent(event);

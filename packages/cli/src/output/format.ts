@@ -14,6 +14,17 @@ export function renderTable(headers: string[], rows: string[][]): string {
   return [pc.dim(renderRow(headers)), ...rows.map(renderRow)].join('\n');
 }
 
+/**
+ * The run's published result in human mode — compact on one line when it
+ * fits, pretty-printed otherwise. Empty results print nothing.
+ */
+export function renderResult(out: NodeJS.WritableStream, result: unknown): void {
+  if (result == null) return;
+  const compact = JSON.stringify(result);
+  if (!compact || compact === '{}' || compact === '[]') return;
+  out.write(`${pc.dim('result:')} ${compact.length <= 100 ? compact : JSON.stringify(result, null, 2)}\n`);
+}
+
 export function colorStatus(status: string): string {
   switch (status) {
     case WorkflowState.Completed:

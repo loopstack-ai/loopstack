@@ -44,6 +44,15 @@ function captureSink() {
 const updated = (workflowId: string, status: WorkflowState, place?: string): ClientMessage =>
   ({ type: 'workflow.updated', workflowId, status, place }) as unknown as ClientMessage;
 
+const created = (workflowId: string, parentId: string): ClientMessage =>
+  ({ type: 'workflow.created', workflowId, parentId }) as unknown as ClientMessage;
+
+const documentCreated = (workflowId: string): ClientMessage =>
+  ({ type: 'document.created', workflowId }) as unknown as ClientMessage;
+
+const delta = (workflowId: string, text: string): ClientMessage =>
+  ({ type: 'llm.response.text_delta', workflowId, delta: text }) as unknown as ClientMessage;
+
 const ROOT = 'root-1';
 const SUB = 'sub-1';
 
@@ -116,6 +125,44 @@ describe('followRun', () => {
 
     const outcome = await run;
     expect(outcome.status).toBe(WorkflowState.Waiting);
+  });
+
+  it('renders documents of the run and its sub-workflows, but not of strangers', async () => {
+    const queue = eventQueue();
+    const { out } = captureSink();
+    const rendered: string[] = [];
+
+    const run = followRun(queue.iterator, ROOT, out, {
+      onDocument: (workflowId) => {
+        rendered.push(workflowId);
+        return Promise.resolve();
+      },
+    });
+
+    queue.push(documentCreated(ROOT)); // own document
+    queue.push(created(SUB, ROOT)); // sub-workflow spawned under the run
+    queue.push(documentCreated(SUB)); // its document renders too
+    queue.push(documentCreated('stranger-1')); // unrelated run — ignored
+    queue.push(updated(ROOT, WorkflowState.Completed, 'end'));
+
+    await run;
+    expect(rendered).toEqual([ROOT, SUB]);
+  });
+
+  it('streams LLM tokens from sub-workflows of the run', async () => {
+    const queue = eventQueue();
+    const { out, text } = captureSink();
+    const run = followRun(queue.iterator, ROOT, out);
+
+    queue.push(created(SUB, ROOT));
+    queue.push(delta(SUB, 'sub says hi'));
+    queue.push(delta('stranger-1', 'never printed'));
+    queue.push(updated(ROOT, WorkflowState.Completed, 'end'));
+
+    const outcome = await run;
+    expect(outcome.status).toBe(WorkflowState.Completed);
+    expect(text()).toContain('sub says hi');
+    expect(text()).not.toContain('never printed');
   });
 
   it('starts the prompt immediately when attaching to an already-waiting run', async () => {
