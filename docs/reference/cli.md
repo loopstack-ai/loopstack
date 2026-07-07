@@ -81,7 +81,7 @@ What is your name?
 ■ run completed in 920ms
 ```
 
-Free-text questions, yes/no confirmations, option choices, and approval buttons are all answered inline. The terminal prompt and Studio race fairly: while a prompt is open the CLI stays attached to the event stream, so an answer given in Studio (or by anyone else) is picked up immediately — the CLI prints `✓ answered in Studio` and keeps following.
+Free-text questions, yes/no confirmations, option choices, approval buttons, and chat inputs (workflows with a `prompt-input` widget loop right in the terminal) are all answered inline. The terminal prompt and Studio race fairly: while a prompt is open the CLI stays attached to the event stream, so an answer given in Studio (or by anyone else) is picked up immediately — the CLI prints `✓ answered in Studio` and keeps following.
 
 Forms with input fields hand off to Studio: the pause message carries the deep link, and the run continues in the terminal once the form is submitted in the browser. Without a Studio URL — or with `--editor` — the CLI opens the form payload in `$EDITOR` instead: a JSON file seeded from the form's schema and defaults, submitted on save, so no prompt type ever dead-ends in the terminal.
 
