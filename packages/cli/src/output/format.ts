@@ -2,9 +2,9 @@ import pc from 'picocolors';
 import { WorkflowState } from '@loopstack/contracts/enums';
 
 /** Plain-text table: padded columns, dimmed header, no borders. */
-export function renderTable(headers: string[], rows: string[][]): string {
+export function renderTable(headers: string[], rows: string[][], minWidths: number[] = []): string {
   const widths = headers.map((header, column) =>
-    Math.max(header.length, ...rows.map((row) => (row[column] ?? '').length)),
+    Math.max(minWidths[column] ?? 0, header.length, ...rows.map((row) => (row[column] ?? '').length)),
   );
   const renderRow = (cells: string[]) =>
     widths

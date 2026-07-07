@@ -106,6 +106,7 @@ async function listRuns(
     new Date(run.createdAt).toLocaleString(),
   ]);
   printData(renderTable(['ID', 'WORKFLOW', 'RUN', 'STATUS', 'TITLE', 'CREATED'], rows));
+  printStatus('');
   if (needsInput.length > 0) {
     printStatus(
       `${pc.yellow('⏸')} ${needsInput.length} waiting for input — answer with \`loopstack runs <run-id> --follow\``,

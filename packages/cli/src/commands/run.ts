@@ -61,6 +61,7 @@ export function registerRunCommand(program: Command): void {
       out.write(pc.dim(`▸ run ${run.workflowId} started\n`));
 
       const link = studioRunUrl(connection, run.workflowId);
+      if (link && events) out.write(pc.dim(`⧉ ${link}\n`));
       if (options.open) {
         if (link) openInBrowser(link);
         else printStatus('No Studio URL configured for this environment — set one with `loopstack login`.');
@@ -68,6 +69,7 @@ export function registerRunCommand(program: Command): void {
 
       if (!events) {
         if (link) printStatus(pc.dim(`⧉ ${link}`));
+        printStatus(pc.dim(`resume with: loopstack runs ${run.workflowId} --follow`));
         printData(
           json ? JSON.stringify({ workflowId: run.workflowId, ...(link && { studioUrl: link }) }) : run.workflowId,
         );

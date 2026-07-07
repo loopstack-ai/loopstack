@@ -57,7 +57,8 @@ async function listWorkflows(client: LoopstackClient, connection: ResolvedConnec
     return;
   }
   const rows = workflows.map((workflow) => [workflow.workflowName, workflow.title, workflow.appTitle]);
-  printData(renderTable(['WORKFLOW', 'TITLE', 'APP'], rows));
+  printData(renderTable(['WORKFLOW', 'TITLE', 'APP'], rows, [32, 42, 20]));
+  printStatus('');
   printStatus(
     `${workflows.length} workflows in ${apps.length} apps (${connection.name}) — \`loopstack list <workflow>\` shows its arguments`,
   );
