@@ -56,7 +56,7 @@ An environment can carry the URL of its Studio frontend — `loopstack login` as
 loopstack run hello --arg name=Maya
 ```
 
-`run` starts the workflow, subscribes to the event stream _before_ starting (no event is missed), and renders the run live: one step line per place with its duration, LLM tokens streamed inline, and a final status line.
+`run` starts the workflow, subscribes to the event stream _before_ starting (no event is missed), and renders the run live: one step line per place with its duration, LLM tokens streamed inline, messages the run saves (from the run and its sub-workflows), the published result, and a final status line.
 
 - `--arg key=value` — repeatable; values that parse as JSON are coerced (`count=3` → number, `flags={"a":1}` → object), everything else stays a string
 - `--arg ticket=@samples/ticket-042.json` — read the value from a file (parsed as JSON when it is JSON)
@@ -66,7 +66,7 @@ loopstack run hello --arg name=Maya
 - `--quiet` — no progress, print only the final result (pipe-friendly)
 - `--open` — open the run in Studio
 
-Not sure what you can run? `loopstack list` shows every workflow of the environment with its app and title.
+Not sure what you can run? `loopstack list` shows every workflow of the environment with its app and title — and `loopstack list <workflow>` shows one workflow's arguments (name, type, required, default, from its zod schema) plus a copy-pasteable `run` example. `--json` returns the raw schema for tooling.
 
 ### Human-in-the-loop prompts
 
@@ -81,7 +81,7 @@ What is your name?
 ■ run completed in 920ms
 ```
 
-Free-text questions, yes/no confirmations, option choices, and approval buttons are all answered inline. The terminal prompt and Studio race fairly: while a prompt is open the CLI stays attached to the event stream, so an answer given in Studio (or by anyone else) is picked up immediately — the CLI prints `✓ answered in Studio` and keeps following.
+Free-text questions, yes/no confirmations, option choices, approval buttons, and chat inputs (workflows with a `prompt-input` widget loop right in the terminal) are all answered inline. The terminal prompt and Studio race fairly: while a prompt is open the CLI stays attached to the event stream, so an answer given in Studio (or by anyone else) is picked up immediately — the CLI prints `✓ answered in Studio` and keeps following.
 
 Forms with input fields hand off to Studio: the pause message carries the deep link, and the run continues in the terminal once the form is submitted in the browser. Without a Studio URL — or with `--editor` — the CLI opens the form payload in `$EDITOR` instead: a JSON file seeded from the form's schema and defaults, submitted on save, so no prompt type ever dead-ends in the terminal.
 
@@ -124,7 +124,7 @@ loopstack watch                         # the environment's event firehose
 loopstack watch --type workflow.updated --json   # NDJSON, filterable
 ```
 
-`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it reconstructs the run from its checkpoints — one line per place with the time spent there — and `--follow` reattaches to the live stream, including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
+`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it reconstructs the run from its checkpoints — one line per place with the time spent there, plus the run's published result — and `--follow` reattaches to the live stream, including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
 
 ## Output conventions
 

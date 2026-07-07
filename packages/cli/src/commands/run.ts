@@ -5,9 +5,10 @@ import { WorkflowState } from '@loopstack/contracts/enums';
 import { createClientFor, resolveConnection } from '../config/resolve.js';
 import { ExitCode } from '../errors.js';
 import { createIdleHandler } from '../hitl/idle-handler.js';
-import { formatDuration, printData, printStatus } from '../output/format.js';
+import { formatDuration, printData, printStatus, renderResult } from '../output/format.js';
 import { openInBrowser, studioRunUrl } from '../output/studio-link.js';
 import { parseRunArgs } from '../run/args.js';
+import { createDocumentRenderer } from '../run/documents.js';
 import { followRun } from '../run/follow.js';
 import { resolveWorkspaceId } from '../run/workspace.js';
 
@@ -60,6 +61,7 @@ export function registerRunCommand(program: Command): void {
       out.write(pc.dim(`▸ run ${run.workflowId} started\n`));
 
       const link = studioRunUrl(connection, run.workflowId);
+      if (link && events) out.write(pc.dim(`⧉ ${link}\n`));
       if (options.open) {
         if (link) openInBrowser(link);
         else printStatus('No Studio URL configured for this environment — set one with `loopstack login`.');
@@ -67,6 +69,7 @@ export function registerRunCommand(program: Command): void {
 
       if (!events) {
         if (link) printStatus(pc.dim(`⧉ ${link}`));
+        printStatus(pc.dim(`resume with: loopstack runs ${run.workflowId} --follow`));
         printData(
           json ? JSON.stringify({ workflowId: run.workflowId, ...(link && { studioUrl: link }) }) : run.workflowId,
         );
@@ -75,6 +78,7 @@ export function registerRunCommand(program: Command): void {
 
       const outcome = await followRun(events, run.workflowId, out, {
         onIdle: createIdleHandler(client, run.workflowId, statusOut, { studioUrl: link, editor: options.editor }),
+        onDocument: createDocumentRenderer(client, out),
       });
       client.stream.close();
       const durationMs = Date.now() - startedAt;
@@ -102,6 +106,7 @@ export function registerRunCommand(program: Command): void {
           const result = full.result as unknown;
           printData(typeof result === 'string' ? result : JSON.stringify(result ?? null, null, 2));
         }
+        if (!json && !quiet) renderResult(out, full.result);
         statusOut.write(`${pc.green('■')} run completed in ${formatDuration(durationMs)}\n`);
         process.exit(ExitCode.Success);
       }

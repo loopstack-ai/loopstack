@@ -2,7 +2,7 @@
   "name": "@loopstack/cli",
   "displayName": "Loopstack CLI",
   "description": "Run, trace, and watch Loopstack workflows from the terminal",
-  "version": "0.1.0",
+  "version": "0.16.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",

@@ -6,8 +6,9 @@ import type { ResolvedConnection } from '../config/resolve.js';
 import { createClientFor, resolveConnection } from '../config/resolve.js';
 import { CliError, ExitCode } from '../errors.js';
 import { createIdleHandler } from '../hitl/idle-handler.js';
-import { colorStatus, formatDuration, printData, printStatus, renderTable } from '../output/format.js';
+import { colorStatus, formatDuration, printData, printStatus, renderResult, renderTable } from '../output/format.js';
 import { openInBrowser, studioRunUrl } from '../output/studio-link.js';
+import { createDocumentRenderer } from '../run/documents.js';
 import { followRun } from '../run/follow.js';
 
 const TERMINAL_STATES: readonly WorkflowState[] = [
@@ -105,6 +106,7 @@ async function listRuns(
     new Date(run.createdAt).toLocaleString(),
   ]);
   printData(renderTable(['ID', 'WORKFLOW', 'RUN', 'STATUS', 'TITLE', 'CREATED'], rows));
+  printStatus('');
   if (needsInput.length > 0) {
     printStatus(
       `${pc.yellow('⏸')} ${needsInput.length} waiting for input — answer with \`loopstack runs <run-id> --follow\``,
@@ -162,6 +164,7 @@ async function showRun(
   if (workflow.errorMessage) out.write(`${pc.red('✖')} ${workflow.errorMessage}\n`);
 
   if (!options.follow || TERMINAL_STATES.includes(workflow.status)) {
+    renderResult(out, workflow.result);
     client.stream.close();
     process.exit(ExitCode.Success);
   }
@@ -175,6 +178,7 @@ async function showRun(
   const outcome = await followRun(events!, runId, out, {
     onIdle,
     initiallyIdle: IDLE_STATES.includes(workflow.status),
+    onDocument: createDocumentRenderer(client, out),
   });
   client.stream.close();
 
@@ -189,6 +193,7 @@ async function showRun(
     );
   }
   if (outcome.status === WorkflowState.Completed) {
+    if (!json) renderResult(out, full.result);
     out.write(`${pc.green('■')} run completed\n`);
     process.exit(ExitCode.Success);
   }

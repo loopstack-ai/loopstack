@@ -6,12 +6,17 @@ import { SortOrder, WorkflowState } from '@loopstack/contracts/enums';
 export interface WidgetConfig {
   widget: string;
   options?: Record<string, unknown>;
+  /** Places the widget is active in (workflow-level widgets). */
+  enabledWhen?: string[];
   /** The document's JSON schema — seeds the $EDITOR payload skeleton for forms. */
   schema?: Record<string, unknown>;
 }
 
 /** Widgets the terminal can answer. Everything else falls back to the transition picker. */
 const PROMPT_WIDGETS = new Set(['text-prompt', 'confirm-prompt', 'choices', 'form']);
+
+/** Workflow-level prompt widgets (from `@Workflow({ widget })` — e.g. the chat input). */
+const WORKFLOW_PROMPT_WIDGETS = new Set(['prompt-input']);
 
 /** documentName → widget config, from the same app config Studio's renderers use. */
 export async function fetchDocumentWidgets(client: LoopstackClient): Promise<Map<string, WidgetConfig>> {
@@ -34,9 +39,30 @@ export async function fetchDocumentWidgets(client: LoopstackClient): Promise<Map
 export interface ActivePrompt {
   /** The waiting workflow owning the prompt — transitions are answered against it. */
   workflow: WorkflowFullInterface;
-  /** The unanswered prompt document; absent → offer the raw transition picker. */
+  /** The unanswered prompt document; absent for workflow-level widgets and the raw fallback. */
   document?: DocumentItemInterface;
   widget?: WidgetConfig;
+}
+
+/**
+ * The workflow's own prompt widget (e.g. `prompt-input`), active in the
+ * workflow's current place. Cached per workflow name — chat loops rediscover
+ * every round.
+ */
+async function findWorkflowPromptWidget(
+  client: LoopstackClient,
+  workflow: WorkflowFullInterface,
+  cache: Map<string, WidgetConfig[]>,
+): Promise<WidgetConfig | undefined> {
+  let widgets = cache.get(workflow.workflowName);
+  if (!widgets) {
+    const config = await client.config.workflowConfig(workflow.workflowName).catch(() => undefined);
+    widgets = ((config?.ui as { widgets?: WidgetConfig[] } | undefined)?.widgets ?? []).filter((widget) =>
+      WORKFLOW_PROMPT_WIDGETS.has(widget.widget),
+    );
+    cache.set(workflow.workflowName, widgets);
+  }
+  return widgets.find((widget) => !widget.enabledWhen || widget.enabledWhen.includes(workflow.place ?? ''));
 }
 
 /**
@@ -48,6 +74,7 @@ export async function findActivePrompt(
   client: LoopstackClient,
   rootWorkflowId: string,
   widgets: Map<string, WidgetConfig>,
+  workflowWidgets: Map<string, WidgetConfig[]> = new Map(),
 ): Promise<ActivePrompt | undefined> {
   const queue = [rootWorkflowId];
   const visited = new Set<string>();
@@ -78,6 +105,12 @@ export async function findActivePrompt(
       });
       if (prompt) {
         return { workflow, document: prompt, widget: widgets.get(prompt.documentName) };
+      }
+      // No prompt document — the workflow itself may carry the prompt
+      // widget (e.g. the chat input from `@Workflow({ widget })`).
+      const workflowWidget = await findWorkflowPromptWidget(client, workflow, workflowWidgets);
+      if (workflowWidget) {
+        return { workflow, widget: workflowWidget };
       }
       fallback ??= { workflow };
     }

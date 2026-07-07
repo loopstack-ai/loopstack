@@ -25,6 +25,7 @@
     "@loopstack/hitl-examples": "^0.1.1",
     "@loopstack/llm-provider-module": "^0.7.1",
     "@loopstack/loopstack-module": "^0.31.6",
+    "@loopstack/observability-examples": "*",
     "@loopstack/secrets-module": "^0.26.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",

@@ -92,6 +92,17 @@ export async function promptForAnswer(
       return { transitionId, payload: { answer } };
     }
 
+    if (widget === 'prompt-input') {
+      // Workflow-level chat input (`@Workflow({ widget })`): the transition
+      // schema is the raw message string, not an { answer } object.
+      const transitionId = resolveTransitionId(prompt);
+      if (!transitionId) return await pickTransition(prompt, ask, out);
+      const label = (prompt.widget?.options?.label as string | undefined) ?? 'message';
+      const answer = (await ask(`${pc.bold(`${label} >`)} `)).trim();
+      if (!answer) return undefined;
+      return { transitionId, payload: answer };
+    }
+
     if (widget === 'form') {
       const actions = ((prompt.widget?.options?.actions as FormAction[] | undefined) ?? []).filter(
         (action) => action.transition && availableTransitionIds(prompt).includes(action.transition),

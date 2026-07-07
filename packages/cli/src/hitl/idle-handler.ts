@@ -46,6 +46,7 @@ export function createIdleHandler(
   options: IdleHandlerOptions = {},
 ): (signal: AbortSignal, onPromptWorkflow: (id: string) => void) => Promise<IdleOutcome> {
   let widgetsPromise: Promise<Map<string, WidgetConfig>> | undefined;
+  const workflowWidgets = new Map<string, WidgetConfig[]>();
   let lastAnswerAt = 0;
 
   return async (signal, onPromptWorkflow): Promise<IdleOutcome> => {
@@ -54,11 +55,11 @@ export function createIdleHandler(
 
     // The root's waiting event can outrun the sub-workflow that asks the
     // actual question — retry briefly before settling for the raw fallback.
-    let prompt = await findActivePrompt(client, rootWorkflowId, widgets);
-    for (let attempt = 0; attempt < 4 && (!prompt || !prompt.document); attempt++) {
+    let prompt = await findActivePrompt(client, rootWorkflowId, widgets, workflowWidgets);
+    for (let attempt = 0; attempt < 4 && (!prompt || (!prompt.document && !prompt.widget)); attempt++) {
       if (signal.aborted) return 'external';
       await abortableSleep(750, signal);
-      prompt = (await findActivePrompt(client, rootWorkflowId, widgets)) ?? prompt;
+      prompt = (await findActivePrompt(client, rootWorkflowId, widgets, workflowWidgets)) ?? prompt;
     }
     if (signal.aborted) return 'external';
 

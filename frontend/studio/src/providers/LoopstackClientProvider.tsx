@@ -16,13 +16,21 @@ function LiveInvalidation() {
 }
 
 /**
+ * Gates the stream binding on an authenticated session. Must render inside
+ * the LoopstackProvider — useMe needs the client context.
+ */
+function LiveInvalidationWhenAuthenticated() {
+  const { isSuccess: isAuthenticated } = useMe();
+  return isAuthenticated ? <LiveInvalidation /> : null;
+}
+
+/**
  * Provides the Loopstack SDK client for the current Studio environment.
  * The stream connection is ref-counted by its subscribers — no explicit
  * teardown is needed when the environment changes.
  */
 export function LoopstackClientProvider({ children }: { children?: ReactNode }) {
   const { environment } = useStudio();
-  const { isSuccess: isAuthenticated } = useMe();
 
   const client = useMemo(
     () =>
@@ -37,7 +45,7 @@ export function LoopstackClientProvider({ children }: { children?: ReactNode }) 
 
   return (
     <LoopstackProvider client={client}>
-      {isAuthenticated ? <LiveInvalidation /> : null}
+      <LiveInvalidationWhenAuthenticated />
       {children}
     </LoopstackProvider>
   );
