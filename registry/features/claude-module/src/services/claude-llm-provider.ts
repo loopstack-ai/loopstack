@@ -82,6 +82,19 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
           void args.onStream?.({ type: 'text_delta', messageId: args.streamMessageId!, delta });
         }
       });
+      // Tool-use args accumulate as JSON deltas — the completed content
+      // block is the earliest moment the full call is known.
+      stream.on('contentBlock', (block) => {
+        if (block.type === 'tool_use') {
+          void args.onStream?.({
+            type: 'tool_call',
+            messageId: args.streamMessageId!,
+            id: block.id,
+            name: block.name,
+            args: (block.input ?? {}) as Record<string, unknown>,
+          });
+        }
+      });
     }
 
     const response = await stream.finalMessage();
