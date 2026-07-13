@@ -3,6 +3,7 @@ import type { WorkflowRunResult } from '@loopstack/common';
 import type { RunWorkflowPayloadInterface, StartWorkflowPayloadInterface } from '@loopstack/contracts/api';
 import { WorkflowRunner } from '@loopstack/core';
 import { StudioDiscoveryService } from '@loopstack/core';
+import { ReadOnlyValidationService } from './read-only-validation.service.js';
 import { WorkflowApiService } from './workflow-api.service.js';
 
 @Injectable()
@@ -11,10 +12,31 @@ export class ProcessorApiService {
     private readonly workflowRunner: WorkflowRunner,
     private readonly workflowApiService: WorkflowApiService,
     private readonly studioDiscoveryService: StudioDiscoveryService,
+    private readonly readOnlyValidation: ReadOnlyValidationService,
   ) {}
 
   async processWorkflow(workflowId: string, user: string, payload: RunWorkflowPayloadInterface): Promise<void> {
-    await this.workflowApiService.findOneById(workflowId, user);
+    const workflow = await this.workflowApiService.findOneById(workflowId, user);
+
+    // User-submitted form payloads must respect read-only fields — validated
+    // against the prompting workflow (the transition's target, often a
+    // sub-workflow of the followed run).
+    const submitted = payload.transition;
+    if (
+      submitted?.id &&
+      submitted.payload &&
+      typeof submitted.payload === 'object' &&
+      !Array.isArray(submitted.payload)
+    ) {
+      const targetId = submitted.workflowId ?? workflowId;
+      const target = targetId === workflowId ? workflow : await this.workflowApiService.findOneById(targetId, user);
+      await this.readOnlyValidation.assertPayloadRespectsReadOnly(
+        user,
+        target,
+        submitted.id,
+        submitted.payload as Record<string, unknown>,
+      );
+    }
 
     const transition = payload.transition
       ? {

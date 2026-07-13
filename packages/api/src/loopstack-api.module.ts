@@ -22,6 +22,7 @@ import { DashboardService } from './services/dashboard.service.js';
 import { DocumentApiService } from './services/document-api.service.js';
 import { UserService } from './services/index.js';
 import { ProcessorApiService } from './services/processor-api.service.js';
+import { ReadOnlyValidationService } from './services/read-only-validation.service.js';
 import { SseEventService } from './services/sse-event.service.js';
 import { WorkflowApiService } from './services/workflow-api.service.js';
 import { WorkspaceApiService } from './services/workspace-api.service.js';
@@ -56,6 +57,7 @@ const PROVIDERS = [
   SseEventService,
   WorkspaceApiService,
   ProcessorApiService,
+  ReadOnlyValidationService,
   WorkflowApiService,
   DocumentApiService,
   DashboardService,

@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface, ZodValidationPipe } from '@loopstack/common';
 import {
   RunWorkflowPayloadInterface,
@@ -30,7 +30,7 @@ export class ProcessorController {
    */
   @Post('run/:workflowId')
   async runWorkflow(
-    @Param('workflowId') workflowId: string,
+    @Param('workflowId', ParseUUIDPipe) workflowId: string,
     @Body(new ZodValidationPipe(RunWorkflowPayloadSchema)) payload: RunWorkflowPayloadInterface,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<void> {

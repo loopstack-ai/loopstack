@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface, ZodJsonQueryPipe, ZodValidationPipe } from '@loopstack/common';
 import {
   BatchDeleteInterface,
@@ -55,7 +67,7 @@ export class WorkspaceController {
    */
   @Get(':id')
   async getWorkspaceById(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkspaceInterface> {
     const workspace = await this.workspaceService.findOneById(id, user.userId);
@@ -79,7 +91,7 @@ export class WorkspaceController {
    */
   @Put(':id')
   async updateWorkspace(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodValidationPipe(WorkspaceUpdateSchema)) payload: WorkspaceUpdateInterface,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkspaceInterface> {
@@ -92,7 +104,7 @@ export class WorkspaceController {
    */
   @Patch(':id/favourite')
   async setFavourite(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodValidationPipe(WorkspaceFavouriteSchema)) payload: WorkspaceFavouriteInterface,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkspaceInterface> {
@@ -104,7 +116,10 @@ export class WorkspaceController {
    * Deletes a workspace by its ID.
    */
   @Delete('id/:id')
-  async deleteWorkspace(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<void> {
+  async deleteWorkspace(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<void> {
     await this.workspaceService.delete(id, user.userId);
   }
 
