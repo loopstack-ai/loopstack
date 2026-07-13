@@ -1,6 +1,6 @@
 ---
 title: CLI Reference
-description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition and LLM token streaming, answer human-in-the-loop prompts inline or hand forms off to Studio (answers given in Studio resume the terminal session), inspect and watch runs, manage backend environments and API tokens. Covers loopstack create, list, run, runs, watch, login, env, the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, --editor ($EDITOR form fallback), and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
+description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition, LLM token, and tool call streaming, answer human-in-the-loop prompts inline (text, confirm, choices, forms with $EDITOR, chat inputs, secret entry), reattach to running or waiting runs with loopstack attach, retry failed runs interactively, inspect and watch runs, manage backend environments and API tokens. Covers loopstack create, list, run, runs, attach, watch, login, env, the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
 ---
 
 # CLI Reference
@@ -56,7 +56,7 @@ An environment can carry the URL of its Studio frontend — `loopstack login` as
 loopstack run hello --arg name=Maya
 ```
 
-`run` starts the workflow, subscribes to the event stream _before_ starting (no event is missed), and renders the run live: one step line per place with its duration, LLM tokens streamed inline, messages the run saves (from the run and its sub-workflows), the published result, and a final status line.
+`run` starts the workflow, subscribes to the event stream _before_ starting (no event is missed), and renders the run live: one step line per place with its duration, LLM tokens and tool calls streamed inline, documents the run saves (from the run and its sub-workflows, behind a `│ ` rail per nesting level; children launched with `show: 'hidden'` stay hidden like in Studio), the published result, and a final status line. Rendering follows the same widget configs Studio uses — messages, markdown, forms (with Studio's field order and labels), links, errors; unknown widgets fall back to JSON.
 
 - `--arg key=value` — repeatable; values that parse as JSON are coerced (`count=3` → number, `flags={"a":1}` → object), everything else stays a string
 - `--arg ticket=@samples/ticket-042.json` — read the value from a file (parsed as JSON when it is JSON)
@@ -81,9 +81,11 @@ What is your name?
 ■ run completed in 920ms
 ```
 
-Free-text questions, yes/no confirmations, option choices, approval buttons, and chat inputs (workflows with a `prompt-input` widget loop right in the terminal) are all answered inline. The terminal prompt and Studio race fairly: while a prompt is open the CLI stays attached to the event stream, so an answer given in Studio (or by anyone else) is picked up immediately — the CLI prints `✓ answered in Studio` and keeps following.
+Free-text questions, yes/no confirmations, option choices, approval buttons, chat inputs (workflows with a `prompt-input` widget loop right in the terminal), and secret entry (`secret-input` — values collected without echo, stored via the secrets API, never shown or logged) are all answered inline. The terminal prompt and Studio race fairly: while a prompt is open the CLI stays attached to the event stream, so an answer given in Studio (or by anyone else) is picked up immediately and following continues.
 
-Forms with input fields hand off to Studio: the pause message carries the deep link, and the run continues in the terminal once the form is submitted in the browser. Without a Studio URL — or with `--editor` — the CLI opens the form payload in `$EDITOR` instead: a JSON file seeded from the form's schema and defaults, submitted on save, so no prompt type ever dead-ends in the terminal.
+Forms are picker-first: the form's content renders, its actions are offered as a numbered picker (an action submits the current content, exactly like Studio's buttons), and `e` optionally opens the complete content JSON in `$EDITOR` first. Fields marked `readonly: true` in the widget config are protected — the CLI discards edits to them (`field "subject" is read-only — change discarded`), and the backend rejects them regardless of client.
+
+Input the terminal cannot collect is named instead of guessed: a widget without a CLI implementation prints what it is waiting for plus the Studio deep link, and waits that resolve in the browser — an OAuth sign-in link, for example — resume the attached session automatically once completed. Failed runs offer an interactive retry (`r. retry` re-runs the failed step, Studio's Retry equivalent), and a workflow parked at a custom error place surfaces its recovery button in the same prompt.
 
 In non-interactive shells (CI), the question is printed to stderr and the command exits with code `3`.
 
@@ -118,13 +120,15 @@ A CI quality gate is the same command, unchanged:
 loopstack runs                          # recent runs — waiting-for-input first
 loopstack runs --limit 5 --json
 loopstack runs --search invoice --status waiting
-loopstack runs <run-id>                 # audit trail: steps, durations
-loopstack runs <run-id> --follow        # reattach live — answers prompts too
+loopstack runs <run-id>                 # full transcript: steps, documents, result
+loopstack attach <run-id>               # rejoin live — streams and answers prompts
 loopstack watch                         # the environment's event firehose
 loopstack watch --type workflow.updated --json   # NDJSON, filterable
 ```
 
-`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it reconstructs the run from its checkpoints — one line per place with the time spent there, plus the run's published result — and `--follow` reattaches to the live stream, including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
+`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it prints the run's full transcript — step lines with durations, the run tree's documents in chronological order, and the published result.
+
+`loopstack attach` rejoins a run the way `docker attach` joins a container: the transcript so far, then live output and interactive prompts — including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
 
 ## Output conventions
 

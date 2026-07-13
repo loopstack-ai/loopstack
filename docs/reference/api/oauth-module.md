@@ -40,6 +40,41 @@ export class ExchangeOAuthTokenTool extends BaseTool<ExchangeOAuthTokenArgs, obj
 }
 ```
 
+### OAuthCallbackController
+
+Public OAuth callback endpoints that complete the authorization-code flow
+from `code` + `state` alone: the state token (unguessable, single-use,
+10 minute TTL, re-validated by the workflow's own `expectedState` check)
+resolves the pending `OAuthWorkflow`, whose `exchangeToken` transition is
+fired server-side as the user who started the flow.
+
+Two entry points, same completion:
+
+- `GET /api/v1/oauth/callback` — a provider redirect target
+  (`*_OAUTH_REDIRECT_URI=<api>/api/v1/oauth/callback`); renders a minimal
+  "connected" page. Works without the Studio frontend — CLI-printed auth
+  URLs and headless deployments complete here.
+- `POST /api/v1/oauth/complete` — JSON variant used by Studio's callback
+  page when it was opened without a popup opener (e.g. from a CLI link
+  while the redirect URI still points at Studio).
+
+```ts
+import { OAuthCallbackController } from '@loopstack/oauth-module';
+```
+
+**Provided by:** `OAuthModule`
+
+```ts
+export class OAuthCallbackController {
+  constructor(sessions: OAuthSessionService, workflowRunner: WorkflowRunner);
+  complete(payload: CompleteOAuthPayload): Promise<{
+    ok: true;
+    provider: string;
+  }>;
+  callback(res: Response, code?: string, state?: string, error?: string, errorDescription?: string): Promise<void>;
+}
+```
+
 ### OAuthModule
 
 NestJS module that provides the provider-agnostic OAuth 2.0 framework — the
@@ -84,6 +119,28 @@ export class OAuthPromptDocument {
 }
 ```
 
+### OAuthSessionService
+
+Service that registers pending OAuth flows by their CSRF `state` and hands
+them out exactly once (Redis-backed with in-memory fallback, 10 minute
+TTL) — the server-side `state → workflow` lookup behind the public OAuth
+callback.
+
+```ts
+import { OAuthSessionService } from '@loopstack/oauth-module';
+```
+
+**Provided by:** `OAuthModule`
+
+```ts
+export class OAuthSessionService implements OnModuleDestroy {
+  constructor();
+  onModuleDestroy(): void;
+  register(state: string, session: OAuthSession): Promise<void>;
+  consume(state: string): Promise<OAuthSession | undefined>;
+}
+```
+
 ### OAuthTokenStore
 
 Service that stores and retrieves per-user OAuth tokens (Redis-backed, with in-memory fallback) and
@@ -120,7 +177,11 @@ import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 ```ts
 export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
-  constructor(buildOAuthUrl: BuildOAuthUrlTool, exchangeOAuthToken: ExchangeOAuthTokenTool);
+  constructor(
+    buildOAuthUrl: BuildOAuthUrlTool,
+    exchangeOAuthToken: ExchangeOAuthTokenTool,
+    sessions: OAuthSessionService,
+  );
   initiateOAuth(state: OAuthState, ctx: RunContext<OAuthArgs>): Promise<void>;
   exchangeToken(
     state: OAuthState,
@@ -164,6 +225,25 @@ export interface OAuthProviderInterface {
   buildAuthUrl(scopes: string[], state: string): string;
   exchangeCode(code: string): Promise<OAuthTokenSet>;
   refreshToken(refreshToken: string): Promise<OAuthTokenSet>;
+}
+```
+
+### OAuthSession
+
+Pending OAuth flow registered when the authorization URL is built — the
+lookup that lets the public callback complete the exchange from
+`code` + `state` alone, regardless of who opened the URL (Studio popup,
+CLI-printed link, plain browser).
+
+```ts
+import { OAuthSession } from '@loopstack/oauth-module';
+```
+
+```ts
+export interface OAuthSession {
+  workflowId: string;
+  userId: string;
+  provider: string;
 }
 ```
 
@@ -300,9 +380,9 @@ OAuthPromptDocumentSchema: z.ZodObject<
     state: z.ZodString;
     status: z.ZodDefault<
       z.ZodEnum<{
+        error: 'error';
         success: 'success';
         pending: 'pending';
-        error: 'error';
       }>
     >;
     message: z.ZodOptional<z.ZodString>;

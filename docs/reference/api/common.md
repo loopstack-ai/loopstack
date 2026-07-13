@@ -477,23 +477,6 @@ export interface WorkflowRunnerSyncOptions extends WorkflowRunnerOptions {
 }
 ```
 
-### WorkflowRunResult
-
-Result of `WorkflowRunner.execute` — the controller-facing entry point that
-starts, resumes, or retries a workflow based on the payload shape.
-
-```ts
-import { WorkflowRunResult } from '@loopstack/common';
-```
-
-```ts
-export interface WorkflowRunResult {
-  workflowId: string;
-  workspaceId: string;
-  status: WorkflowState;
-}
-```
-
 ## Type Aliases
 
 ### ToolEnvelope

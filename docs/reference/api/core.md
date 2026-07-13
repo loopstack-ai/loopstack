@@ -126,7 +126,7 @@ export class WorkflowRunner {
     userId: string,
     payload?: {
       transition?: {
-        id: string;
+        id?: string;
         workflowId?: string;
         payload?: unknown;
       };

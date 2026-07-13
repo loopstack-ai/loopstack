@@ -368,18 +368,6 @@ import { LlmContentBlock } from '@loopstack/llm-provider-module';
 export type LlmContentBlock = UIContentBlock;
 ```
 
-### LlmNormalizedMessage
-
-A provider-normalized LLM message, inferred from `LlmNormalizedMessageSchema`.
-
-```ts
-import { LlmNormalizedMessage } from '@loopstack/llm-provider-module';
-```
-
-```ts
-export type LlmNormalizedMessage = z.infer<typeof LlmNormalizedMessageSchema>;
-```
-
 ### LlmResultMeta
 
 Metadata returned by the LLM tools (`LlmResultMeta` carries the resolved
@@ -721,95 +709,6 @@ LlmGenerateTextConfigSchema: z.ZodObject<
     tools: z.ZodOptional<z.ZodArray<z.ZodString>>;
     save: z.ZodOptional<z.ZodBoolean>;
     meta: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  },
-  z.core.$strip
->;
-```
-
-### LlmNormalizedMessageSchema
-
-Zod schema for a normalized LLM message, with optional `id`, `text`, structured
-blocks, and `stopReason`.
-
-```ts
-import { LlmNormalizedMessageSchema } from '@loopstack/llm-provider-module';
-```
-
-```ts
-LlmNormalizedMessageSchema: z.ZodObject<
-  {
-    role: z.ZodEnum<{
-      user: 'user';
-      assistant: 'assistant';
-    }>;
-    blocks: z.ZodOptional<
-      z.ZodArray<
-        z.ZodDiscriminatedUnion<
-          [
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'text'>;
-                text: z.ZodString;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'thinking'>;
-                text: z.ZodString;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'tool_call'>;
-                id: z.ZodString;
-                name: z.ZodString;
-                args: z.ZodRecord<z.ZodString, z.ZodUnknown>;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'server_tool_use'>;
-                id: z.ZodString;
-                name: z.ZodString;
-                input: z.ZodRecord<z.ZodString, z.ZodUnknown>;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'server_tool_result'>;
-                toolUseId: z.ZodString;
-                content: z.ZodUnknown;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'tool_result'>;
-                toolCallId: z.ZodString;
-                content: z.ZodString;
-                isError: z.ZodBoolean;
-              },
-              z.core.$strip
-            >,
-          ],
-          'type'
-        >
-      >
-    >;
-    id: z.ZodOptional<z.ZodString>;
-    text: z.ZodString;
-    stopReason: z.ZodOptional<
-      z.ZodEnum<{
-        end_turn: 'end_turn';
-        tool_use: 'tool_use';
-        max_tokens: 'max_tokens';
-        stop_sequence: 'stop_sequence';
-      }>
-    >;
   },
   z.core.$strip
 >;
