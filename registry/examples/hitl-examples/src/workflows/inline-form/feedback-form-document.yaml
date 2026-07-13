@@ -1,6 +1,9 @@
 widget: form
 options:
   properties:
+    subject:
+      title: Subject
+      readonly: true
     rating:
       title: Rating (1–5)
       widget: number

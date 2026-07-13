@@ -12,12 +12,15 @@ const AskForApprovalInputSchema = z
 type AskForApprovalInput = z.infer<typeof AskForApprovalInputSchema>;
 
 /**
- * Result returned by `AskForApprovalTool` — the pending `workflowId` while waiting,
- * then the approved `concept` or a `denied` flag once the user decides.
+ * Result returned by `AskForApprovalTool` — the pending `workflowId` while
+ * waiting; once the user decides: `approved` (boolean, for programmatic
+ * workflows), a clear `message` for the LLM ("Concept was approved by the
+ * user."), and on approval the final `concept` markdown — which may differ
+ * from the submitted draft when the user edited it before approving.
  *
  * @public
  */
-export type AskForApprovalResult = { workflowId: string } | { concept: string | undefined } | { denied: true };
+export type AskForApprovalResult = { workflowId: string } | { approved: boolean; message: string; concept?: string };
 
 /**
  * Tool that presents a concept to the user for approval and waits for their decision.
@@ -34,6 +37,8 @@ export type AskForApprovalResult = { workflowId: string } | { concept: string | 
   description:
     'Present the final concept to the user for approval. The concept is shown as formatted markdown ' +
     'with a confirm button. Call this when the user indicates the concept is complete. ' +
+    'The result contains { approved: boolean, message: string, concept?: string } — ' +
+    'on approval, `concept` is the final markdown, which may have been edited by the user. ' +
     'IMPORTANT: This must be the only tool call in your response.',
   schema: AskForApprovalInputSchema,
 })
@@ -61,6 +66,10 @@ export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, As
   async complete(result: Record<string, unknown>): Promise<ToolEnvelope<AskForApprovalResult>> {
     const data = result as { data?: { confirmed: boolean; markdown?: string } };
     const approved = data.data?.confirmed ?? false;
-    return { data: approved ? { concept: data.data?.markdown } : { denied: true } };
+    return {
+      data: approved
+        ? { approved: true, message: 'Concept was approved by the user.', concept: data.data?.markdown }
+        : { approved: false, message: 'Concept was denied by the user.' },
+    };
   }
 }

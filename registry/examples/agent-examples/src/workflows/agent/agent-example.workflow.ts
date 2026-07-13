@@ -36,5 +36,6 @@ export class AgentExampleWorkflow extends BaseWorkflow {
       role: 'assistant',
       text: input.data.response,
     });
+    this.setResult(input.data);
   }
 }
