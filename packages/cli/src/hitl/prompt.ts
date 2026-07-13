@@ -1,177 +1,95 @@
 import { stdin } from 'node:process';
 import { createInterface } from 'node:readline/promises';
-import pc from 'picocolors';
+import { Writable } from 'node:stream';
+import type { LoopstackClient } from '@loopstack/client';
+import { resolveCollectWidget } from '../widgets/registry.js';
+import type { CollectContext, CollectIo, PromptAnswer } from '../widgets/types.js';
 import type { ActivePrompt } from './discovery.js';
-import { buildFormSkeleton, describeFormFields, editPayloadInEditor } from './editor.js';
 
-export interface PromptAnswer {
-  transitionId: string;
-  payload: unknown;
-}
+export type { PromptAnswer } from '../widgets/types.js';
 
-/**
- * `'handoff'` — the prompt is a field form and Studio is the place to answer
- * it; the caller waits for the external resolution.
- */
-export type PromptResult = PromptAnswer | 'handoff' | undefined;
+export type PromptResult = PromptAnswer | undefined;
 
 export interface PromptOptions {
   /** Aborts open questions when the prompt is resolved elsewhere. */
   signal?: AbortSignal;
-  /** Studio deep link of the run — enables the form handoff. */
-  studioUrl?: string;
-  /** Answer field forms in $EDITOR even when Studio is available. */
-  useEditor?: boolean;
-}
-
-interface FormAction {
-  transition?: string;
-  label?: string;
 }
 
 function availableTransitionIds(prompt: ActivePrompt): string[] {
   return prompt.workflow.availableTransitions?.map((transition) => transition.id) ?? [];
 }
 
-/** The widget's configured transition when the workflow accepts it, else a lone available one. */
-function resolveTransitionId(prompt: ActivePrompt): string | undefined {
-  const available = availableTransitionIds(prompt);
-  const configured = prompt.widget?.options?.transition as string | undefined;
-  if (configured && available.includes(configured)) return configured;
-  if (available.length === 1) return available[0];
-  return undefined;
-}
+/**
+ * Pass-through writable with a mute switch — readline echoes typed input
+ * through its output stream, so muting it while a secret is typed gives
+ * sudo-style no-echo input without touching raw mode.
+ */
+class MutableEcho extends Writable {
+  muted = false;
 
-/** Fields the form expects — from the document schema, like Studio's Form renderer. */
-function formProperties(prompt: ActivePrompt): Record<string, unknown> {
-  const schema = prompt.widget?.schema as { type?: string; properties?: Record<string, unknown> } | undefined;
-  if (schema?.type !== 'object') return {};
-  return schema.properties ?? {};
+  constructor(private readonly target: NodeJS.WritableStream) {
+    super();
+  }
+
+  override _write(chunk: unknown, _encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
+    if (!this.muted) this.target.write(chunk as Buffer);
+    callback();
+  }
 }
 
 /**
- * Renders the prompt and collects the user's answer — the terminal
- * counterpart of Studio's prompt renderers. Returns `undefined` when the
- * user aborts (empty input on a picker).
+ * Collects the user's answer for the active prompt — dispatches to the
+ * widget registry's collect implementation, the terminal counterpart of
+ * Studio's prompt renderers. Returns `undefined` when the user declines or
+ * no collect widget exists (discovery only surfaces collectable prompts, so
+ * the latter is defensive).
  */
 export async function promptForAnswer(
+  client: LoopstackClient,
   prompt: ActivePrompt,
   out: NodeJS.WritableStream,
   options: PromptOptions = {},
 ): Promise<PromptResult> {
-  const rl = createInterface({ input: stdin, output: out });
-  const ask = (query: string) => rl.question(query, { signal: options.signal });
+  const collect = resolveCollectWidget(prompt.widget?.widget);
+  if (!collect) return undefined;
+
+  const echo = new MutableEcho(out);
+  // terminal mode normally derives from output.isTTY — the echo wrapper is
+  // not a TTY, so derive it from stdin instead. Terminal mode makes readline
+  // own the echo (raw mode): keystrokes reach the terminal only through the
+  // wrapper, which is what makes muting actually suppress them.
+  const rl = createInterface({ input: stdin, output: echo, terminal: stdin.isTTY });
+  const io: CollectIo = {
+    ask: (query: string) => rl.question(query, { signal: options.signal }),
+    askSecret: async (query: string) => {
+      // The prompt itself must show; mute right after readline wrote it so
+      // only the typed value is swallowed. The user's enter never echoes —
+      // write the newline ourselves.
+      const answer = rl.question(query, { signal: options.signal });
+      echo.muted = true;
+      try {
+        return await answer;
+      } finally {
+        echo.muted = false;
+        out.write('\n');
+      }
+    },
+    out,
+  };
+  const ctx: CollectContext = {
+    content: (prompt.document?.content ?? {}) as Record<string, unknown>,
+    documentName: prompt.document?.documentName,
+    options: prompt.widget?.options,
+    schema: prompt.widget?.schema,
+    availableTransitions: availableTransitionIds(prompt),
+    workspaceId: prompt.workflow.workspaceId,
+    http: client.http,
+  };
   try {
-    const widget = prompt.widget?.widget;
-    const content = (prompt.document?.content ?? {}) as Record<string, unknown>;
-
-    if (widget === 'text-prompt' || widget === 'confirm-prompt' || widget === 'choices') {
-      const transitionId = resolveTransitionId(prompt);
-      if (!transitionId) return await pickTransition(prompt, ask, out);
-      out.write(`\n${String(content.question ?? 'Input required')}\n`);
-
-      if (widget === 'confirm-prompt') {
-        const raw = (await ask(`${pc.bold('[y]es / [n]o:')} `)).trim().toLowerCase();
-        return { transitionId, payload: { answer: raw === 'y' || raw === 'yes' ? 'yes' : 'no' } };
-      }
-
-      if (widget === 'choices') {
-        const choices = Array.isArray(content.options) ? (content.options as string[]) : [];
-        const allowCustom = content.allowCustomAnswer === true;
-        choices.forEach((option, index) => out.write(`  ${pc.bold(String(index + 1))}. ${option}\n`));
-        if (allowCustom) out.write(pc.dim('  (or type a custom answer)\n'));
-        const raw = (await ask(`${pc.bold('answer:')} `)).trim();
-        const byNumber = choices[Number(raw) - 1];
-        const answer = byNumber ?? (allowCustom || choices.includes(raw) ? raw : undefined);
-        if (!answer) return undefined;
-        return { transitionId, payload: { answer } };
-      }
-
-      const answer = (await ask(`${pc.bold('>')} `)).trim();
-      if (!answer) return undefined;
-      return { transitionId, payload: { answer } };
-    }
-
-    if (widget === 'prompt-input') {
-      // Workflow-level chat input (`@Workflow({ widget })`): the transition
-      // schema is the raw message string, not an { answer } object.
-      const transitionId = resolveTransitionId(prompt);
-      if (!transitionId) return await pickTransition(prompt, ask, out);
-      const label = (prompt.widget?.options?.label as string | undefined) ?? 'message';
-      const answer = (await ask(`${pc.bold(`${label} >`)} `)).trim();
-      if (!answer) return undefined;
-      return { transitionId, payload: answer };
-    }
-
-    if (widget === 'form') {
-      const actions = ((prompt.widget?.options?.actions as FormAction[] | undefined) ?? []).filter(
-        (action) => action.transition && availableTransitionIds(prompt).includes(action.transition),
-      );
-      if (actions.length === 0) return await pickTransition(prompt, ask, out);
-
-      const markdown = typeof content.markdown === 'string' ? content.markdown : undefined;
-      const title = (prompt.widget?.options?.title as string | undefined) ?? prompt.document?.documentName;
-      out.write(`\n${markdown ?? pc.bold(title ?? 'Form')}\n`);
-
-      const properties = formProperties(prompt);
-      const hasFields = Object.keys(properties).length > 0;
-
-      if (hasFields) {
-        // Field forms: Studio is the primary renderer — hand off when a
-        // Studio link is known, otherwise fall back to $EDITOR.
-        if (!options.useEditor && options.studioUrl) {
-          out.write(`${pc.dim('⧉ answer in Studio:')} ${options.studioUrl}\n`);
-          out.write(pc.dim('waiting for the answer — Ctrl+C to detach, or rerun with --editor to answer here\n'));
-          return 'handoff';
-        }
-        describeFormFields(prompt.widget?.schema).forEach((line) => out.write(pc.dim(`${line}\n`)));
-        out.write(pc.dim('opening $EDITOR — save to submit, empty the file to cancel\n'));
-        const payload = editPayloadInEditor(buildFormSkeleton(prompt.document?.content, prompt.widget?.schema), out);
-        if (payload === undefined) return undefined;
-        const action = await pickFormAction(actions, ask, out);
-        if (!action) return undefined;
-        return { transitionId: action.transition!, payload };
-      }
-
-      const action = await pickFormAction(actions, ask, out);
-      if (!action) return undefined;
-      return { transitionId: action.transition!, payload: {} };
-    }
-
-    return await pickTransition(prompt, ask, out);
+    return await collect(ctx, io);
   } finally {
     rl.close();
   }
-}
-
-/** Action buttons of a form — always confirmed explicitly (an approval is consent). */
-async function pickFormAction(
-  actions: FormAction[],
-  ask: (query: string) => Promise<string>,
-  out: NodeJS.WritableStream,
-): Promise<FormAction | undefined> {
-  actions.forEach((action, index) =>
-    out.write(`  ${pc.bold(String(index + 1))}. ${action.label ?? action.transition}\n`),
-  );
-  const raw = (await ask(`${pc.bold('action:')} `)).trim();
-  return actions[Number(raw) - 1] ?? actions.find((candidate) => candidate.label === raw);
-}
-
-/** Fallback when no renderable prompt document exists: pick a transition directly. */
-async function pickTransition(
-  prompt: ActivePrompt,
-  ask: (query: string) => Promise<string>,
-  out: NodeJS.WritableStream,
-): Promise<PromptAnswer | undefined> {
-  const available = availableTransitionIds(prompt);
-  if (available.length === 0) return undefined;
-
-  out.write(`\nRun is waiting — available transitions:\n`);
-  available.forEach((id, index) => out.write(`  ${pc.bold(String(index + 1))}. ${id}\n`));
-  const raw = (await ask(`${pc.bold('transition:')} `)).trim();
-  const transitionId = available[Number(raw) - 1] ?? (available.includes(raw) ? raw : undefined);
-  if (!transitionId) return undefined;
-  return { transitionId, payload: {} };
 }
 
 /** One-line description of the prompt for non-interactive shells. */
@@ -179,5 +97,9 @@ export function describePrompt(prompt: ActivePrompt): string {
   const content = (prompt.document?.content ?? {}) as Record<string, unknown>;
   if (typeof content.question === 'string') return content.question;
   if (typeof content.markdown === 'string') return content.markdown.split('\n')[0];
+  // Workflow-level widgets carry no document — their label is the
+  // human-facing description (e.g. "Send Message" for a chat input).
+  const label = prompt.widget?.options?.label;
+  if (typeof label === 'string' && label.trim()) return label;
   return `transitions: ${availableTransitionIds(prompt).join(', ')}`;
 }

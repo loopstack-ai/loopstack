@@ -42,19 +42,6 @@ export function buildFormSkeleton(content: unknown, schema?: Record<string, unkn
   return {};
 }
 
-/** One line per schema field — printed before the editor opens so types are known. */
-export function describeFormFields(schema?: Record<string, unknown>): string[] {
-  const typed = schema as JsonSchemaLike | undefined;
-  if (typed?.type !== 'object' || !typed.properties) return [];
-  const required = new Set(typed.required ?? []);
-  return Object.entries(typed.properties).map(([key, property]) => {
-    const parts = [property.type ?? 'any'];
-    if (required.has(key)) parts.push('required');
-    const description = property.description ? ` — ${property.description}` : '';
-    return `  ${key} (${parts.join(', ')})${description}`;
-  });
-}
-
 /**
  * Opens `$EDITOR` on a temp JSON file seeded with `initial` and returns the
  * parsed payload — the escape hatch that makes every form answerable in the

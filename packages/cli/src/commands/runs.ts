@@ -5,28 +5,18 @@ import { SortOrder, WorkflowState } from '@loopstack/contracts/enums';
 import type { ResolvedConnection } from '../config/resolve.js';
 import { createClientFor, resolveConnection } from '../config/resolve.js';
 import { CliError, ExitCode } from '../errors.js';
-import { createIdleHandler } from '../hitl/idle-handler.js';
-import { colorStatus, formatDuration, printData, printStatus, renderResult, renderTable } from '../output/format.js';
+import { colorStatus, printData, printStatus, renderResult, renderTable } from '../output/format.js';
 import { openInBrowser, studioRunUrl } from '../output/studio-link.js';
-import { createDocumentRenderer } from '../run/documents.js';
-import { followRun } from '../run/follow.js';
-
-const TERMINAL_STATES: readonly WorkflowState[] = [
-  WorkflowState.Completed,
-  WorkflowState.Failed,
-  WorkflowState.Canceled,
-];
+import { renderRunTrail } from '../run/trail.js';
 
 const IDLE_STATES: readonly WorkflowState[] = [WorkflowState.Waiting, WorkflowState.Paused];
 
 interface RunsOptions {
-  follow?: boolean;
   limit: string;
   workspace?: string;
   search?: string;
   status?: string;
   open?: boolean;
-  editor?: boolean;
 }
 
 interface Globals {
@@ -39,21 +29,18 @@ interface Globals {
 export function registerRunsCommand(program: Command): void {
   program
     .command('runs [runId]')
-    .description('Recent runs (runs waiting for input first), or one run’s audit trail; --follow attaches live')
-    .option('--follow', 'attach to the live stream after printing the trail (requires a run id)')
+    .description('Recent runs (runs waiting for input first), or one run’s full transcript; `attach` joins it live')
     .option('--limit <n>', 'maximum number of runs to list', '20')
     .option('--workspace <id>', 'filter by workspace id')
     .option('--search <text>', 'search runs')
     .option('--status <status>', 'filter by status (e.g. waiting, completed, failed)')
     .option('--open', 'open the run in Studio (requires a run id)')
-    .option('--editor', 'answer field forms in $EDITOR instead of handing off to Studio')
     .action(async (runId: string | undefined, options: RunsOptions, cmd) => {
       const globals = cmd.optsWithGlobals() as Globals;
       const connection = resolveConnection(globals);
       const client = createClientFor(connection);
 
       if (!runId) {
-        if (options.follow) throw new CliError('--follow requires a run id: loopstack runs <run-id> --follow');
         if (options.open) throw new CliError('--open requires a run id: loopstack runs <run-id> --open');
         await listRuns(client, connection, options, !!globals.json);
         return;
@@ -108,14 +95,12 @@ async function listRuns(
   printData(renderTable(['ID', 'WORKFLOW', 'RUN', 'STATUS', 'TITLE', 'CREATED'], rows));
   printStatus('');
   if (needsInput.length > 0) {
-    printStatus(
-      `${pc.yellow('⏸')} ${needsInput.length} waiting for input — answer with \`loopstack runs <run-id> --follow\``,
-    );
+    printStatus(`${pc.yellow('⏸')} ${needsInput.length} waiting for input — answer with \`loopstack attach <run-id>\``);
   }
   printStatus(`${ordered.length} of ${page.total} runs (${connection.name})`);
 }
 
-/** One run's audit trail; --follow attaches live and answers prompts. */
+/** One run's full transcript: header, steps, and the document history. */
 async function showRun(
   client: LoopstackClient,
   connection: ResolvedConnection,
@@ -123,84 +108,26 @@ async function showRun(
   options: RunsOptions,
   json: boolean,
 ): Promise<void> {
-  const out = json ? process.stderr : process.stdout;
   const link = studioRunUrl(connection, runId);
   if (options.open) {
     if (link) openInBrowser(link);
     else printStatus('No Studio URL configured for this environment — set one with `loopstack login`.');
   }
 
-  // Subscribe before reading state so live attach misses nothing.
-  const events = options.follow ? client.stream.events() : undefined;
-
   const workflow = await client.workflows.get(runId);
   const checkpoints = await client.workflows.checkpoints(runId);
 
-  if (json && !options.follow) {
+  if (json) {
     printData(JSON.stringify({ workflow, checkpoints, ...(link && { studioUrl: link }) }, null, 2));
     process.exit(ExitCode.Success);
   }
 
-  const title = workflow.title ? ` (${workflow.title})` : '';
-  out.write(`${pc.bold(workflow.workflowName)} #${workflow.run}${title} — ${colorStatus(workflow.status)}\n`);
-  out.write(pc.dim(`started ${new Date(workflow.createdAt).toLocaleString()}  ${workflow.id}\n`));
-  if (link) out.write(pc.dim(`⧉ ${link}\n`));
-
-  // Collapse consecutive checkpoints of the same place (state saves) into
-  // one step line spanning entry to exit.
-  const steps: { place: string; enteredAt: number; leftAt?: number }[] = [];
-  for (const checkpoint of checkpoints) {
-    const at = new Date(checkpoint.createdAt).getTime();
-    const last = steps[steps.length - 1];
-    if (last && last.place === checkpoint.place) continue;
-    if (last) last.leftAt = at;
-    steps.push({ place: checkpoint.place, enteredAt: at });
+  const out = process.stdout;
+  await renderRunTrail(client, connection, out, workflow, checkpoints);
+  out.write('\n');
+  if (renderResult(out, workflow.result)) out.write('\n');
+  if (IDLE_STATES.includes(workflow.status)) {
+    out.write(`${pc.yellow('⏸')} run is waiting for input — answer with \`loopstack attach ${runId}\`\n`);
   }
-  for (const step of steps) {
-    if (step.place === 'end') continue;
-    const duration = step.leftAt !== undefined ? pc.dim(` (${formatDuration(step.leftAt - step.enteredAt)})`) : '';
-    out.write(`${pc.green('✓')} ${step.place}${duration}\n`);
-  }
-  if (workflow.errorMessage) out.write(`${pc.red('✖')} ${workflow.errorMessage}\n`);
-
-  if (!options.follow || TERMINAL_STATES.includes(workflow.status)) {
-    renderResult(out, workflow.result);
-    client.stream.close();
-    process.exit(ExitCode.Success);
-  }
-
-  out.write(pc.dim('— attached, following live —\n'));
-  const onIdle = createIdleHandler(client, runId, out, { studioUrl: link, editor: options.editor });
-
-  // An already-waiting run emits no further events until answered — the
-  // prompt starts immediately and races the stream, so an answer given in
-  // Studio meanwhile resumes the session too.
-  const outcome = await followRun(events!, runId, out, {
-    onIdle,
-    initiallyIdle: IDLE_STATES.includes(workflow.status),
-    onDocument: createDocumentRenderer(client, out),
-  });
-  client.stream.close();
-
-  const full = await client.workflows.get(runId);
-  if (json) {
-    printData(
-      JSON.stringify(
-        { workflowId: runId, status: outcome.status, result: full.result, errorMessage: full.errorMessage },
-        null,
-        2,
-      ),
-    );
-  }
-  if (outcome.status === WorkflowState.Completed) {
-    if (!json) renderResult(out, full.result);
-    out.write(`${pc.green('■')} run completed\n`);
-    process.exit(ExitCode.Success);
-  }
-  if (IDLE_STATES.includes(outcome.status)) {
-    out.write(`${pc.yellow('⏸')} run is still waiting for input\n`);
-    process.exit(ExitCode.NeedsInput);
-  }
-  out.write(`${pc.red('■')} run ${outcome.status}${full.errorMessage ? `: ${full.errorMessage}` : ''}\n`);
-  process.exit(ExitCode.RunFailed);
+  process.exit(ExitCode.Success);
 }

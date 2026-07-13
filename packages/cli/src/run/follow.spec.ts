@@ -41,8 +41,8 @@ function captureSink() {
   return { out, text: () => text };
 }
 
-const updated = (workflowId: string, status: WorkflowState, place?: string): ClientMessage =>
-  ({ type: 'workflow.updated', workflowId, status, place }) as unknown as ClientMessage;
+const updated = (workflowId: string, status: WorkflowState, place?: string, parentId?: string): ClientMessage =>
+  ({ type: 'workflow.updated', workflowId, status, place, parentId }) as unknown as ClientMessage;
 
 const created = (workflowId: string, parentId: string): ClientMessage =>
   ({ type: 'workflow.created', workflowId, parentId }) as unknown as ClientMessage;
@@ -50,8 +50,14 @@ const created = (workflowId: string, parentId: string): ClientMessage =>
 const documentCreated = (workflowId: string): ClientMessage =>
   ({ type: 'document.created', workflowId }) as unknown as ClientMessage;
 
-const delta = (workflowId: string, text: string): ClientMessage =>
-  ({ type: 'llm.response.text_delta', workflowId, delta: text }) as unknown as ClientMessage;
+const delta = (workflowId: string, text: string, messageId = 'msg-1'): ClientMessage =>
+  ({ type: 'llm.response.text_delta', workflowId, delta: text, messageId }) as unknown as ClientMessage;
+
+const streamStart = (workflowId: string, messageId: string): ClientMessage =>
+  ({ type: 'llm.response.start', workflowId, messageId }) as unknown as ClientMessage;
+
+const toolCall = (workflowId: string, id: string, name: string, args: Record<string, unknown>): ClientMessage =>
+  ({ type: 'llm.response.tool_call', workflowId, messageId: 'msg-1', id, name, args }) as unknown as ClientMessage;
 
 const ROOT = 'root-1';
 const SUB = 'sub-1';
@@ -161,8 +167,138 @@ describe('followRun', () => {
 
     const outcome = await run;
     expect(outcome.status).toBe(WorkflowState.Completed);
-    expect(text()).toContain('sub says hi');
+    // Sub-workflow tokens carry the assistant label line behind the depth rail.
+    expect(text()).toContain('│ assistant:\n│ sub says hi');
     expect(text()).not.toContain('never printed');
+  });
+
+  it('collects streamed message ids from the run family only', async () => {
+    const queue = eventQueue();
+    const { out } = captureSink();
+    const streamedMessageIds = new Set<string>();
+    const run = followRun(queue.iterator, ROOT, out, { streamedMessageIds });
+
+    queue.push(created(SUB, ROOT));
+    queue.push(streamStart(SUB, 'msg-sub'));
+    queue.push(delta(SUB, 'hi', 'msg-sub'));
+    queue.push(streamStart('stranger-1', 'msg-stranger'));
+    queue.push(updated(ROOT, WorkflowState.Completed, 'end'));
+
+    await run;
+    expect(streamedMessageIds).toEqual(new Set(['msg-sub']));
+  });
+
+  it('renders streamed tool calls live and records their ids for document dedupe', async () => {
+    const queue = eventQueue();
+    const { out, text } = captureSink();
+    const streamedToolCallIds = new Set<string>();
+    const run = followRun(queue.iterator, ROOT, out, { streamedToolCallIds });
+
+    queue.push(updated(ROOT, WorkflowState.Running, 'thinking'));
+    queue.push(delta(ROOT, 'Let me check.'));
+    queue.push(toolCall(ROOT, 'toolu-1', 'weather_lookup', { city: 'Tokyo' }));
+    queue.push(updated(ROOT, WorkflowState.Completed, 'end'));
+
+    await run;
+    expect(text()).toContain('⚒ weather_lookup {"city":"Tokyo"}');
+    expect(streamedToolCallIds.has('toolu-1')).toBe(true);
+  });
+
+  it('suppresses streamed tool calls of hidden sub-workflows', async () => {
+    const queue = eventQueue();
+    const { out, text } = captureSink();
+    const run = followRun(queue.iterator, ROOT, out, { visibleWorkflowIds: new Set<string>() });
+
+    queue.push(created(SUB, ROOT));
+    queue.push(toolCall(SUB, 'toolu-2', 'hidden_tool', {}));
+    queue.push(updated(ROOT, WorkflowState.Completed, 'end'));
+
+    await run;
+    expect(text()).not.toContain('hidden_tool');
+  });
+
+  it('re-arms the idle prompt for multi-prompt sequences while the root stays parked', async () => {
+    // connect_github shape: the root waits on a callback the whole time while
+    // sub-workflows ask one question after another — answering the first ask
+    // must lead to the second being discovered, with no root status change.
+    // Trailing re-arms (armed while the final events are in flight) resolve
+    // via abort — the regression is the second discovery never happening.
+    const queue = eventQueue();
+    const { out } = captureSink();
+    let answeredPrompts = 0;
+
+    const run = followRun(queue.iterator, ROOT, out, {
+      onIdle: (signal) =>
+        new Promise<IdleOutcome>((resolve) => {
+          answeredPrompts += 1;
+          if (answeredPrompts === 1) {
+            // First ask answered — its workflow resumes, the root stays waiting.
+            queueMicrotask(() => queue.push(updated(SUB, WorkflowState.Completed, 'end', ROOT)));
+            resolve('answered');
+            return;
+          }
+          if (answeredPrompts === 2) {
+            // Second ask discovered and answered — the run finishes.
+            queueMicrotask(() => queue.push(updated(ROOT, WorkflowState.Completed, 'end')));
+            resolve('answered');
+            return;
+          }
+          signal.addEventListener('abort', () => resolve('resumed'), { once: true });
+        }),
+    });
+
+    queue.push(created(SUB, ROOT));
+    queue.push(updated(ROOT, WorkflowState.Waiting, 'connecting'));
+
+    const outcome = await run;
+    expect(outcome.status).toBe(WorkflowState.Completed);
+    expect(answeredPrompts).toBeGreaterThanOrEqual(2);
+  });
+
+  it('aborts a re-armed prompt when the root resumes, without arming again', async () => {
+    const queue = eventQueue();
+    const { out } = captureSink();
+    let idleCalls = 0;
+
+    const run = followRun(queue.iterator, ROOT, out, {
+      onIdle: (signal) =>
+        new Promise<IdleOutcome>((resolve) => {
+          idleCalls += 1;
+          if (idleCalls === 1) {
+            // The answer resumes the root itself.
+            queueMicrotask(() => {
+              queue.push(updated(ROOT, WorkflowState.Running, 'resumed'));
+              queue.push(updated(ROOT, WorkflowState.Completed, 'end'));
+            });
+            resolve('answered');
+            return;
+          }
+          // A transient re-arm may race the resume events — it must be
+          // aborted by them, never left dangling.
+          signal.addEventListener('abort', () => resolve('resumed'), { once: true });
+        }),
+    });
+
+    queue.push(updated(ROOT, WorkflowState.Waiting, 'ask'));
+
+    const outcome = await run;
+    expect(outcome.status).toBe(WorkflowState.Completed);
+    expect(idleCalls).toBeLessThanOrEqual(2);
+  });
+
+  it('discovers sub-workflows from workflow.updated when the created event was missed', async () => {
+    const queue = eventQueue();
+    const { out, text } = captureSink();
+    const run = followRun(queue.iterator, ROOT, out);
+
+    // No workflow.created — attaching mid-run, or the server never emitted it.
+    queue.push(updated(SUB, WorkflowState.Running, 'ready', ROOT));
+    queue.push(delta(SUB, 'sub says hi'));
+    queue.push(updated(ROOT, WorkflowState.Completed, 'end'));
+
+    const outcome = await run;
+    expect(outcome.status).toBe(WorkflowState.Completed);
+    expect(text()).toContain('sub says hi');
   });
 
   it('starts the prompt immediately when attaching to an already-waiting run', async () => {

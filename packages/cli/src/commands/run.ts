@@ -10,6 +10,7 @@ import { openInBrowser, studioRunUrl } from '../output/studio-link.js';
 import { parseRunArgs } from '../run/args.js';
 import { createDocumentRenderer } from '../run/documents.js';
 import { followRun } from '../run/follow.js';
+import { offerRetry } from '../run/retry.js';
 import { resolveWorkspaceId } from '../run/workspace.js';
 
 const collect = (value: string, previous: string[]) => [...previous, value];
@@ -22,7 +23,6 @@ interface RunOptions {
   detach?: boolean;
   quiet?: boolean;
   open?: boolean;
-  editor?: boolean;
 }
 
 export function registerRunCommand(program: Command): void {
@@ -39,15 +39,15 @@ export function registerRunCommand(program: Command): void {
     .option('--detach', 'start the run, print its id, exit immediately')
     .option('--quiet', 'no progress — print only the final result')
     .option('--open', 'open the run in Studio')
-    .option('--editor', 'answer field forms in $EDITOR instead of handing off to Studio')
     .action(async (workflowName: string, options: RunOptions, cmd) => {
       const globals = cmd.optsWithGlobals() as { env?: string; url?: string; token?: string; json?: boolean };
       const connection = resolveConnection(globals);
       const client = createClientFor(connection);
       const json = !!globals.json;
       const quiet = !!options.quiet;
-      // Progress rendering; discarded under --quiet, stderr under --json.
-      const out = json ? process.stderr : quiet ? discard() : process.stdout;
+      // Progress rendering; discarded under --quiet, stderr under --json and
+      // --detach (whose stdout is exactly the run id, for `$(…)` capture).
+      const out = json ? process.stderr : quiet ? discard() : options.detach ? process.stderr : process.stdout;
       // Prompts and final status lines stay visible even under --quiet.
       const statusOut = json || quiet ? process.stderr : process.stdout;
 
@@ -69,17 +69,31 @@ export function registerRunCommand(program: Command): void {
 
       if (!events) {
         if (link) printStatus(pc.dim(`⧉ ${link}`));
-        printStatus(pc.dim(`resume with: loopstack runs ${run.workflowId} --follow`));
+        printStatus(pc.dim(`attach with: loopstack attach ${run.workflowId}`));
         printData(
           json ? JSON.stringify({ workflowId: run.workflowId, ...(link && { studioUrl: link }) }) : run.workflowId,
         );
         process.exit(ExitCode.Success);
       }
 
-      const outcome = await followRun(events, run.workflowId, out, {
-        onIdle: createIdleHandler(client, run.workflowId, statusOut, { studioUrl: link, editor: options.editor }),
-        onDocument: createDocumentRenderer(client, out),
+      const streamedMessageIds = new Set<string>();
+      const streamedToolCallIds = new Set<string>();
+      const visibleWorkflowIds = new Set<string>();
+      const renderer = createDocumentRenderer(client, out, {
+        studioUrl: (id) => studioRunUrl(connection, id),
+        streamedMessageIds,
+        streamedToolCallIds,
+        visibleWorkflowIds,
       });
+      const followOptions = {
+        onIdle: createIdleHandler(client, run.workflowId, statusOut, { studioUrl: link }),
+        onDocument: renderer.onDocument,
+        streamedMessageIds,
+        streamedToolCallIds,
+        visibleWorkflowIds,
+      };
+      let outcome = await followRun(events, run.workflowId, out, followOptions);
+      if (!json) outcome = await offerRetry(client, run.workflowId, events, out, statusOut, followOptions, outcome);
       client.stream.close();
       const durationMs = Date.now() - startedAt;
 
@@ -102,17 +116,20 @@ export function registerRunCommand(program: Command): void {
       }
 
       if (outcome.status === WorkflowState.Completed) {
-        if (!json && quiet) {
-          const result = full.result as unknown;
-          printData(typeof result === 'string' ? result : JSON.stringify(result ?? null, null, 2));
+        // The result renders the same in quiet and normal mode — `--quiet`
+        // just guarantees it on stdout (progress is discarded); JSON only
+        // with `--json`. In normal mode the footer is paragraph-spaced.
+        if (!json) {
+          if (!quiet) out.write('\n');
+          const wrote = renderResult(quiet ? process.stdout : out, full.result);
+          if (!quiet && wrote) out.write('\n');
         }
-        if (!json && !quiet) renderResult(out, full.result);
         statusOut.write(`${pc.green('■')} run completed in ${formatDuration(durationMs)}\n`);
         process.exit(ExitCode.Success);
       }
       if (outcome.status === WorkflowState.Waiting || outcome.status === WorkflowState.Paused) {
         statusOut.write(
-          `${pc.yellow('⏸')} run is waiting for input — resume with \`loopstack runs ${run.workflowId} --follow\`\n`,
+          `${pc.yellow('⏸')} run is waiting for input — resume with \`loopstack attach ${run.workflowId}\`\n`,
         );
         if (link) statusOut.write(pc.dim(`⧉ answer in Studio: ${link}\n`));
         process.exit(ExitCode.NeedsInput);
