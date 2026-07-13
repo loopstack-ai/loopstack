@@ -1,5 +1,15 @@
 # @loopstack/loopstack-studio
 
+## 0.35.1
+
+### Patch Changes
+
+- [#240](https://github.com/loopstack-ai/loopstack/pull/240) [`5ef4bb8`](https://github.com/loopstack-ai/loopstack/commit/5ef4bb867e063a792302dc3ab02d9fd6a11ebb95) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix Studio crashing on load: `LoopstackClientProvider` called `useMe()` outside the `LoopstackProvider` it mounts — the auth gate for the live-event binding now renders inside the provider. `RouteErrorPage` no longer depends on Studio context (it renders outside the provider tree), so routing errors show the actual error instead of crashing the error page.
+
+- Updated dependencies [[`e5f90da`](https://github.com/loopstack-ai/loopstack/commit/e5f90da6412b4cf15bc91c0d47d7e93c6e49c78d)]:
+  - @loopstack/client@0.37.1
+  - @loopstack/react@1.0.1
+
 ## 0.35.0
 
 ### Minor Changes
