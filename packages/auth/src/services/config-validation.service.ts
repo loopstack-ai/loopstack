@@ -1,6 +1,19 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+/**
+ * Secrets that must never sign real tokens. Includes historical/dev defaults so an
+ * auth-enabled deployment cannot boot with a publicly-known signing key.
+ */
+const FORBIDDEN_SECRETS = new Set([
+  'dev-secret-change-me',
+  'dev-insecure-secret-auth-disabled',
+  'JWT_SECRET',
+  'JWT_REFRESH_SECRET',
+]);
+
+const MIN_SECRET_LENGTH = 32;
+
 @Injectable()
 export class ConfigValidationService implements OnModuleInit {
   constructor(private configService: ConfigService) {}
@@ -10,23 +23,26 @@ export class ConfigValidationService implements OnModuleInit {
   }
 
   private validateAuthConfig(): void {
-    const requiredConfigs = [
-      // { key: 'auth.clientId', name: 'CLIENT_ID' },
-      // { key: 'auth.clientSecret', name: 'CLIENT_SECRET' },
-      { key: 'auth.jwt.secret', name: 'JWT_SECRET' },
-    ];
+    // When auth is disabled, JwtAuthGuard short-circuits to the local user and the signing key is
+    // never trusted, so no secret is required. Only enforce the contract when auth is enabled.
+    const enableAuth = this.configService.get<boolean>('app.enableAuth');
+    if (!enableAuth) {
+      return;
+    }
 
-    const missingConfigs: string[] = [];
+    this.assertStrongSecret(this.configService.get<string>('auth.jwt.secret'), 'JWT_SECRET');
+    this.assertStrongSecret(this.configService.get<string>('auth.jwt.refreshSecret'), 'JWT_REFRESH_SECRET');
+  }
 
-    requiredConfigs.forEach(({ key, name }) => {
-      const value = this.configService.get<string>(key);
-      if (!value) {
-        missingConfigs.push(name);
-      }
-    });
-
-    if (missingConfigs.length > 0) {
-      throw new Error(`Missing required configuration values: ${missingConfigs.join(', ')}`);
+  private assertStrongSecret(value: string | undefined, name: string): void {
+    if (!value) {
+      throw new Error(`${name} is required when auth is enabled (LOOPSTACK_AUTH=true). Set a strong, unique secret.`);
+    }
+    if (FORBIDDEN_SECRETS.has(value)) {
+      throw new Error(`${name} is set to a known default/insecure value. Set a strong, unique secret.`);
+    }
+    if (value.length < MIN_SECRET_LENGTH) {
+      throw new Error(`${name} must be at least ${MIN_SECRET_LENGTH} characters when auth is enabled.`);
     }
   }
 }
