@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigValidationService } from './config-validation.service.js';
 
 const STRONG_SECRET = 'a'.repeat(32);
@@ -13,12 +13,34 @@ function createService(config: Record<string, unknown>): ConfigValidationService
 }
 
 describe('ConfigValidationService', () => {
+  const OLD_ALLOW_NO_AUTH = process.env.LOOPSTACK_ALLOW_NO_AUTH;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    delete process.env.LOOPSTACK_ALLOW_NO_AUTH;
   });
 
-  it('passes when auth is disabled even with no secret', () => {
-    const service = createService({ 'app.enableAuth': false });
+  afterEach(() => {
+    if (OLD_ALLOW_NO_AUTH === undefined) {
+      delete process.env.LOOPSTACK_ALLOW_NO_AUTH;
+    } else {
+      process.env.LOOPSTACK_ALLOW_NO_AUTH = OLD_ALLOW_NO_AUTH;
+    }
+  });
+
+  it('passes when auth is disabled in development even with no secret', () => {
+    const service = createService({ 'app.enableAuth': false, 'app.nodeEnv': 'development' });
+    expect(() => service.onModuleInit()).not.toThrow();
+  });
+
+  it('throws when auth is disabled in production without acknowledgment', () => {
+    const service = createService({ 'app.enableAuth': false, 'app.nodeEnv': 'production' });
+    expect(() => service.onModuleInit()).toThrow(/Refusing to start/);
+  });
+
+  it('passes when auth is disabled in production with LOOPSTACK_ALLOW_NO_AUTH=true', () => {
+    process.env.LOOPSTACK_ALLOW_NO_AUTH = 'true';
+    const service = createService({ 'app.enableAuth': false, 'app.nodeEnv': 'production' });
     expect(() => service.onModuleInit()).not.toThrow();
   });
 
