@@ -42,10 +42,15 @@ export interface LoopstackModuleOptions {
   redis?: LoopstackRedisOptions;
   enableAuth?: boolean;
   /**
-   * CORS configuration. Defaults to `{ origin: true, credentials: true }`.
-   * Set to `false` to disable CORS entirely.
+   * Full CORS override. When set it is used verbatim (`false` disables CORS). When omitted, a safe
+   * default is used that allows any localhost origin plus `corsOrigins`, with credentials enabled.
    */
   cors?: CorsOptions | false;
+  /**
+   * Extra allowed origins for the default CORS policy (in addition to localhost). Falls back to the
+   * `CORS_ORIGINS` / `FRONTEND_URL` env vars. Ignored when `cors` is set.
+   */
+  corsOrigins?: string[];
   /**
    * Event stream tuning — replay buffer size/TTL and heartbeat interval.
    */

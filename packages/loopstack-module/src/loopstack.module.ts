@@ -56,6 +56,7 @@ export class LoopstackModule {
       LoopstackApiModule.register({
         connection,
         cors: options.cors,
+        corsOrigins: options.corsOrigins,
         sse: options.sse,
       }),
     );
