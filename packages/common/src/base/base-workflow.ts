@@ -143,8 +143,14 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TInput = TAr
 
   /**
    * Shallow-merge `partial` into the workflow's result. The result can be built
-   * up incrementally across any transitions; the final value is persisted to
+   * up incrementally across any transitions; the value is persisted to
    * `WorkflowEntity.result` and returned via the API.
+   *
+   * Because the result is published at every yield boundary, setting it before a
+   * wait transition surfaces an intermediate response that downstream systems can
+   * read (via the API / `workflow.updated` events) while the workflow is paused.
+   * It is preserved across the resume, so a later run that doesn't touch it keeps
+   * the last published value.
    */
   protected assignResult(partial: Record<string, unknown>): void {
     const draft = this.__executionScope.get();

@@ -97,6 +97,9 @@ export class WorkflowProcessorService implements Processor {
       meta.place = workflowEntity.place ?? 'start';
       meta.retryCount = workflowEntity.retryCount ?? 0;
       meta.retryTransitionId = workflowEntity.retryTransitionId ?? undefined;
+      // Seed the previously published result so a resume that doesn't touch it preserves the stored
+      // value instead of overwriting it with null, and so `assignResult` merges onto it.
+      meta.result = workflowEntity.result ?? null;
 
       // Detach documents from entity — they now live in processor metadata
       if (workflowEntity) {
