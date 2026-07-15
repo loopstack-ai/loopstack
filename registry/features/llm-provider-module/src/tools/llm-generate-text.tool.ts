@@ -99,7 +99,7 @@ export class LlmGenerateTextTool extends BaseTool<
     const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
 
     // Documents from DocumentStore (replaces this.ctx.runtime.documents)
-    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments() };
+    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments(), signal: ctx.signal };
 
     // Resolve tool names (string[]) to BaseTool[] instances via ToolRegistry
     const toolNames = config?.tools;

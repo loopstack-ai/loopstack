@@ -83,7 +83,7 @@ export class LlmGenerateObjectTool extends BaseTool<
   ): Promise<ToolEnvelope<LlmGenerateObjectResult, LlmResultMeta>> {
     const config = options?.config;
     const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
-    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments() };
+    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments(), signal: ctx.signal };
 
     const jsonSchema = toJSONSchema(args.outputSchema) as Record<string, unknown>;
 
