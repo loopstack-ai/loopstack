@@ -79,6 +79,7 @@ export async function runTransition<
     documents: [] as DocumentEntity[],
     persistenceState: { documentsUpdated: false },
     transition: undefined,
+    abortController: new AbortController(),
     stateDraft: { ...(options.state ?? {}) },
     resultDraft: { ...(options.result ?? {}) },
     resultDirty: false,

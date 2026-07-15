@@ -12,6 +12,7 @@ import {
   getBlockArgsSchema,
   getBlockConfigSchema,
 } from '@loopstack/common';
+import { TransitionAbortedError } from '../../common/index.js';
 import { ExecutionScope } from '../utils/index.js';
 
 /**
@@ -84,14 +85,21 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
 
     // 3. Build execution context for interceptors (from ExecutionScope)
     const scope = this.executionScope.getOptional();
-    const runContext = scope
+
+    // Refuse to run a tool invoked from an abandoned (timed-out) transition.
+    if (scope?.abortController.signal.aborted) {
+      throw new TransitionAbortedError();
+    }
+
+    const runContext: RunContext = scope
       ? {
           userId: scope.userId,
           workspaceId: scope.workspaceId,
           workflowId: scope.workflowId,
           args: scope.args,
+          signal: scope.abortController.signal,
         }
-      : { userId: '', workspaceId: '', workflowId: '', args: undefined };
+      : { userId: '', workspaceId: '', workflowId: '', args: undefined, signal: new AbortController().signal };
 
     const execContext: ToolExecutionContext = {
       tool,

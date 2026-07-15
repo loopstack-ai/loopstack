@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { ZodError } from 'zod';
 import { DocumentEntity, DocumentSaveOptions, getBlockOptions, getDocumentSchema } from '@loopstack/common';
-import { SchemaValidationError } from '../../common/index.js';
+import { SchemaValidationError, TransitionAbortedError } from '../../common/index.js';
 import { ExecutionScope, ExecutionScopeData } from '../utils/index.js';
 
 @Injectable()
@@ -32,6 +32,14 @@ export class DocumentPersistenceService {
     options?: DocumentSaveOptions,
   ): Promise<DocumentEntity> {
     const scope = this.executionScope.get();
+
+    // Refuse writes from an abandoned (timed-out) transition. Without this, a zombie method whose
+    // transaction was already rolled back would hit the plain-repository branch below and commit a
+    // document outside any transaction.
+    if (scope.abortController.signal.aborted) {
+      throw new TransitionAbortedError();
+    }
+
     const transition = scope.transition;
     if (!transition) {
       throw new Error('DocumentPersistenceService.create() called outside an active transition');

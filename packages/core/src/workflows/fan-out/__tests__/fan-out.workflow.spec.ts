@@ -39,6 +39,7 @@ function ctx(args: FanOutArgs, workflowId = 'parent-1'): RunContext {
     workspaceId: 'ws1',
     workflowId,
     args: args as unknown as Record<string, unknown>,
+    signal: new AbortController().signal,
     execution: { place: 'start', retryCount: 0 },
   };
 }

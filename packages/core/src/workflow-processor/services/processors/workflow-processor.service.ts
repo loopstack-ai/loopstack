@@ -12,18 +12,11 @@ import {
 import type { RunContext } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
-import { ConfigTraceError, Processor } from '../../../common/index.js';
+import { ConfigTraceError, Processor, TransitionAbortedError } from '../../../common/index.js';
 import { ExecutionScope, ExecutionScopeData } from '../../utils/index.js';
 import { TransitionResolverService } from '../transition-resolver.service.js';
 import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service.js';
 import { WorkflowStateService } from '../workflow-state.service.js';
-
-/** Creates a promise that rejects after the given timeout */
-function rejectAfter(ms: number, methodName: string): Promise<never> {
-  return new Promise((_, reject) =>
-    setTimeout(() => reject(new Error(`Transition '${methodName}' timed out after ${ms}ms`)), ms),
-  );
-}
 
 /**
  * Per-run metadata managed by the processor as a local variable.
@@ -142,6 +135,8 @@ export class WorkflowProcessorService implements Processor {
       documents: meta.documents,
       persistenceState: meta.persistenceState,
       transition: undefined,
+      // Replaced with a fresh controller before each transition in executeTransition.
+      abortController: new AbortController(),
       // Re-seeded before each transition; initial values never read
       stateDraft: {},
       resultDraft: {},
@@ -197,6 +192,7 @@ export class WorkflowProcessorService implements Processor {
       workspaceId: scopeData.workspaceId,
       workflowId: scopeData.workflowId,
       args: scopeData.args,
+      signal: scopeData.abortController.signal,
       execution: {
         place: meta.place,
         retryCount: meta.retryCount ?? 0,
@@ -307,6 +303,11 @@ export class WorkflowProcessorService implements Processor {
   ): Promise<{ returnValue: unknown; newState: Record<string, unknown> }> {
     const defaultTimeout = parseInt(process.env.DEFAULT_TRANSITION_TIMEOUT ?? '', 10) || 300_000;
     const timeoutMs = transitionMeta?.timeout ?? defaultTimeout;
+
+    // Fresh abort controller per transition. On timeout it is aborted so framework I/O
+    // (document writes, tool calls, sub-workflow queueing) invoked by an abandoned transition
+    // method throws instead of committing outside the rolled-back transaction.
+    scopeData.abortController = new AbortController();
     const workflowCtx = this.buildWorkflowContext(scopeData, meta);
 
     const invokeMethod = () => {
@@ -319,7 +320,20 @@ export class WorkflowProcessorService implements Processor {
       const methodPromise = this.executionScope.run(scopeData, () =>
         this.invokeTransition(workflow, methodName, workflowCtx, state, data),
       );
-      return timeoutMs > 0 ? Promise.race([methodPromise, rejectAfter(timeoutMs, methodName)]) : methodPromise;
+      if (timeoutMs <= 0) return methodPromise;
+
+      // Race the method against a timeout. Promise.race cannot cancel the loser, so on timeout we
+      // also abort the scope (stopping the zombie cooperatively) and always clear the timer to
+      // avoid pinning the event loop for the full timeout after the method wins.
+      let timer: ReturnType<typeof setTimeout>;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          const timeoutError = new TransitionAbortedError(`Transition '${methodName}' timed out after ${timeoutMs}ms`);
+          scopeData.abortController.abort(timeoutError);
+          reject(timeoutError);
+        }, timeoutMs);
+      });
+      return Promise.race([methodPromise, timeoutPromise]).finally(() => clearTimeout(timer));
     };
 
     // Stateless workflows skip transactions
