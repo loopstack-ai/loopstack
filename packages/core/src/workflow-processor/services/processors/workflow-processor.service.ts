@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { ZodError } from 'zod';
 import {
   TransitionMetadata,
   WorkflowCheckpointEntity,
@@ -153,7 +154,9 @@ export class WorkflowProcessorService implements Processor {
       this.logger.error(new ConfigTraceError(error, workflow));
       meta.errorMessage = error.message;
       meta.hasError = true;
-      meta.place = 'error';
+      // Preserve meta.place — the workflow's last real place — so a manual retry / resume re-enters
+      // it and re-runs. Assigning a synthetic 'error' place (which has no transitions) would brick
+      // the workflow permanently.
     }
 
     const hasRetrySignal = !!meta._retrySignal;
@@ -555,8 +558,36 @@ export class WorkflowProcessorService implements Processor {
         // Skip schema validation for sub-workflow failure callbacks that fall through to the body —
         // their `data` is whatever the sub-workflow's final result was (often null when it never
         // reached setResult), and the parent's transition still needs to run so it can react.
-        const validatedData =
-          waitTransition.schema && !isFailureCallback ? waitTransition.schema.parse(rawData) : rawData;
+        let validatedData: unknown;
+        if (waitTransition.schema && !isFailureCallback) {
+          try {
+            validatedData = waitTransition.schema.parse(rawData);
+          } catch (e) {
+            // The submitted payload is invalid. This is (typically user-supplied) input, not a
+            // workflow failure — keep the workflow paused at the current place with the validation
+            // message so the caller can resubmit corrected data, instead of failing it. hasError is
+            // left false so the status resolves back to Waiting.
+            const message =
+              e instanceof ZodError
+                ? e.issues.map((i) => `${i.path.length ? i.path.join('.') : '<root>'}: ${i.message}`).join('; ')
+                : e instanceof Error
+                  ? e.message
+                  : String(e);
+            this.logger.warn(`Rejected invalid payload for wait transition '${waitTransition.methodName}': ${message}`);
+            meta.errorMessage = `Invalid payload for '${waitTransition.methodName}': ${message}`;
+
+            const stillAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
+            meta.availableTransitions = stillAvailable.map((t) => ({
+              id: t.methodName,
+              from: meta.place,
+              to: t.to,
+              trigger: t.wait ? ('manual' as const) : undefined,
+            }));
+            return state;
+          }
+        } else {
+          validatedData = rawData;
+        }
         const transitionInput = {
           workflowId: (rawPayload.workflowId as string | undefined) ?? pendingTransition.workflowId,
           status,
