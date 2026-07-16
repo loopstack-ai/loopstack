@@ -49,16 +49,16 @@ Outside production, disabling auth only logs a startup warning; no acknowledgmen
 
 PostgreSQL connection settings. All fields are optional — defaults connect to a local PostgreSQL instance.
 
-| Option                | Env var             | Default     |
-| --------------------- | ------------------- | ----------- |
-| `database.host`       | `DATABASE_HOST`     | `localhost` |
-| `database.port`       | `DATABASE_PORT`     | `5432`      |
-| `database.username`   | `DATABASE_USERNAME` | `postgres`  |
-| `database.password`   | `DATABASE_PASSWORD` | `admin`     |
-| `database.database`   | `DATABASE_NAME`     | `postgres`  |
-| `database.connection` | —                   | —           |
+| Option                             | Env var             | Default     |
+| ---------------------------------- | ------------------- | ----------- |
+| `database.host`                    | `DATABASE_HOST`     | `localhost` |
+| `database.port`                    | `DATABASE_PORT`     | `5432`      |
+| `database.username`                | `DATABASE_USERNAME` | `postgres`  |
+| `database.password`                | `DATABASE_PASSWORD` | `admin`     |
+| `database.database`                | `DATABASE_NAME`     | `postgres`  |
+| `database.reuseExistingConnection` | —                   | `false`     |
 
-Set `database.connection` to reuse an existing TypeORM connection by name. When set, Loopstack skips its own `TypeOrmModule.forRoot()` registration.
+Set `database.reuseExistingConnection: true` to reuse the host application's **default** TypeORM connection. When enabled, Loopstack skips its own `TypeOrmModule.forRoot()` registration and its repositories resolve against the default connection you registered — which must point at PostgreSQL and load Loopstack's entities (e.g. `autoLoadEntities: true`).
 
 ### `redis`
 

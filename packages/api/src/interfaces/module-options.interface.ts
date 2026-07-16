@@ -5,7 +5,6 @@ import type { SseStreamOptionsInterface } from './sse-options.interface.js';
 export const CORS_OPTIONS = 'loopstack.api.cors-options';
 
 export interface ModuleOptionsInterface {
-  connection?: string;
   /**
    * Full CORS override. When set it is used verbatim (an object is passed straight to the `cors`
    * middleware; `false` disables CORS entirely). When omitted, a safe default is built that allows

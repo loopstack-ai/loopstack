@@ -3,11 +3,13 @@ import type { SseStreamOptionsInterface } from '@loopstack/api';
 
 export interface LoopstackDatabaseOptions {
   /**
-   * Reuse an existing TypeORM connection by name. When set, LoopstackModule
-   * skips TypeORM.forRoot() registration and all internal modules use
-   * the specified connection. The connection must point at a PostgreSQL database.
+   * Reuse the host application's default TypeORM connection. When `true`,
+   * LoopstackModule skips its own `TypeOrmModule.forRoot()` registration and all
+   * internal repositories resolve against the default connection you registered.
+   * That connection must point at a PostgreSQL database and load Loopstack's
+   * entities (e.g. via `autoLoadEntities: true`).
    */
-  connection?: string;
+  reuseExistingConnection?: boolean;
 
   host?: string;
   port?: number;

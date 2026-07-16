@@ -85,11 +85,9 @@ export class LoopstackApiModule implements NestModule {
   }
 
   static register(options: ModuleOptionsInterface = {}): DynamicModule {
-    const connection = options.connection;
-
     return {
       module: LoopstackApiModule,
-      imports: [TypeOrmModule.forFeature(ENTITIES, connection), AuthModule.forRoot(connection)],
+      imports: [TypeOrmModule.forFeature(ENTITIES), AuthModule.forRoot()],
       controllers: CONTROLLERS,
       providers: [
         ...PROVIDERS,

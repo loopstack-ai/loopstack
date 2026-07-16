@@ -14,10 +14,10 @@ If you need finer-grained control — for example to reuse an existing TypeORM c
 It registers these modules with sensible defaults:
 
 - `ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env', load: [...] })`
-- `TypeOrmModule.forRoot({ type: 'postgres', autoLoadEntities: true, synchronize: true, ... })` — skipped when `database.connection` points to an existing connection
+- `TypeOrmModule.forRoot({ type: 'postgres', autoLoadEntities: true, synchronize: true, ... })` — skipped when `database.reuseExistingConnection` is `true` (you register the default connection yourself)
 - `EventEmitterModule.forRoot()`
-- `LoopCoreModule.forRoot({ connection, redis })` — the workflow engine
-- `LoopstackApiModule.register({ connection, cors })` — the REST API and controllers
+- `LoopCoreModule.forRoot({ redis })` — the workflow engine
+- `LoopstackApiModule.register({ cors })` — the REST API and controllers
 
 See `loopstack/packages/loopstack-module/src/loopstack.module.ts` for the exact wiring.
 
@@ -41,7 +41,6 @@ import { LoopCoreModule } from '@loopstack/core';
     }),
     EventEmitterModule.forRoot(),
     LoopCoreModule.forRoot({
-      connection: undefined,
       redis: {
         /* ... */
       },

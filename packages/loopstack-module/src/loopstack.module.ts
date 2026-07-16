@@ -17,7 +17,7 @@ const DEV_AUTH_DISABLED_SECRET = 'dev-insecure-secret-auth-disabled';
 export class LoopstackModule {
   static forRoot(options: LoopstackModuleOptions = {}): DynamicModule {
     const imports: DynamicModule['imports'] = [];
-    const connection = options.database?.connection;
+    const reuseExistingConnection = options.database?.reuseExistingConnection ?? false;
 
     // Config
     imports.push(
@@ -28,8 +28,8 @@ export class LoopstackModule {
       }),
     );
 
-    // TypeORM — register a connection unless the user provides an existing one via `connection`.
-    if (!connection) {
+    // TypeORM — register the default connection unless the host already provides one.
+    if (!reuseExistingConnection) {
       const db = options.database ?? {};
       imports.push(
         TypeOrmModule.forRoot({
@@ -49,12 +49,11 @@ export class LoopstackModule {
     // EventEmitter
     imports.push(EventEmitterModule.forRoot());
 
-    // Core + API — thread connection name through all modules
-    imports.push(LoopCoreModule.forRoot({ connection, redis: options.redis }));
+    // Core + API — all internal repositories use the default connection.
+    imports.push(LoopCoreModule.forRoot({ redis: options.redis }));
 
     imports.push(
       LoopstackApiModule.register({
-        connection,
         cors: options.cors,
         corsOrigins: options.corsOrigins,
         sse: options.sse,
