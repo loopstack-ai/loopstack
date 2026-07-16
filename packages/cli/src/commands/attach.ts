@@ -18,6 +18,13 @@ const TERMINAL_STATES: readonly WorkflowState[] = [
 
 const IDLE_STATES: readonly WorkflowState[] = [WorkflowState.Waiting, WorkflowState.Paused];
 
+/** The command's exit-code contract: 0 completed / 1 failed or canceled / 3 waiting. */
+function exitCodeForStatus(status: WorkflowState): number {
+  if (status === WorkflowState.Completed) return ExitCode.Success;
+  if (IDLE_STATES.includes(status)) return ExitCode.NeedsInput;
+  return ExitCode.RunFailed;
+}
+
 interface AttachOptions {
   open?: boolean;
 }
@@ -75,8 +82,13 @@ export function registerAttachCommand(program: Command): void {
           if (renderResult(out, workflow.result)) out.write('\n');
         }
         out.write(pc.dim(`run already ${workflow.status} — nothing to attach to\n`));
+        if (workflow.status !== WorkflowState.Completed && workflow.errorMessage) {
+          out.write(`${pc.red('■')} ${workflow.errorMessage}\n`);
+        }
         client.stream.close();
-        process.exit(ExitCode.Success);
+        // Exit by status — attaching to an already-failed run must not report success (CI
+        // pipelines resume parked runs via attach and rely on the 0/1/3 contract).
+        process.exit(exitCodeForStatus(workflow.status));
       }
 
       out.write(pc.dim('\n— attached, following live —\n'));
@@ -112,13 +124,11 @@ export function registerAttachCommand(program: Command): void {
           if (renderResult(out, full.result)) out.write('\n');
         }
         out.write(`${pc.green('■')} run completed\n`);
-        process.exit(ExitCode.Success);
-      }
-      if (IDLE_STATES.includes(outcome.status)) {
+      } else if (IDLE_STATES.includes(outcome.status)) {
         out.write(`${pc.yellow('⏸')} run is still waiting for input\n`);
-        process.exit(ExitCode.NeedsInput);
+      } else {
+        out.write(`${pc.red('■')} run ${outcome.status}${full.errorMessage ? `: ${full.errorMessage}` : ''}\n`);
       }
-      out.write(`${pc.red('■')} run ${outcome.status}${full.errorMessage ? `: ${full.errorMessage}` : ''}\n`);
-      process.exit(ExitCode.RunFailed);
+      process.exit(exitCodeForStatus(outcome.status));
     });
 }
