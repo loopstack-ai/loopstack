@@ -42,6 +42,10 @@ export function registerWatchCommand(program: Command): void {
       });
 
       printStatus(pc.dim(`watching ${connection.url} — Ctrl+C to stop`));
-      await new Promise(() => {});
+      // Run until interrupted, but surface a fatal stream error (e.g. bad token) instead of
+      // hanging — the rejection propagates to the top-level handler for a clean exit.
+      await new Promise((_resolve, reject) => {
+        client.stream.onError(reject);
+      });
     });
 }

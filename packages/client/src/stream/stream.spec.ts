@@ -212,4 +212,61 @@ describe('LoopstackStream', () => {
     expect(collected).toEqual(['wf-1', 'wf-1']);
     await waitFor(() => stream!.status === 'idle');
   });
+
+  it('stops on a fatal status, surfaces it via onError, and rejects events()', async () => {
+    let fetchCalls = 0;
+    const fetchFn = (async () => {
+      fetchCalls++;
+      return new Response('unauthorized', { status: 401 });
+    }) as typeof fetch;
+    stream = new LoopstackStream({ url: URL_BASE, fetch: fetchFn, maxRetryDelayMs: 20 });
+
+    const errors: Array<{ status?: number }> = [];
+    stream.onError((e) => errors.push(e as unknown as { status?: number }));
+
+    const iterator = stream.events();
+    await expect(iterator.next()).rejects.toMatchObject({ status: 401 });
+
+    await waitFor(() => errors.length === 1);
+    expect(errors[0].status).toBe(401);
+    await waitFor(() => stream!.status === 'closed');
+
+    // No reconnect attempts after a fatal status.
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(fetchCalls).toBe(1);
+  });
+
+  it('invokes an onError handler added after the fatal error with the stored error', async () => {
+    const fetchFn = (async () => new Response('forbidden', { status: 403 })) as typeof fetch;
+    stream = new LoopstackStream({ url: URL_BASE, fetch: fetchFn });
+
+    // Retain via a plain subscriber so the loop runs and fails.
+    stream.on('document.created', () => {});
+    await waitFor(() => stream!.status === 'closed');
+
+    const late: Array<{ status?: number }> = [];
+    stream.onError((e) => late.push(e as unknown as { status?: number }));
+    expect(late).toHaveLength(1);
+    expect(late[0].status).toBe(403);
+  });
+
+  it('reconnects after a retryable status (503)', async () => {
+    const server = createMockServer();
+    let call = 0;
+    const fetchFn = (async (url: URL | RequestInfo, init?: RequestInit) => {
+      call++;
+      if (call === 1) return new Response('unavailable', { status: 503 });
+      return server.fetchFn(url as URL, init);
+    }) as typeof fetch;
+    stream = new LoopstackStream({ url: URL_BASE, fetch: fetchFn, maxRetryDelayMs: 20 });
+
+    const received: ClientMessage[] = [];
+    stream.on('document.created', (message) => received.push(message));
+
+    await waitFor(() => call >= 2);
+    const conn = server.connections[server.connections.length - 1];
+    conn.push(sseFrame(1, documentCreated('wf-1')));
+    await waitFor(() => received.length === 1);
+    expect(stream.status).toBe('open');
+  });
 });

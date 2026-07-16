@@ -26,8 +26,19 @@ export interface UnknownStreamMessage {
 type MessageHandler<T extends ClientMessage = ClientMessage> = (message: T) => void;
 type AnyHandler = (message: ClientMessage | UnknownStreamMessage) => void;
 type StatusHandler = (status: StreamStatus) => void;
+type ErrorHandler = (error: Error) => void;
 
 const INITIAL_RETRY_DELAY_MS = 500;
+
+/**
+ * A response status that reconnecting can never fix — authentication, authorization, not-found,
+ * and other client errors. These stop the stream and surface an error instead of looping forever.
+ * Rate-limit (429) and request-timeout (408) are transient, so they remain retryable, as do all
+ * 5xx and network failures.
+ */
+function isFatalStreamStatus(status: number): boolean {
+  return status >= 400 && status < 500 && status !== 408 && status !== 429;
+}
 
 function matchesWorkflow(message: ClientMessage, workflowId: string | undefined): boolean {
   if (!workflowId) return true;
@@ -46,6 +57,9 @@ export class LoopstackStream {
   private readonly handlers = new Map<ClientMessageType, Set<MessageHandler>>();
   private readonly anyHandlers = new Set<AnyHandler>();
   private readonly statusHandlers = new Set<StatusHandler>();
+  private readonly errorHandlers = new Set<ErrorHandler>();
+  /** Set when the stream stops on an unrecoverable error; surfaced to `onError` and `events()`. */
+  private fatalError: Error | undefined;
   private subscriberCount = 0;
   private abortController: AbortController | undefined;
   private watchdog: ReturnType<typeof setTimeout> | undefined;
@@ -98,6 +112,17 @@ export class LoopstackStream {
   }
 
   /**
+   * Observe an unrecoverable stream error (e.g. a 401/403/404 that reconnecting cannot fix). The
+   * stream stops retrying once this fires. Registering a handler does not open the stream, and a
+   * handler added after the error already occurred is invoked immediately with it.
+   */
+  onError(handler: ErrorHandler): () => void {
+    this.errorHandlers.add(handler);
+    if (this.fatalError) handler(this.fatalError);
+    return () => this.errorHandlers.delete(handler);
+  }
+
+  /**
    * Async iteration over live events, optionally narrowed to one workflow.
    * `break`ing out of the loop unsubscribes.
    */
@@ -105,27 +130,41 @@ export class LoopstackStream {
     const queue: ClientMessage[] = [];
     let notify: (() => void) | undefined;
     let done = false;
+    let error: Error | undefined;
 
-    const unsubscribe = this.onAny((message) => {
+    const unsubscribeAny = this.onAny((message) => {
       if (!('userId' in message)) return; // unknown message types are not iterated
       if (!matchesWorkflow(message, options.workflowId)) return;
       queue.push(message);
       notify?.();
     });
+    // A fatal stream error ends iteration by throwing, so `for await` callers fail instead of
+    // hanging. Seeded immediately if the error already happened before subscription.
+    const unsubscribeError = this.onError((e) => {
+      error = e;
+      notify?.();
+    });
+
+    const cleanup = () => {
+      unsubscribeAny();
+      unsubscribeError();
+    };
 
     const iterator: AsyncIterableIterator<ClientMessage> = {
       [Symbol.asyncIterator]: () => iterator,
       next: async () => {
-        while (queue.length === 0 && !done) {
+        while (queue.length === 0 && !done && !error) {
           await new Promise<void>((resolve) => (notify = resolve));
           notify = undefined;
         }
-        if (queue.length === 0) return { done: true, value: undefined };
-        return { done: false, value: queue.shift()! };
+        if (queue.length > 0) return { done: false, value: queue.shift()! };
+        cleanup();
+        if (error) throw error;
+        return { done: true, value: undefined };
       },
       return: async () => {
         done = true;
-        unsubscribe();
+        cleanup();
         notify?.();
         return { done: true, value: undefined };
       },
@@ -172,6 +211,8 @@ export class LoopstackStream {
 
   private async runLoop(): Promise<void> {
     this.running = true;
+    // A fresh run (e.g. a new subscriber after a prior fatal failure) starts clean.
+    this.fatalError = undefined;
     const fetchFn = this.config.fetch ?? fetch;
     let attempt = 0;
 
@@ -190,8 +231,23 @@ export class LoopstackStream {
           credentials: this.config.credentials ?? 'include',
           signal,
         });
-        if (!response.ok || !response.body) {
-          throw new LoopstackApiError(response.status, undefined, `Event stream failed with status ${response.status}`);
+        if (!response.ok) {
+          const error = new LoopstackApiError(
+            response.status,
+            undefined,
+            `Event stream failed with status ${response.status}`,
+          );
+          // A fatal status will never succeed on reconnect — surface it and stop, so callers fail
+          // instead of looping forever. Retryable statuses fall through to backoff-reconnect.
+          if (isFatalStreamStatus(response.status)) {
+            this.failFatally(error);
+            break;
+          }
+          throw error;
+        }
+        if (!response.body) {
+          // OK status but no readable body — unusual and likely transient; retry.
+          throw new LoopstackApiError(response.status, undefined, 'Event stream response had no body');
         }
 
         this.setStatus('open');
@@ -229,7 +285,13 @@ export class LoopstackStream {
     }
 
     this.running = false;
-    this.setStatus(this.closed ? 'closed' : 'idle');
+    this.setStatus(this.closed || this.fatalError ? 'closed' : 'idle');
+  }
+
+  private failFatally(error: Error): void {
+    this.fatalError = error;
+    this.clearWatchdog();
+    for (const handler of this.errorHandlers) handler(error);
   }
 
   private dispatch(data: string): void {
