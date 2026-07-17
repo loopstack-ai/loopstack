@@ -123,6 +123,37 @@ export class LoopstackStream {
   }
 
   /**
+   * Resolves once the connection is open — immediately if it already is — and rejects if the
+   * stream fails fatally or closes before opening. Does not open the stream by itself: subscribe
+   * first (`on`/`onAny`/`events`), then await readiness. Use before triggering server-side work
+   * whose events must not be missed (e.g. starting a run that may finish within the connect
+   * window).
+   */
+  waitForOpen(): Promise<void> {
+    if (this.currentStatus === 'open') return Promise.resolve();
+    if (this.fatalError) return Promise.reject(this.fatalError);
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        offStatus();
+        offError();
+      };
+      const offStatus = this.onStatus((status) => {
+        if (status === 'open') {
+          cleanup();
+          resolve();
+        } else if (status === 'closed' || status === 'idle') {
+          cleanup();
+          reject(new Error('Event stream closed before it opened.'));
+        }
+      });
+      const offError = this.onError((error) => {
+        cleanup();
+        reject(error);
+      });
+    });
+  }
+
+  /**
    * Async iteration over live events, optionally narrowed to one workflow.
    * `break`ing out of the loop unsubscribes.
    */
@@ -251,8 +282,16 @@ export class LoopstackStream {
         }
 
         this.setStatus('open');
+        const isReconnect = attempt > 0;
         attempt = 0;
         this.resetWatchdog();
+
+        // A reconnect without a resume cursor cannot replay anything — events emitted during the
+        // gap are lost and the server has no way to know. Surface it as a `stream.reset`, exactly
+        // like the server does when a cursor falls out of the replay buffer, so consumers refetch.
+        if (isReconnect && this.lastEventId === undefined) {
+          this.dispatchMessage({ type: 'stream.reset', userId: null, workerId: '' });
+        }
 
         const parser = createSseParser((frame) => {
           this.resetWatchdog();
@@ -304,9 +343,7 @@ export class LoopstackStream {
 
     const result = ClientMessageSchema.safeParse(payload);
     if (result.success) {
-      const message = result.data;
-      for (const handler of this.handlers.get(message.type) ?? []) handler(message);
-      for (const handler of this.anyHandlers) handler(message);
+      this.dispatchMessage(result.data);
       return;
     }
 
@@ -316,6 +353,11 @@ export class LoopstackStream {
         ? payload.type
         : 'unknown';
     for (const handler of this.anyHandlers) handler({ type, raw: payload });
+  }
+
+  private dispatchMessage(message: ClientMessage): void {
+    for (const handler of this.handlers.get(message.type) ?? []) handler(message);
+    for (const handler of this.anyHandlers) handler(message);
   }
 
   private resetWatchdog(): void {

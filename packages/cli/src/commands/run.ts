@@ -54,8 +54,12 @@ export function registerRunCommand(program: Command): void {
       const args = parseRunArgs(options.arg);
       const workspaceId = await resolveWorkspaceId(client, workflowName, options.workspace, connection.workspaceId);
 
-      // Subscribe before starting so no event of the run is missed.
+      // Subscribe before starting so no event of the run is missed, and wait for the
+      // connection to actually open — a fast run can otherwise finish inside the connect
+      // window and its terminal event would never arrive (the follow would hang forever).
+      // Detached runs skip both: no stream, no wait.
       const events = options.detach ? undefined : client.stream.events();
+      if (events) await client.stream.waitForOpen();
       const startedAt = Date.now();
       const run = await client.processor.start({ workflowName, workspaceId, args });
       out.write(pc.dim(`▸ run ${run.workflowId} started\n`));
@@ -91,6 +95,7 @@ export function registerRunCommand(program: Command): void {
         streamedMessageIds,
         streamedToolCallIds,
         visibleWorkflowIds,
+        onStreamReset: async () => (await client.workflows.get(run.workflowId)).status,
       };
       let outcome = await followRun(events, run.workflowId, out, followOptions);
       if (!json) outcome = await offerRetry(client, run.workflowId, events, out, statusOut, followOptions, outcome);

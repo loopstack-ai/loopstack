@@ -49,8 +49,10 @@ export function registerAttachCommand(program: Command): void {
         else printStatus('No Studio URL configured for this environment — set one with `loopstack login`.');
       }
 
-      // Subscribe before reading state so the live attach misses nothing.
+      // Subscribe before reading state so the live attach misses nothing — and wait for the
+      // connection to open first, so no event can fall between the state read and the stream.
       const events = client.stream.events();
+      await client.stream.waitForOpen();
 
       const workflow = await client.workflows.get(runId);
       const checkpoints = await client.workflows.checkpoints(runId);
@@ -103,6 +105,7 @@ export function registerAttachCommand(program: Command): void {
         streamedMessageIds,
         streamedToolCallIds,
         visibleWorkflowIds,
+        onStreamReset: async () => (await client.workflows.get(runId)).status,
       };
       let outcome = await followRun(events, runId, out, followOptions);
       if (!json) outcome = await offerRetry(client, runId, events, out, out, followOptions, outcome);

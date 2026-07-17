@@ -213,6 +213,51 @@ describe('LoopstackStream', () => {
     await waitFor(() => stream!.status === 'idle');
   });
 
+  it('waitForOpen resolves once the connection opens and immediately when already open', async () => {
+    const server = createMockServer();
+    stream = new LoopstackStream({ url: URL_BASE, fetch: server.fetchFn });
+
+    stream.onAny(() => {});
+    await stream.waitForOpen();
+    expect(stream.status).toBe('open');
+
+    // Already open — resolves without waiting for another status transition.
+    await stream.waitForOpen();
+  });
+
+  it('waitForOpen rejects when the stream fails fatally', async () => {
+    const fetchFn = (async () => new Response('unauthorized', { status: 401 })) as typeof fetch;
+    stream = new LoopstackStream({ url: URL_BASE, fetch: fetchFn });
+
+    stream.onAny(() => {});
+    await expect(stream.waitForOpen()).rejects.toMatchObject({ status: 401 });
+  });
+
+  it('synthesizes stream.reset on a cursorless reconnect, but not with a resume cursor', async () => {
+    const server = createMockServer();
+    stream = new LoopstackStream({ url: URL_BASE, fetch: server.fetchFn, maxRetryDelayMs: 10 });
+
+    const received: Array<{ type: string }> = [];
+    const firstConn = server.nextConnection();
+    stream.onAny((message) => received.push(message as { type: string }));
+    const conn1 = await firstConn;
+
+    // Drop before any event arrived — no cursor, so the gap is unrecoverable.
+    const secondConn = server.nextConnection();
+    conn1.end();
+    const conn2 = await secondConn;
+    await waitFor(() => received.some((m) => m.type === 'stream.reset'));
+
+    // Now an event sets the cursor; the next reconnect resumes and must NOT reset.
+    conn2.push(sseFrame(7, documentCreated('wf-1')));
+    await waitFor(() => stream!.lastEventId === '7');
+    const thirdConn = server.nextConnection();
+    conn2.end();
+    await thirdConn;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(received.filter((m) => m.type === 'stream.reset')).toHaveLength(1);
+  });
+
   it('stops on a fatal status, surfaces it via onError, and rejects events()', async () => {
     let fetchCalls = 0;
     const fetchFn = (async () => {

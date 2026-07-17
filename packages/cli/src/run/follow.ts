@@ -57,6 +57,12 @@ export interface FollowOptions {
    * Studio parity. Omit to stream everything.
    */
   visibleWorkflowIds?: ReadonlySet<string>;
+  /**
+   * Called when the stream reports lost events (`stream.reset`) — returns the
+   * root run's current status from the API. A terminal state missed during the
+   * gap then still ends the follow instead of hanging it forever.
+   */
+  onStreamReset?: () => Promise<WorkflowState>;
 }
 
 const TERMINAL_STATES: readonly WorkflowState[] = [
@@ -260,6 +266,23 @@ export async function followRun(
       pendingNext = null;
       if (done) throw new CliError('Event stream ended before the run reached a final state.');
       event = value;
+    }
+
+    // The stream lost events (reconnect without a usable resume cursor). Refetch
+    // the root's status — a terminal state that fell into the gap ends the follow.
+    if (event.type === 'stream.reset' && options.onStreamReset) {
+      const status = await options.onStreamReset();
+      rootStatus = status;
+      if (TERMINAL_STATES.includes(status)) {
+        prompt?.controller.abort();
+        endTokenLine();
+        return outcome(status);
+      }
+      if (IDLE_STATES.includes(status)) {
+        if (!options.onIdle) return outcome(WorkflowState.Waiting);
+        prompt ??= startPrompt();
+      }
+      continue;
     }
 
     if (

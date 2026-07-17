@@ -59,6 +59,8 @@ const streamStart = (workflowId: string, messageId: string): ClientMessage =>
 const toolCall = (workflowId: string, id: string, name: string, args: Record<string, unknown>): ClientMessage =>
   ({ type: 'llm.response.tool_call', workflowId, messageId: 'msg-1', id, name, args }) as unknown as ClientMessage;
 
+const reset = (): ClientMessage => ({ type: 'stream.reset', userId: null, workerId: '' }) as unknown as ClientMessage;
+
 const ROOT = 'root-1';
 const SUB = 'sub-1';
 
@@ -326,5 +328,34 @@ describe('followRun', () => {
     expect(promptStarted).toBe(true);
     expect(outcome.status).toBe(WorkflowState.Completed);
     expect(text()).toContain('answered in Studio');
+  });
+
+  it('ends the follow when a stream.reset reveals the run already reached a terminal state', async () => {
+    const queue = eventQueue();
+    const { out } = captureSink();
+    const run = followRun(queue.iterator, ROOT, out, {
+      onStreamReset: () => Promise.resolve(WorkflowState.Failed),
+    });
+
+    queue.push(updated(ROOT, WorkflowState.Running, 'start'));
+    // Events were lost — the terminal update fell into the gap.
+    queue.push(reset());
+
+    const outcome = await run;
+    expect(outcome.status).toBe(WorkflowState.Failed);
+  });
+
+  it('keeps following when a stream.reset finds the run still running', async () => {
+    const queue = eventQueue();
+    const { out } = captureSink();
+    const run = followRun(queue.iterator, ROOT, out, {
+      onStreamReset: () => Promise.resolve(WorkflowState.Running),
+    });
+
+    queue.push(reset());
+    queue.push(updated(ROOT, WorkflowState.Completed, 'end'));
+
+    const outcome = await run;
+    expect(outcome.status).toBe(WorkflowState.Completed);
   });
 });
