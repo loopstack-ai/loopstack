@@ -1,0 +1,19 @@
+{
+  "name": "loopstack-workspace",
+  "private": true,
+  "workspaces": [
+    "app",
+    "tests",
+    "packages/*"
+  ],
+  "loopstack": {
+    "type": "acceptance-test",
+    "version": "0.1.0"
+  },
+  "scripts": {
+    "build": "npm run build --workspace=app",
+    "build:all": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:acceptance": "npm test --workspace=tests"
+  }
+}
