@@ -9,6 +9,7 @@ import type { HttpClient, QueryParams } from '../http.js';
 export interface DocumentListParams {
   filter?: DocumentFilterInterface;
   sortBy?: DocumentSortByInterface[];
+  /** 0-indexed page number (first page is 0). */
   page?: number;
   limit?: number;
 }

@@ -11,6 +11,7 @@ import {
 } from '@loopstack/contracts/api';
 import { StudioDiscoveryService } from '@loopstack/core';
 import { getEntityColumns } from '../utils/get-entity-columns.util.js';
+import { resolvePagination } from '../utils/pagination.util.js';
 
 @Injectable()
 export class WorkspaceApiService {
@@ -78,17 +79,13 @@ export class WorkspaceApiService {
       queryBuilder.orderBy(orderBy);
     }
 
-    queryBuilder.take(pagination.limit ?? defaultLimit);
-    queryBuilder.skip(pagination.page && pagination.limit ? pagination.page * pagination.limit : 0);
+    const { skip, take, page, limit } = resolvePagination(pagination, defaultLimit);
+    queryBuilder.take(take);
+    queryBuilder.skip(skip);
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
-    return {
-      data,
-      total,
-      page: pagination.page ?? 1,
-      limit: pagination.limit ?? defaultLimit,
-    };
+    return { data, total, page, limit };
   }
 
   /**

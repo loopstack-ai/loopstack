@@ -15,6 +15,7 @@ import type { HttpClient, QueryParams } from '../http.js';
 export interface WorkflowListParams {
   filter?: WorkflowFilterInterface;
   sortBy?: WorkflowSortByInterface[];
+  /** 0-indexed page number (first page is 0). */
   page?: number;
   limit?: number;
   search?: string;
