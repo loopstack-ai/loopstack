@@ -181,7 +181,7 @@ export class WorkflowProcessorService implements Processor {
     this.memoryMonitor.logWorkflowEnd(workflow.constructor.name, meta.documents, meta.version);
 
     if (workflowEntity) {
-      await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
+      await this.workflowStateService.saveExecutionState(workflowEntity, state, meta, undefined, { checkpoint: false });
     }
     return meta;
   }
@@ -525,7 +525,9 @@ export class WorkflowProcessorService implements Processor {
         }
 
         if (workflowEntity) {
-          await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
+          await this.workflowStateService.saveExecutionState(workflowEntity, state, meta, undefined, {
+            checkpoint: false,
+          });
         }
 
         const rawPayload = (pendingTransition.payload ?? {}) as Record<string, unknown>;
@@ -660,7 +662,9 @@ export class WorkflowProcessorService implements Processor {
       scopeData.transition = meta.transition;
 
       if (workflowEntity) {
-        await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
+        await this.workflowStateService.saveExecutionState(workflowEntity, state, meta, undefined, {
+          checkpoint: false,
+        });
       }
 
       try {

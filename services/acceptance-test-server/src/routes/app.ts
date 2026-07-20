@@ -21,6 +21,10 @@ function pm2(command: string): string {
 }
 
 export function startApp(): void {
+  if (!existsSync(APP_ROOT)) {
+    console.log(`No app at ${APP_ROOT} yet — skipping PM2 start; it will start on first rebuild.`);
+    return;
+  }
   console.log('Starting custom-app via PM2...');
   pm2('start /app/ecosystem.config.cjs');
   console.log('PM2 started custom-app');

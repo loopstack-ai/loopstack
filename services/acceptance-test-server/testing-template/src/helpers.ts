@@ -99,6 +99,29 @@ export async function startWorkflow(
   });
 }
 
+export interface WorkflowInfo {
+  workflowName: string;
+  title?: string;
+  description?: string;
+  /** Args JSON-schema (converted from the workflow's zod schema). */
+  schema?: Record<string, unknown>;
+}
+
+interface AppConfig {
+  appName: string;
+  workflows?: WorkflowInfo[];
+}
+
+export async function listWorkflows(): Promise<WorkflowInfo[]> {
+  const apps = await request<AppConfig[]>('/api/v1/config/apps');
+  return apps.flatMap((app) => app.workflows ?? []);
+}
+
+export async function getWorkflowSchema(workflowName: string): Promise<Record<string, unknown> | undefined> {
+  const workflows = await listWorkflows();
+  return workflows.find((w) => w.workflowName === workflowName)?.schema;
+}
+
 export async function getWorkflow(workflowId: string): Promise<WorkflowResult> {
   return request<WorkflowResult>(`/api/v1/workflows/${workflowId}`);
 }
@@ -144,6 +167,15 @@ export async function getDocuments(workflowId: string): Promise<DocumentResult[]
   const filter = encodeURIComponent(JSON.stringify({ workflowId }));
   const result = await request<{ data: DocumentResult[] }>(`/api/v1/documents?filter=${filter}`);
   return result.data;
+}
+
+export async function getDocumentNames(workflowId: string): Promise<string[]> {
+  const docs = await getDocuments(workflowId);
+  return docs.map((d) => d.documentName);
+}
+
+export async function hasDocument(workflowId: string, name: string): Promise<boolean> {
+  return (await getDocumentNames(workflowId)).includes(name);
 }
 
 export interface Message {

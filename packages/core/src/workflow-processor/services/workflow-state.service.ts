@@ -31,6 +31,7 @@ export class WorkflowStateService {
     state: Record<string, unknown>,
     meta: WorkflowMetadataInterface & { version: number },
     queryRunner?: QueryRunner,
+    options?: { checkpoint?: boolean },
   ) {
     workflowEntity.status = meta.status;
     workflowEntity.place = meta.place;
@@ -42,6 +43,10 @@ export class WorkflowStateService {
     workflowEntity.result = meta.result as Record<string, unknown>;
 
     await this.saveWorkflowState(workflowEntity, meta.persistenceState, queryRunner);
+
+    if (options?.checkpoint === false) {
+      return;
+    }
 
     // Create a checkpoint row with the current state snapshot.
     const transition = meta.transition;
