@@ -8,7 +8,7 @@
     "module",
     "oauth"
   ],
-  "version": "0.4.4",
+  "version": "0.4.6",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -27,15 +27,18 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.35.0",
-    "@loopstack/core": "^0.35.0"
+    "@loopstack/common": "^0.37.0",
+    "@loopstack/core": "^0.37.0"
   },
   "devDependencies": {
+    "@swc/core": "^1.15.33",
     "ioredis": "^5.10.1",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
@@ -45,23 +48,5 @@
   "files": [
     "dist"
   ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "maxWorkers": 1
-  },
   "type": "module"
 }

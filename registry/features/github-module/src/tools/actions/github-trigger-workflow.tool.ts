@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -14,8 +14,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubTriggerWorkflowTool`: the repository `owner`, `repo`, `workflowId`,
+ * `ref` to run against and optional `inputs` for the dispatch event.
+ *
+ * @public
+ */
 export type GitHubTriggerWorkflowArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubTriggerWorkflowTool`: a `triggered` flag with a message, or an `error`.
+ *
+ * @public
+ */
 export type GitHubTriggerWorkflowResult =
   | {
       triggered: boolean;
@@ -23,6 +34,12 @@ export type GitHubTriggerWorkflowResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that triggers a GitHub Actions workflow dispatch event on a given ref.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_trigger_workflow',
   description:
@@ -42,7 +59,7 @@ export class GitHubTriggerWorkflowTool extends BaseTool<
   protected async handle(
     args: GitHubTriggerWorkflowArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubTriggerWorkflowResult>> {
+  ): Promise<ToolEnvelope<GitHubTriggerWorkflowResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -51,6 +68,7 @@ export class GitHubTriggerWorkflowTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -79,6 +97,7 @@ export class GitHubTriggerWorkflowTool extends BaseTool<
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -90,6 +109,7 @@ export class GitHubTriggerWorkflowTool extends BaseTool<
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

@@ -1,0 +1,16 @@
+widget: form
+options:
+  properties:
+    subject:
+      title: Subject
+      readonly: true
+    rating:
+      title: Rating (1–5)
+      widget: number
+    comment:
+      title: Comment
+      widget: textarea
+  actions:
+    - type: button
+      transition: submitFeedback
+      label: Submit Feedback

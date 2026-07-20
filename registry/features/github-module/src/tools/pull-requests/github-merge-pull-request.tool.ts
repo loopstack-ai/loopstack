@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -15,8 +15,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubMergePullRequestTool`: the repository `owner`, `repo`, `pullNumber`,
+ * `mergeMethod` and optional `commitTitle`/`commitMessage`.
+ *
+ * @public
+ */
 export type GitHubMergePullRequestArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubMergePullRequestTool`: a `merge` object with the merge commit `sha`
+ * and `merged` flag, or an `error`.
+ *
+ * @public
+ */
 export type GitHubMergePullRequestResult =
   | {
       merge: {
@@ -27,6 +39,12 @@ export type GitHubMergePullRequestResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that merges a GitHub pull request using the chosen merge method.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_merge_pull_request',
   description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
@@ -45,7 +63,7 @@ export class GitHubMergePullRequestTool extends BaseTool<
   protected async handle(
     args: GitHubMergePullRequestArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubMergePullRequestResult>> {
+  ): Promise<ToolEnvelope<GitHubMergePullRequestResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -54,6 +72,7 @@ export class GitHubMergePullRequestTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -83,6 +102,7 @@ export class GitHubMergePullRequestTool extends BaseTool<
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -94,6 +114,7 @@ export class GitHubMergePullRequestTool extends BaseTool<
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

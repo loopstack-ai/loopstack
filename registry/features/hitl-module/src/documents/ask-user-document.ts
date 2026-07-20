@@ -10,8 +10,13 @@ export const AskUserDocumentSchema = z
 
 export type AskUserDocumentType = z.infer<typeof AskUserDocumentSchema>;
 
+/**
+ * Document that presents a free-text question to the user and captures their answer.
+ *
+ * @public
+ */
 @Document({
-  widget: import.meta.dirname + '/ask-user-document.yaml',
+  widget: './ask-user-document.yaml',
   schema: AskUserDocumentSchema,
 })
 export class AskUserDocument {

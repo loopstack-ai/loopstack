@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -11,9 +10,23 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxFileInfoArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxFileInfo`.
+ *
+ * Identifies the container and the path to inspect.
+ *
+ * @public
+ */
+export type SandboxFileInfoArgs = z.infer<typeof inputSchema>;
 
-interface SandboxFileInfoResult {
+/**
+ * Result of `SandboxFileInfo`.
+ *
+ * Detailed metadata for a path — type, size, permissions, owner/group, and timestamps.
+ *
+ * @public
+ */
+export interface SandboxFileInfoResult {
   path: string;
   name: string;
   type: 'file' | 'directory' | 'symlink' | 'other';
@@ -26,6 +39,13 @@ interface SandboxFileInfoResult {
   createdAt: string;
 }
 
+/**
+ * Tool that returns detailed metadata for a file or directory in a sandbox container — type, size,
+ * permissions, owner/group, and timestamps.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_file_info',
   description: 'Get detailed information about a file or directory in a sandbox container',
@@ -38,7 +58,7 @@ export class SandboxFileInfo extends BaseTool<SandboxFileInfoArgs, object, Sandb
     super();
   }
 
-  protected async handle(args: SandboxFileInfoArgs, _ctx: RunContext): Promise<ToolResult<SandboxFileInfoResult>> {
+  protected async handle(args: SandboxFileInfoArgs): Promise<ToolEnvelope<SandboxFileInfoResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Getting file info for ${targetPath} in container ${containerId}`);

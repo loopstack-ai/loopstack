@@ -155,6 +155,7 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
                 workspaceId: 'test-workspace',
                 workflowId: 'test-workflow',
                 args: undefined,
+                signal: new AbortController().signal,
               };
               return tool.handle(args ?? {}, ctx, options);
             }),

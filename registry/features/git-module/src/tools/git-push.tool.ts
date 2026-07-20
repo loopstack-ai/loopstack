@@ -1,8 +1,12 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitPushTool`.
+ *
+ * @public
+ */
 export type GitPushArgs = {
   remote?: string;
   branch?: string;
@@ -10,11 +14,22 @@ export type GitPushArgs = {
   token?: string;
 };
 
+/**
+ * Result for `GitPushTool`.
+ *
+ * @public
+ */
 export type GitPushResult = {
   success: boolean;
   output?: string;
 };
 
+/**
+ * Tool that pushes commits to a remote repository.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_push',
   description: 'Pushes commits to a remote repository.',
@@ -35,7 +50,7 @@ export class GitPushTool extends BaseTool<GitPushArgs, object, GitPushResult> {
     super();
   }
 
-  protected async handle(args: GitPushArgs, _ctx: RunContext): Promise<ToolResult<GitPushResult>> {
+  protected async handle(args: GitPushArgs): Promise<ToolEnvelope<GitPushResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitPush(agentUrl, {
       remote: args.remote,

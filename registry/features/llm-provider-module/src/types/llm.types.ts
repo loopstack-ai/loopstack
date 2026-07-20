@@ -1,32 +1,67 @@
 import { z } from 'zod';
-import { UIContentBlockSchema, UIMessageSchema } from '@loopstack/contracts/types';
+import type { LlmNormalizedMessage } from '@loopstack/contracts/events';
+import { UIContentBlockSchema } from '@loopstack/contracts/types';
 import type { UIContentBlock } from '@loopstack/contracts/types';
 
 // ---------------------------------------------------------------------------
 // Shared config schema — import in parent workflows/tools for args passthrough
 // ---------------------------------------------------------------------------
 
+/**
+ * Zod schema for the shared LLM config — import in parent workflows/tools to pass
+ * `model` through as args.
+ *
+ * @public
+ */
 export const LlmConfigSchema = z.object({
   model: z.string().optional(),
 });
 
+/**
+ * Config for shared LLM passthrough, inferred from {@link LlmConfigSchema}.
+ *
+ * @public
+ */
 export type LlmConfig = z.infer<typeof LlmConfigSchema>;
 
 // ---------------------------------------------------------------------------
 // Content blocks & normalized message — re-exported from contracts
 // ---------------------------------------------------------------------------
 
+/**
+ * Zod schema for a single LLM content block (text, tool call, tool result, etc.).
+ *
+ * @public
+ */
 export const LlmContentBlockSchema = UIContentBlockSchema;
+/**
+ * A single block of LLM message content (text, tool call, tool result, etc.).
+ *
+ * @public
+ */
 export type LlmContentBlock = UIContentBlock;
 
-export const LlmNormalizedMessageSchema = UIMessageSchema.extend({
-  id: z.string().optional(),
-  text: z.string(),
-  stopReason: z.enum(['end_turn', 'tool_use', 'max_tokens', 'stop_sequence']).optional(),
-});
+/**
+ * Zod schema for a normalized LLM message, with optional `id`, `text`, structured
+ * blocks, and `stopReason`. Defined in `@loopstack/contracts/events` — the same
+ * schema types the `llm.response.done` client event.
+ *
+ * @public
+ */
+export { LlmNormalizedMessageSchema } from '@loopstack/contracts/events';
 
-export type LlmNormalizedMessage = z.infer<typeof LlmNormalizedMessageSchema>;
+/**
+ * A provider-normalized LLM message, inferred from {@link LlmNormalizedMessageSchema}.
+ *
+ * @public
+ */
+export type { LlmNormalizedMessage };
 
+/**
+ * The reason an LLM turn stopped (`end_turn`, `tool_use`, `max_tokens`, `stop_sequence`).
+ *
+ * @public
+ */
 export type LlmStopReason = NonNullable<LlmNormalizedMessage['stopReason']>;
 
 // ---------------------------------------------------------------------------
@@ -43,6 +78,12 @@ export interface LlmToolCall {
 // Messages (for inline prompt args)
 // ---------------------------------------------------------------------------
 
+/**
+ * An inline message authors pass as prompt args — a `role` plus `text` and/or
+ * structured `blocks`.
+ *
+ * @public
+ */
 export interface LlmMessage {
   role: 'user' | 'assistant';
   text?: string;
@@ -68,6 +109,11 @@ export interface LlmGenerateTextArgs<TProviderConfig = Record<string, unknown>> 
   onStream?: LlmStreamHandler;
 }
 
+/**
+ * Token usage stats reported by a provider for one LLM call.
+ *
+ * @public
+ */
 export interface LlmUsage {
   inputTokens: number;
   outputTokens: number;
@@ -76,7 +122,12 @@ export interface LlmUsage {
   reasoningTokens?: number;
 }
 
-/** Typed metadata returned by LLM tools (LlmGenerateTextTool, LlmGenerateObjectTool). */
+/**
+ * Metadata returned by the LLM tools ({@link LlmResultMeta} carries the resolved
+ * `provider`, `model`, and {@link LlmUsage}).
+ *
+ * @public
+ */
 export type LlmResultMeta = {
   /** The provider that produced this result (e.g. 'claude', 'openai'). */
   provider: string;
@@ -85,6 +136,14 @@ export type LlmResultMeta = {
   usage?: LlmUsage;
 };
 
+/**
+ * Result returned by the `generateText` provider operation (and `LlmGenerateTextTool`).
+ *
+ * - `message` — the normalized assistant message produced by the provider.
+ * - `response` — the unmodified native API response (Anthropic.Message, OpenAI.ChatCompletion, etc.).
+ *
+ * @public
+ */
 export interface LlmGenerateTextResult {
   message: LlmNormalizedMessage;
   /** Unmodified native API response (Anthropic.Message, OpenAI.ChatCompletion, etc.). */
@@ -116,6 +175,12 @@ export interface LlmGenerateObjectArgs<TProviderConfig = Record<string, unknown>
   outputSchema: Record<string, unknown>;
 }
 
+/**
+ * Result returned by the `generateObject` provider operation (and `LlmGenerateObjectTool`)
+ * — the structured `data` matching the output schema plus the native `response`.
+ *
+ * @public
+ */
 export interface LlmGenerateObjectResult {
   /** The structured data matching the outputSchema. */
   data: unknown;
@@ -127,6 +192,11 @@ export interface LlmGenerateObjectResult {
 // Delegate tool calls
 // ---------------------------------------------------------------------------
 
+/**
+ * A single tool-call result collected during delegation (part of {@link LlmDelegateResult}).
+ *
+ * @public
+ */
 export interface LlmToolResultEntry {
   type: 'tool_result';
   toolCallId: string;
@@ -134,12 +204,27 @@ export interface LlmToolResultEntry {
   isError?: boolean;
 }
 
+/**
+ * A single tool-call error collected during delegation (part of {@link LlmDelegateResult}).
+ *
+ * @public
+ */
 export interface LlmToolErrorEntry {
   toolName: string;
   toolCallId: string;
   message: string;
 }
 
+/**
+ * Result returned by tool-call delegation (`LlmDelegateToolCallsTool` and `LlmUpdateToolResultTool`).
+ *
+ * - `allCompleted` — whether every delegated tool call has finished.
+ * - `toolResults` — the collected `LlmToolResultEntry` items.
+ * - `pendingCount` — number of tool calls still awaiting completion.
+ * - `errorCount` / `hasErrors` / `errors` — error count, flag, and the `LlmToolErrorEntry` details.
+ *
+ * @public
+ */
 export interface LlmDelegateResult {
   allCompleted: boolean;
   toolResults: LlmToolResultEntry[];

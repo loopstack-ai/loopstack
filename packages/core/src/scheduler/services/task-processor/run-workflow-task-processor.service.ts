@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { WorkflowState } from '@loopstack/contracts/enums';
 import type { RunWorkflowTask } from '@loopstack/contracts/types';
 import { WorkflowService, WorkspaceService } from '../../../persistence/index.js';
 import { RootProcessorService } from '../../../workflow-processor/services/root-processor.service.js';
@@ -35,6 +36,19 @@ export class RunWorkflowTaskProcessorService {
       this.memoryMonitor.logHeap(`task:${task.type}:after-workflow-load:${workflow.workflowName}`);
       this.logger.debug(`Workflow for schedule task created with id ${workflow.id}`);
 
+      // A job can sit in BullMQ's `active` set — picked up by the worker but blocked on the
+      // workspace lock — while cancel() runs. cancel() only removes waiting/delayed/prioritized
+      // jobs, so it cannot stop this one; it just flips the entity to a terminal state. Without
+      // this guard the job would later acquire the lock, run the workflow to completion, and fire a
+      // duplicate parent callback. Refuse to execute an already-terminal workflow. Legitimate
+      // resumes/retries always transit through Pending/Waiting first, so they are unaffected.
+      if (this.isTerminal(workflow.status)) {
+        this.logger.warn(
+          `Skipping execution of workflow ${workflow.id} — already in terminal state "${workflow.status}".`,
+        );
+        return;
+      }
+
       await this.rootProcessorService.runWorkflow(workflow, task.payload);
     } else {
       if (!task.workflowName || !task.workspaceId) {
@@ -67,5 +81,9 @@ export class RunWorkflowTaskProcessorService {
         task.payload,
       );
     }
+  }
+
+  private isTerminal(status: WorkflowState): boolean {
+    return status === WorkflowState.Completed || status === WorkflowState.Failed || status === WorkflowState.Canceled;
   }
 }

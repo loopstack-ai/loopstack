@@ -59,6 +59,15 @@ start transaction
 commit (or rollback on error)
 ```
 
+Transitions return nothing — mutate state via `this.assignState(...)`. Use `async` when the body awaits. State is mutated through four setters on `BaseWorkflow`:
+
+- `this.assignState(partial)` — shallow-merge `partial` into the current state. The most common form: `this.assignState({ counter: 1 })` leaves every other field untouched.
+- `this.setState(full)` — replace the state object outright.
+- `this.assignResult(partial)` — shallow-merge `partial` into the run's published `result` field. Use this on the final transition (or any earlier transition that wants to surface partial output) to build the value returned to callers and parent workflows.
+- `this.setResult(full)` — replace the published `result` outright.
+
+Returning a value from a transition is a runtime error — the engine throws when it sees one. Every write goes through `assignState` / `setState` / `assignResult` / `setResult`.
+
 If your transition method throws an error:
 
 1. The database transaction is **rolled back** — neither the new state nor the checkpoint is written
@@ -99,14 +108,12 @@ To configure automatic retries:
 @Transition({
   from: 'calling_api',
   to: 'api_complete',
-  retry: {
-    attempts: 3,
-    delay: 1000,       // ms before first retry
-    backoff: 'exponential',
-    maxDelay: 30000,   // cap at 30 seconds
-  },
+  retryAttempts: 3,
+  retryDelay: 1000,         // ms before first retry
+  retryBackoff: 'exponential',
+  retryMaxDelay: 30000,     // cap at 30 seconds
 })
-async callExternalApi(state: MyState): Promise<MyState> {
+async callExternalApi(state: MyState) {
   // ...
 }
 ```
@@ -114,25 +121,47 @@ async callExternalApi(state: MyState): Promise<MyState> {
 **How exponential backoff is calculated:**
 
 ```
-attempt 1: delay × 2^0 = 1000ms
-attempt 2: delay × 2^1 = 2000ms
-attempt 3: delay × 2^2 = 4000ms (capped at maxDelay)
+attempt 1: retryDelay × 2^0 = 1000ms
+attempt 2: retryDelay × 2^1 = 2000ms
+attempt 3: retryDelay × 2^2 = 4000ms (capped at retryMaxDelay)
 ```
 
 The delay is implemented as a BullMQ job delay — the job is re-queued with a scheduled execution time. Nothing blocks during the wait.
+
+**Retrying via a different place (`retryTarget`):**
+
+By default, an auto-retry re-runs the failing transition. Set `retryTarget` to route each retry through a different place — useful when retries need preparation work (e.g. refreshing a token) between attempts:
+
+```typescript
+@Transition({
+  from: 'calling_api', to: 'api_complete',
+  retryAttempts: 3,
+  retryTarget: 'refresh_credentials',
+})
+async callExternalApi(...) { ... }
+
+@Transition({ from: 'refresh_credentials', to: 'calling_api' })
+async refreshCredentials() { ... }
+```
+
+Transitions at the retry target run with their own independent retry budget.
 
 **After retries are exhausted:**
 
 If all retry attempts fail, you can route the workflow to a custom error-handling place:
 
 ```typescript
-retry: {
-  attempts: 3,
-  place: 'error_handling',  // go here instead of staying at current place
-}
+@Transition({
+  from: 'calling_api', to: 'api_complete',
+  retryAttempts: 3,
+  errorPlace: 'error_handling',
+})
+async callExternalApi(...) { ... }
 ```
 
-Without `place`, the workflow stays at the current place with `hasError: true`. The Studio toolbar shows a **Retry** button that re-triggers the failed transition immediately.
+Without `errorPlace`, the workflow stays at the current place with `hasError: true`. The Studio toolbar shows a **Retry** button that re-triggers the failed transition immediately.
+
+The same routing applies to **wait transitions that resume from a failed sub-workflow callback** (`status: 'failed' | 'canceled'`). If the wait transition declares `errorPlace` or `retryAttempts > 0`, the framework treats the failed callback as a transition failure and routes accordingly — the happy-path body never sees the bad data. Without either, the body is invoked with the raw callback so accumulator patterns (e.g. LLM tool delegation) can handle errors inline.
 
 ---
 
@@ -146,7 +175,7 @@ When the engine encounters a place where the only available transition has `wait
 2. Nothing more runs until an external trigger arrives
 3. The trigger can come from: a Studio button click, a sub-workflow callback, or an API call
 
-When the trigger arrives, a new BullMQ job is enqueued with the transition payload. The job loads the checkpoint, executes the wait transition (passing the payload to the method), and then continues the auto-transition loop from the new place.
+When the trigger arrives, a new BullMQ job is enqueued with the resume payload. The job loads the checkpoint, then invokes the wait transition with a `TransitionInput<TData>` envelope — `data` is validated against the transition's `schema`, and `status` / `hasError` / `errorMessage` reflect how the trigger source ended. After the wait transition returns, the auto-transition loop continues from the new place.
 
 This is why a paused workflow survives restarts: the trigger doesn't need to arrive while the original job is running. It can arrive seconds or weeks later — the checkpoint is in PostgreSQL waiting for it.
 
@@ -164,7 +193,7 @@ Override the default for specific transitions:
   to: 'done',
   timeout: 60000,  // 1 minute for this transition
 })
-async processData(state: MyState): Promise<MyState> {
+async processData(state: MyState) {
   // ...
 }
 ```
@@ -177,15 +206,15 @@ Set `timeout: 0` to disable the timeout entirely for a specific transition.
 
 Each workflow run has a `status` from the `WorkflowState` enum, persisted on the workflow entity. The engine sets it as the run progresses.
 
-| State       | Description                                                                                                       | Set by                                                                                    |
-| ----------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `pending`   | Run created, not yet picked up by a worker (or re-queued after a wait/error).                                     | Initial value when a run is created, and again when a wait transition is resumed.         |
-| `running`   | A worker is currently executing a transition for this run.                                                        | Root processor at the start of each job.                                                  |
-| `waiting`   | Run is paused — either waiting for an external trigger (wait transition) or waiting for a retry/sub-workflow.     | Processor when a job ends without reaching `end` and without an error that fails the run. |
-| `completed` | Final transition reached `to: 'end'`. The `result` field holds the return value.                                  | Processor when a transition moves to `end`.                                               |
-| `failed`    | A transition errored and retries are exhausted (or the error has no retry).                                       | Processor on terminal failure.                                                            |
-| `canceled`  | Cancellation was requested — recursively applied to all child runs. Parent callback fires with `canceled` status. | `WorkflowOrchestrationService.cancel()`.                                                  |
-| `paused`    | Reserved — currently not set by the engine. Treated like `waiting` in queries (e.g. dashboard "action required"). | —                                                                                         |
+| State       | Description                                                                                                             | Set by                                                                                    |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `pending`   | Run created, not yet picked up by a worker (or re-queued after a wait/error).                                           | Initial value when a run is created, and again when a wait transition is resumed.         |
+| `running`   | A worker is currently executing a transition for this run.                                                              | Root processor at the start of each job.                                                  |
+| `waiting`   | Run is paused — either waiting for an external trigger (wait transition) or waiting for a retry/sub-workflow.           | Processor when a job ends without reaching `end` and without an error that fails the run. |
+| `completed` | Final transition reached `to: 'end'`. The `result` field holds whatever was published via `assignResult` / `setResult`. | Processor when a transition moves to `end`.                                               |
+| `failed`    | A transition errored and retries are exhausted (or the error has no retry).                                             | Processor on terminal failure.                                                            |
+| `canceled`  | Cancellation was requested — recursively applied to all child runs. Parent callback fires with `canceled` status.       | `WorkflowOrchestrationService.cancel()`.                                                  |
+| `paused`    | Reserved — currently not set by the engine. Treated like `waiting` in queries (e.g. dashboard "action required").       | —                                                                                         |
 
 Terminal states are `completed`, `failed`, and `canceled` — no further work is scheduled for them, and any parent sub-workflow callback fires once the terminal state is reached.
 

@@ -40,7 +40,7 @@ export class SandboxModule {}
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
@@ -54,11 +54,14 @@ interface SandboxState {
   containerId?: string;
 }
 
+const SandboxArgsSchema = z.object({ outputDir: z.string().default(process.cwd() + '/out') });
+type SandboxArgs = z.infer<typeof SandboxArgsSchema>;
+
 @Workflow({
-  widget: __dirname + '/sandbox.ui.yaml',
-  schema: z.object({ outputDir: z.string().default(process.cwd() + '/out') }),
+  widget: './sandbox.ui.yaml',
+  schema: SandboxArgsSchema,
 })
-export class SandboxWorkflow extends BaseWorkflow<{ outputDir: string }, SandboxState> {
+export class SandboxWorkflow extends BaseWorkflow<SandboxArgs> {
   constructor(
     private readonly sandboxInit: SandboxInit,
     private readonly sandboxDestroy: SandboxDestroy,
@@ -70,20 +73,19 @@ export class SandboxWorkflow extends BaseWorkflow<{ outputDir: string }, Sandbox
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async initSandbox(state: SandboxState, ctx: RunContext): Promise<SandboxState> {
-    const args = ctx.args as { outputDir: string };
-    const result: ToolResult = await this.sandboxInit.call({
+  async initSandbox(state: SandboxState, ctx: RunContext<SandboxArgs>) {
+    const result = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
       containerName: 'sandbox-container',
-      projectOutPath: args.outputDir,
+      projectOutPath: ctx.args.outputDir,
       rootPath: 'workspace',
     });
-    return { ...state, containerId: result.data.containerId };
+    this.assignState({ containerId: result.data.containerId });
   }
 
   @Transition({ from: 'sandbox_ready', to: 'file_written' })
-  async writeFile(state: SandboxState): Promise<SandboxState> {
+  async writeFile(state: SandboxState) {
     await this.sandboxCreateDirectory.call({
       containerId: state.containerId!,
       path: '/workspace/src',
@@ -97,26 +99,23 @@ export class SandboxWorkflow extends BaseWorkflow<{ outputDir: string }, Sandbox
       encoding: 'utf8',
       createParentDirs: true,
     });
-    return state;
   }
 
   @Transition({ from: 'file_written', to: 'file_read' })
-  async readFile(state: SandboxState): Promise<SandboxState> {
+  async readFile(state: SandboxState) {
     await this.sandboxReadFile.call({
       containerId: state.containerId!,
       path: '/workspace/src/hello.js',
       encoding: 'utf8',
     });
-    return state;
   }
 
   @Transition({ from: 'file_read', to: 'end' })
-  async destroySandbox(state: SandboxState): Promise<unknown> {
+  async destroySandbox(state: SandboxState) {
     await this.sandboxDestroy.call({
       containerId: state.containerId!,
       removeContainer: true,
     });
-    return {};
   }
 }
 ```
@@ -157,4 +156,4 @@ export class SandboxWorkflow extends BaseWorkflow<{ outputDir: string }, Sandbox
 
 ## Registry References
 
-- [sandbox-example-workflow](https://loopstack.ai/registry/loopstack-sandbox-example-workflow) — Full sandbox lifecycle: init, create directory, write/read files, list directory, check existence, get file info, delete, and destroy
+- [sandbox-example-workflow](https://loopstack.ai/registry/loopstack-filesystem-examples#sandbox) — Full sandbox lifecycle: init, create directory, write/read files, list directory, check existence, get file info, delete, and destroy

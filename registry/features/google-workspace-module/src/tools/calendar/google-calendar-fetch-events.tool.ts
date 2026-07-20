@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -14,8 +14,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleCalendarFetchEventsTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarFetchEventsArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleCalendarFetchEventsTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarFetchEventsResult = {
   events?: Array<{
     id: string;
@@ -31,6 +41,14 @@ export type GoogleCalendarFetchEventsResult = {
   message?: string;
 };
 
+/**
+ * Tool that fetches events from a Google Calendar within a time range. Takes a `timeMin`/`timeMax`
+ * window (and optional `calendarId`, `query`, `maxResults`) and returns matching events with
+ * start/end, attendees, and links, or `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_calendar_fetch_events',
   description:
@@ -50,7 +68,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
   protected async handle(
     args: GoogleCalendarFetchEventsArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleCalendarFetchEventsResult>> {
+  ): Promise<ToolEnvelope<GoogleCalendarFetchEventsResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -59,6 +77,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -89,6 +108,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -100,6 +120,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
           error: 'api_error',
           message: `Google Calendar API error: ${response.statusText}`,
         },
+        error: `Google Calendar API error: ${response.statusText}`,
       };
     }
 

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -13,8 +13,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GmailSearchMessagesTool`.
+ *
+ * @public
+ */
 export type GmailSearchMessagesArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GmailSearchMessagesTool`.
+ *
+ * @public
+ */
 export type GmailSearchMessagesResult =
   | {
       messages: Array<{
@@ -31,6 +41,14 @@ export type GmailSearchMessagesResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that searches Gmail messages using Gmail query syntax. Takes a `query`, optional `labelIds`,
+ * and pagination, and returns message summaries with headers and snippets plus a `nextPageToken`, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'gmail_search_messages',
   description:
@@ -46,7 +64,7 @@ export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, o
   protected async handle(
     args: GmailSearchMessagesArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GmailSearchMessagesResult>> {
+  ): Promise<ToolEnvelope<GmailSearchMessagesResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -55,6 +73,7 @@ export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, o
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -81,6 +100,7 @@ export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, o
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -92,6 +112,7 @@ export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, o
           error: 'api_error',
           message: `Gmail API error: ${listResponse.statusText}`,
         },
+        error: `Gmail API error: ${listResponse.statusText}`,
       };
     }
 

@@ -7,6 +7,7 @@ import {
   WorkflowInterface,
   WorkflowMetadataInterface,
   WorkflowOrchestrator,
+  getBlockArgsSchema,
 } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { RunPayload } from '@loopstack/contracts/schemas';
@@ -54,7 +55,10 @@ export class RootProcessorService {
 
     this.logger.debug(`Running stateless workflow: ${params.workflowName}`);
 
-    return this.blockProcessor.processBlock(workflow, params.args, ctx);
+    const schema = getBlockArgsSchema(workflow);
+    const validArgs = schema ? (schema.parse(params.args ?? {}) as Record<string, unknown>) : params.args;
+
+    return this.blockProcessor.processBlock(workflow, validArgs, ctx);
   }
 
   async runWorkflow(workflow: WorkflowEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {

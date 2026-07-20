@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -22,8 +22,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleCalendarCreateEventTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarCreateEventArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleCalendarCreateEventTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarCreateEventResult =
   | {
       event: {
@@ -37,6 +47,14 @@ export type GoogleCalendarCreateEventResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that creates a new event on a Google Calendar. Takes a summary, start/end times, and optional
+ * description, location, attendees, and reminders, and returns the created event's id and link, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_calendar_create_event',
   description:
@@ -56,7 +74,7 @@ export class GoogleCalendarCreateEventTool extends BaseTool<
   protected async handle(
     args: GoogleCalendarCreateEventArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleCalendarCreateEventResult>> {
+  ): Promise<ToolEnvelope<GoogleCalendarCreateEventResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -65,6 +83,7 @@ export class GoogleCalendarCreateEventTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -98,6 +117,7 @@ export class GoogleCalendarCreateEventTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -109,6 +129,7 @@ export class GoogleCalendarCreateEventTool extends BaseTool<
           error: 'api_error',
           message: `Google Calendar API error: ${response.statusText}`,
         },
+        error: `Google Calendar API error: ${response.statusText}`,
       };
     }
 

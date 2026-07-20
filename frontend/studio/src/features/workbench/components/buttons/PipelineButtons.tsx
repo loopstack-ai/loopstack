@@ -13,11 +13,7 @@ const WorkflowRunButtons: React.FC<WorkflowRunButtonsProps> = ({ workflow }) => 
   const runWorkflow = useRunWorkflow();
 
   const handlePing = () => {
-    runWorkflow.mutate({
-      workflowId: workflow.id,
-      runWorkflowPayloadDto: {},
-      force: false,
-    });
+    runWorkflow.mutate({ workflowId: workflow.id });
   };
 
   return (

@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow.js';
 
@@ -16,8 +16,21 @@ const RequestSecretsTaskInputSchema = z
 
 type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
 
+/**
+ * Result for `request_secrets_task` — the launched sub-workflow's id while pending, or a confirmation
+ * string once the user has stored the secrets.
+ *
+ * @public
+ */
 export type RequestSecretsTaskResult = { workflowId: string } | string;
 
+/**
+ * Tool that requests secrets from the user by launching `SecretsRequestWorkflow` as a callback-driven
+ * sub-workflow; the agent-friendly variant of `request_secrets` for use inside agent loops.
+ *
+ * @providedBy SecretsModule
+ * @public
+ */
 @Tool({
   name: 'request_secrets_task',
   description:
@@ -38,7 +51,7 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
     args: RequestSecretsTaskInput,
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<RequestSecretsTaskResult>> {
+  ): Promise<ToolEnvelope<RequestSecretsTaskResult>> {
     const result = await this.secretsRequestWorkflow.run(
       { variables: args.variables },
       { callback: options?.callback, show: 'inline', label: 'Requesting Secrets' },
@@ -50,7 +63,7 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
     };
   }
 
-  async complete(_result: Record<string, unknown>): Promise<ToolResult<RequestSecretsTaskResult>> {
+  async complete(_result: Record<string, unknown>): Promise<ToolEnvelope<RequestSecretsTaskResult>> {
     return {
       data: 'Secrets have been stored securely by the user.',
     };

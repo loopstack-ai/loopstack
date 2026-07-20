@@ -29,13 +29,13 @@ caller → ToolLoggingInterceptor(0) → CacheInterceptor(50) → QuotaIntercept
 Implement `ToolInterceptor` and decorate with `@UseToolInterceptor({ priority? })`. The decorator applies `@Injectable()` for you, so the class only needs to be registered in a NestJS module like any other provider.
 
 ```typescript
-import { ToolExecutionContext, ToolInterceptor, ToolResult, UseToolInterceptor } from '@loopstack/common';
+import { ToolEnvelope, ToolExecutionContext, ToolInterceptor, UseToolInterceptor } from '@loopstack/common';
 
 @UseToolInterceptor({ priority: 50 })
 export class CacheInterceptor implements ToolInterceptor {
-  private readonly cache = new Map<string, ToolResult>();
+  private readonly cache = new Map<string, ToolEnvelope>();
 
-  async intercept(context: ToolExecutionContext, next: () => Promise<ToolResult>): Promise<ToolResult> {
+  async intercept(context: ToolExecutionContext, next: () => Promise<ToolEnvelope>): Promise<ToolEnvelope> {
     const key = `${context.tool.constructor.name}:${JSON.stringify(context.args)}`;
 
     const hit = this.cache.get(key);
@@ -97,7 +97,7 @@ The `@loopstack/quota` package ships a `QuotaInterceptor` that uses the chain pa
 ```typescript
 @UseToolInterceptor({ priority: 80 })
 export class QuotaInterceptor implements ToolInterceptor {
-  async intercept(context: ToolExecutionContext, next: () => Promise<ToolResult>): Promise<ToolResult> {
+  async intercept(context: ToolExecutionContext, next: () => Promise<ToolEnvelope>): Promise<ToolEnvelope> {
     const userId = context.runContext.userId;
     await this.checkQuota(userId, context.tool);
     const result = await next();

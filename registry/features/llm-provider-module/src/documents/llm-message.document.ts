@@ -22,9 +22,19 @@ export type LlmMessageDocumentContentType = z.infer<typeof LlmMessageDocumentCon
 // Document class
 // ---------------------------------------------------------------------------
 
+/**
+ * Document that renders an LLM chat message in Studio.
+ *
+ * Extends `MessageDocument` with a narrowed `role` of `'user' | 'assistant'`, an optional
+ * message `id`, structured `blocks` (LLM content blocks), and a `stopReason`. Tagged
+ * `'message'` so it participates in conversation history, and rendered via the
+ * `llm-message.document.yaml` widget.
+ *
+ * @public
+ */
 @Document({
   schema: LlmMessageDocumentContentSchema,
-  widget: import.meta.dirname + '/llm-message.document.yaml',
+  widget: './llm-message.document.yaml',
   tags: ['message'],
 })
 export class LlmMessageDocument extends MessageDocument {

@@ -28,6 +28,18 @@ export interface ExecutionScopeData {
   documents: DocumentEntity[];
   persistenceState: { documentsUpdated: boolean };
   transition?: HistoryTransition;
+
+  // Aborted when the transition is torn down (e.g. on timeout). Framework I/O reads
+  // `abortController.signal` and refuses to run once aborted, so an abandoned transition
+  // method cannot write outside its rolled-back transaction. Replaced before each transition.
+  abortController: AbortController;
+
+  // Per-transition state/result drafts mutated by BaseWorkflow setters
+  // (assignState / setState / assignResult / setResult). The processor seeds
+  // these before invoking the transition method and commits them on success.
+  stateDraft: Record<string, unknown>;
+  resultDraft: Record<string, unknown>;
+  resultDirty: boolean;
 }
 
 /**

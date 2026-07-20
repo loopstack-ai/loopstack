@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetPullRequestTool`: the repository `owner`, `repo` and `pullNumber`.
+ *
+ * @public
+ */
 export type GitHubGetPullRequestArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetPullRequestTool`: a `pullRequest` object with branches, merge state,
+ * diff stats and timestamps, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetPullRequestResult =
   | {
       pullRequest: {
@@ -42,6 +53,12 @@ export type GitHubGetPullRequestResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that fetches detailed information about a single GitHub pull request.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_pull_request',
   description:
@@ -57,7 +74,7 @@ export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs,
   protected async handle(
     args: GitHubGetPullRequestArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubGetPullRequestResult>> {
+  ): Promise<ToolEnvelope<GitHubGetPullRequestResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -66,6 +83,7 @@ export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs,
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -85,6 +103,7 @@ export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs,
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -96,6 +115,7 @@ export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs,
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

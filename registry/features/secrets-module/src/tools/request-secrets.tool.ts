@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 
 const RequestSecretsInputSchema = z
   .object({
@@ -14,8 +13,20 @@ const RequestSecretsInputSchema = z
 
 type RequestSecretsInput = z.infer<typeof RequestSecretsInputSchema>;
 
+/**
+ * Result for `request_secrets` — the list of requested secret keys after the user submits the form.
+ *
+ * @public
+ */
 export type RequestSecretsResult = { variables: { key: string }[] };
 
+/**
+ * Tool that asks the user for secret values through a secure Studio form; values are stored server-side
+ * and only the key names are returned, never the secrets themselves.
+ *
+ * @providedBy SecretsModule
+ * @public
+ */
 @Tool({
   name: 'request_secrets',
   description:
@@ -26,7 +37,7 @@ export type RequestSecretsResult = { variables: { key: string }[] };
   schema: RequestSecretsInputSchema,
 })
 export class RequestSecretsTool extends BaseTool<RequestSecretsInput, object, RequestSecretsResult> {
-  protected async handle(args: RequestSecretsInput, _ctx: RunContext): Promise<ToolResult<RequestSecretsResult>> {
+  protected async handle(args: RequestSecretsInput): Promise<ToolEnvelope<RequestSecretsResult>> {
     return Promise.resolve({
       data: { variables: args.variables },
     });

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListPrReviewsTool`: the repository `owner`, `repo` and `pullNumber`.
+ *
+ * @public
+ */
 export type GitHubListPrReviewsArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListPrReviewsTool`: a `reviews` array with reviewer, body, state
+ * and submission time, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListPrReviewsResult =
   | {
       reviews: Array<{
@@ -27,6 +38,12 @@ export type GitHubListPrReviewsResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that lists reviews submitted on a GitHub pull request.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_pr_reviews',
   description:
@@ -42,7 +59,7 @@ export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, o
   protected async handle(
     args: GitHubListPrReviewsArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubListPrReviewsResult>> {
+  ): Promise<ToolEnvelope<GitHubListPrReviewsResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -51,6 +68,7 @@ export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, o
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -70,6 +88,7 @@ export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, o
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -81,6 +100,7 @@ export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, o
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

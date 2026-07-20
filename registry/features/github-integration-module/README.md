@@ -44,7 +44,7 @@ Inject `ConnectGitHubWorkflow` into your own workflow and run it as a sub-workfl
 
 ```ts
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { ConnectGitHubWorkflow } from '@loopstack/github-integration';
 
 @Workflow({
@@ -58,17 +58,16 @@ export class SetupProjectWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting_github' })
-  async start(state: Record<string, never>): Promise<unknown> {
+  async start(state: Record<string, never>) {
     await this.connectGitHub.run(
       {},
       { callback: { transition: 'onGitHubConnected' }, show: 'inline', label: 'Connect to GitHub' },
     );
-    return state;
   }
 
-  @Transition({ from: 'awaiting_github', to: 'end', wait: true, schema: CallbackSchema })
-  async onGitHubConnected(state: Record<string, never>, payload: { data: unknown }): Promise<unknown> {
-    return { github: payload.data };
+  @Transition({ from: 'awaiting_github', to: 'end', wait: true })
+  async onGitHubConnected(state: Record<string, never>, input: TransitionInput) {
+    this.setResult({ github: input.data });
   }
 }
 ```

@@ -66,20 +66,36 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
       ? applyCacheBreakpoints({ system: args.system, tools, messages })
       : { system: args.system, tools, messages };
 
-    const stream = client.messages.stream({
-      model,
-      messages: cachedMessages,
-      max_tokens: pc?.maxTokens ?? 4096,
-      ...(cachedSystem ? { system: cachedSystem } : {}),
-      ...(cachedTools ? { tools: cachedTools } : {}),
-      ...(pc?.temperature != null ? { temperature: pc.temperature } : {}),
-      ...(pc?.stopSequences?.length ? { stop_sequences: pc.stopSequences } : {}),
-    });
+    const stream = client.messages.stream(
+      {
+        model,
+        messages: cachedMessages,
+        max_tokens: pc?.maxTokens ?? 4096,
+        ...(cachedSystem ? { system: cachedSystem } : {}),
+        ...(cachedTools ? { tools: cachedTools } : {}),
+        ...(pc?.temperature != null ? { temperature: pc.temperature } : {}),
+        ...(pc?.stopSequences?.length ? { stop_sequences: pc.stopSequences } : {}),
+      },
+      { signal: ctx.signal },
+    );
 
     if (args.onStream && args.streamMessageId) {
       stream.on('text', (delta) => {
         if (delta) {
           void args.onStream?.({ type: 'text_delta', messageId: args.streamMessageId!, delta });
+        }
+      });
+      // Tool-use args accumulate as JSON deltas — the completed content
+      // block is the earliest moment the full call is known.
+      stream.on('contentBlock', (block) => {
+        if (block.type === 'tool_use') {
+          void args.onStream?.({
+            type: 'tool_call',
+            messageId: args.streamMessageId!,
+            id: block.id,
+            name: block.name,
+            args: (block.input ?? {}) as Record<string, unknown>,
+          });
         }
       });
     }
@@ -121,15 +137,18 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
       ? applyCacheBreakpoints({ system: args.system, tools: [structuredTool], messages })
       : { system: args.system, tools: [structuredTool], messages };
 
-    const response = await client.messages.create({
-      model,
-      messages: cachedMessages,
-      max_tokens: pc?.maxTokens ?? 4096,
-      ...(system ? { system } : {}),
-      tools: tools!,
-      tool_choice: { type: 'tool', name: 'structured_output' },
-      ...(pc?.temperature != null ? { temperature: pc.temperature } : {}),
-    });
+    const response = await client.messages.create(
+      {
+        model,
+        messages: cachedMessages,
+        max_tokens: pc?.maxTokens ?? 4096,
+        ...(system ? { system } : {}),
+        tools: tools!,
+        tool_choice: { type: 'tool', name: 'structured_output' },
+        ...(pc?.temperature != null ? { temperature: pc.temperature } : {}),
+      },
+      { signal: ctx.signal },
+    );
 
     const toolUseBlock = response.content.find((block): block is Anthropic.ToolUseBlock => block.type === 'tool_use');
 

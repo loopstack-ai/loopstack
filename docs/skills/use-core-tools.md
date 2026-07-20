@@ -16,7 +16,7 @@ Inject sub-workflows via the constructor and use `.run()` to execute them asynch
 ### Inject in workflow
 
 ```typescript
-import { CallbackSchema, QueueResult } from '@loopstack/common';
+import { QueueResult } from '@loopstack/common';
 
 constructor(private readonly subWorkflow: SubWorkflow) { super(); }
 ```
@@ -38,38 +38,38 @@ const result: QueueResult = await this.subWorkflow.run(
 ### Receive the callback
 
 ```typescript
-const SubWorkflowCallbackSchema = CallbackSchema.extend({
-  data: z.object({ message: z.string() }),
-});
+import type { TransitionInput } from '@loopstack/common';
 
-type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
+const SubWorkflowMessageSchema = z.object({ message: z.string() });
 
 @Transition({
   from: 'sub_started',
   to: 'sub_done',
   wait: true,
-  schema: SubWorkflowCallbackSchema,
+  schema: SubWorkflowMessageSchema,
 })
-async onSubComplete(state: MyState, payload: SubWorkflowCallback): Promise<MyState> {
-  // payload.workflowId — the sub-workflow's ID
-  // payload.status — the sub-workflow's completion status
-  // payload.data — the sub-workflow's final transition return value
-  const message = payload.data.message;
-  return state;
+onSubComplete(state: MyState, input: TransitionInput<{ message: string }>) {
+  // input.workflowId — the sub-workflow's ID
+  // input.status — 'completed' | 'failed' | 'canceled'
+  // input.hasError / input.errorMessage — populated if the child failed
+  // input.data — the sub-workflow's published result (validated against schema)
+  const message = input.data.message;
 }
 ```
 
 ### Sub-workflow output
 
-The sub-workflow's final transition (`to: 'end'`) return value is passed as `payload.data` in the parent's callback:
+The sub-workflow's published `result` (written via `this.assignResult(...)` / `this.setResult(...)`) is passed as `input.data` in the parent's callback:
 
 ```typescript
 // In the sub-workflow:
 @Transition({ from: 'done', to: 'end' })
-async finish(state: SubState): Promise<{ message: string }> {
-  return { message: 'Hi mom!' };
+finish(state: SubState) {
+  this.setResult({ message: 'Hi mom!' });
 }
 ```
+
+In the parent, validate the data shape via the `schema:` option on the wait transition — it describes `input.data` only; the framework constructs the surrounding envelope.
 
 ### Rendering in the Parent's View
 

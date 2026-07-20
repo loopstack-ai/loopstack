@@ -49,13 +49,9 @@ Launch an agent from any workflow:
 ```typescript
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
-const AgentCallbackSchema = CallbackSchema.extend({
-  data: z.object({ response: z.string() }),
-});
-
-type AgentCallback = z.infer<typeof AgentCallbackSchema>;
+const AgentResponseSchema = z.object({ response: z.string() });
 
 @Workflow({ title: 'My Workflow' })
 export class MyWorkflow extends BaseWorkflow {
@@ -64,7 +60,7 @@ export class MyWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'running' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(state: Record<string, unknown>) {
     await this.agent.run(
       {
         system: 'You are a helpful assistant with access to search and summarize tools.',
@@ -73,16 +69,14 @@ export class MyWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'agentDone' }, show: 'inline', label: 'Agent working...' },
     );
-    return state;
   }
 
-  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentCallbackSchema })
-  async agentDone(state: Record<string, unknown>, payload: AgentCallback): Promise<unknown> {
+  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentResponseSchema })
+  async agentDone(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: payload.data.response,
+      text: input.data.response,
     });
-    return {};
   }
 }
 ```
@@ -144,7 +138,7 @@ export class MyChatWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'chatting' })
-  async startChat(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async startChat(state: Record<string, unknown>) {
     await this.chatAgent.run(
       {
         system: 'You are a helpful assistant.',
@@ -153,7 +147,6 @@ export class MyChatWorkflow extends BaseWorkflow {
       },
       { show: 'inline', label: 'Chat Agent' },
     );
-    return state;
   }
 }
 ```

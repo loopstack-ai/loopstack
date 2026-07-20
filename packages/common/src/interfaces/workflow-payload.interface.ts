@@ -1,5 +1,3 @@
-import type { WorkflowState } from '@loopstack/contracts/enums';
-
 export interface WorkflowPayload<TArgs = unknown> {
   workspaceId: string;
   workflowId?: string;
@@ -14,8 +12,11 @@ export interface TransitionPayload {
   payload?: Record<string, unknown>;
 }
 
-export interface WorkflowRunResult {
-  workflowId: string;
-  workspaceId: string;
-  status: WorkflowState;
-}
+/**
+ * Result of `WorkflowRunner.execute` — the controller-facing entry point that
+ * starts, resumes, or retries a workflow based on the payload shape. Defined
+ * in `@loopstack/contracts/api` — the same schema types the REST response.
+ *
+ * @public
+ */
+export type { WorkflowRunResult } from '@loopstack/contracts/api';

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
@@ -16,16 +16,37 @@ Strategy:
 Be thorough but efficient. Don't read entire files when grep
 can pinpoint the relevant sections.`;
 
-const ExploreTaskInputSchema = z
+/**
+ * Zod schema for `ExploreTask` args.
+ *
+ * @public
+ */
+export const ExploreTaskInputSchema = z
   .object({
     instructions: z.string().describe('Detailed instructions for what to explore in the codebase'),
   })
   .strict();
 
-type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
+/**
+ * Args for `ExploreTask`.
+ *
+ * @public
+ */
+export type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
 
+/**
+ * Result for `ExploreTask` (`explore_task`) — the synthesized exploration summary or its pending workflow reference.
+ *
+ * @public
+ */
 export type ExploreTaskResult = { workflowId: string } | string | Record<string, unknown>;
 
+/**
+ * Tool that launches an `AgentWorkflow` sub-agent to explore and analyze a codebase with the `glob`/`grep`/`read` tools and return a synthesized summary.
+ *
+ * @providedBy CodeAgentModule
+ * @public
+ */
 @Tool({
   name: 'explore_task',
   description:
@@ -47,7 +68,7 @@ export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskR
     args: ExploreTaskInput,
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult<ExploreTaskResult>> {
+  ): Promise<ToolEnvelope<ExploreTaskResult>> {
     const result = await this.agentWorkflow.run(
       {
         system: EXPLORE_SYSTEM_PROMPT,
@@ -63,7 +84,7 @@ export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskR
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult<ExploreTaskResult>> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope<ExploreTaskResult>> {
     const data = result as { workflowId?: string; data?: { response?: string } };
     return { data: data.data?.response ?? result };
   }

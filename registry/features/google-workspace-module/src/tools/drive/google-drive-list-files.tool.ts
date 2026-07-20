@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -14,8 +14,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleDriveListFilesTool`.
+ *
+ * @public
+ */
 export type GoogleDriveListFilesArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleDriveListFilesTool`.
+ *
+ * @public
+ */
 export type GoogleDriveListFilesResult =
   | {
       files: Array<{
@@ -33,6 +43,14 @@ export type GoogleDriveListFilesResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that lists and searches files in Google Drive. Supports Drive query syntax, folder browsing,
+ * ordering, and pagination, and returns file metadata plus a `nextPageToken`, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_drive_list_files',
   description:
@@ -48,7 +66,7 @@ export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs,
   protected async handle(
     args: GoogleDriveListFilesArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleDriveListFilesResult>> {
+  ): Promise<ToolEnvelope<GoogleDriveListFilesResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -57,6 +75,7 @@ export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs,
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -84,6 +103,7 @@ export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs,
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -95,6 +115,7 @@ export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs,
           error: 'api_error',
           message: `Google Drive API error: ${response.statusText}`,
         },
+        error: `Google Drive API error: ${response.statusText}`,
       };
     }
 

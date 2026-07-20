@@ -22,18 +22,19 @@ The custom-document pattern is the **default for predefined workflows**: the for
 A transition with `wait: true` pauses the workflow until externally triggered by user interaction:
 
 ```typescript
+import type { TransitionInput } from '@loopstack/common';
+
 @Transition({
   from: 'waiting_for_user',
   to: 'ready',
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async userMessage(state: Record<string, unknown>, payload: { message: string }): Promise<Record<string, unknown>> {
+async userMessage(state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload.message,
+    text: input.data.message,
   });
-  return state;
 }
 ```
 
@@ -81,12 +82,11 @@ ui:
   wait: true,
   schema: z.string(),
 })
-async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
+async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload,
+    text: input.data,
   });
-  return state;
 }
 ```
 
@@ -105,35 +105,33 @@ interface MeetingNotesState {
   meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
 }
 
+const MeetingNotesArgsSchema = z.object({ inputText: z.string().default('...') });
+type MeetingNotesArgs = z.infer<typeof MeetingNotesArgsSchema>;
+
 @Workflow({
-  widget: __dirname + '/meeting-notes.ui.yaml',
-  schema: z.object({ inputText: z.string().default('...') }),
+  widget: './meeting-notes.ui.yaml',
+  schema: MeetingNotesArgsSchema,
 })
-export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, MeetingNotesState> {
+export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
   @Transition({ to: 'waiting_for_response' })
-  async createForm(state: MeetingNotesState, ctx: RunContext): Promise<MeetingNotesState> {
-    const args = ctx.args as { inputText: string };
-    await this.documentStore.save(MeetingNotesDocument, { text: args.inputText }, { id: 'input' });
-    return state;
+  async createForm(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>) {
+    await this.documentStore.save(MeetingNotesDocument, { text: ctx.args.inputText }, { key: 'input' });
   }
 
   // Wait for user to edit and submit
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
-  async userResponse(
-    state: MeetingNotesState,
-    payload: z.infer<typeof MeetingNotesDocumentSchema>,
-  ): Promise<MeetingNotesState> {
-    const result = await this.documentStore.save(MeetingNotesDocument, payload, { id: 'input' });
-    return { ...state, meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> };
+  async userResponse(state: MeetingNotesState, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
+    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { key: 'input' });
+    this.assignState({ meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> });
   }
 
   // AI generates structured output
   @Transition({ from: 'response_received', to: 'notes_optimized' })
-  async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
+  async optimizeNotes(state: MeetingNotesState) {
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
@@ -146,19 +144,14 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
     await this.documentStore.save(
       OptimizedNotesDocument,
       objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-      { id: 'final', validate: 'skip' },
+      { key: 'final', validate: 'skip' },
     );
-    return state;
   }
 
   // Wait for user to confirm
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
-  async confirm(
-    state: MeetingNotesState,
-    payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-  ): Promise<unknown> {
-    await this.documentStore.save(OptimizedNotesDocument, payload, { id: 'final' });
-    return {};
+  async confirm(state: MeetingNotesState, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
+    await this.documentStore.save(OptimizedNotesDocument, input.data, { key: 'final' });
   }
 }
 ```
@@ -191,18 +184,16 @@ The widget only appears when the workflow is at the `review` or `editing` place.
 
 The `wait: true` pattern above is for workflows that own their own UI. For generic prompts you don't want to design a form for, run `AskUserWorkflow` or `ConfirmUserWorkflow` from `@loopstack/hitl` as a sub-workflow and receive the answer through a callback.
 
-The callback payload is the standard sub-workflow envelope — extend `CallbackSchema` with the child's return shape so `payload.data` is typed. See [Sub-Workflows → Typing the Callback Payload](./sub-workflows.md#typing-the-callback-payload) for the full reference.
+The callback delivers the standard `TransitionInput<TData>` envelope — the `schema` on the transition describes only `data`, and `input.data` is fully typed. See [Sub-Workflows → Typing the Callback Envelope](./sub-workflows.md#typing-the-callback-envelope) for the full reference.
 
 ### `AskUserWorkflow` — free text
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
-const AnswerCallback = CallbackSchema.extend({
-  data: z.object({ answer: z.string() }),
-});
+const AnswerSchema = z.object({ answer: z.string() });
 
 @Workflow({ title: 'Ask Then Continue' })
 export class AskThenContinueWorkflow extends BaseWorkflow {
@@ -211,14 +202,13 @@ export class AskThenContinueWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'waiting' })
-  async ask(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async ask(state: Record<string, unknown>) {
     await this.askUser.run({ question: 'What is your name?' }, { callback: { transition: 'onAnswer' } });
-    return state;
   }
 
-  @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerCallback })
-  async onAnswer(state: Record<string, unknown>, payload: z.infer<typeof AnswerCallback>): Promise<unknown> {
-    return { name: payload.data.answer };
+  @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerSchema })
+  onAnswer(state: Record<string, unknown>, input: TransitionInput<{ answer: string }>) {
+    this.setResult({ name: input.data.answer });
   }
 }
 ```
@@ -239,11 +229,11 @@ await this.askUser.run(
 );
 ```
 
-The callback payload shape is the same as the free-text case (`data: { answer: string }`).
+The envelope shape is the same as the free-text case (`input.data: { answer: string }`).
 
 ### `AskUserWorkflow` — yes / no
 
-Pass `mode: 'confirm'`. The answer comes back as the literal string `'yes'` or `'no'` in `payload.data.answer` — compare directly.
+Pass `mode: 'confirm'`. The answer comes back as the literal string `'yes'` or `'no'` in `input.data.answer` — compare directly.
 
 ```typescript
 await this.askUser.run(
@@ -254,30 +244,27 @@ await this.askUser.run(
 
 ### `ConfirmUserWorkflow` — markdown review
 
-For showing a pre-rendered markdown blob (a release plan, a summary, a code diff) and receiving an explicit approve/deny, use `ConfirmUserWorkflow`. The callback `data` carries both the user's decision and the original markdown:
+For showing a pre-rendered markdown blob (a release plan, a summary, a code diff) and receiving an explicit approve/deny, use `ConfirmUserWorkflow`. The callback `input.data` carries both the user's decision and the original markdown:
 
 ```typescript
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 
-const ConfirmCallback = CallbackSchema.extend({
-  data: z.object({ confirmed: z.boolean(), markdown: z.string() }),
-});
+const ConfirmSchema = z.object({ confirmed: z.boolean(), markdown: z.string() });
 
 @Transition({ to: 'awaiting' })
-async showSummary(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+async showSummary(state: Record<string, unknown>) {
   await this.confirmUser.run(
     { markdown: '## Ready to deploy v1.2.3?\n\n- 3 commits since last release\n- Smoke tests passing' },
     { callback: { transition: 'decisionReceived' } },
   );
-  return state;
 }
 
-@Transition({ from: 'awaiting', to: 'end', wait: true, schema: ConfirmCallback })
-async decisionReceived(
+@Transition({ from: 'awaiting', to: 'end', wait: true, schema: ConfirmSchema })
+decisionReceived(
   state: Record<string, unknown>,
-  payload: z.infer<typeof ConfirmCallback>,
-): Promise<unknown> {
-  return { confirmed: payload.data.confirmed };
+  input: TransitionInput<z.infer<typeof ConfirmSchema>>,
+) {
+  this.setResult({ confirmed: input.data.confirmed });
 }
 ```
 
@@ -292,11 +279,9 @@ Register the tool in your module and add it to the agent's tool list. A system p
 ```typescript
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
-const AgentCallback = CallbackSchema.extend({
-  data: z.object({ response: z.string() }),
-});
+const AgentResponseSchema = z.object({ response: z.string() });
 
 const SYSTEM_PROMPT = `You are a trip-planning assistant.
 - Before recommending a destination, you MUST know BOTH the user's budget AND climate preference.
@@ -309,7 +294,7 @@ export class TripPlannerWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'running' })
-  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async start(state: Record<string, unknown>) {
     await this.agent.run(
       {
         system: SYSTEM_PROMPT,
@@ -318,13 +303,12 @@ export class TripPlannerWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'onComplete' } },
     );
-    return state;
   }
 
-  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentCallback })
-  async onComplete(state: Record<string, unknown>, payload: z.infer<typeof AgentCallback>): Promise<unknown> {
-    await this.documentStore.save(MessageDocument, { role: 'assistant', text: payload.data.response });
-    return { response: payload.data.response };
+  @Transition({ from: 'running', to: 'end', wait: true, schema: AgentResponseSchema })
+  async onComplete(state: Record<string, unknown>, input: TransitionInput<{ response: string }>) {
+    await this.documentStore.save(MessageDocument, { role: 'assistant', text: input.data.response });
+    this.setResult({ response: input.data.response });
   }
 }
 ```
@@ -354,7 +338,7 @@ See [`@loopstack/hitl`](https://loopstack.ai/registry/loopstack-hitl-module) for
 
 ## Registry References
 
-- [hitl-example-module](https://loopstack.ai/registry/loopstack-hitl-example-module) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
+- [hitl-example-module](https://loopstack.ai/registry/loopstack-hitl-examples) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
 - [@loopstack/hitl](https://loopstack.ai/registry/loopstack-hitl-module) — The underlying HITL module: `AskUserWorkflow`, `ConfirmUserWorkflow`, `ask_clarification`, `ask_for_approval`
-- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-meeting-notes-example-workflow) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
-- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Chat input pattern with prompt-input widget
+- [meeting-notes-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#meeting-notes) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
+- [chat-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#prompt-input-chat) — Chat input pattern with prompt-input widget

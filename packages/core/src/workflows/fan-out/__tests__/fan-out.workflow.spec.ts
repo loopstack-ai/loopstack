@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RunContext, WorkflowOrchestrator } from '@loopstack/common';
+import { runTransition } from '@loopstack/testing';
 import type { WorkflowRegistryService } from '../../../workflow-processor/services/workflow-registry.service.js';
 import type { FanOutArgs, FanOutResult } from '../fan-out.types.js';
 import { FanOutWorkflow } from '../fan-out.workflow.js';
@@ -38,6 +39,7 @@ function ctx(args: FanOutArgs, workflowId = 'parent-1'): RunContext {
     workspaceId: 'ws1',
     workflowId,
     args: args as unknown as Record<string, unknown>,
+    signal: new AbortController().signal,
     execution: { place: 'start', retryCount: 0 },
   };
 }
@@ -59,7 +61,7 @@ describe('FanOutWorkflow', () => {
         mode: 'all',
       };
 
-      const state = await workflow.start({} as never, ctx(args));
+      const { state } = await runTransition(workflow, () => workflow.start({} as never, ctx(args)), { state: {} });
 
       expect(orchestrator.queue).toHaveBeenCalledTimes(2);
       expect(orchestrator.queue).toHaveBeenNthCalledWith(
@@ -79,7 +81,7 @@ describe('FanOutWorkflow', () => {
       const { workflow, orchestrator } = makeWorkflow();
       const args: FanOutArgs = { entries: [], itemsWereArray: true, mode: 'all' };
 
-      const state = await workflow.start({} as never, ctx(args));
+      const { state } = await runTransition(workflow, () => workflow.start({} as never, ctx(args)), { state: {} });
 
       expect(orchestrator.queue).not.toHaveBeenCalled();
       expect(state.pendingCount).toBe(0);
@@ -97,10 +99,22 @@ describe('FanOutWorkflow', () => {
         mode: 'all' as const,
       };
 
-      const next = await workflow.onChildComplete(
-        state,
-        { status: 'completed', data: { v: 1 }, _subscriberMetadata: { key: 'a' } },
-        ctx({ entries: [], itemsWereArray: false, mode: 'all' }),
+      const { state: next } = await runTransition(
+        workflow,
+        () =>
+          workflow.onChildComplete(
+            state,
+            {
+              workflowId: 'child-a',
+              status: 'completed',
+              hasError: false,
+              errorMessage: null,
+              data: { v: 1 },
+              meta: { key: 'a' },
+            },
+            ctx({ entries: [], itemsWereArray: false, mode: 'all' }),
+          ),
+        { state },
       );
 
       expect(next.pendingCount).toBe(1);
@@ -117,10 +131,22 @@ describe('FanOutWorkflow', () => {
         mode: 'all' as const,
       };
 
-      const next = await workflow.onChildComplete(
-        state,
-        { status: 'failed', _subscriberMetadata: { key: 'a' } },
-        ctx({ entries: [], itemsWereArray: false, mode: 'all' }, 'parent-99'),
+      const { state: next } = await runTransition(
+        workflow,
+        () =>
+          workflow.onChildComplete(
+            state,
+            {
+              workflowId: 'child-a',
+              status: 'failed',
+              hasError: true,
+              errorMessage: 'Child failed.',
+              data: null,
+              meta: { key: 'a' },
+            },
+            ctx({ entries: [], itemsWereArray: false, mode: 'all' }, 'parent-99'),
+          ),
+        { state },
       );
 
       expect(orchestrator.cancelChildren).toHaveBeenCalledWith('parent-99');
@@ -137,10 +163,22 @@ describe('FanOutWorkflow', () => {
         mode: 'allSettled' as const,
       };
 
-      await workflow.onChildComplete(
-        state,
-        { status: 'failed', _subscriberMetadata: { key: 'a' } },
-        ctx({ entries: [], itemsWereArray: false, mode: 'allSettled' }),
+      await runTransition(
+        workflow,
+        () =>
+          workflow.onChildComplete(
+            state,
+            {
+              workflowId: 'child-a',
+              status: 'failed',
+              hasError: true,
+              errorMessage: 'Child failed.',
+              data: null,
+              meta: { key: 'a' },
+            },
+            ctx({ entries: [], itemsWereArray: false, mode: 'allSettled' }),
+          ),
+        { state },
       );
 
       expect(orchestrator.cancelChildren).not.toHaveBeenCalled();
@@ -157,10 +195,21 @@ describe('FanOutWorkflow', () => {
       };
 
       await expect(
-        workflow.onChildComplete(
-          state,
-          { status: 'completed', data: {} },
-          ctx({ entries: [], itemsWereArray: false, mode: 'all' }),
+        runTransition(
+          workflow,
+          () =>
+            workflow.onChildComplete(
+              state,
+              {
+                workflowId: 'child-x',
+                status: 'completed',
+                hasError: false,
+                errorMessage: null,
+                data: {},
+              },
+              ctx({ entries: [], itemsWereArray: false, mode: 'all' }),
+            ),
+          { state },
         ),
       ).rejects.toThrow(/correlation key/);
     });
@@ -180,7 +229,8 @@ describe('FanOutWorkflow', () => {
         mode: 'allSettled' as const,
       };
 
-      const result = (await workflow.done(state)) as FanOutResult;
+      const { result: rawResult } = await runTransition(workflow, () => workflow.done(state), { state });
+      const result = rawResult as unknown as FanOutResult;
 
       expect(result.hasErrors).toBe(true);
       expect(result.errorCount).toBe(1);
@@ -203,7 +253,8 @@ describe('FanOutWorkflow', () => {
         mode: 'all' as const,
       };
 
-      const result = (await workflow.done(state)) as FanOutResult;
+      const { result: rawResult } = await runTransition(workflow, () => workflow.done(state), { state });
+      const result = rawResult as unknown as FanOutResult;
 
       expect(result.hasErrors).toBe(false);
       expect(result.errorCount).toBe(0);
@@ -223,7 +274,8 @@ describe('FanOutWorkflow', () => {
         mode: 'allSettled' as const,
       };
 
-      const result = (await workflow.done(state)) as FanOutResult;
+      const { result: rawResult } = await runTransition(workflow, () => workflow.done(state), { state });
+      const result = rawResult as unknown as FanOutResult;
       const results = result.results as Record<string, { status: string; error?: string }>;
 
       expect(results.b.status).toBe('failed');

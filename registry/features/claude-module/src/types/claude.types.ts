@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk';
 /**
  * Provider-specific configuration for the Claude LLM provider.
  * Passed via `providerConfig` in LlmGenerateTextArgs / LlmGenerateObjectArgs.
+ *
+ * @public
  */
 export interface ClaudeProviderConfig {
   maxTokens?: number;

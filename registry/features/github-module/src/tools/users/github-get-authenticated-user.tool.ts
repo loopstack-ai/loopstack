@@ -1,13 +1,24 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z.object({}).strict();
 
+/**
+ * Args for `GitHubGetAuthenticatedUserTool`: an empty object; the user is resolved from the token.
+ *
+ * @public
+ */
 export type GitHubGetAuthenticatedUserArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetAuthenticatedUserTool`: a `user` profile with login, name, email,
+ * avatar and counts, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetAuthenticatedUserResult = {
   user?: {
     id: number;
@@ -26,6 +37,12 @@ export type GitHubGetAuthenticatedUserResult = {
   message?: string;
 };
 
+/**
+ * Tool that fetches the profile of the currently authenticated GitHub user.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_authenticated_user',
   description:
@@ -45,7 +62,7 @@ export class GitHubGetAuthenticatedUserTool extends BaseTool<
   protected async handle(
     _args: GitHubGetAuthenticatedUserArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubGetAuthenticatedUserResult>> {
+  ): Promise<ToolEnvelope<GitHubGetAuthenticatedUserResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -54,6 +71,7 @@ export class GitHubGetAuthenticatedUserTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -72,6 +90,7 @@ export class GitHubGetAuthenticatedUserTool extends BaseTool<
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -83,6 +102,7 @@ export class GitHubGetAuthenticatedUserTool extends BaseTool<
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

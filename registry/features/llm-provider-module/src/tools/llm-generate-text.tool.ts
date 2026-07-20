@@ -1,11 +1,12 @@
 import { Inject } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import type { ToolRegistry } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
 import type { LlmContext } from '../contracts/index.js';
+import { LlmMessageDocument } from '../documents/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
@@ -18,6 +19,11 @@ import type {
   LlmStreamEvent,
 } from '../types/index.js';
 
+/**
+ * Zod schema for `llm_generate_text` tool args (`prompt` and/or `messages`).
+ *
+ * @public
+ */
 export const LlmGenerateTextArgsSchema = z.object({
   prompt: z.string().optional(),
   messages: z
@@ -30,6 +36,12 @@ export const LlmGenerateTextArgsSchema = z.object({
     .optional(),
 });
 
+/**
+ * Zod schema for `llm_generate_text` tool config (`provider`, `model`, `system`,
+ * `tools`, `providerConfig`, and persistence options).
+ *
+ * @public
+ */
 export const LlmGenerateTextConfigSchema = z.object({
   provider: z.string().optional(),
   system: z.string().optional(),
@@ -37,6 +49,8 @@ export const LlmGenerateTextConfigSchema = z.object({
   messagesSearchTag: z.string().optional(),
   providerConfig: z.record(z.string(), z.unknown()).optional(),
   tools: z.array(z.string()).optional(),
+  save: z.boolean().optional(),
+  meta: z.record(z.string(), z.unknown()).optional(),
 });
 
 type LlmGenerateTextArgs = z.infer<typeof LlmGenerateTextArgsSchema>;
@@ -45,6 +59,17 @@ type LlmGenerateTextConfig = z.infer<typeof LlmGenerateTextConfigSchema>;
 /** @deprecated Use LlmGenerateTextArgsSchema + LlmGenerateTextConfigSchema instead */
 export const LlmGenerateTextToolSchema = LlmGenerateTextArgsSchema;
 
+/**
+ * Tool that generates text with the configured LLM provider.
+ *
+ * Accepts a `prompt` or a `messages` array and resolves provider, model, system prompt,
+ * and tool names from `options.config`. Resolved tool names are turned into provider tool
+ * definitions, and output is streamed to the client when streaming is available.
+ * Returns an {@link LlmGenerateTextResult} with provider/model usage in {@link LlmResultMeta}.
+ *
+ * @providedBy LlmProviderModule
+ * @public
+ */
 @Tool({
   name: 'llm_generate_text',
   description:
@@ -69,12 +94,12 @@ export class LlmGenerateTextTool extends BaseTool<
     args: LlmGenerateTextArgs,
     ctx: RunContext,
     options?: ToolCallOptions<LlmGenerateTextConfig>,
-  ): Promise<ToolResult<LlmGenerateTextResult, LlmResultMeta>> {
+  ): Promise<ToolEnvelope<LlmGenerateTextResult, LlmResultMeta>> {
     const config = options?.config;
     const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
 
     // Documents from DocumentStore (replaces this.ctx.runtime.documents)
-    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments() };
+    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments(), signal: ctx.signal };
 
     // Resolve tool names (string[]) to BaseTool[] instances via ToolRegistry
     const toolNames = config?.tools;
@@ -121,6 +146,12 @@ export class LlmGenerateTextTool extends BaseTool<
       this.dispatchStreamEvent(ctx, { type: 'done', messageId: streamMessageId, message: result.message });
     }
 
+    if (config?.save !== false) {
+      await this.documentStore.save(LlmMessageDocument, result.message, {
+        meta: { response: result.response, provider: provider.providerId, ...(config?.meta ?? {}) },
+      });
+    }
+
     return {
       data: result,
       metadata: {
@@ -140,13 +171,38 @@ export class LlmGenerateTextTool extends BaseTool<
     const userId = ctx.userId;
     if (!workflowId || !userId) return;
 
-    this.clientMessageService.dispatch({
-      ...event,
-      eventType: event.type,
-      type: `llm.response.${event.type}`,
+    const base = {
       userId,
       workerId: this.clientMessageService.clientId,
       workflowId,
-    });
+      messageId: event.messageId,
+    };
+
+    switch (event.type) {
+      case 'start':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.start' });
+        break;
+      case 'text_delta':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.text_delta', delta: event.delta });
+        break;
+      case 'thinking_delta':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.thinking_delta', delta: event.delta });
+        break;
+      case 'tool_call':
+        this.clientMessageService.dispatch({
+          ...base,
+          type: 'llm.response.tool_call',
+          id: event.id,
+          name: event.name,
+          args: event.args,
+        });
+        break;
+      case 'done':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.done', message: event.message });
+        break;
+      case 'error':
+        this.clientMessageService.dispatch({ ...base, type: 'llm.response.error', error: event.error });
+        break;
+    }
   }
 }

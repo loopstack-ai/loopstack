@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -10,8 +10,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleCalendarListCalendarsTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarListCalendarsArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleCalendarListCalendarsTool`.
+ *
+ * @public
+ */
 export type GoogleCalendarListCalendarsResult =
   | {
       calendars: Array<{
@@ -25,6 +35,14 @@ export type GoogleCalendarListCalendarsResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that lists all Google Calendars the authenticated user has access to. Returns each
+ * calendar's id, summary, time zone, and primary flag, or `{ error: 'unauthorized' }` when no
+ * valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_calendar_list_calendars',
   description:
@@ -44,7 +62,7 @@ export class GoogleCalendarListCalendarsTool extends BaseTool<
   protected async handle(
     args: GoogleCalendarListCalendarsArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleCalendarListCalendarsResult>> {
+  ): Promise<ToolEnvelope<GoogleCalendarListCalendarsResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -53,6 +71,7 @@ export class GoogleCalendarListCalendarsTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -73,6 +92,7 @@ export class GoogleCalendarListCalendarsTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -84,6 +104,7 @@ export class GoogleCalendarListCalendarsTool extends BaseTool<
           error: 'api_error',
           message: `Google Calendar API error: ${response.statusText}`,
         },
+        error: `Google Calendar API error: ${response.statusText}`,
       };
     }
 

@@ -1,8 +1,7 @@
 import { Logger } from '@nestjs/common';
 import * as path from 'node:path';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -15,13 +14,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxWriteFileArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxWriteFile`.
+ *
+ * Identifies the container, target path, content, encoding, and whether to create parent directories.
+ *
+ * @public
+ */
+export type SandboxWriteFileArgs = z.infer<typeof inputSchema>;
 
-interface SandboxWriteFileResult {
+/**
+ * Result of `SandboxWriteFile`.
+ *
+ * Reports the written path and the number of bytes written.
+ *
+ * @public
+ */
+export interface SandboxWriteFileResult {
   path: string;
   bytesWritten: number;
 }
 
+/**
+ * Tool that writes content to a file in a sandbox container, optionally creating parent directories.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_write_file',
   description: 'Write content to a file in a sandbox container',
@@ -34,7 +53,7 @@ export class SandboxWriteFile extends BaseTool<SandboxWriteFileArgs, object, San
     super();
   }
 
-  protected async handle(args: SandboxWriteFileArgs, _ctx: RunContext): Promise<ToolResult<SandboxWriteFileResult>> {
+  protected async handle(args: SandboxWriteFileArgs): Promise<ToolEnvelope<SandboxWriteFileResult>> {
     const { containerId, path: filePath, content, encoding, createParentDirs } = args;
 
     this.logger.debug(`Writing file ${filePath} to container ${containerId} (encoding: ${encoding})`);

@@ -1,19 +1,34 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
+/**
+ * Args for `logs` — optional `lines` count and the log `type` to retrieve.
+ *
+ * @public
+ */
 export type LogsArgs = {
   lines?: number;
   type?: 'out' | 'error' | 'all';
 };
 
+/**
+ * Result for `logs` — the captured stdout and stderr output.
+ *
+ * @public
+ */
 export type LogsResult = {
   stdout: string;
   stderr: string;
 };
 
+/**
+ * Tool that retrieves application logs from the remote instance.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Tool({
   name: 'logs',
   description:
@@ -36,7 +51,7 @@ export class LogsTool extends BaseTool<LogsArgs, object, LogsResult> {
     super();
   }
 
-  protected async handle(args: LogsArgs, _ctx: RunContext): Promise<ToolResult<LogsResult>> {
+  protected async handle(args: LogsArgs): Promise<ToolEnvelope<LogsResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.getLogs(agentUrl, args.lines, args.type);
     return {

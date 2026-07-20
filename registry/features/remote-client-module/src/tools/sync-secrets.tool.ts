@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SecretService } from '@loopstack/secrets-module';
 import { EnvironmentService } from '../services/environment.service.js';
@@ -9,8 +9,19 @@ const SyncSecretsInputSchema = z.object({}).strict();
 
 type SyncSecretsInput = z.infer<typeof SyncSecretsInputSchema>;
 
+/**
+ * Result for `sync_secrets` — the number of secrets synced, or a message when no secrets exist.
+ *
+ * @public
+ */
 export type SyncSecretsResult = { success: true; count: 0; message: string } | { success: boolean; count: number };
 
+/**
+ * Tool that syncs all workspace secrets to the remote environment as `.env` variables and restarts the app.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Tool({
   name: 'sync_secrets',
   description:
@@ -28,7 +39,7 @@ export class SyncSecretsTool extends BaseTool<SyncSecretsInput, object, SyncSecr
     super();
   }
 
-  protected async handle(_args: SyncSecretsInput, ctx: RunContext): Promise<ToolResult<SyncSecretsResult>> {
+  protected async handle(_args: SyncSecretsInput, ctx: RunContext): Promise<ToolEnvelope<SyncSecretsResult>> {
     const secrets = await this.secretService.findAllByWorkspace(ctx.workspaceId);
 
     if (secrets.length === 0) {

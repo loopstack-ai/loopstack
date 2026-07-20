@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -13,8 +13,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListDirectoryTool`: the repository `owner`, `repo`, directory `path`
+ * (defaults to the repo root) and optional `ref`.
+ *
+ * @public
+ */
 export type GitHubListDirectoryArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListDirectoryTool`: an `entries` array of files and subdirectories, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListDirectoryResult = {
   entries?: Array<{
     name: string;
@@ -28,6 +39,12 @@ export type GitHubListDirectoryResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists the contents of a directory in a GitHub repository.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_directory',
   description:
@@ -43,7 +60,7 @@ export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, o
   protected async handle(
     args: GitHubListDirectoryArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubListDirectoryResult>> {
+  ): Promise<ToolEnvelope<GitHubListDirectoryResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -52,6 +69,7 @@ export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, o
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -75,6 +93,7 @@ export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, o
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -86,6 +105,7 @@ export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, o
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -15,8 +15,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreateIssueTool`: the repository `owner`, `repo`, issue `title` and
+ * optional `body`, `labels` and `assignees`.
+ *
+ * @public
+ */
 export type GitHubCreateIssueArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreateIssueTool`: the created `issue` summary, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreateIssueResult =
   | {
       issue: {
@@ -29,6 +40,12 @@ export type GitHubCreateIssueResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that creates a new issue in a GitHub repository.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_issue',
   description:
@@ -41,7 +58,7 @@ export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, objec
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubCreateIssueArgs, ctx: RunContext): Promise<ToolResult<GitHubCreateIssueResult>> {
+  protected async handle(args: GitHubCreateIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubCreateIssueResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -50,6 +67,7 @@ export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, objec
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -80,6 +98,7 @@ export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, objec
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -91,6 +110,7 @@ export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, objec
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

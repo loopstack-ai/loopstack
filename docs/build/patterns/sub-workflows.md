@@ -1,6 +1,6 @@
 ---
 title: Sub-Workflows
-description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, callback transitions, typing the callback payload with CallbackSchema.extend({ data }), handling sub-workflow failures via payload.hasError / payload.errorMessage without try/catch, passing arguments to child workflows, receiving sub-workflow results, and coordinating multiple sub-workflows via FanOutWorkflow (parallel) and SequenceWorkflow (sequential) with 'all' / 'allSettled' failure modes.
+description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, callback transitions, typing the callback envelope via TransitionInput<TData>, handling sub-workflow failures via input.hasError / input.errorMessage without try/catch, passing arguments to child workflows, receiving sub-workflow results, and coordinating multiple sub-workflows via FanOutWorkflow (parallel) and SequenceWorkflow (sequential) with 'all' / 'allSettled' failure modes.
 ---
 
 # Sub-Workflows
@@ -10,7 +10,7 @@ Sub-workflows let you compose complex automations from smaller, reusable workflo
 ## Injecting a Sub-Workflow
 
 ```typescript
-import { CallbackSchema, QueueResult } from '@loopstack/common';
+import { QueueResult } from '@loopstack/common';
 
 constructor(private readonly subWorkflow: SubWorkflow) {
   super();
@@ -21,12 +21,11 @@ constructor(private readonly subWorkflow: SubWorkflow) {
 
 ```typescript
 @Transition({ to: 'sub_started' })
-async start(state: MyState): Promise<MyState> {
+async start(state: MyState) {
   await this.subWorkflow.run(
     { prompt: 'Hello' },                          // Args passed to the sub-workflow
     { callback: { transition: 'onSubComplete' } }, // Method to call when done
   );
-  return state;
 }
 ```
 
@@ -63,87 +62,79 @@ The link card's status is read live from the child workflow's actual state — i
 
 ## Receiving the Callback
 
-The sub-workflow's final transition return value is passed as `payload.data`:
+The sub-workflow's published `result` (built via `assignResult` / `setResult`) is passed as `input.data`:
 
 ```typescript
-const SubWorkflowCallbackSchema = CallbackSchema.extend({
-  data: z.object({ message: z.string() }),
-});
+import type { TransitionInput } from '@loopstack/common';
 
 @Transition({
   from: 'sub_started',
   to: 'sub_done',
   wait: true,
-  schema: SubWorkflowCallbackSchema,
+  schema: z.object({ message: z.string() }),
 })
 async onSubComplete(
   state: MyState,
-  payload: { workflowId: string; status: string; data: { message: string } },
-): Promise<MyState> {
+  input: TransitionInput<{ message: string }>,
+) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    text: `Sub-workflow said: ${payload.data.message}`,
+    text: `Sub-workflow said: ${input.data.message}`,
   });
-  return state;
 }
 ```
 
-## Typing the Callback Payload
+## Typing the Callback Envelope
 
-Every sub-workflow callback receives the same envelope, defined by `CallbackSchema` in `@loopstack/common`:
+Every `wait: true` transition receives a `TransitionInput<TData, TMeta>` envelope — the same shape whether the resume came from a sub-workflow completion or a frontend / API trigger:
 
 ```typescript
-export const CallbackSchema = z.object({
-  workflowId: z.string(),
-  status: z.string(),
-  hasError: z.boolean(),
-  errorMessage: z.string().nullable(),
-  data: z.unknown(),
-});
+interface TransitionInput<TData = unknown, TMeta = unknown> {
+  workflowId: string;
+  status: 'completed' | 'failed' | 'canceled';
+  hasError: boolean;
+  errorMessage: string | null;
+  data: TData;
+  meta?: TMeta;
+}
 ```
 
-| Field          | Type             | What it is                                                                   |
-| -------------- | ---------------- | ---------------------------------------------------------------------------- |
-| `workflowId`   | `string`         | ID of the child run that produced this callback.                             |
-| `status`       | `string`         | The child's terminal place (e.g. `'end'`, or a custom final state).          |
-| `hasError`     | `boolean`        | `true` if the child terminated in failure — branch on this, not on `status`. |
-| `errorMessage` | `string \| null` | Error message if `hasError`, otherwise `null`.                               |
-| `data`         | `unknown`        | The value returned by the child's final transition.                          |
+| Field          | Type             | What it is                                                                                                 |
+| -------------- | ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| `workflowId`   | `string`         | ID of the run that produced this resume (the child for sub-workflow callbacks, the parent for user input). |
+| `status`       | enum             | `'completed'` / `'failed'` / `'canceled'`.                                                                 |
+| `hasError`     | `boolean`        | `true` if the trigger source ended in failure — branch on this, not on `status`.                           |
+| `errorMessage` | `string \| null` | Error message if `hasError`, otherwise `null`.                                                             |
+| `data`         | `TData`          | The validated payload (the child's published `result`, or the user's form data).                           |
+| `meta`         | `TMeta?`         | Optional correlation metadata passed via `callback.metadata`. Undefined for user-driven resumes.           |
 
-`data` is `unknown` on the base schema because every sub-workflow returns a different shape. Type it by extending the schema with your own `data` definition:
+The `schema` on `@Transition({ wait: true })` describes **only `data`** — the framework constructs the surrounding envelope. Type the parameter via `TransitionInput<TData>`:
 
 ```typescript
-import { CallbackSchema } from '@loopstack/common';
+import type { TransitionInput } from '@loopstack/common';
 import { z } from 'zod';
 
-const MyCallback = CallbackSchema.extend({
-  data: z.object({ answer: z.string() }),
-});
+const AnswerSchema = z.object({ answer: z.string() });
 
 @Transition({
   from: 'awaiting',
   to: 'end',
   wait: true,
-  schema: MyCallback,
+  schema: AnswerSchema,
 })
-async onAnswer(state: MyState, payload: z.infer<typeof MyCallback>): Promise<unknown> {
-  // payload.workflowId, payload.status, payload.hasError available at top level
-  // payload.data.answer is fully typed
-  return { answer: payload.data.answer };
+onAnswer(state: MyState, input: TransitionInput<{ answer: string }>) {
+  // input.workflowId, input.status, input.hasError available at the top level
+  // input.data.answer is fully typed against AnswerSchema
+  this.setResult({ answer: input.data.answer });
 }
 ```
 
-The extended schema goes on the `@Transition({ schema })` — the framework validates the payload against it before the transition fires. Use `z.infer<typeof MyCallback>` to derive the parameter type rather than hand-writing the shape.
-
 ## Error Handling
 
-When a sub-workflow throws, the failure does **not** bubble up through `run()` — `run()` only schedules the child. Instead, the parent's callback transition still fires, with `hasError: true` and `errorMessage` populated. The parent branches on `payload.hasError`:
+When a sub-workflow throws, the failure does **not** bubble up through `run()` — `run()` only schedules the child. Instead, the parent's callback transition still fires, with `hasError: true` and `errorMessage` populated. The parent branches on `input.hasError`:
 
 ```typescript
-import { z } from 'zod';
-import { BaseWorkflow, CallbackSchema, MessageDocument, Transition, Workflow } from '@loopstack/common';
-
-type FailingCallback = z.infer<typeof CallbackSchema>;
+import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 
 @Workflow({ title: 'Recovers from a Failing Child' })
 export class RecoveringParentWorkflow extends BaseWorkflow {
@@ -152,42 +143,42 @@ export class RecoveringParentWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launch(state: Record<string, unknown>) {
     await this.failingSub.run({}, { callback: { transition: 'onFinished' }, show: 'link', label: 'Failing child' });
-    return state;
   }
 
-  @Transition({ from: 'awaiting', to: 'end', wait: true, schema: CallbackSchema })
-  async onFinished(state: Record<string, unknown>, payload: FailingCallback): Promise<unknown> {
-    if (payload.hasError) {
+  @Transition({ from: 'awaiting', to: 'end', wait: true })
+  async onFinished(state: Record<string, unknown>, input: TransitionInput) {
+    if (input.hasError) {
       await this.documentStore.save(MessageDocument, {
         role: 'assistant',
-        text: `Child failed: ${payload.errorMessage ?? 'unknown error'} — continuing with a fallback.`,
+        text: `Child failed: ${input.errorMessage ?? 'unknown error'} — continuing with a fallback.`,
       });
-      return { recovered: true };
+      this.setResult({ recovered: true });
+      return;
     }
-    return { recovered: false };
+    this.setResult({ recovered: false });
   }
 }
 ```
 
 Two things to note:
 
-- **No try/catch at the parent.** The child's exception is captured by the framework, persisted on the child run, and surfaced through the callback envelope. The parent only sees `hasError`.
+- **No try/catch at the parent.** The child's exception is captured by the framework, persisted on the child run, and surfaced through the envelope. The parent only sees `hasError`.
 - **The link card / inline iframe turns red automatically.** No extra UI wiring is needed to reflect the failure in the parent's run view.
 
-For `FanOutWorkflow` and `SequenceWorkflow` the same idea applies one level deeper: each item's per-result entry carries its own `hasError`, and the aggregate payload exposes `payload.data.hasErrors` and `payload.data.errorCount`.
+For `FanOutWorkflow` and `SequenceWorkflow` the same idea applies one level deeper: each item's per-result entry carries its own `hasError`, and the aggregate `input.data` exposes `hasErrors` and `errorCount`.
 
 ## Sub-Workflow Output
 
-The sub-workflow defines its output as the return value of its final transition:
+The sub-workflow defines its output by writing to the run's `result` field via `this.assignResult(...)` or `this.setResult(...)`:
 
 ```typescript
-@Workflow({ widget: __dirname + '/sub.ui.yaml' })
+@Workflow({ widget: './sub.ui.yaml' })
 export class SubWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  async start(): Promise<{ message: string }> {
-    return { message: 'Hi mom!' };
+  start() {
+    this.setResult({ message: 'Hi mom!' });
   }
 }
 ```
@@ -195,36 +186,31 @@ export class SubWorkflow extends BaseWorkflow {
 ## Complete Example
 
 ```typescript
-@Workflow({ widget: __dirname + '/parent.ui.yaml' })
+@Workflow({ widget: './parent.ui.yaml' })
 export class ParentWorkflow extends BaseWorkflow {
   constructor(private readonly subWorkflow: SubWorkflow) {
     super();
   }
 
   @Transition({ to: 'sub_started' })
-  async runWorkflow(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async runWorkflow(state: Record<string, unknown>) {
     await this.subWorkflow.run(
       {},
       { callback: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
     );
-    return state;
   }
 
   @Transition({
     from: 'sub_started',
     to: 'end',
     wait: true,
-    schema: CallbackSchema.extend({ data: z.object({ message: z.string() }) }),
+    schema: z.object({ message: z.string() }),
   })
-  async subWorkflowCallback(
-    state: Record<string, unknown>,
-    payload: { workflowId: string; status: string; data: { message: string } },
-  ): Promise<unknown> {
+  async subWorkflowCallback(state: Record<string, unknown>, input: TransitionInput<{ message: string }>) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Message from sub-workflow: ${payload.data.message}`,
+      text: `Message from sub-workflow: ${input.data.message}`,
     });
-    return {};
   }
 }
 ```
@@ -234,7 +220,11 @@ export class ParentWorkflow extends BaseWorkflow {
 To launch multiple sub-workflows at the same time and receive a single aggregated callback when they all complete, use the built-in `FanOutWorkflow` from `@loopstack/core`. Inject it like any other sub-workflow.
 
 ```typescript
-import { type FanOutCallbackPayload, FanOutCallbackSchema, FanOutWorkflow } from '@loopstack/core';
+import { z } from 'zod';
+import { type TransitionInput } from '@loopstack/common';
+import { FanOutResultSchema, FanOutWorkflow } from '@loopstack/core';
+
+type FanOutResultData = z.infer<typeof FanOutResultSchema>;
 
 @Workflow({ title: 'Parallel Fan-Out' })
 export class ParallelWorkflow extends BaseWorkflow {
@@ -243,7 +233,7 @@ export class ParallelWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launch(state: Record<string, unknown>) {
     await this.fanOut.run(
       {
         items: {
@@ -253,14 +243,13 @@ export class ParallelWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'onAllDone' } },
     );
-    return state;
   }
 
-  @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutCallbackSchema })
-  async onAllDone(state: Record<string, unknown>, payload: FanOutCallbackPayload): Promise<unknown> {
-    const user = (payload.data.results as Record<string, { data?: unknown }>).user.data;
-    const orders = (payload.data.results as Record<string, { data?: unknown }>).orders.data;
-    return { user, orders };
+  @Transition({ from: 'awaiting', to: 'end', wait: true, schema: FanOutResultSchema })
+  onAllDone(state: Record<string, unknown>, input: TransitionInput<FanOutResultData>) {
+    const user = (input.data.results as Record<string, { data?: unknown }>).user.data;
+    const orders = (input.data.results as Record<string, { data?: unknown }>).orders.data;
+    this.setResult({ user, orders });
   }
 }
 ```
@@ -269,17 +258,21 @@ export class ParallelWorkflow extends BaseWorkflow {
 
 ### Failure modes
 
-| `mode`              | Behavior                                                                                                                                                                                      |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `'all'` _(default)_ | First failure triggers `cancelChildren` on the parent; the callback fires once every in-flight child has settled (canceled siblings also send callbacks). `payload.data.hasErrors` is `true`. |
-| `'allSettled'`      | Every child runs to completion regardless of siblings; the callback aggregates `completed` / `failed` results for every item.                                                                 |
+| `mode`              | Behavior                                                                                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'all'` _(default)_ | First failure triggers `cancelChildren` on the parent; the callback fires once every in-flight child has settled (canceled siblings also send callbacks). `input.data.hasErrors` is `true`. |
+| `'allSettled'`      | Every child runs to completion regardless of siblings; the callback aggregates `completed` / `failed` results for every item.                                                               |
 
 ## Running Sub-Workflows in Sequence
 
 To run sub-workflows one after another with a single aggregated callback at the end, use `SequenceWorkflow`. Same call shape as `FanOutWorkflow`, same `'all'` / `'allSettled'` modes.
 
 ```typescript
-import { SequenceWorkflow, SequenceCallbackSchema, type SequenceCallbackPayload } from '@loopstack/core';
+import { type TransitionInput } from '@loopstack/common';
+import { SequenceResultSchema, SequenceWorkflow } from '@loopstack/core';
+import { z } from 'zod';
+
+type SequenceResultData = z.infer<typeof SequenceResultSchema>;
 
 @Workflow({ title: 'Sequential' })
 export class SequentialWorkflow extends BaseWorkflow {
@@ -288,7 +281,7 @@ export class SequentialWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'awaiting' })
-  async launch(state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async launch(state: Record<string, unknown>) {
     await this.sequence.run(
       {
         items: [
@@ -299,12 +292,11 @@ export class SequentialWorkflow extends BaseWorkflow {
       },
       { callback: { transition: 'onComplete' } },
     );
-    return state;
   }
 
-  @Transition({ from: 'awaiting', to: 'end', wait: true, schema: SequenceCallbackSchema })
-  async onComplete(state: Record<string, unknown>, payload: SequenceCallbackPayload): Promise<unknown> {
-    return { results: payload.data.results };
+  @Transition({ from: 'awaiting', to: 'end', wait: true, schema: SequenceResultSchema })
+  onComplete(state: Record<string, unknown>, input: TransitionInput<SequenceResultData>) {
+    this.setResult({ results: input.data.results });
   }
 }
 ```
@@ -346,7 +338,7 @@ export class RunTestsTask extends BaseTool {
     args: { testDirectory: string },
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult> {
+  ): Promise<ToolEnvelope> {
     const result = await this.testRunner.run(
       { testDirectory: args.testDirectory },
       { callback: options?.callback, show: 'inline', label: 'Running tests...' },
@@ -358,7 +350,7 @@ export class RunTestsTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope> {
     const data = result as { data?: { passed: boolean; output: string } };
     return { data: data.data ?? result };
   }
@@ -378,5 +370,5 @@ The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architec
 
 ## Registry References
 
-- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Parent calling sub-workflows with callbacks and typed output, all three `show` modes chained, `FanOutWorkflow` / `SequenceWorkflow` coordination, and a failing-child workflow paired with a parent that branches on `payload.hasError`
+- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#sub-workflow) — Parent calling sub-workflows with callbacks and typed output, all three `show` modes chained, `FanOutWorkflow` / `SequenceWorkflow` coordination, and a failing-child workflow paired with a parent that branches on `input.hasError`
 - [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — ExploreTask wrapping AgentWorkflow as a task tool

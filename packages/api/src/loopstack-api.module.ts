@@ -1,4 +1,4 @@
-import { DynamicModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { DynamicModule, Inject, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import cors from 'cors';
@@ -14,7 +14,7 @@ import { ProcessorController } from './controllers/processor.controller.js';
 import { SseController } from './controllers/sse.controller.js';
 import { WorkflowController } from './controllers/workflow.controller.js';
 import { WorkspaceController } from './controllers/workspace.controller.js';
-import { ModuleOptionsInterface } from './interfaces/index.js';
+import { CORS_OPTIONS, ModuleOptionsInterface, SSE_STREAM_OPTIONS } from './interfaces/index.js';
 import { AdminRoleApiService } from './services/admin-role-api.service.js';
 import { AdminSystemApiService } from './services/admin-system-api.service.js';
 import { AdminUserApiService } from './services/admin-user-api.service.js';
@@ -22,9 +22,11 @@ import { DashboardService } from './services/dashboard.service.js';
 import { DocumentApiService } from './services/document-api.service.js';
 import { UserService } from './services/index.js';
 import { ProcessorApiService } from './services/processor-api.service.js';
+import { ReadOnlyValidationService } from './services/read-only-validation.service.js';
 import { SseEventService } from './services/sse-event.service.js';
 import { WorkflowApiService } from './services/workflow-api.service.js';
 import { WorkspaceApiService } from './services/workspace-api.service.js';
+import { buildCorsOptions } from './utils/build-cors-options.util.js';
 
 const ENTITIES = [WorkspaceEntity, WorkflowEntity, DocumentEntity, User, Role];
 
@@ -56,6 +58,7 @@ const PROVIDERS = [
   SseEventService,
   WorkspaceApiService,
   ProcessorApiService,
+  ReadOnlyValidationService,
   WorkflowApiService,
   DocumentApiService,
   DashboardService,
@@ -73,24 +76,24 @@ const EXPORTS = [
 
 @Module({})
 export class LoopstackApiModule implements NestModule {
-  private static corsOptions: cors.CorsOptions | false = { origin: true, credentials: true };
+  constructor(@Inject(CORS_OPTIONS) private readonly corsOptions: cors.CorsOptions | false) {}
 
   configure(consumer: MiddlewareConsumer) {
-    if (LoopstackApiModule.corsOptions !== false) {
-      consumer.apply(cors(LoopstackApiModule.corsOptions)).forRoutes('*');
+    if (this.corsOptions !== false) {
+      consumer.apply(cors(this.corsOptions)).forRoutes('*');
     }
   }
 
   static register(options: ModuleOptionsInterface = {}): DynamicModule {
-    const connection = options.connection;
-
-    LoopstackApiModule.corsOptions = options.cors !== undefined ? options.cors : { origin: true, credentials: true };
-
     return {
       module: LoopstackApiModule,
-      imports: [TypeOrmModule.forFeature(ENTITIES, connection), AuthModule.forRoot(connection)],
+      imports: [TypeOrmModule.forFeature(ENTITIES), AuthModule.forRoot()],
       controllers: CONTROLLERS,
-      providers: PROVIDERS,
+      providers: [
+        ...PROVIDERS,
+        { provide: CORS_OPTIONS, useValue: buildCorsOptions(options) },
+        { provide: SSE_STREAM_OPTIONS, useValue: options.sse ?? {} },
+      ],
       exports: EXPORTS,
     };
   }

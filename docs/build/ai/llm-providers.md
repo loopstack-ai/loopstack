@@ -204,20 +204,17 @@ Content blocks are one of:
 
 ### Writing messages — `text` vs `blocks`
 
-When you save an `LlmMessageDocument` manually, the same two fields are available — both optional. Provide whichever fits:
+Assistant messages (and the user-side `tool_result` turn) are saved automatically by `LlmGenerateTextTool` / `LlmDelegateToolCallsTool`. When you save an `LlmMessageDocument` manually — for user input, seed messages, or system primers — the same two fields are available, both optional. Provide whichever fits:
 
 ```typescript
 // Plain text message — most common case
 await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'Hello!' });
 
-// Structured message — tool results, multi-block content
+// Structured message — multi-block content
 await this.documentStore.save(LlmMessageDocument, {
   role: 'user',
-  blocks: [{ type: 'tool_result', toolCallId: '...', content: '...', isError: false }],
+  blocks: [{ type: 'text', text: 'See attached.' }],
 });
-
-// LLM response — both fields are already populated by the provider
-await this.documentStore.save(LlmMessageDocument, result.data!.message);
 ```
 
 You don't need to fill both. The renderer and downstream providers fall back gracefully: if only `text` is set, it's rendered as a single text bubble; if only `blocks` is set, the text projection is derived from text-type blocks on demand.

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -15,13 +15,31 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GmailSendMessageTool`.
+ *
+ * @public
+ */
 export type GmailSendMessageArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GmailSendMessageTool`.
+ *
+ * @public
+ */
 export type GmailSendMessageResult =
   | { id: string; threadId: string; labelIds: string[] }
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that sends a new email via Gmail. Takes `to`/`cc`/`bcc` recipients, a subject, and plain-text
+ * (and optional HTML) body, and returns the sent message's id, thread id, and label ids, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'gmail_send_message',
   description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',
@@ -33,7 +51,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GmailSendMessageArgs, ctx: RunContext): Promise<ToolResult<GmailSendMessageResult>> {
+  protected async handle(args: GmailSendMessageArgs, ctx: RunContext): Promise<ToolEnvelope<GmailSendMessageResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -42,6 +60,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -68,6 +87,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -79,6 +99,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
           error: 'api_error',
           message: `Gmail API error: ${response.statusText}`,
         },
+        error: `Gmail API error: ${response.statusText}`,
       };
     }
 

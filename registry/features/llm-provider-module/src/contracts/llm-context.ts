@@ -9,4 +9,6 @@ import type { DocumentEntity } from '@loopstack/common';
 export interface LlmContext {
   /** Runtime documents for the current workflow execution (used for message history). */
   documents: DocumentEntity[];
+  /** Forwarded to the provider SDK call so an aborted run cancels the in-flight request. */
+  signal?: AbortSignal;
 }

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetWorkflowRunTool`: the repository `owner`, `repo` and `runId`.
+ *
+ * @public
+ */
 export type GitHubGetWorkflowRunArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetWorkflowRunTool`: a `run` object with status, conclusion, branch
+ * and run metadata, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetWorkflowRunResult =
   | {
       run: {
@@ -35,6 +46,12 @@ export type GitHubGetWorkflowRunResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that fetches detailed information about a single GitHub Actions workflow run.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_workflow_run',
   description:
@@ -50,7 +67,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
   protected async handle(
     args: GitHubGetWorkflowRunArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubGetWorkflowRunResult>> {
+  ): Promise<ToolEnvelope<GitHubGetWorkflowRunResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -59,6 +76,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -78,6 +96,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -89,6 +108,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

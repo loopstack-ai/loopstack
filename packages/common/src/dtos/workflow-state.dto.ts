@@ -48,7 +48,7 @@ export class WorkflowStateDto {
   addDocument(document: DocumentEntity) {
     // invalidate previous versions of the same document
     for (const doc of this.documents) {
-      if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
+      if (doc.key === document.key && doc.meta?.invalidate !== false) {
         doc.isInvalidated = true;
       }
     }

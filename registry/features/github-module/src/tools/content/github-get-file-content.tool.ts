@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -13,8 +13,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetFileContentTool`: the repository `owner`, `repo`, file `path`
+ * and optional `ref` (branch, tag or commit SHA).
+ *
+ * @public
+ */
 export type GitHubGetFileContentArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetFileContentTool`: a `file` object with decoded text `content`
+ * plus path, sha and size, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetFileContentResult =
   | {
       file: {
@@ -29,6 +41,13 @@ export type GitHubGetFileContentResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that reads the content of a file from a GitHub repository, decoding the
+ * base64 payload returned by the API into plain text.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_file_content',
   description:
@@ -44,7 +63,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
   protected async handle(
     args: GitHubGetFileContentArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubGetFileContentResult>> {
+  ): Promise<ToolEnvelope<GitHubGetFileContentResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -53,6 +72,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -75,6 +95,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -86,6 +107,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

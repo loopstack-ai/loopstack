@@ -3,6 +3,12 @@ import { IsBoolean, IsOptional, IsString } from 'class-validator';
 import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import { WorkspaceEnvironmentEntity } from '../entities/index.js';
 
+/**
+ * Result representing a persisted workspace environment — slot, type, remote environment id, and the
+ * connection and agent URLs used to reach it.
+ *
+ * @public
+ */
 export class WorkspaceEnvironmentDto implements WorkspaceEnvironmentInterface {
   @Expose()
   @IsString()

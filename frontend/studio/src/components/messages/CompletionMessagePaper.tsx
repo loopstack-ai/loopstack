@@ -95,9 +95,7 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
         <Card
           className={cn('relative max-w-full px-6 py-4 wrap-break-word shadow-none', fullWidth ? 'w-full' : 'w-auto')}
         >
-          <div
-            className={cn('leading-relaxed wrap-break-word whitespace-pre-wrap', isUser ? 'user' : 'text-foreground')}
-          >
+          <div className="text-foreground leading-relaxed wrap-break-word whitespace-pre-wrap">
             <div className="message-content">{children}</div>
           </div>
         </Card>

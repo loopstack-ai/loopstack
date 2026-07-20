@@ -32,20 +32,8 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
   }
 
   private async validateLocalUser() {
-    const existingUser = await this.userRepository.findLocalUser();
-    if (existingUser) {
-      return existingUser;
-    }
-
-    const user = await this.userRepository.create({
-      id: crypto.randomUUID(),
-      type: UserTypeEnum.Local,
-      isActive: true,
-      roles: [],
-    });
-
+    const user = await this.userRepository.findOrCreateLocalUser();
     this.logger.log(`Local authentication successful for user ${user.id}`);
-
     return user;
   }
 

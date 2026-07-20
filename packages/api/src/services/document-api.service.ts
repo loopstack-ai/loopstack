@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Repository } from 'typeorm';
 import { DocumentEntity } from '@loopstack/common';
-import { DocumentFilterDto } from '../dtos/document-filter.dto.js';
-import { DocumentSortByDto } from '../dtos/document-sort-by.dto.js';
+import type { DocumentFilterInterface, DocumentSortByInterface } from '@loopstack/contracts/api';
+import { resolvePagination } from '../utils/pagination.util.js';
 
 @Injectable()
 export class DocumentApiService {
@@ -19,8 +19,8 @@ export class DocumentApiService {
    */
   async findAll(
     user: string,
-    filter: DocumentFilterDto,
-    sortBy: DocumentSortByDto[],
+    filter: DocumentFilterInterface | undefined,
+    sortBy: DocumentSortByInterface[] | undefined,
     pagination: {
       page: number | undefined;
       limit: number | undefined;
@@ -32,16 +32,18 @@ export class DocumentApiService {
     limit: number;
   }> {
     const defaultLimit = this.configService.get<number>('DOCUMENT_DEFAULT_LIMIT', 100);
-    const defaultSortBy = this.configService.get<DocumentSortByDto[]>('DOCUMENT_DEFAULT_SORT_BY', []);
+    const defaultSortBy = this.configService.get<DocumentSortByInterface[]>('DOCUMENT_DEFAULT_SORT_BY', []);
+    const { skip, take, page, limit } = resolvePagination(pagination, defaultLimit);
 
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
+      Object.entries(filter ?? {}).map(([key, value]) => [key, value === null ? IsNull() : value]),
     );
 
     const findOptions: FindManyOptions<DocumentEntity> = {
       where: {
         ...transformedFilter,
         createdBy: user,
+        internal: false,
       },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
@@ -50,18 +52,13 @@ export class DocumentApiService {
         },
         {} as Record<string, 'ASC' | 'DESC'>,
       ),
-      take: pagination.limit ?? defaultLimit,
-      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
+      take,
+      skip,
     };
 
     const [data, total] = await this.documentRepository.findAndCount(findOptions);
 
-    return {
-      data,
-      total,
-      page: pagination.page ?? 1,
-      limit: pagination.limit ?? defaultLimit,
-    };
+    return { data, total, page, limit };
   }
 
   /**
@@ -72,6 +69,7 @@ export class DocumentApiService {
       where: {
         id,
         createdBy: user,
+        internal: false,
       },
     });
 

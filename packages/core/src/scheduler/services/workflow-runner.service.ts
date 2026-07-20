@@ -24,6 +24,18 @@ import { RootProcessorService } from '../../workflow-processor/services/root-pro
 import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import { TaskSchedulerService } from './task-scheduler.service.js';
 
+/**
+ * Service for starting workflows from code (API requests, webhooks, cron jobs,
+ * delayed timeouts, batch fan-out) instead of the Studio "Run" button. Inject it
+ * anywhere — it is globally available once `LoopstackModule.forRoot()` is imported.
+ *
+ * - `run(WorkflowClass, args, options)` — enqueue on BullMQ and return a `RunResult` (`workflowId`).
+ * - `runSync(WorkflowClass, args, options)` — execute inline and await a `SyncRunResult`; pass `{ stateless: true }` to skip persistence.
+ * - `execute(workflow, payload, options)` — controller-facing entry that starts, resumes, or retries based on the payload.
+ * - `runById(workflowId, userId, options)` — resume/re-run an existing workflow by id.
+ *
+ * @public
+ */
 @Injectable()
 export class WorkflowRunner {
   private readonly logger = new Logger(WorkflowRunner.name);
@@ -197,7 +209,7 @@ export class WorkflowRunner {
   async runById(
     workflowId: string,
     userId: string,
-    payload: { transition?: { id: string; workflowId?: string; payload?: unknown } } = {},
+    payload: { transition?: { id?: string; workflowId?: string; payload?: unknown } } = {},
   ): Promise<RunResult> {
     const workerId = this.configService.getOrThrow<string>('auth.clientId');
 

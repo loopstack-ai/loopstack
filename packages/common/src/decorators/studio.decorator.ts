@@ -17,6 +17,12 @@ export interface StudioUiConfig {
   widgets?: StudioWidgetConfig[];
 }
 
+/**
+ * Options for the `@StudioApp()` decorator — the app identity, title, workflows,
+ * and UI config that make a module appear as a launchable app in Studio.
+ *
+ * @public
+ */
 export interface StudioAppOptions {
   /** Explicit snake_case identifier. Fallback: derived from class name (Module → App). */
   app?: string;
@@ -27,7 +33,7 @@ export interface StudioAppOptions {
   /** Developer-defined UI preferences. */
   ui?: StudioUiConfig;
   /** Workflow classes that are launchable from Studio. */
-  workflows?: Type<BaseWorkflow<any, any>>[];
+  workflows?: Type<BaseWorkflow<any>>[];
 }
 
 /** Resolved metadata stored on the module class. */
@@ -39,6 +45,8 @@ export interface StudioAppMetadata extends StudioAppOptions {
 /**
  * Marks a NestJS module as a Loopstack App — the single source of truth
  * for app identity, UI config, and developer-defined settings.
+ *
+ * @public
  */
 export function StudioApp(options: StudioAppOptions): ClassDecorator {
   return (target) => {

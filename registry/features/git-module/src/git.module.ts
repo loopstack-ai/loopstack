@@ -39,6 +39,20 @@ const tools = [
   GitWorktreePruneTool,
 ];
 
+/**
+ * NestJS module that provides the git version control tools (status, add, commit, push, pull, log,
+ * diff, fetch, checkout, branch, remote/user config, worktree operations) and the `GitController` REST API.
+ *
+ * Registration:
+ * - `GitModule` — bare import; registers all git tools and the REST controller unconditionally.
+ * - `GitModule.forFeature({ enabled?: boolean; environments?: string[] })` — use to feature-gate the module
+ *   so its tools are only active when enabled and/or limited to specific environments.
+ *
+ * Requires: `RemoteClientModule` must be available in the DI container — every git tool delegates to a remote
+ * agent via `RemoteClient`, so the git commands run on the repository host.
+ *
+ * @public
+ */
 @Module({
   controllers: [GitController],
   providers: [...tools],

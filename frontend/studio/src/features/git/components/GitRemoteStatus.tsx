@@ -2,7 +2,7 @@ import { GitFork, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ConfirmDialog from '@/components/data-table/ConfirmDialog';
 import { Button } from '@/components/ui/button';
-import type { GitRemoteResponse } from '../api/git';
+import type { GitRemoteResponse } from '../types';
 
 interface GitRemoteStatusProps {
   remote: GitRemoteResponse | null | undefined;

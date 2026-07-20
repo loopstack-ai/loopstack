@@ -1,14 +1,29 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitAddTool`.
+ *
+ * @public
+ */
 export type GitAddArgs = {
   files: string[];
 };
 
+/**
+ * Result for `GitAddTool`.
+ *
+ * @public
+ */
 export type GitAddResult = { success: boolean };
 
+/**
+ * Tool that stages files for the next git commit.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_add',
   description: 'Stages files for the next git commit.',
@@ -26,7 +41,7 @@ export class GitAddTool extends BaseTool<GitAddArgs, object, GitAddResult> {
     super();
   }
 
-  protected async handle(args: GitAddArgs, _ctx: RunContext): Promise<ToolResult<GitAddResult>> {
+  protected async handle(args: GitAddArgs): Promise<ToolEnvelope<GitAddResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitAdd(agentUrl, args.files);
     return { data: result };

@@ -1,0 +1,55 @@
+{
+  "name": "@loopstack/hitl-examples",
+  "displayName": "Loopstack HITL Examples",
+  "description": "Workflow examples for Human-in-the-Loop patterns in Loopstack — custom Document with widget, AskUserWorkflow / ConfirmUserWorkflow sub-workflow shortcuts, LLM agent loops with ask_clarification / ask_for_approval, and a meeting-notes review flow.",
+  "keywords": [
+    "loopstack",
+    "example",
+    "hitl",
+    "human-in-the-loop",
+    "ask-user",
+    "confirm",
+    "agent",
+    "form",
+    "prompt-input",
+    "workflow"
+  ],
+  "version": "0.1.1",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/agent": "*",
+    "@loopstack/claude-module": "*",
+    "@loopstack/common": "*",
+    "@loopstack/hitl": "*",
+    "@loopstack/llm-provider-module": "*",
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
+  }
+}

@@ -27,11 +27,23 @@ const DEFAULT_CONFIG: LlmModuleConfig = {};
 class LlmProviderRootModule {}
 
 /**
- * LLM Provider Module — configures LLM tools with provider/model defaults.
+ * NestJS module that provides the LLM tools (`LlmGenerateTextTool`,
+ * `LlmGenerateObjectTool`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`)
+ * and the provider registry, configured with provider/model defaults.
  *
- * - Bare import (`LlmProviderModule`) — registers the global root with default config.
- * - `forRoot(config)` — sets the global default config.
- * - `forFeature(config)` — overrides config for a specific module's tools.
+ * Registration:
+ * - `LlmProviderModule` (bare import) — registers the global root with the default
+ *   (empty) config; pair it with a provider module and set provider/model per call.
+ * - `LlmProviderModule.forRoot(config)` — sets the app-wide default `LlmModuleConfig`
+ *   (default provider/model). Import once at the root.
+ * - `LlmProviderModule.forFeature(config)` — overrides the config for one module's
+ *   tools without re-registering the global root. Use for a feature-scoped default.
+ *
+ * Requires: a registered provider module (e.g. `ClaudeModule` / `OpenAiModule`)
+ * imported alongside it — this module holds the registry, the provider modules
+ * populate it.
+ *
+ * @public
  */
 @Module({ imports: [LlmProviderRootModule] })
 export class LlmProviderModule {

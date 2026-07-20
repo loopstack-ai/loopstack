@@ -1,15 +1,30 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitCheckoutTool`.
+ *
+ * @public
+ */
 export type GitCheckoutArgs = {
   branch: string;
   create?: boolean;
 };
 
+/**
+ * Result for `GitCheckoutTool`.
+ *
+ * @public
+ */
 export type GitCheckoutResult = { branch: string };
 
+/**
+ * Tool that switches to a different git branch, optionally creating it.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_checkout',
   description: 'Switches to a different git branch, optionally creating it.',
@@ -28,7 +43,7 @@ export class GitCheckoutTool extends BaseTool<GitCheckoutArgs, object, GitChecko
     super();
   }
 
-  protected async handle(args: GitCheckoutArgs, _ctx: RunContext): Promise<ToolResult<GitCheckoutResult>> {
+  protected async handle(args: GitCheckoutArgs): Promise<ToolEnvelope<GitCheckoutResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitCheckout(agentUrl, args.branch, args.create);
     return { data: result };

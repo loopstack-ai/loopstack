@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetIssueTool`: the repository `owner`, `repo` and `issueNumber`.
+ *
+ * @public
+ */
 export type GitHubGetIssueArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetIssueTool`: an `issue` object with title, body, state, labels,
+ * assignees and timestamps, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetIssueResult =
   | {
       issue: {
@@ -35,6 +46,12 @@ export type GitHubGetIssueResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that fetches detailed information about a single GitHub issue.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_issue',
   description:
@@ -47,7 +64,7 @@ export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, Git
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubGetIssueArgs, ctx: RunContext): Promise<ToolResult<GitHubGetIssueResult>> {
+  protected async handle(args: GitHubGetIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetIssueResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -56,6 +73,7 @@ export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, Git
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -75,6 +93,7 @@ export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, Git
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -86,6 +105,7 @@ export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, Git
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

@@ -1,27 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import type { StudioDocumentConfig } from '@/api/types';
-import { getAvailableEnvironmentsCacheKey, getStudioAppsCacheKey } from './query-keys';
-import { useApiClient } from './useApi';
+import type { StudioDocumentConfig } from '@loopstack/contracts/api';
+import { useAppsConfig } from '@loopstack/react';
 
-export function useAppsConfig() {
-  const { envKey, api } = useApiClient();
-
-  return useQuery({
-    queryKey: getStudioAppsCacheKey(envKey),
-    queryFn: () => api.config.getApps(),
-  });
-}
-
-export function useAvailableEnvironments(options?: { enabled?: boolean }) {
-  const { envKey, api } = useApiClient();
-
-  return useQuery({
-    queryKey: getAvailableEnvironmentsCacheKey(envKey),
-    queryFn: () => api.config.getAvailableEnvironments(),
-    enabled: options?.enabled ?? true,
-  });
-}
+export { useAppsConfig, useAvailableEnvironments } from '@loopstack/react';
 
 /**
  * Returns a Map of document configs keyed by documentName.

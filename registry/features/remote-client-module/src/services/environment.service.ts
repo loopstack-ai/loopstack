@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { EXECUTION_SCOPE } from '@loopstack/common';
 import { WorkspaceEnvironmentContextDto } from '../dtos/index.js';
 import { WorkspaceEnvironmentEntity } from '../entities/index.js';
+import { RemoteClient } from './remote-client.service.js';
 
 const ENV_CACHE_KEY = Symbol('EnvironmentService');
 
@@ -12,11 +13,20 @@ interface ScopeAccessor {
   getOrLoad<T>(key: symbol, loader: () => Promise<T>): Promise<T>;
 }
 
+/**
+ * Service that resolves the remote agent URL for the current execution scope (preferring the `sandbox`
+ * slot) and manages a workspace's environment records; inject it in tools and transitions to reach the
+ * right remote server, or to read, replace, and delete a workspace's environments.
+ *
+ * @providedBy RemoteClientModule
+ * @public
+ */
 @Injectable()
 export class EnvironmentService {
   constructor(
     @Inject(EXECUTION_SCOPE) private readonly scope: ScopeAccessor,
     @InjectRepository(WorkspaceEnvironmentEntity) private readonly repo: Repository<WorkspaceEnvironmentEntity>,
+    private readonly remote: RemoteClient,
   ) {}
 
   /**
@@ -38,6 +48,28 @@ export class EnvironmentService {
   async getAgentUrl(slotId?: string): Promise<string> {
     const envs = await this.getEnvironments();
     return this.resolveAgentUrl(envs, slotId);
+  }
+
+  /**
+   * Resolve the agent URL and verify the remote agent is reachable.
+   * Use as a pre-flight check at the start of workflows that depend on
+   * remote-client tools (grep, glob, read, bash, …). Throws a user-readable
+   * error if the slot has no environment connected or the agent does not
+   * respond to GET /health.
+   */
+  async assertReachable(slotId?: string): Promise<string> {
+    const agentUrl = await this.getAgentUrl(slotId);
+    try {
+      await this.remote.ping(agentUrl);
+    } catch (cause) {
+      const reason = cause instanceof Error ? cause.message : String(cause);
+      throw new Error(
+        `Remote environment${slotId ? ` "${slotId}"` : ''} is not reachable at ${agentUrl}. ` +
+          `Ensure the remote agent is running and the connection URL is correct. (${reason})`,
+        { cause },
+      );
+    }
+    return agentUrl;
   }
 
   /**
@@ -87,7 +119,11 @@ export class EnvironmentService {
   private resolveAgentUrl(envs: WorkspaceEnvironmentContextDto[], slotId?: string): string {
     const env = slotId ? envs.find((e) => e.slotId === slotId) : (envs.find((e) => e.slotId === 'sandbox') ?? envs[0]);
     if (!env?.agentUrl) {
-      throw new Error('No environment with agent URL found');
+      const target = slotId ? `slot "${slotId}"` : 'any slot';
+      throw new Error(
+        `No environment with agent URL connected to ${target}. ` +
+          `Make sure an environment is set up in your app and is connected to the current workspace.`,
+      );
     }
     return env.agentUrl;
   }

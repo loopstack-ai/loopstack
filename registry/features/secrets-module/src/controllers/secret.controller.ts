@@ -1,25 +1,30 @@
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import { CurrentUser, CurrentUserInterface, ZodValidationPipe } from '@loopstack/common';
+import { ClientMessageService, WorkspaceService } from '@loopstack/core';
+import { SecretEntity } from '../entities/index.js';
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  NotFoundException,
-  Param,
-  Post,
-  Put,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { WorkspaceService } from '@loopstack/core';
+  SecretItemInterface,
+  SecretUpdateInterface,
+  SecretUpdateSchema,
+  SecretWriteInterface,
+  SecretWriteSchema,
+} from '../schemas/secret-api.schemas.js';
 import { SecretService } from '../services/index.js';
 
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
+function toSecretItem(secret: SecretEntity): SecretItemInterface {
+  return {
+    id: secret.id,
+    key: secret.key,
+    hasValue: !!secret.value,
+  };
+}
+
 @Controller('api/v1/workspaces/:workspaceId/secrets')
 export class SecretController {
   constructor(
     private readonly secretService: SecretService,
     private readonly workspaceService: WorkspaceService,
+    private readonly clientMessages: ClientMessageService,
   ) {}
 
   private async verifyWorkspaceAccess(workspaceId: string, userId: string) {
@@ -31,48 +36,50 @@ export class SecretController {
   }
 
   @Get()
-  async getSecrets(@Param('workspaceId') workspaceId: string, @CurrentUser() user: CurrentUserInterface) {
+  async getSecrets(
+    @Param('workspaceId') workspaceId: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<SecretItemInterface[]> {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secrets = await this.secretService.findAllByWorkspace(workspaceId);
-    return secrets.map((s) => ({
-      id: s.id,
-      key: s.key,
-      hasValue: !!s.value,
-    }));
+    return secrets.map(toSecretItem);
   }
 
   @Post()
   async createSecret(
     @Param('workspaceId') workspaceId: string,
-    @Body() body: { key: string; value: string },
+    @Body(new ZodValidationPipe(SecretWriteSchema)) body: SecretWriteInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ) {
+  ): Promise<SecretItemInterface> {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.create(workspaceId, body);
-    return { id: secret.id, key: secret.key };
+    this.clientMessages.dispatchWorkspaceEvent('secret.upserted', workspaceId, user.userId);
+    return toSecretItem(secret);
   }
 
   @Put('upsert')
   async upsertSecret(
     @Param('workspaceId') workspaceId: string,
-    @Body() body: { key: string; value: string },
+    @Body(new ZodValidationPipe(SecretWriteSchema)) body: SecretWriteInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ) {
+  ): Promise<SecretItemInterface> {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.upsert(workspaceId, body);
-    return { id: secret.id, key: secret.key };
+    this.clientMessages.dispatchWorkspaceEvent('secret.upserted', workspaceId, user.userId);
+    return toSecretItem(secret);
   }
 
   @Put(':id')
   async updateSecret(
     @Param('workspaceId') workspaceId: string,
     @Param('id') id: string,
-    @Body() body: { value?: string },
+    @Body(new ZodValidationPipe(SecretUpdateSchema)) body: SecretUpdateInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ) {
+  ): Promise<SecretItemInterface> {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.update(id, workspaceId, body);
-    return { id: secret.id, key: secret.key };
+    this.clientMessages.dispatchWorkspaceEvent('secret.upserted', workspaceId, user.userId);
+    return toSecretItem(secret);
   }
 
   @Delete(':id')
@@ -80,9 +87,10 @@ export class SecretController {
     @Param('workspaceId') workspaceId: string,
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserInterface,
-  ) {
+  ): Promise<{ success: boolean }> {
     await this.verifyWorkspaceAccess(workspaceId, user.userId);
     await this.secretService.delete(id, workspaceId);
+    this.clientMessages.dispatchWorkspaceEvent('secret.deleted', workspaceId, user.userId);
     return { success: true };
   }
 }

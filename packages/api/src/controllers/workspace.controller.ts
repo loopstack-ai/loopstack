@@ -5,27 +5,34 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
   Query,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { BatchDeleteDto } from '../dtos/batch-delete.dto.js';
-import { PaginatedDto } from '../dtos/paginated.dto.js';
-import { WorkspaceCreateDto } from '../dtos/workspace-create.dto.js';
-import { WorkspaceFavouriteDto } from '../dtos/workspace-favourite.dto.js';
-import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto.js';
-import { WorkspaceItemDto } from '../dtos/workspace-item.dto.js';
-import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto.js';
-import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto.js';
-import { WorkspaceDto } from '../dtos/workspace.dto.js';
-import { ParseJsonPipe } from '../pipes/parse-json.pipe.js';
+import { CurrentUser, CurrentUserInterface, ZodJsonQueryPipe, ZodValidationPipe } from '@loopstack/common';
+import {
+  BatchDeleteInterface,
+  BatchDeleteResultInterface,
+  BatchDeleteSchema,
+  PaginatedInterface,
+  WorkspaceCreateInterface,
+  WorkspaceCreateSchema,
+  WorkspaceFavouriteInterface,
+  WorkspaceFavouriteSchema,
+  WorkspaceFilterInterface,
+  WorkspaceFilterSchema,
+  WorkspaceInterface,
+  WorkspaceSortByInterface,
+  WorkspaceUpdateInterface,
+  WorkspaceUpdateSchema,
+} from '@loopstack/contracts/api';
+import { toPaginated } from '../mappers/paginated.util.js';
+import { toWorkspace } from '../mappers/workspace.mapper.js';
+import { WorkspaceSortByQuerySchema } from '../schemas/sort-by.schemas.js';
 import { WorkspaceApiService } from '../services/workspace-api.service.js';
 
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces')
 export class WorkspaceController {
   constructor(private readonly workspaceService: WorkspaceApiService) {}
@@ -36,12 +43,12 @@ export class WorkspaceController {
   @Get()
   async getWorkspaces(
     @CurrentUser() user: CurrentUserInterface,
-    @Query('filter', new ParseJsonPipe(WorkspaceFilterDto)) filter: WorkspaceFilterDto,
-    @Query('sortBy', new ParseJsonPipe(WorkspaceSortByDto)) sortBy: WorkspaceSortByDto[],
+    @Query('filter', new ZodJsonQueryPipe(WorkspaceFilterSchema)) filter: WorkspaceFilterInterface | undefined,
+    @Query('sortBy', new ZodJsonQueryPipe(WorkspaceSortByQuerySchema)) sortBy: WorkspaceSortByInterface[] | undefined,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('search') search?: string,
-  ): Promise<PaginatedDto<WorkspaceItemDto>> {
+  ): Promise<PaginatedInterface<WorkspaceInterface>> {
     const result = await this.workspaceService.findAll(
       user.userId,
       filter,
@@ -52,16 +59,19 @@ export class WorkspaceController {
       },
       search,
     );
-    return PaginatedDto.create(WorkspaceItemDto, result);
+    return toPaginated(result, toWorkspace);
   }
 
   /**
    * Retrieves a workspace by its ID.
    */
   @Get(':id')
-  async getWorkspaceById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkspaceDto> {
+  async getWorkspaceById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<WorkspaceInterface> {
     const workspace = await this.workspaceService.findOneById(id, user.userId);
-    return WorkspaceDto.create(workspace);
+    return toWorkspace(workspace);
   }
 
   /**
@@ -69,11 +79,11 @@ export class WorkspaceController {
    */
   @Post()
   async createWorkspace(
-    @Body() workspaceData: WorkspaceCreateDto,
+    @Body(new ZodValidationPipe(WorkspaceCreateSchema)) payload: WorkspaceCreateInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ): Promise<WorkspaceDto> {
-    const workspace = await this.workspaceService.create(workspaceData, user.userId);
-    return WorkspaceDto.create(workspace);
+  ): Promise<WorkspaceInterface> {
+    const workspace = await this.workspaceService.create(payload, user.userId);
+    return toWorkspace(workspace);
   }
 
   /**
@@ -81,12 +91,12 @@ export class WorkspaceController {
    */
   @Put(':id')
   async updateWorkspace(
-    @Param('id') id: string,
-    @Body() workspaceData: WorkspaceUpdateDto,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(new ZodValidationPipe(WorkspaceUpdateSchema)) payload: WorkspaceUpdateInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ): Promise<WorkspaceDto> {
-    const workspace = await this.workspaceService.update(id, workspaceData, user.userId);
-    return WorkspaceDto.create(workspace);
+  ): Promise<WorkspaceInterface> {
+    const workspace = await this.workspaceService.update(id, payload, user.userId);
+    return toWorkspace(workspace);
   }
 
   /**
@@ -94,19 +104,22 @@ export class WorkspaceController {
    */
   @Patch(':id/favourite')
   async setFavourite(
-    @Param('id') id: string,
-    @Body() body: WorkspaceFavouriteDto,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(new ZodValidationPipe(WorkspaceFavouriteSchema)) payload: WorkspaceFavouriteInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ): Promise<WorkspaceItemDto> {
-    const workspace = await this.workspaceService.setFavourite(id, body.isFavourite, user.userId);
-    return WorkspaceItemDto.create(workspace);
+  ): Promise<WorkspaceInterface> {
+    const workspace = await this.workspaceService.setFavourite(id, payload.isFavourite, user.userId);
+    return toWorkspace(workspace);
   }
 
   /**
    * Deletes a workspace by its ID.
    */
   @Delete('id/:id')
-  async deleteWorkspace(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<void> {
+  async deleteWorkspace(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<void> {
     await this.workspaceService.delete(id, user.userId);
   }
 
@@ -115,12 +128,9 @@ export class WorkspaceController {
    */
   @Delete('batch')
   async batchDeleteWorkspaces(
-    @Body() batchDeleteDto: BatchDeleteDto,
+    @Body(new ZodValidationPipe(BatchDeleteSchema)) payload: BatchDeleteInterface,
     @CurrentUser() user: CurrentUserInterface,
-  ): Promise<{
-    deleted: string[];
-    failed: Array<{ id: string; error: string }>;
-  }> {
-    return await this.workspaceService.batchDelete(batchDeleteDto.ids, user.userId);
+  ): Promise<BatchDeleteResultInterface> {
+    return await this.workspaceService.batchDelete(payload.ids, user.userId);
   }
 }

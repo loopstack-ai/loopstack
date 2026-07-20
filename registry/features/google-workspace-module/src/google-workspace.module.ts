@@ -27,6 +27,22 @@ const tools = [
   GoogleDriveUploadFileTool,
 ];
 
+/**
+ * NestJS module that provides the Google OAuth 2.0 provider and 11 Google Workspace tools
+ * (Calendar, Gmail, and Drive) for use in workflows and agents.
+ *
+ * Registration:
+ * - `GoogleWorkspaceModule` — a bare import is enough. It imports `OAuthModule` internally and
+ *   registers `GoogleWorkspaceOAuthProvider` (provider id `'google'`) plus all Calendar, Gmail,
+ *   and Drive tools as providers, so they are resolvable by DI with no static configuration method.
+ *
+ * Requires: Google OAuth client credentials in the environment — `GOOGLE_CLIENT_ID` and
+ * `GOOGLE_CLIENT_SECRET` are mandatory (optionally `GOOGLE_OAUTH_REDIRECT_URI`, defaults to
+ * `/oauth/callback`). Without them the OAuth flow cannot authenticate and tools return
+ * `{ error: 'unauthorized' }`.
+ *
+ * @public
+ */
 @Module({
   imports: [OAuthModule],
   providers: [GoogleWorkspaceOAuthProvider, ...tools],

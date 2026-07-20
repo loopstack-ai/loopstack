@@ -1,34 +1,52 @@
-import { Controller, Get, Logger, MessageEvent, Req, Sse, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, MessageEvent, Query, Req, Sse, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Request } from 'express';
-import { Observable } from 'rxjs';
+import { Observable, concat, from, interval, merge } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CurrentUser, CurrentUserInterface, RoleName, Roles } from '@loopstack/common';
-import { SseEventService } from '../services/sse-event.service.js';
+import { SseEventService, SseStreamEvent } from '../services/sse-event.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/sse')
 export class SseController {
-  private readonly logger = new Logger(SseController.name);
-
   constructor(private readonly sseEventService: SseEventService) {}
 
   @Sse('stream')
-  stream(@CurrentUser() user: CurrentUserInterface, @Req() request: Request): Observable<MessageEvent> {
-    const workerId = user.workerId;
-    const userId = user.userId;
+  stream(
+    @CurrentUser() user: CurrentUserInterface,
+    @Req() request: Request,
+    @Query('workflowId') workflowId?: string,
+    @Query('lastEventId') lastEventIdQuery?: string,
+  ): Observable<MessageEvent> {
+    const headerValue = request.headers['last-event-id'];
+    const lastEventId = (Array.isArray(headerValue) ? headerValue[0] : headerValue) ?? lastEventIdQuery;
 
-    const messageSubject = this.sseEventService.registerConnection(workerId, userId);
-    const connectionId = (messageSubject as typeof messageSubject & { __sseConnectionId: string }).__sseConnectionId;
-
-    request.on('close', () => {
-      this.sseEventService.unregisterConnection(workerId, userId, connectionId);
+    const subscription = this.sseEventService.registerConnection(user.workerId, user.userId, {
+      lastEventId,
+      workflowId,
     });
 
-    return messageSubject.pipe(
-      map((message) => ({
-        data: message,
-      })),
+    request.on('close', () => {
+      this.sseEventService.unregisterConnection(user.workerId, user.userId, subscription.connectionId);
+    });
+
+    // Replay is a synchronous snapshot, so live events emitted afterwards
+    // cannot interleave ahead of it.
+    const events$ = concat(from(subscription.replay), subscription.subject).pipe(
+      map((event) => this.toMessageEvent(event)),
     );
+
+    // Named `ping` events are invisible to `EventSource.onmessage` consumers.
+    // They carry the connection's current cursor as id — Nest would otherwise
+    // auto-assign its own frame counter and corrupt the client's resume cursor.
+    const heartbeat$ = interval(this.sseEventService.heartbeatIntervalMs).pipe(
+      map((): MessageEvent => ({ type: 'ping', id: subscription.cursor(), data: 'ping' })),
+    );
+
+    return merge(events$, heartbeat$);
+  }
+
+  private toMessageEvent(event: SseStreamEvent): MessageEvent {
+    return { id: event.id, data: event.message };
   }
 
   @Get('health')
@@ -36,10 +54,15 @@ export class SseController {
   health(): {
     active_connections: number;
     connections: string[];
+    buffered_keys: number;
+    buffered_events: number;
   } {
+    const bufferStats = this.sseEventService.getBufferStats();
     return {
       active_connections: this.sseEventService.getConnectionCount(),
       connections: this.sseEventService.getActiveConnections(),
+      buffered_keys: bufferStats.bufferedKeys,
+      buffered_events: bufferStats.bufferedEvents,
     };
   }
 }

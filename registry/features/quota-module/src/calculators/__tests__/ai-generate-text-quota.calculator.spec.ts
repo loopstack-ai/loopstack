@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ToolExecutionContext, ToolResult } from '@loopstack/common';
+import { ToolEnvelope, ToolExecutionContext } from '@loopstack/common';
 import { AiGenerateTextQuotaCalculator } from '../ai-generate-text-quota.calculator.js';
 
 describe('AiGenerateTextQuotaCalculator', () => {
@@ -12,6 +12,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
       workspaceId: 'ws-1',
       workflowId: '',
       args: undefined,
+      signal: new AbortController().signal,
     },
     metadata: {},
   };
@@ -25,7 +26,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
   });
 
   it('should calculate cost using Claude Sonnet pricing', () => {
-    const result: ToolResult = {
+    const result: ToolEnvelope = {
       data: {},
       metadata: {
         provider: 'claude',
@@ -43,7 +44,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
   });
 
   it('should calculate cost using Claude Opus pricing', () => {
-    const result: ToolResult = {
+    const result: ToolEnvelope = {
       data: {},
       metadata: {
         provider: 'claude',
@@ -61,7 +62,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
   });
 
   it('should include cache tokens with correct pricing', () => {
-    const result: ToolResult = {
+    const result: ToolEnvelope = {
       data: {},
       metadata: {
         provider: 'claude',
@@ -85,7 +86,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
   });
 
   it('should include reasoning tokens as output cost (OpenAI)', () => {
-    const result: ToolResult = {
+    const result: ToolEnvelope = {
       data: {},
       metadata: {
         provider: 'openai',
@@ -103,7 +104,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
   });
 
   it('should use fallback pricing when provider/model is unknown', () => {
-    const result: ToolResult = {
+    const result: ToolEnvelope = {
       data: {},
       metadata: {
         provider: 'unknown',
@@ -120,17 +121,17 @@ describe('AiGenerateTextQuotaCalculator', () => {
   });
 
   it('should return null when metadata is missing', () => {
-    const result: ToolResult = { data: {} };
+    const result: ToolEnvelope = { data: {} };
     expect(calculator.calculateQuotaUsage(context, result)).toBeNull();
   });
 
   it('should return null when usage is missing from metadata', () => {
-    const result: ToolResult = { data: {}, metadata: { provider: 'claude', model: 'claude-sonnet-4' } };
+    const result: ToolEnvelope = { data: {}, metadata: { provider: 'claude', model: 'claude-sonnet-4' } };
     expect(calculator.calculateQuotaUsage(context, result)).toBeNull();
   });
 
   it('should return null when all token counts are zero', () => {
-    const result: ToolResult = {
+    const result: ToolEnvelope = {
       data: {},
       metadata: { provider: 'claude', model: 'claude-sonnet-4', usage: { inputTokens: 0, outputTokens: 0 } },
     };
@@ -138,7 +139,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
   });
 
   it('should handle missing provider/model gracefully', () => {
-    const result: ToolResult = {
+    const result: ToolEnvelope = {
       data: {},
       metadata: { usage: { inputTokens: 1_000_000, outputTokens: 1_000_000 } },
     };

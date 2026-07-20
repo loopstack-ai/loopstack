@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -16,8 +16,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreatePullRequestTool`: the repository `owner`, `repo`, `title`,
+ * `head` and `base` branches, optional `body` and `draft` flag.
+ *
+ * @public
+ */
 export type GitHubCreatePullRequestArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreatePullRequestTool`: the created `pullRequest` summary, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreatePullRequestResult =
   | {
       pullRequest: {
@@ -31,6 +42,12 @@ export type GitHubCreatePullRequestResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that opens a new pull request in a GitHub repository from a head branch into a base branch.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_pull_request',
   description:
@@ -50,7 +67,7 @@ export class GitHubCreatePullRequestTool extends BaseTool<
   protected async handle(
     args: GitHubCreatePullRequestArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubCreatePullRequestResult>> {
+  ): Promise<ToolEnvelope<GitHubCreatePullRequestResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -59,6 +76,7 @@ export class GitHubCreatePullRequestTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -90,6 +108,7 @@ export class GitHubCreatePullRequestTool extends BaseTool<
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -101,6 +120,7 @@ export class GitHubCreatePullRequestTool extends BaseTool<
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

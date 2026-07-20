@@ -1,13 +1,23 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Result for `GitWorktreePruneTool`.
+ *
+ * @public
+ */
 export type GitWorktreePruneResult = {
   success: boolean;
   output?: string;
 };
 
+/**
+ * Tool that prunes worktree administrative files for worktrees whose directories no longer exist.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_worktree_prune',
   description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',
@@ -21,7 +31,7 @@ export class GitWorktreePruneTool extends BaseTool<object, object, GitWorktreePr
     super();
   }
 
-  protected async handle(_args: object, _ctx: RunContext): Promise<ToolResult<GitWorktreePruneResult>> {
+  protected async handle(): Promise<ToolEnvelope<GitWorktreePruneResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitWorktreePrune(agentUrl);
     return { data: result };

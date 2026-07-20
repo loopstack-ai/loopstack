@@ -1,12 +1,21 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitLogTool`.
+ *
+ * @public
+ */
 export type GitLogArgs = {
   limit?: number;
 };
 
+/**
+ * A single commit entry returned by `GitLogTool`.
+ *
+ * @public
+ */
 export type GitCommit = {
   hash: string;
   shortHash: string;
@@ -15,10 +24,21 @@ export type GitCommit = {
   date: string;
 };
 
+/**
+ * Result for `GitLogTool`.
+ *
+ * @public
+ */
 export type GitLogResult = {
   commits: GitCommit[];
 };
 
+/**
+ * Tool that returns the git commit log for the workspace repository.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_log',
   description: 'Shows the git commit log for the workspace repository.',
@@ -36,7 +56,7 @@ export class GitLogTool extends BaseTool<GitLogArgs, object, GitLogResult> {
     super();
   }
 
-  protected async handle(args: GitLogArgs, _ctx: RunContext): Promise<ToolResult<GitLogResult>> {
+  protected async handle(args: GitLogArgs): Promise<ToolEnvelope<GitLogResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitLog(agentUrl, args.limit);
     return { data: result };

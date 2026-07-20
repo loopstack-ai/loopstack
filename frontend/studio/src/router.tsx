@@ -6,7 +6,6 @@ import WorkerLayout from './app/WorkerLayout.tsx';
 import { StudioSidebar } from './components/layout/StudioSidebar.tsx';
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar.tsx';
 import config from './config.ts';
-import { FeatureRegistryProvider } from './features/feature-registry';
 import { LocalHealthCheck } from './features/health';
 import { OAuthCallbackPage } from './features/oauth';
 import DashboardPage from './pages/DashboardPage.tsx';
@@ -23,9 +22,8 @@ import WorkflowDebugPage from './pages/WorkflowDebugPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspaceRunsPage from './pages/WorkspaceRunsPage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
-import { InvalidationEventsProvider } from './providers/InvalidationEventsProvider.tsx';
+import { LoopstackClientProvider } from './providers/LoopstackClientProvider.tsx';
 import { QueryProvider } from './providers/QueryProvider.tsx';
-import { SseProvider } from './providers/SseProvider.tsx';
 import { StudioPreferencesProvider, useStudioPreferences } from './providers/StudioPreferencesProvider.tsx';
 import { StudioProvider } from './providers/StudioProvider.tsx';
 import { useRouter } from './routing/LocalRouter.tsx';
@@ -49,12 +47,10 @@ function AppRoot() {
       <Toaster richColors position="top-center" />
       <StudioPreferencesProvider>
         <StudioProvider router={router} environment={config.environment}>
-          <FeatureRegistryProvider>
+          <LoopstackClientProvider>
             <LocalHealthCheck />
-            <SseProvider />
-            <InvalidationEventsProvider />
             <AppSidebar />
-          </FeatureRegistryProvider>
+          </LoopstackClientProvider>
         </StudioProvider>
       </StudioPreferencesProvider>
     </QueryProvider>
@@ -66,11 +62,9 @@ function EmbedRoot() {
   return (
     <QueryProvider>
       <StudioProvider router={router} environment={config.environment}>
-        <FeatureRegistryProvider>
-          <SseProvider />
-          <InvalidationEventsProvider />
+        <LoopstackClientProvider>
           <WorkerLayout />
-        </FeatureRegistryProvider>
+        </LoopstackClientProvider>
       </StudioProvider>
     </QueryProvider>
   );

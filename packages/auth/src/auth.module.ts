@@ -5,13 +5,13 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import cookieParser from 'cookie-parser';
 import type { StringValue } from 'ms';
-import { Role, User } from '@loopstack/common';
+import { ApiTokenEntity, Role, User } from '@loopstack/common';
 import { AssignRoleCommand } from './commands/assign-role.command.js';
-import { AuthController } from './controllers/index.js';
+import { ApiTokenController, AuthController } from './controllers/index.js';
 import { JwtAuthGuard, RolesGuard } from './guards/index.js';
 import { UserRepository } from './repositories/index.js';
 import { ConfigValidationService } from './services/config-validation.service.js';
-import { AuthService, TokenService } from './services/index.js';
+import { ApiTokenService, AuthService, TokenService } from './services/index.js';
 import { HubStrategy, JwtStrategy } from './strategies/index.js';
 
 @Module({})
@@ -20,7 +20,7 @@ export class AuthModule implements NestModule {
     consumer.apply(cookieParser()).forRoutes('*');
   }
 
-  static forRoot(connection?: string): DynamicModule {
+  static forRoot(): DynamicModule {
     return {
       module: AuthModule,
       imports: [
@@ -34,11 +34,12 @@ export class AuthModule implements NestModule {
           }),
           inject: [ConfigService],
         }),
-        TypeOrmModule.forFeature([User, Role], connection),
+        TypeOrmModule.forFeature([User, Role, ApiTokenEntity]),
       ],
-      controllers: [AuthController],
+      controllers: [ApiTokenController, AuthController],
       providers: [
         ConfigValidationService,
+        ApiTokenService,
         AuthService,
         UserRepository,
         TokenService,
@@ -48,7 +49,7 @@ export class AuthModule implements NestModule {
         RolesGuard,
         AssignRoleCommand,
       ],
-      exports: [AuthService, UserRepository, JwtAuthGuard, RolesGuard],
+      exports: [ApiTokenService, AuthService, UserRepository, JwtAuthGuard, RolesGuard],
     };
   }
 }

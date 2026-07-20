@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { ZodError } from 'zod';
 import { DocumentEntity, DocumentSaveOptions, getBlockOptions, getDocumentSchema } from '@loopstack/common';
-import { SchemaValidationError } from '../../common/index.js';
+import { SchemaValidationError, TransitionAbortedError } from '../../common/index.js';
 import { ExecutionScope, ExecutionScopeData } from '../utils/index.js';
 
 @Injectable()
@@ -32,6 +32,14 @@ export class DocumentPersistenceService {
     options?: DocumentSaveOptions,
   ): Promise<DocumentEntity> {
     const scope = this.executionScope.get();
+
+    // Refuse writes from an abandoned (timed-out) transition. Without this, a zombie method whose
+    // transaction was already rolled back would hit the plain-repository branch below and commit a
+    // document outside any transaction.
+    if (scope.abortController.signal.aborted) {
+      throw new TransitionAbortedError();
+    }
+
     const transition = scope.transition;
     if (!transition) {
       throw new Error('DocumentPersistenceService.create() called outside an active transition');
@@ -56,16 +64,17 @@ export class DocumentPersistenceService {
       documentName,
     );
 
-    // Generate messageId if not provided
-    const messageId = options?.id ?? randomUUID();
+    // Generate key if not provided
+    const key = options?.key ?? randomUUID();
 
     const entity = this.documentRepository.create({
-      messageId,
+      key,
       documentName,
       content: validatedContent,
       meta: dynamicMeta && Object.keys(dynamicMeta).length > 0 ? dynamicMeta : null,
       error: error ?? null,
       tags: defaultTags,
+      internal: blockOptions?.internal ?? false,
       transition: transition.id,
       place: transition.to,
       labels: scope.labels,
@@ -90,20 +99,20 @@ export class DocumentPersistenceService {
 
   /**
    * Updates the in-memory document cache. Handles invalidation of previous
-   * versions (by messageId) and index inheritance. Persists invalidation
+   * versions (by key) and index inheritance. Persists invalidation
    * changes to DB when a queryRunner is available.
    */
   private async addToCache(scope: ExecutionScopeData, document: DocumentEntity): Promise<void> {
     const { documents, queryRunner } = scope;
 
-    const existingIndex = document.messageId ? documents.findIndex((d) => d.messageId === document.messageId) : -1;
+    const existingIndex = document.key ? documents.findIndex((d) => d.key === document.key) : -1;
 
-    // Collect all existing documents with the same messageId that need invalidation
+    // Collect all existing documents with the same key that need invalidation
     const invalidated: DocumentEntity[] = [];
     let inheritedIndex: number | undefined;
 
     for (const doc of documents) {
-      if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
+      if (doc.key === document.key && doc.meta?.invalidate !== false) {
         if (inheritedIndex === undefined) {
           inheritedIndex = doc.index;
         }
@@ -137,7 +146,7 @@ export class DocumentPersistenceService {
     } else {
       document.index = inheritedIndex ?? documents.length;
       this.logger.debug(
-        `addDocument: ${document.documentName}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
+        `addDocument: ${document.documentName}(key=${document.key}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
       );
       documents.push(document);
     }

@@ -9,8 +9,13 @@ export const ConfirmUserDocumentSchema = z
 
 export type ConfirmUserDocumentType = z.infer<typeof ConfirmUserDocumentSchema>;
 
+/**
+ * Document that presents markdown content to the user for an approve/deny decision.
+ *
+ * @public
+ */
 @Document({
-  widget: import.meta.dirname + '/confirm-user-document.yaml',
+  widget: './confirm-user-document.yaml',
   schema: ConfirmUserDocumentSchema,
 })
 export class ConfirmUserDocument {

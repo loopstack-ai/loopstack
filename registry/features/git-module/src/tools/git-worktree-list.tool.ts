@@ -1,8 +1,12 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * A single worktree entry returned by `GitWorktreeListTool`.
+ *
+ * @public
+ */
 export type GitWorktree = {
   path: string;
   head?: string;
@@ -13,10 +17,21 @@ export type GitWorktree = {
   prunable?: string;
 };
 
+/**
+ * Result for `GitWorktreeListTool`.
+ *
+ * @public
+ */
 export type GitWorktreeListResult = {
   worktrees: GitWorktree[];
 };
 
+/**
+ * Tool that lists all git worktrees attached to the repository, including path, HEAD, branch, and flags.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_worktree_list',
   description:
@@ -31,7 +46,7 @@ export class GitWorktreeListTool extends BaseTool<object, object, GitWorktreeLis
     super();
   }
 
-  protected async handle(_args: object, _ctx: RunContext): Promise<ToolResult<GitWorktreeListResult>> {
+  protected async handle(): Promise<ToolEnvelope<GitWorktreeListResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitWorktreeList(agentUrl);
     return { data: result };

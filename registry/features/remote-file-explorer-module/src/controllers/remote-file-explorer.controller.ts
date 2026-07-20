@@ -3,7 +3,7 @@ import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
-@Controller('api/v1/workspaces/:workspaceId/files')
+@Controller('api/v1/workspaces/:workspaceId/remote-files')
 export class RemoteFileExplorerController {
   constructor(
     private readonly remote: RemoteClient,
@@ -17,7 +17,7 @@ export class RemoteFileExplorerController {
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
     const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
-    return this.remote.getFileTree(agentUrl, basePath ?? './src');
+    return this.remote.getFileTree(agentUrl, basePath);
   }
 
   @Get('read')

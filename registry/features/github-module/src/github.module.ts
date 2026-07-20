@@ -55,6 +55,20 @@ const tools = [
   GitHubListUserOrgsTool,
 ];
 
+/**
+ * NestJS module that provides the GitHub OAuth provider (`GitHubOAuthProvider`) and 25 GitHub API tools
+ * for repositories, issues, pull requests, file content/git ops, actions/workflow runs, search, and users/orgs.
+ *
+ * Registration:
+ * - `GitHubModule` — bare import; it internally imports `OAuthModule` and registers `GitHubOAuthProvider`
+ *   plus all tools. No static configuration methods exist.
+ *
+ * Requires: a configured GitHub OAuth app via the environment variables `GITHUB_CLIENT_ID`,
+ * `GITHUB_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI`; without valid OAuth credentials the tools
+ * return `{ error: 'unauthorized' }`.
+ *
+ * @public
+ */
 @Module({
   imports: [OAuthModule],
   providers: [GitHubOAuthProvider, ...tools],

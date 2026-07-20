@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { useFileContent, useFileTree } from '../hooks/useFileExplorer';
+import { useLoopstackClient } from '@loopstack/react';
+import { type FileExplorerVariant, fileTreeKey, useFileContent, useFileTree } from '../hooks/useFileExplorer';
 import type { FileExplorerNode } from '../types';
 
 export interface FileExplorerContextValue {
@@ -27,19 +28,22 @@ export interface FileExplorerContextValue {
 const FileExplorerContext = createContext<FileExplorerContextValue | null>(null);
 
 interface FileExplorerProviderProps {
+  variant: FileExplorerVariant;
   workspaceId?: string;
   enabled?: boolean;
   children: ReactNode;
 }
 
-export function FileExplorerProvider({ workspaceId, enabled = true, children }: FileExplorerProviderProps) {
+export function FileExplorerProvider({ variant, workspaceId, enabled = true, children }: FileExplorerProviderProps) {
+  const client = useLoopstackClient();
   const queryClient = useQueryClient();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [openFiles, setOpenFiles] = useState<FileExplorerNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileExplorerNode | null>(null);
 
-  const treeQuery = useFileTree(workspaceId, enabled);
+  const treeQuery = useFileTree(variant, workspaceId, enabled);
   const contentQuery = useFileContent(
+    variant,
     workspaceId,
     selectedFile?.type === 'file' ? selectedFile.path : undefined,
     enabled,
@@ -139,8 +143,8 @@ export function FileExplorerProvider({ workspaceId, enabled = true, children }: 
   );
 
   const refreshTree = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: ['file-explorer-tree'] });
-  }, [queryClient]);
+    void queryClient.invalidateQueries({ queryKey: fileTreeKey(client.envKey) });
+  }, [queryClient, client.envKey]);
 
   const value = useMemo<FileExplorerContextValue>(
     () => ({

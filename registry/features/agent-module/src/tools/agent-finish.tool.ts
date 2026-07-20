@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 
 const AgentFinishInputSchema = z
   .object({
@@ -10,8 +9,23 @@ const AgentFinishInputSchema = z
 
 type AgentFinishInput = z.infer<typeof AgentFinishInputSchema>;
 
+/**
+ * Result returned by `AgentFinishTool` — a sentinel marking agent completion with
+ * the final `result`.
+ *
+ * @public
+ */
 export type AgentFinishResult = { __agentFinish: true; result: unknown };
 
+/**
+ * Tool that signals the agent has completed its task and returns the final result.
+ *
+ * The LLM calls this to end the loop, passing the final `result` as a structured object
+ * or string. Returns an {@link AgentFinishResult} the agent workflow uses to exit.
+ *
+ * @providedBy AgentModule
+ * @public
+ */
 @Tool({
   name: 'agent_finish',
   description:
@@ -21,7 +35,7 @@ export type AgentFinishResult = { __agentFinish: true; result: unknown };
   schema: AgentFinishInputSchema,
 })
 export class AgentFinishTool extends BaseTool<AgentFinishInput, object, AgentFinishResult> {
-  protected async handle(args: AgentFinishInput, _ctx: RunContext): Promise<ToolResult<AgentFinishResult>> {
+  protected async handle(args: AgentFinishInput): Promise<ToolEnvelope<AgentFinishResult>> {
     return Promise.resolve({ data: { __agentFinish: true, result: args.result ?? null } });
   }
 }

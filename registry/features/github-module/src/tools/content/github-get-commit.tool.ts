@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -12,8 +12,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubGetCommitTool`: the repository `owner`, `repo` and `ref` (commit SHA, branch or tag).
+ *
+ * @public
+ */
 export type GitHubGetCommitArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubGetCommitTool`: a `commit` object with author, committer, diff `stats`
+ * and changed `files`, or an `error`.
+ *
+ * @public
+ */
 export type GitHubGetCommitResult =
   | {
       commit: {
@@ -42,6 +53,13 @@ export type GitHubGetCommitResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that fetches detailed information about a single commit in a GitHub repository,
+ * including diff stats and changed files.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_get_commit',
   description:
@@ -54,7 +72,7 @@ export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, G
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubGetCommitArgs, ctx: RunContext): Promise<ToolResult<GitHubGetCommitResult>> {
+  protected async handle(args: GitHubGetCommitArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetCommitResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -63,6 +81,7 @@ export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, G
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -82,6 +101,7 @@ export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, G
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -93,6 +113,7 @@ export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, G
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

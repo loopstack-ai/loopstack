@@ -1,5 +1,109 @@
 # @loopstack/api
 
+## 0.37.0
+
+### Minor Changes
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`70a0b9c`](https://github.com/loopstack-ai/loopstack/commit/70a0b9c5ad66eeb51b78b3c795ef3297182f1e40) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Harden the SSE event stream for reconnecting and headless clients: every frame carries a monotonic sequence `id`, events are kept in a per-user replay buffer (bounded by size and TTL), reconnects with `Last-Event-ID` (or `?lastEventId=`) replay the missed tail — or receive a `stream.reset` event when the cursor is stale — heartbeat `ping` frames let non-browser clients detect dead connections, and `?workflowId=` filters the stream to a single run. Tuning knobs (`bufferSize`, `bufferTtlMs`, `heartbeatIntervalMs`) are exposed via the `sse` option on `LoopstackApiModule.register()` and `LoopstackModule.forRoot()`; `GET /sse/health` reports buffer stats.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`0c032f3`](https://github.com/loopstack-ai/loopstack/commit/0c032f3cbf92ae29e849859f628d761c1dc956c7) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Workspaces move to zod-first contracts and the SDK. `WorkspaceSchema`/`WorkspaceCreateSchema`/`WorkspaceUpdateSchema`/`WorkspaceFavouriteSchema`/`WorkspaceFilterSchema` replace the class-validator DTOs; the workspace controller validates with zod pipes and maps responses through `toWorkspace`. `WorkspaceItemInterface` is merged into `WorkspaceInterface` and the unused `isLocked` field is removed. The client gains a `workspaces` resource (get, list, create, update, setFavourite, delete, batchDelete), `workspace`/`workspaceList` query descriptors, and a `patch` method on `HttpClient`.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`2f37cea`](https://github.com/loopstack-ai/loopstack/commit/2f37ceac3d13380b7e25ff5b8e57e11b0b598897) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Run tracing over the wire: `workflow.updated` events now carry the workflow's current `place`, so stream consumers can render step-level progress without a round-trip per transition, and `WorkflowFullSchema` exposes the run's published `result` (built via `assignResult`/`setResult`) through `GET /api/v1/workflows/:id`.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`e67c62a`](https://github.com/loopstack-ai/loopstack/commit/e67c62aac7539e7d8c642d7f667327cb9d2aa91e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Auth moves to zod-first contracts and the SDK. `AuthUserSchema` gives `/auth/me` a real contract (id, isActive, roles, ISO dates); `WorkerInfoSchema`, `HubLoginRequestSchema`, `HubLoginResponseSchema`, and `AuthMessageSchema` cover the remaining endpoints. The auth controller validates the hub-login body with zod and the service maps responses with dev-time schema assertion; the wire DTOs are removed. `assertResponse` now lives in `@loopstack/common` so all server packages share one copy. The client gains an `auth` resource (me, workerHealth, hubLogin, refresh, logout) with `me`/`workerHealth` query descriptors.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`5568421`](https://github.com/loopstack-ai/loopstack/commit/5568421370aaf94ffda9ce3e1228b8b6c78aa845) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Config and dashboard move to zod-first contracts and the SDK. `StudioAppConfigSchema`, `WorkflowConfigSchema`, `ToolConfigSchema`, `WorkflowSourceSchema`, `AvailableEnvironmentSchema`, and `DashboardStatsSchema` replace the class-transformer DTOs; the config and dashboard controllers map responses explicitly with dev-time schema assertion. `StudioAppConfig` now has a single definition in contracts (core's discovery service adopts it), the config interfaces move from the `/types` to the `/api` subpath, and `DashboardStatsInterface` drops the never-sent `workspaceCount`/`totalAutomations` fields. Wire fixes: workflow config responses now include `workflowName`, and dashboard `recentRuns`/`recentErrors` are mapped `WorkflowItem` projections instead of raw entities. The client gains `config` (apps, workflowConfig, workflowSource, tools, tool, availableEnvironments) and `dashboard` (stats) resources with envKey-scoped query descriptors.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`7ca82a0`](https://github.com/loopstack-ai/loopstack/commit/7ca82a028ef47285b80b62ad78209cc6531d3f0d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Make the workflows/documents/processor REST surface zod-first. `@loopstack/contracts/api` now defines zod schemas (with the existing `*Interface` names as inferred types) for workflow item/full/status/create/update/filter, documents, checkpoints, processor payloads, batch delete, and paginated lists. The api package validates request bodies and JSON query params with `ZodValidationPipe`/`ZodJsonQueryPipe`, restricts sort fields to real entity columns, and builds responses through explicit mapper functions that are schema-validated outside production — replacing the class-validator/class-transformer DTOs for these controllers, which are removed. Wire-truth fixes along the way: workflow `title` is typed nullable, document timestamps are ISO strings, `validationError` is now actually serialized, checkpoints are typed, and run-payload transitions accept an omitted `id`. `WorkflowRunResult` lives in contracts and is re-exported by `@loopstack/common`.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`dcb4d09`](https://github.com/loopstack-ai/loopstack/commit/dcb4d09f06a0185921f6787a93287396bd7de841) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Adopt the typed `ClientMessage` union from `@loopstack/contracts/events` across the event pipeline. `ClientMessageService` now exposes typed dispatch methods (`dispatchWorkflowCreated`/`dispatchWorkflowUpdated`/`dispatchDocumentCreated`) and validates messages against the schema outside production; `workflow.updated` events carry the workflow `status` inline. The untyped `ClientMessageInterface` and `ClientMessageDto` are removed, and `@loopstack/common` re-exports `WorkflowState` from contracts instead of duplicating the enum.
+
+### Patch Changes
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`20970e9`](https://github.com/loopstack-ai/loopstack/commit/20970e90fee8bb9d72624928b45c73c65eb73f20) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Headless authentication: with auth disabled, credential-less requests now resolve to the local dev user (created lazily via `UserRepository.findOrCreateLocalUser`) — local CLIs and scripts need no login dance. Personal access tokens (`lsk_…`) provide credentials for real deployments: created via `POST /api/v1/auth/tokens` (plaintext shown once, sha256 hash stored), listed and revoked via the same endpoint, validated by the auth guard ahead of JWT verification with expiry and revocation checks. `ZodValidationPipe`/`ZodJsonQueryPipe` now live in `@loopstack/common` so any package can validate with contract schemas.
+
+- Updated dependencies [[`0c032f3`](https://github.com/loopstack-ai/loopstack/commit/0c032f3cbf92ae29e849859f628d761c1dc956c7), [`2f48470`](https://github.com/loopstack-ai/loopstack/commit/2f48470ff10ecb1b07a877adacfc312a20b1e061), [`2f37cea`](https://github.com/loopstack-ai/loopstack/commit/2f37ceac3d13380b7e25ff5b8e57e11b0b598897), [`e67c62a`](https://github.com/loopstack-ai/loopstack/commit/e67c62aac7539e7d8c642d7f667327cb9d2aa91e), [`20970e9`](https://github.com/loopstack-ai/loopstack/commit/20970e90fee8bb9d72624928b45c73c65eb73f20), [`5568421`](https://github.com/loopstack-ai/loopstack/commit/5568421370aaf94ffda9ce3e1228b8b6c78aa845), [`7ca82a0`](https://github.com/loopstack-ai/loopstack/commit/7ca82a028ef47285b80b62ad78209cc6531d3f0d), [`dcb4d09`](https://github.com/loopstack-ai/loopstack/commit/dcb4d09f06a0185921f6787a93287396bd7de841), [`69e8a13`](https://github.com/loopstack-ai/loopstack/commit/69e8a131922392b77bdbb9b5e31e577f60b57479)]:
+  - @loopstack/contracts@0.37.0
+  - @loopstack/core@0.37.0
+  - @loopstack/common@0.37.0
+  - @loopstack/auth@0.37.0
+
+## 0.36.0
+
+### Minor Changes
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Cleanup of the `documentStore.save` options taxonomy. Three related changes:
+
+  **1. `id` → `key` (rename).** `DocumentSaveOptions.id` is now `key`, and the underlying entity field/column moved from `messageId` / `message_id` to `key`. The option is used for non-message documents too (forms, transcripts, status docs), so the LLM-flavored name was misleading — `key` accurately names the concept (stable upsert key that invalidates the previous row in place). Synchronize mode handles the column rename; no migration shipped.
+
+  **2. New `internal` decorator option + entity column.** `@Document({ internal: true })` marks a document type as framework plumbing. Internal documents are persisted server-side and still readable by code that queries the document store (e.g. LLM providers building conversation history), but they're excluded from REST API responses — Studio never sees them. The filter is applied at the API boundary (`DocumentApiService.findAll` / `findOneById`); the repository itself stays unfiltered so server-side callers compose their own queries. `StaticDocumentMeta.hidden` is gone — it was the half-measure this replaces.
+
+  **3. New `LlmContextDocument` type.** Symmetric with `LlmMessageDocument` (`{ role: 'user' | 'assistant', text }`) but declared `@Document({ internal: true, tags: ['message'] })`. The `'message'` tag keeps it in the LLM provider's conversation-history gather; `internal: true` keeps it out of Studio. Replaces the prior `{ meta: { hidden: true } }` flag on `LlmMessageDocument` saves — 9 call sites across `@loopstack/agent`, sandbox/app-builder, and registry examples migrated to the new type.
+
+  **Migration:**
+
+  ```ts
+  // before
+  await this.documentStore.save(Doc, content, { id: 'status' });
+  await this.documentStore.save(LlmMessageDocument, { role: 'user', text }, { meta: { hidden: true } });
+
+  // after
+  await this.documentStore.save(Doc, content, { key: 'status' });
+  await this.documentStore.save(LlmContextDocument, { role: 'user', text });
+  ```
+
+### Patch Changes
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Unify the `wait: true` payload shape. Every wait transition now receives the same envelope, `TransitionInput<TData, TMeta>`, regardless of whether the resume came from a sub-workflow completion or a frontend / API trigger:
+
+  ```ts
+  interface TransitionInput<TData = unknown, TMeta = unknown> {
+    workflowId: string;
+    status: 'completed' | 'failed' | 'canceled';
+    hasError: boolean;
+    errorMessage: string | null;
+    data: TData;
+    meta?: TMeta;
+  }
+  ```
+
+  The `schema:` option on `@Transition({ wait: true })` now describes **only `data`** — the framework constructs the surrounding envelope. Authors no longer extend a base callback schema; they declare the data shape they expect and receive the full envelope on the transition method. The frontend can now signal `status: 'failed' | 'canceled'` + `errorMessage` via the `/processor/run/:workflowId` API so user-driven HITL flows can model "user declined" alongside sub-workflow failures using the same `input.hasError` branch.
+
+  **Breaking changes:**
+  - `CallbackSchema` is removed from `@loopstack/common`. Replace `schema: CallbackSchema.extend({ data: z.object({ ... }) })` with `schema: z.object({ ... })` and type the parameter as `input: TransitionInput<TData>`.
+  - `FanOutCallbackSchema` / `FanOutCallbackPayload` are removed from `@loopstack/core` and replaced with `FanOutResultSchema` (the inner data shape). Same for `SequenceCallbackSchema` / `SequenceCallbackPayload` → `SequenceResultSchema`.
+  - Wait transitions that previously received the raw payload directly (e.g. `payload: string` for chat user-input) now receive `input: TransitionInput<string>`; access via `input.data`.
+  - The orchestrator's callback envelope renames `_subscriberMetadata` → `meta`. `FanOutWorkflow` / `SequenceWorkflow` and `LlmDelegateService.updateToolResult()` now read correlation metadata from `input.meta` / `payload.meta`.
+
+  **Migration:**
+
+  ```ts
+  // Before
+  import { CallbackSchema } from '@loopstack/common';
+  const AnswerCallback = CallbackSchema.extend({ data: z.object({ answer: z.string() }) });
+  @Transition({ wait: true, schema: AnswerCallback })
+  async onAnswer(state, payload: z.infer<typeof AnswerCallback>) {
+    payload.data.answer;
+    payload.hasError;
+  }
+
+  // After
+  import type { TransitionInput } from '@loopstack/common';
+  @Transition({ wait: true, schema: z.object({ answer: z.string() }) })
+  async onAnswer(state, input: TransitionInput<{ answer: string }>) {
+    input.data.answer;
+    input.hasError;
+  }
+  ```
+
+  All registry features, examples, and docs (including `sub-workflows.md`, `human-in-the-loop.md`, `workflows.md`, the HITL tutorial, and every registry README) have been swept to the new shape. No backwards-compatibility shim — the old `CallbackSchema` export and the `_subscriberMetadata` field are removed outright.
+
+- Updated dependencies [[`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89)]:
+  - @loopstack/common@0.36.0
+  - @loopstack/contracts@0.36.0
+  - @loopstack/core@0.36.0
+  - @loopstack/auth@0.36.0
+
 ## 0.35.0
 
 ### Minor Changes

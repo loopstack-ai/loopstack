@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -10,8 +10,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleDriveGetFileMetadataTool`.
+ *
+ * @public
+ */
 export type GoogleDriveGetFileMetadataArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleDriveGetFileMetadataTool`.
+ *
+ * @public
+ */
 export type GoogleDriveGetFileMetadataResult =
   | {
       id: string;
@@ -29,6 +39,14 @@ export type GoogleDriveGetFileMetadataResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that gets detailed metadata for a single Google Drive file. Takes a `fileId` and returns
+ * name, mime type, size, timestamps, owners, parents, and sharing state, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_drive_get_file_metadata',
   description:
@@ -48,7 +66,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
   protected async handle(
     args: GoogleDriveGetFileMetadataArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleDriveGetFileMetadataResult>> {
+  ): Promise<ToolEnvelope<GoogleDriveGetFileMetadataResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -57,6 +75,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -73,6 +92,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -84,6 +104,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${response.statusText}`,
         },
+        error: `Google Drive API error: ${response.statusText}`,
       };
     }
 

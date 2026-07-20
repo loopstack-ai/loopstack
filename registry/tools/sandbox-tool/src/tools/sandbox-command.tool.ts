@@ -1,7 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { CommandExecutionResult, DockerContainerManagerService } from '../services/docker-container-manager.service.js';
 
 const inputSchema = z
@@ -15,8 +14,22 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxCommandArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxCommand`.
+ *
+ * Identifies the target container and the executable to run, with optional args, working directory,
+ * environment variables, and timeout.
+ *
+ * @public
+ */
+export type SandboxCommandArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Tool that executes a command inside a sandbox container and captures its stdout, stderr, and exit code.
+ *
+ * @providedBy SandboxToolModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_command',
   description: 'Execute a command in the sandbox environment',
@@ -28,7 +41,7 @@ export class SandboxCommand extends BaseTool<SandboxCommandArgs, object, Command
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  protected async handle(args: SandboxCommandArgs, _ctx: RunContext): Promise<ToolResult<CommandExecutionResult>> {
+  protected async handle(args: SandboxCommandArgs): Promise<ToolEnvelope<CommandExecutionResult>> {
     const argsStr = args.args?.length ? ` ${args.args.join(' ')}` : '';
     this.logger.debug(
       `Executing command: ${args.executable}${argsStr} in container ${args.containerId} (workDir: ${args.workingDirectory})`,

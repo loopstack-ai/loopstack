@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -13,8 +13,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreateIssueCommentTool`: the repository `owner`, `repo`,
+ * `issueNumber` (issue or pull request) and comment `body`.
+ *
+ * @public
+ */
 export type GitHubCreateIssueCommentArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreateIssueCommentTool`: the created `comment` summary, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreateIssueCommentResult =
   | {
       comment: {
@@ -26,6 +37,12 @@ export type GitHubCreateIssueCommentResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that adds a comment to a GitHub issue or pull request.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_issue_comment',
   description:
@@ -45,7 +62,7 @@ export class GitHubCreateIssueCommentTool extends BaseTool<
   protected async handle(
     args: GitHubCreateIssueCommentArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubCreateIssueCommentResult>> {
+  ): Promise<ToolEnvelope<GitHubCreateIssueCommentResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -54,6 +71,7 @@ export class GitHubCreateIssueCommentTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -76,6 +94,7 @@ export class GitHubCreateIssueCommentTool extends BaseTool<
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -87,6 +106,7 @@ export class GitHubCreateIssueCommentTool extends BaseTool<
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

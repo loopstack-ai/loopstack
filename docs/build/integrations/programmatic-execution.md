@@ -1,9 +1,9 @@
 ---
-title: Programmatic Workflow Execution
-description: Starting and managing workflows from code using WorkflowRunner. Covers triggering from API requests, webhooks, cron jobs, batch processing, and internal events.
+title: Scheduling & Programmatic Execution
+description: Scheduling and programmatic workflow execution with WorkflowRunner — cron (@Cron), webhook endpoints, delayed runs (SchedulerRegistry), batch fan-out, and triggering from API requests or internal events. run vs runSync, appName/userId context.
 ---
 
-# Running Workflows Programmatically
+# Scheduling & Programmatic Execution
 
 Start and manage workflows programmatically from your NestJS application — in response to API requests, webhook events, cron jobs, or internal application logic — without going through the Studio UI.
 
@@ -16,6 +16,11 @@ Use the `WorkflowRunner` to execute workflows in response to:
 - Scheduled cron jobs
 - Internal application events
 - Batch processing tasks
+
+For a runnable version of every pattern below — cron, webhook, delayed run, and batch — see the
+[`@loopstack/scheduling-examples`](#registry-references) package. Each fundamental ships as a small
+workflow plus the real trigger that fires it, and you can drive the HTTP-triggered ones straight from
+Studio.
 
 ## Basic Example
 
@@ -136,6 +141,38 @@ export class TaskScheduler {
 }
 ```
 
+### Delayed Run
+
+Run a workflow once after a delay — e.g. "follow up 24h after signup". Register a one-off timeout with NestJS's `SchedulerRegistry`, then trigger the workflow when it fires:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { randomUUID } from 'node:crypto';
+import { WorkflowRunner } from '@loopstack/core';
+
+@Injectable()
+export class SignupFollowupService {
+  constructor(
+    private readonly workflowRunner: WorkflowRunner,
+    private readonly scheduler: SchedulerRegistry,
+  ) {}
+
+  scheduleFollowup(email: string, userId: string, delayMs = 24 * 60 * 60 * 1000) {
+    const name = `signup-followup-${randomUUID()}`;
+
+    const timeout = setTimeout(() => {
+      this.scheduler.deleteTimeout(name);
+      void this.workflowRunner.run(SignupFollowupWorkflow, { email }, { appName: 'onboarding', userId });
+    }, delayMs);
+
+    this.scheduler.addTimeout(name, timeout);
+  }
+}
+```
+
+`SchedulerRegistry` timeouts live in memory, so a server restart loses any pending run. For delays that must survive restarts, enqueue a [BullMQ delayed job](https://docs.bullmq.io/guide/jobs/delayed) instead.
+
 ### Batch Processing
 
 Process multiple items by triggering workflows in parallel:
@@ -170,3 +207,7 @@ export class OrderProcessingService {
   }
 }
 ```
+
+## Registry References
+
+- [scheduling-examples](https://loopstack.ai/registry/loopstack-scheduling-examples) — Runnable examples of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.

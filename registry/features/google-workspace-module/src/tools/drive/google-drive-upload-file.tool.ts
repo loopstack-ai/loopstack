@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -14,13 +14,31 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleDriveUploadFileTool`.
+ *
+ * @public
+ */
 export type GoogleDriveUploadFileArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleDriveUploadFileTool`.
+ *
+ * @public
+ */
 export type GoogleDriveUploadFileResult =
   | { id: string; name: string; mimeType: string; webViewLink?: string }
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Tool that uploads a new file to Google Drive using multipart upload. Takes a name, content, mime
+ * type, and optional folder and description, and returns the created file's id, name, and link, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_drive_upload_file',
   description:
@@ -40,7 +58,7 @@ export class GoogleDriveUploadFileTool extends BaseTool<
   protected async handle(
     args: GoogleDriveUploadFileArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleDriveUploadFileResult>> {
+  ): Promise<ToolEnvelope<GoogleDriveUploadFileResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -49,6 +67,7 @@ export class GoogleDriveUploadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -87,6 +106,7 @@ export class GoogleDriveUploadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -98,6 +118,7 @@ export class GoogleDriveUploadFileTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${response.statusText}`,
         },
+        error: `Google Drive API error: ${response.statusText}`,
       };
     }
 

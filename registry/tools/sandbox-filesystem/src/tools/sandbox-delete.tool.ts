@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -13,13 +12,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxDeleteArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxDelete`.
+ *
+ * Identifies the container and target path, with optional recursive and force flags.
+ *
+ * @public
+ */
+export type SandboxDeleteArgs = z.infer<typeof inputSchema>;
 
-interface SandboxDeleteResult {
+/**
+ * Result of `SandboxDelete`.
+ *
+ * Reports the target path and whether it was deleted.
+ *
+ * @public
+ */
+export interface SandboxDeleteResult {
   path: string;
   deleted: boolean;
 }
 
+/**
+ * Tool that deletes a file or directory in a sandbox container, with optional recursive and force flags.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_delete',
   description: 'Delete a file or directory in a sandbox container',
@@ -32,7 +51,7 @@ export class SandboxDelete extends BaseTool<SandboxDeleteArgs, object, SandboxDe
     super();
   }
 
-  protected async handle(args: SandboxDeleteArgs, _ctx: RunContext): Promise<ToolResult<SandboxDeleteResult>> {
+  protected async handle(args: SandboxDeleteArgs): Promise<ToolEnvelope<SandboxDeleteResult>> {
     const { containerId, path: targetPath, recursive, force } = args;
 
     this.logger.debug(`Deleting ${targetPath} in container ${containerId} (recursive: ${recursive}, force: ${force})`);

@@ -1,0 +1,41 @@
+{
+  "name": "@loopstack/client",
+  "displayName": "Loopstack Client",
+  "description": "Headless TypeScript SDK for the Loopstack REST API and event stream",
+  "version": "0.37.1",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run && node scripts/bare-node-check.mjs",
+    "watch": "tsc -p tsconfig.build.json --watch"
+  },
+  "dependencies": {
+    "@loopstack/contracts": "^0.37.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "files": [
+    "dist"
+  ]
+}

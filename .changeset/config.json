@@ -10,7 +10,8 @@
       "@loopstack/core",
       "@loopstack/testing",
       "@loopstack/auth",
-      "@loopstack/api"
+      "@loopstack/api",
+      "@loopstack/client"
     ]
   ],
   "access": "public",

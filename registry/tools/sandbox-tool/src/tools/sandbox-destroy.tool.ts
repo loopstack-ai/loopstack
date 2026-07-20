@@ -1,7 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service.js';
 
 const inputSchema = z
@@ -14,13 +13,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxDestroyArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxDestroy`.
+ *
+ * Identifies the container to destroy and whether to remove it or merely stop it.
+ *
+ * @public
+ */
+export type SandboxDestroyArgs = z.infer<typeof inputSchema>;
 
-interface SandboxDestroyResult {
+/**
+ * Result of `SandboxDestroy`.
+ *
+ * Reports the affected container id and whether it was removed.
+ *
+ * @public
+ */
+export interface SandboxDestroyResult {
   containerId: string;
   removed: boolean;
 }
 
+/**
+ * Tool that stops a sandbox container and optionally removes it, then unregisters its config.
+ *
+ * @providedBy SandboxToolModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_destroy',
   description: 'Stop and destroy a sandbox container',
@@ -32,7 +51,7 @@ export class SandboxDestroy extends BaseTool<SandboxDestroyArgs, object, Sandbox
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  protected async handle(args: SandboxDestroyArgs, _ctx: RunContext): Promise<ToolResult<SandboxDestroyResult>> {
+  protected async handle(args: SandboxDestroyArgs): Promise<ToolEnvelope<SandboxDestroyResult>> {
     const { containerId, removeContainer } = args;
 
     this.logger.debug(`Destroying sandbox ${containerId} (removeContainer: ${removeContainer})`);

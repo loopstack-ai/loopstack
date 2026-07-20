@@ -32,13 +32,12 @@ Launch the agent from any workflow:
 
 ```typescript
 @Transition({ from: 'planning', to: 'implementing' })
-async runAgent(state: MyState): Promise<MyState> {
+async runAgent(state: MyState) {
   await this.agent.run({
     system: 'You are a code exploration agent. Summarize your findings.',
     tools: ['glob', 'grep', 'read'],
     userMessage: 'Find all API endpoints in the codebase.',
   }, { callback: { transition: 'agentDone' } });
-  return state;
 }
 ```
 
@@ -63,7 +62,7 @@ const docs = await this.loadFiles.call({
   basePath: './src/assets',
 });
 
-const context = this.render(__dirname + '/templates/context.md', {
+const context = this.render(join(__dirname, 'templates', 'context.md'), {
   docs: docs.data,
   projectName: args.projectName,
 });
@@ -111,8 +110,8 @@ The built-in `AgentWorkflow` is a regular workflow. When you need custom behavio
 
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import type { RunContext, TransitionInput } from '@loopstack/common';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
@@ -122,15 +121,17 @@ import {
 
 interface AgentState {
   llmResult?: LlmGenerateTextResult;
-  llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
 }
 
+const MyAgentSchema = z.object({ instructions: z.string() });
+type MyAgentArgs = z.infer<typeof MyAgentSchema>;
+
 @Workflow({
-  widget: __dirname + '/my-agent.ui.yaml',
-  schema: z.object({ instructions: z.string() }),
+  widget: './my-agent.ui.yaml',
+  schema: MyAgentSchema,
 })
-export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, AgentState> {
+export class MyAgentWorkflow extends BaseWorkflow<MyAgentArgs> {
   constructor(
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
@@ -141,17 +142,15 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: AgentState, ctx: RunContext): Promise<AgentState> {
-    const args = ctx.args as { instructions: string };
+  async setup(state: AgentState, ctx: RunContext<MyAgentArgs>) {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      text: args.instructions,
+      text: ctx.args.instructions,
     });
-    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(state: AgentState): Promise<AgentState> {
+  async llmTurn(state: AgentState) {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -163,55 +162,35 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
         },
       },
     );
-    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+    this.assignState({ llmResult: result.data });
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(state: AgentState): Promise<AgentState> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-
+  async executeToolCalls(state: AgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
-  async toolResultReceived(state: AgentState, payload: unknown): Promise<AgentState> {
+  async toolResultReceived(state: AgentState, input: TransitionInput) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
-      completedTool: payload,
+      completedTool: input,
     });
-    return { ...state, delegateResult: result.data };
+    this.assignState({ delegateResult: result.data });
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async toolsComplete(state: AgentState): Promise<AgentState> {
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'user',
-      blocks: state.delegateResult!.toolResults.map((tr) => ({
-        type: 'tool_result' as const,
-        toolCallId: tr.toolCallId,
-        content: tr.content ?? '',
-        isError: tr.isError ?? false,
-      })),
-    });
-    return state;
-  }
+  toolsComplete(state: AgentState) {}
 
   @Transition({ from: 'prompt_executed', to: 'end' })
-  @Guard('isEndTurn')
-  async respond(state: AgentState): Promise<unknown> {
-    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-    });
-    return {};
-  }
+  @Guard('isDone')
+  respond(_state: AgentState) {}
 
   private hasToolCalls(state: AgentState): boolean {
     return state.llmResult?.message.stopReason === 'tool_use';
@@ -221,11 +200,13 @@ export class MyAgentWorkflow extends BaseWorkflow<{ instructions: string }, Agen
     return state.delegateResult?.allCompleted ?? false;
   }
 
-  private isEndTurn(state: AgentState): boolean {
+  private isDone(state: AgentState): boolean {
     return state.llmResult?.message.stopReason === 'end_turn';
   }
 }
 ```
+
+`LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, and `LlmUpdateToolResultTool` all persist their messages automatically — the assistant turn after `llmGenerateText`, and the `tool_result` user turn when all delegated tools complete (sync or async). Pass `config: { save: false }` on any of them if you want to take over persistence.
 
 ### Adding User Interaction
 
@@ -234,21 +215,15 @@ Pause for user input between LLM turns:
 ```typescript
 // Instead of final transition, go to waiting_for_user
 @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-@Guard('isEndTurn')
-async respondToUser(state: AgentState): Promise<AgentState> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-  });
-  return state;
-}
+@Guard('isDone')
+respondToUser(state: AgentState) {}
 
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-async userMessage(state: AgentState, payload: string): Promise<AgentState> {
+async userMessage(state: AgentState, input: TransitionInput<string>) {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload,
+    text: input.data,
   });
-  return state;
 }
 ```
 
@@ -273,7 +248,7 @@ export class ExploreTask extends BaseTool {
     args: { instructions: string },
     ctx: RunContext,
     options?: ToolCallOptions,
-  ): Promise<ToolResult> {
+  ): Promise<ToolEnvelope> {
     const result = await this.agentWorkflow.run(
       {
         system: 'You are a codebase exploration agent.',
@@ -289,7 +264,7 @@ export class ExploreTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope> {
     const data = result as { data?: { response?: string } };
     return { data: data.data?.response ?? result };
   }
@@ -302,4 +277,4 @@ This enables multi-agent architectures where an orchestrator agent delegates tas
 
 - [@loopstack/agent](https://loopstack.ai/registry/loopstack-agent) — Built-in agent workflow module
 - [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — Code exploration agent (ExploreTask) built on @loopstack/agent
-- [delegate-error-example-workflow](https://loopstack.ai/registry/loopstack-delegate-error-example-workflow) — Example demonstrating tool error handling and recovery
+- [delegate-error-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Example demonstrating tool error handling and recovery

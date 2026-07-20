@@ -11,38 +11,31 @@ Build multi-turn conversational workflows where users exchange messages with an 
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
+import { LlmContextDocument, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
-@Workflow({ widget: __dirname + '/chat.ui.yaml' })
+@Workflow({ widget: './chat.ui.yaml' })
 export class ChatWorkflow extends BaseWorkflow {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    await this.documentStore.save(
-      LlmMessageDocument,
-      { role: 'user', text: this.render(__dirname + '/templates/systemMessage.md') },
-      { meta: { hidden: true } },
-    );
-    return state;
+  async setup(state: Record<string, unknown>) {
+    await this.documentStore.save(LlmContextDocument, {
+      role: 'user',
+      text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
+    });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
-    return state;
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
   }
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
-  async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-    await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-      meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
-    });
-    return state;
+  async llmTurn(state: Record<string, unknown>) {
+    await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
   }
 }
 ```
@@ -117,31 +110,24 @@ setup → waiting_for_user → [user sends message] → ready → llmTurn → wa
 Add tool calling to a chat flow by combining the patterns from [AI Tool Calling](./tool-calling.md):
 
 ```typescript
-import type { LlmResultMeta } from '@loopstack/llm-provider-module';
-
 @Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn(state: ChatState): Promise<ChatState> {
+async llmTurn(state: ChatState) {
   const result = await this.llmGenerateText.call(
     {},
     { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather', 'search_database'] } },
   );
-  return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
+  this.assignState({ llmResult: result.data });
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: ChatState): Promise<ChatState> { ... }
+async executeToolCalls(state: ChatState) { ... }
 
 @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-async respond(state: ChatState): Promise<ChatState> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
-    meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
-  });
-  return state;
-}
+respond(state: ChatState) {}
 ```
 
 ## Registry References
 
-- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Multi-turn chat with Claude, system message, and prompt-input widget
-- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — Chat with tool calling loop
+- [chat-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#prompt-input-chat) — Multi-turn chat with Claude, system message, and prompt-input widget
+- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Chat with tool calling loop

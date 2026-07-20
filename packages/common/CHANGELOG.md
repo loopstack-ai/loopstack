@@ -1,5 +1,231 @@
 # @loopstack/common
 
+## 0.37.0
+
+### Minor Changes
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`e67c62a`](https://github.com/loopstack-ai/loopstack/commit/e67c62aac7539e7d8c642d7f667327cb9d2aa91e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Auth moves to zod-first contracts and the SDK. `AuthUserSchema` gives `/auth/me` a real contract (id, isActive, roles, ISO dates); `WorkerInfoSchema`, `HubLoginRequestSchema`, `HubLoginResponseSchema`, and `AuthMessageSchema` cover the remaining endpoints. The auth controller validates the hub-login body with zod and the service maps responses with dev-time schema assertion; the wire DTOs are removed. `assertResponse` now lives in `@loopstack/common` so all server packages share one copy. The client gains an `auth` resource (me, workerHealth, hubLogin, refresh, logout) with `me`/`workerHealth` query descriptors.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`20970e9`](https://github.com/loopstack-ai/loopstack/commit/20970e90fee8bb9d72624928b45c73c65eb73f20) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Headless authentication: with auth disabled, credential-less requests now resolve to the local dev user (created lazily via `UserRepository.findOrCreateLocalUser`) — local CLIs and scripts need no login dance. Personal access tokens (`lsk_…`) provide credentials for real deployments: created via `POST /api/v1/auth/tokens` (plaintext shown once, sha256 hash stored), listed and revoked via the same endpoint, validated by the auth guard ahead of JWT verification with expiry and revocation checks. `ZodValidationPipe`/`ZodJsonQueryPipe` now live in `@loopstack/common` so any package can validate with contract schemas.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`7ca82a0`](https://github.com/loopstack-ai/loopstack/commit/7ca82a028ef47285b80b62ad78209cc6531d3f0d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Make the workflows/documents/processor REST surface zod-first. `@loopstack/contracts/api` now defines zod schemas (with the existing `*Interface` names as inferred types) for workflow item/full/status/create/update/filter, documents, checkpoints, processor payloads, batch delete, and paginated lists. The api package validates request bodies and JSON query params with `ZodValidationPipe`/`ZodJsonQueryPipe`, restricts sort fields to real entity columns, and builds responses through explicit mapper functions that are schema-validated outside production — replacing the class-validator/class-transformer DTOs for these controllers, which are removed. Wire-truth fixes along the way: workflow `title` is typed nullable, document timestamps are ISO strings, `validationError` is now actually serialized, checkpoints are typed, and run-payload transitions accept an omitted `id`. `WorkflowRunResult` lives in contracts and is re-exported by `@loopstack/common`.
+
+- [#238](https://github.com/loopstack-ai/loopstack/pull/238) [`dcb4d09`](https://github.com/loopstack-ai/loopstack/commit/dcb4d09f06a0185921f6787a93287396bd7de841) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Adopt the typed `ClientMessage` union from `@loopstack/contracts/events` across the event pipeline. `ClientMessageService` now exposes typed dispatch methods (`dispatchWorkflowCreated`/`dispatchWorkflowUpdated`/`dispatchDocumentCreated`) and validates messages against the schema outside production; `workflow.updated` events carry the workflow `status` inline. The untyped `ClientMessageInterface` and `ClientMessageDto` are removed, and `@loopstack/common` re-exports `WorkflowState` from contracts instead of duplicating the enum.
+
+### Patch Changes
+
+- Updated dependencies [[`0c032f3`](https://github.com/loopstack-ai/loopstack/commit/0c032f3cbf92ae29e849859f628d761c1dc956c7), [`2f48470`](https://github.com/loopstack-ai/loopstack/commit/2f48470ff10ecb1b07a877adacfc312a20b1e061), [`2f37cea`](https://github.com/loopstack-ai/loopstack/commit/2f37ceac3d13380b7e25ff5b8e57e11b0b598897), [`e67c62a`](https://github.com/loopstack-ai/loopstack/commit/e67c62aac7539e7d8c642d7f667327cb9d2aa91e), [`20970e9`](https://github.com/loopstack-ai/loopstack/commit/20970e90fee8bb9d72624928b45c73c65eb73f20), [`5568421`](https://github.com/loopstack-ai/loopstack/commit/5568421370aaf94ffda9ce3e1228b8b6c78aa845), [`7ca82a0`](https://github.com/loopstack-ai/loopstack/commit/7ca82a028ef47285b80b62ad78209cc6531d3f0d), [`dcb4d09`](https://github.com/loopstack-ai/loopstack/commit/dcb4d09f06a0185921f6787a93287396bd7de841), [`69e8a13`](https://github.com/loopstack-ai/loopstack/commit/69e8a131922392b77bdbb9b5e31e577f60b57479)]:
+  - @loopstack/contracts@0.37.0
+
+## 0.36.0
+
+### Minor Changes
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Cleanup of the `documentStore.save` options taxonomy. Three related changes:
+
+  **1. `id` → `key` (rename).** `DocumentSaveOptions.id` is now `key`, and the underlying entity field/column moved from `messageId` / `message_id` to `key`. The option is used for non-message documents too (forms, transcripts, status docs), so the LLM-flavored name was misleading — `key` accurately names the concept (stable upsert key that invalidates the previous row in place). Synchronize mode handles the column rename; no migration shipped.
+
+  **2. New `internal` decorator option + entity column.** `@Document({ internal: true })` marks a document type as framework plumbing. Internal documents are persisted server-side and still readable by code that queries the document store (e.g. LLM providers building conversation history), but they're excluded from REST API responses — Studio never sees them. The filter is applied at the API boundary (`DocumentApiService.findAll` / `findOneById`); the repository itself stays unfiltered so server-side callers compose their own queries. `StaticDocumentMeta.hidden` is gone — it was the half-measure this replaces.
+
+  **3. New `LlmContextDocument` type.** Symmetric with `LlmMessageDocument` (`{ role: 'user' | 'assistant', text }`) but declared `@Document({ internal: true, tags: ['message'] })`. The `'message'` tag keeps it in the LLM provider's conversation-history gather; `internal: true` keeps it out of Studio. Replaces the prior `{ meta: { hidden: true } }` flag on `LlmMessageDocument` saves — 9 call sites across `@loopstack/agent`, sandbox/app-builder, and registry examples migrated to the new type.
+
+  **Migration:**
+
+  ```ts
+  // before
+  await this.documentStore.save(Doc, content, { id: 'status' });
+  await this.documentStore.save(LlmMessageDocument, { role: 'user', text }, { meta: { hidden: true } });
+
+  // after
+  await this.documentStore.save(Doc, content, { key: 'status' });
+  await this.documentStore.save(LlmContextDocument, { role: 'user', text });
+  ```
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Failure-handling on `@Transition` is now expressed as flat fields instead of a nested `retry` object, and the framework treats sync throws, timeouts, and sub-workflow failure callbacks under a single decision tree (auto-retry → `errorPlace` → manual retry).
+
+  **Decorator surface:**
+
+  ```ts
+  @Transition({
+    from, to,
+    retryAttempts?: number,            // -1 = unlimited manual retry (default).
+                                       //  0 = no auto-retry (default when errorPlace is set).
+                                       // N>0 = up to N auto-retries.
+    retryDelay?: number,               // Base ms (default 1000).
+    retryBackoff?: 'fixed' | 'exponential',  // default 'exponential'.
+    retryMaxDelay?: number,            // ms cap for backoff (default 30000).
+    retryTarget?: string,              // Re-enter this place on each retry, instead of re-running the failing transition.
+    errorPlace?: string,               // Where to route when retries are exhausted (or no retry configured).
+    timeout?: number,
+  })
+  ```
+
+  `retryTarget` is new: it lets a retry land on a different place so a recovery transition (token refresh, cache invalidation, etc.) runs before the failing transition is re-attempted. The transitions reached via `retryTarget` have their own independent retry budget — failures there don't consume the originating transition's attempts.
+
+  Wait transitions that resume from a sub-workflow callback now obey the same rules: a `status: 'failed' | 'canceled'` callback runs through the same decision tree. With `errorPlace` declared, the framework treats the failure as the wait transition failing and skips the body entirely — protecting schema-validated bodies from receiving `null` / malformed data when the child never reached `setResult(...)`. Without `errorPlace` (or `retryAttempts`), the body still fires for accumulator patterns (e.g. LLM tool delegation) where the body itself inspects error results.
+
+  **Breaking changes:**
+  - `RetryConfig`, `NormalizedRetryConfig`, and `normalizeRetryConfig` are removed from `@loopstack/common`.
+  - `@Transition({ retry: 3 })` → `@Transition({ retryAttempts: 3 })`.
+  - `@Transition({ retry: { place: 'x' } })` → `@Transition({ errorPlace: 'x' })`. When `errorPlace` is set without `retryAttempts`, attempts default to `0` (route on first failure) — matching the previous semantics.
+  - `@Transition({ retry: { attempts, delay, backoff, maxDelay, place } })` → individual `retryAttempts`/`retryDelay`/`retryBackoff`/`retryMaxDelay`/`errorPlace` fields.
+
+  **Migration:**
+
+  ```ts
+  // Before
+  @Transition({ from: 'fetching', to: 'done', retry: 3 })
+  @Transition({ from: 'processing', to: 'done', retry: { place: 'error_processing' } })
+  @Transition({ from: 'deploying', to: 'deployed', retry: { attempts: 2, place: 'deploy_failed' } })
+
+  // After
+  @Transition({ from: 'fetching', to: 'done', retryAttempts: 3 })
+  @Transition({ from: 'processing', to: 'done', errorPlace: 'error_processing' })
+  @Transition({ from: 'deploying', to: 'deployed', retryAttempts: 2, errorPlace: 'deploy_failed' })
+  ```
+
+  `LlmDelegateService` now overwrites both `data` and `error` when a sub-workflow tool result reports failure — previously the misleading success payload could leak to the LLM alongside `isError: true`. The `error-retry` and new `agent-error-handling` examples (the latter moved from `@loopstack/agent-examples` into `@loopstack/advanced-workflows-examples`) demonstrate the full set of patterns. Docs (`build/patterns/error-handling.md`) are swept to the new shape with sections for `retryTarget` and sub-workflow failure callbacks.
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Split tool result types and tighten the public call surface.
+  - **New `ToolEnvelope<T, M>`** — the raw shape returned by `BaseTool.handle()`, `complete()`, and `ToolPipeline.execute()`. Has optional `data`, `error`, `pending`, `metadata`, `type`. This is what was previously called `ToolResult`.
+  - **`ToolResult<T, M>` is now the narrowed success-path return of `BaseTool.call()`** — `data` and `metadata` are non-optional. `call()` throws on the envelope's `error` and `pending` arms, so workflow authors never see them.
+  - **`TData` default tightened from `any` to `unknown`** on `ToolEnvelope`. Tools that declared `Promise<ToolResult>` bare without a generic must now declare `Promise<ToolEnvelope<TResult>>` to match their class-level generic (one latent type drift surfaced and fixed: `BuildOAuthUrlTool`).
+  - **`LlmGenerateObjectTool` accepts a Zod schema for `outputSchema`** instead of a JSON Schema object. The tool converts to JSON Schema internally for provider SDKs and validates the returned data with the same schema. `toJSONSchema(...)` ceremony and `validate: 'skip'` on document saves are no longer needed at call sites.
+  - **`LlmDelegateService` routes through `ToolPipeline.execute()`** directly so the agent tool-call loop still observes `error` / `pending` on the raw envelope.
+  - **Sweep of stale casts and `!` assertions** across examples and feature workflows: `result.metadata as LlmResultMeta` and `result.data!` are now just `result.metadata` / `result.data` (non-optional under the new narrowed shape).
+  - **Sweep of trailing unused parameters** on `handle()` across the registry — `_ctx: RunContext` and unused `_args` are dropped from method signatures (TS method bivariance allows narrower-arity overrides).
+
+  **Migration:**
+  - Tools — change `handle(): Promise<ToolResult<T>>` to `handle(): Promise<ToolEnvelope<T>>`. Same shape, new name.
+  - Workflows — drop `result.data!` / `result.metadata!` non-null assertions; the new `ToolResult` makes both non-optional. Drop `as LlmResultMeta` casts on `result.metadata`.
+  - Interceptors and quota calculators — `intercept(ctx, next: () => Promise<ToolEnvelope>): Promise<ToolEnvelope>`. `ToolQuotaCalculator.calculateQuotaUsage(ctx, result: ToolEnvelope)`.
+  - Structured output — pass a Zod schema to `outputSchema` instead of `toJSONSchema(Schema)`. Drop `validate: 'skip'` on the subsequent `documentStore.save()`.
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Unify the `wait: true` payload shape. Every wait transition now receives the same envelope, `TransitionInput<TData, TMeta>`, regardless of whether the resume came from a sub-workflow completion or a frontend / API trigger:
+
+  ```ts
+  interface TransitionInput<TData = unknown, TMeta = unknown> {
+    workflowId: string;
+    status: 'completed' | 'failed' | 'canceled';
+    hasError: boolean;
+    errorMessage: string | null;
+    data: TData;
+    meta?: TMeta;
+  }
+  ```
+
+  The `schema:` option on `@Transition({ wait: true })` now describes **only `data`** — the framework constructs the surrounding envelope. Authors no longer extend a base callback schema; they declare the data shape they expect and receive the full envelope on the transition method. The frontend can now signal `status: 'failed' | 'canceled'` + `errorMessage` via the `/processor/run/:workflowId` API so user-driven HITL flows can model "user declined" alongside sub-workflow failures using the same `input.hasError` branch.
+
+  **Breaking changes:**
+  - `CallbackSchema` is removed from `@loopstack/common`. Replace `schema: CallbackSchema.extend({ data: z.object({ ... }) })` with `schema: z.object({ ... })` and type the parameter as `input: TransitionInput<TData>`.
+  - `FanOutCallbackSchema` / `FanOutCallbackPayload` are removed from `@loopstack/core` and replaced with `FanOutResultSchema` (the inner data shape). Same for `SequenceCallbackSchema` / `SequenceCallbackPayload` → `SequenceResultSchema`.
+  - Wait transitions that previously received the raw payload directly (e.g. `payload: string` for chat user-input) now receive `input: TransitionInput<string>`; access via `input.data`.
+  - The orchestrator's callback envelope renames `_subscriberMetadata` → `meta`. `FanOutWorkflow` / `SequenceWorkflow` and `LlmDelegateService.updateToolResult()` now read correlation metadata from `input.meta` / `payload.meta`.
+
+  **Migration:**
+
+  ```ts
+  // Before
+  import { CallbackSchema } from '@loopstack/common';
+  const AnswerCallback = CallbackSchema.extend({ data: z.object({ answer: z.string() }) });
+  @Transition({ wait: true, schema: AnswerCallback })
+  async onAnswer(state, payload: z.infer<typeof AnswerCallback>) {
+    payload.data.answer;
+    payload.hasError;
+  }
+
+  // After
+  import type { TransitionInput } from '@loopstack/common';
+  @Transition({ wait: true, schema: z.object({ answer: z.string() }) })
+  async onAnswer(state, input: TransitionInput<{ answer: string }>) {
+    input.data.answer;
+    input.hasError;
+  }
+  ```
+
+  All registry features, examples, and docs (including `sub-workflows.md`, `human-in-the-loop.md`, `workflows.md`, the HITL tutorial, and every registry README) have been swept to the new shape. No backwards-compatibility shim — the old `CallbackSchema` export and the `_subscriberMetadata` field are removed outright.
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Transitions return nothing and mutate workflow state and result via four setter methods on `BaseWorkflow`:
+
+  ```ts
+  this.assignState(partial); // shallow merge into state
+  this.setState(full); // replace state
+  this.assignResult(partial); // shallow merge into the published result
+  this.setResult(full); // replace the published result
+  ```
+
+  Setters are immediately visible to subsequent code in the same transition and are committed atomically with the existing per-transition DB transaction; on transition error the draft is discarded.
+
+  The published result (`WorkflowEntity.result`) is no longer derived from the final transition's return value — call `assignResult` / `setResult` from any transition to build it incrementally.
+
+  `@loopstack/testing` adds a `runTransition` helper that sets up an `ExecutionScope` around a transition invocation and returns the committed `{ state, result }` draft — the canonical way to unit-test a transition without going through the full processor.
+
+  **Breaking changes:**
+  - Transition methods return nothing. The processor throws if a transition returns a non-undefined value.
+  - `return { ...state, foo }`, `return state`, and `return {}` no longer drive state or result. Replace with `this.assignState({ foo })` (or delete the return for no-op patterns).
+  - The `to: 'end'` "return becomes result" shortcut is removed — final transitions that previously returned a result must call `this.setResult(...)`.
+  - Unit tests that invoke transitions directly must use `runTransition` from `@loopstack/testing` (or set up an `ExecutionScope` manually) — the previous "assert on the return value" pattern no longer works.
+
+  **Migration:**
+
+  ```ts
+  // Before
+  @Transition({ to: 'next' })
+  async myTransition(state): Promise<MyState> {
+    const result = await this.someTool.call(...);
+    return { ...state, foo: result.data };
+  }
+
+  @Transition({ from: 'compute', to: 'end' })
+  async done(state): Promise<MyResult> {
+    return this.buildResult(state);
+  }
+
+  // After
+  @Transition({ to: 'next' })
+  async myTransition(state) {
+    const result = await this.someTool.call(...);
+    this.assignState({ foo: result.data });
+  }
+
+  @Transition({ from: 'compute', to: 'end' })
+  done(state) {
+    this.setResult(this.buildResult(state));
+  }
+  ```
+
+  Omit the `: Promise<void>` annotation; drop `async` when the body has no `await`.
+
+  All registry features, examples, READMEs, and docs have been swept to the setter-based form. No backwards-compatibility shim — returning a value from a transition is a runtime error.
+
+### Patch Changes
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Split the single `fileExplorer` Studio feature into two independent features: `localFileExplorer` (workspace project files via `LocalFileExplorerModule`) and `remoteFileExplorer` (remote agent files via `RemoteFileExplorerModule`). Both can be enabled side-by-side and now show distinct sidebar panels ("Files" and "Remote Files").
+
+  **URL changes (breaking):**
+  - `LocalFileExplorerController`: `/api/v1/workspaces/:workspaceId/files/*` → `/api/v1/workspaces/:workspaceId/local-files/*`
+  - `RemoteFileExplorerController`: `/api/v1/workspaces/:workspaceId/files/*` → `/api/v1/workspaces/:workspaceId/remote-files/*`
+
+  The previous shared base path could not host both controllers in the same app. The Studio API client now takes a `'local' | 'remote'` variant and routes to the matching path; `useFileTree` / `useFileContent` hooks accept the variant as their first argument.
+
+  **Feature-registration keys (breaking):**
+  - `registerFeature('fileExplorer', …)` → `registerFeature('localFileExplorer', …)` (in `LocalFileExplorerModule`) and `registerFeature('remoteFileExplorer', …)` (in `RemoteFileExplorerModule`).
+  - Studio's `AVAILABLE_FEATURES` registry exposes `localFileExplorer` and `remoteFileExplorer` instead of `fileExplorer`.
+
+  **Other:**
+  - `RemoteFileExplorerController.tree` no longer defaults `path` to `./src` — it now walks the workspace root when `path` is omitted, matching the local controller.
+
+  No backwards-compatibility shim — the old key/URL forms are removed.
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `BaseWorkflow<TArgs, TInput = TArgs>` now exposes a second generic for workflows whose call-site shape differs from their persisted shape. Normalization moves into a zod `.transform()` on the workflow's schema; the run-args parse pipeline now runs once at the boundary (queue or stateless entry) instead of twice. `FanOutWorkflow` and `SequenceWorkflow` use this pattern — their `run()` overrides and `as unknown as` casts are gone.
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Relative `widget:` paths on `@Workflow` / `@Tool` / `@Document` resolve against the class's source directory at decorator-evaluation time (e.g. `widget: './chat.ui.yaml'`). The `Block()` decorator captures the caller file via a new `getCallerFile()` helper and stores the directory under `BLOCK_DIR_METADATA_KEY`. `BaseTool` exposes the `render` Handlebars renderer alongside `BaseWorkflow`. Example workflow render call sites use `path.join(__dirname, 'templates', 'foo.md')`. Registry READMEs and docs swept; `uiConfig:` references in registry READMEs corrected to `widget:`. Resolves todo.md [#9](https://github.com/loopstack-ai/loopstack/issues/9).
+
+- [#228](https://github.com/loopstack-ai/loopstack/pull/228) [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `BaseWorkflow` is now single-generic — `BaseWorkflow<TArgs>`. The unused `_TState` second generic has been removed; state is typed per-transition on the `state` parameter. Author convention for typing `ctx.args` is now `ctx: RunContext<FooArgs>` (derived from a `type FooArgs = z.infer<typeof FooSchema>` alias), removing the previously-required `const args = ctx.args as { ... }` cast. All examples, registry workflows, and docs updated.
+
+- Updated dependencies [[`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89), [`8ddbf25`](https://github.com/loopstack-ai/loopstack/commit/8ddbf253dee7a4ebf7530970d8c04dbe50ba4d89)]:
+  - @loopstack/contracts@0.36.0
+
 ## 0.35.0
 
 ### Minor Changes

@@ -15,13 +15,13 @@ export interface ContentSummary {
 export interface WorkflowDebugContext {
   workflowId: string;
   workflowName: string;
-  title: string;
+  title: string | null;
   status: string;
   place: string;
   isActive: boolean;
   isDocumentActive: boolean;
   parentWorkflowId?: string;
-  parentTitle?: string;
+  parentTitle?: string | null;
 }
 
 export interface ApiResponseInfo {

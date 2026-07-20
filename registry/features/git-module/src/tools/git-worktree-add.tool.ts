@@ -1,8 +1,12 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Zod schema for `GitWorktreeAddTool` arguments.
+ *
+ * @public
+ */
 export const GitWorktreeAddSchema = z
   .object({
     path: z.string().describe('Filesystem path for the new worktree (relative to workspace root or absolute)'),
@@ -15,14 +19,30 @@ export const GitWorktreeAddSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitWorktreeAddTool`.
+ *
+ * @public
+ */
 export type GitWorktreeAddArgs = z.infer<typeof GitWorktreeAddSchema>;
 
+/**
+ * Result for `GitWorktreeAddTool`.
+ *
+ * @public
+ */
 export type GitWorktreeAddResult = {
   success: boolean;
   path: string;
   output?: string;
 };
 
+/**
+ * Tool that creates a new git worktree at the given path, optionally checking out or creating a branch.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_worktree_add',
   description:
@@ -37,7 +57,7 @@ export class GitWorktreeAddTool extends BaseTool<GitWorktreeAddArgs, object, Git
     super();
   }
 
-  protected async handle(args: GitWorktreeAddArgs, _ctx: RunContext): Promise<ToolResult<GitWorktreeAddResult>> {
+  protected async handle(args: GitWorktreeAddArgs): Promise<ToolEnvelope<GitWorktreeAddResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitWorktreeAdd(agentUrl, args);
     return { data: result };

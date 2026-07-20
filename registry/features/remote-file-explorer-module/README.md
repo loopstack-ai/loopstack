@@ -46,11 +46,11 @@ RemoteFileExplorerModule.forFeature({ enabled: true, environments: ['production'
 
 ## Quick Start
 
-Once imported, the controller is available at `/api/v1/workspaces/:workspaceId/files`. No additional setup is required beyond having `RemoteClientModule` registered.
+Once imported, the controller is available at `/api/v1/workspaces/:workspaceId/remote-files`. No additional setup is required beyond having `RemoteClientModule` registered.
 
 ```http
-GET /api/v1/workspaces/:workspaceId/files/tree?path=src
-GET /api/v1/workspaces/:workspaceId/files/read?path=src/index.ts
+GET /api/v1/workspaces/:workspaceId/remote-files/tree?path=src
+GET /api/v1/workspaces/:workspaceId/remote-files/read?path=src/index.ts
 ```
 
 Both endpoints require an authenticated user (resolved via `@CurrentUser()`).
@@ -60,7 +60,7 @@ Both endpoints require an authenticated user (resolved via `@CurrentUser()`).
 ```
 Frontend (Studio)
     |
-    |  GET /api/v1/workspaces/:workspaceId/files/tree?path=src
+    |  GET /api/v1/workspaces/:workspaceId/remote-files/tree?path=src
     v
 RemoteFileExplorerController
     |
@@ -78,21 +78,21 @@ Response -> Frontend
 
 The controller has two endpoints:
 
-1. **`GET tree`** -- calls `RemoteClient.getFileTree()`. Defaults to `./src` if no `path` query param is provided.
+1. **`GET tree`** -- calls `RemoteClient.getFileTree()`. Walks the workspace root when no `path` query param is provided.
 2. **`GET read`** -- calls `RemoteClient.readFile()`. Requires a `path` query param.
 
 Both endpoints resolve the workspace's agent URL via `EnvironmentService.getAgentUrlForWorkspace()` before proxying.
 
 ## Endpoints Reference
 
-### GET `/api/v1/workspaces/:workspaceId/files/tree`
+### GET `/api/v1/workspaces/:workspaceId/remote-files/tree`
 
 Returns the directory tree for the given path.
 
-| Parameter     | In    | Type     | Required | Description                             |
-| ------------- | ----- | -------- | -------- | --------------------------------------- |
-| `workspaceId` | path  | `string` | yes      | The workspace ID                        |
-| `path`        | query | `string` | no       | Base path to list (defaults to `./src`) |
+| Parameter     | In    | Type     | Required | Description                                        |
+| ------------- | ----- | -------- | -------- | -------------------------------------------------- |
+| `workspaceId` | path  | `string` | yes      | The workspace ID                                   |
+| `path`        | query | `string` | no       | Base path to list (defaults to the workspace root) |
 
 **Response:** `FileTreeNode[]`
 
@@ -106,7 +106,7 @@ interface FileTreeNode {
 }
 ```
 
-### GET `/api/v1/workspaces/:workspaceId/files/read`
+### GET `/api/v1/workspaces/:workspaceId/remote-files/read`
 
 Returns the content of a single file.
 

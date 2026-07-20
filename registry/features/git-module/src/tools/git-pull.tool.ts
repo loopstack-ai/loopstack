@@ -1,19 +1,34 @@
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
+/**
+ * Args for `GitPullTool`.
+ *
+ * @public
+ */
 export type GitPullArgs = {
   remote?: string;
   branch?: string;
   token?: string;
 };
 
+/**
+ * Result for `GitPullTool`.
+ *
+ * @public
+ */
 export type GitPullResult = {
   success: boolean;
   output?: string;
 };
 
+/**
+ * Tool that pulls changes from a remote repository.
+ *
+ * @providedBy GitModule
+ * @public
+ */
 @Tool({
   name: 'git_pull',
   description: 'Pulls changes from a remote repository.',
@@ -33,7 +48,7 @@ export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
     super();
   }
 
-  protected async handle(args: GitPullArgs, _ctx: RunContext): Promise<ToolResult<GitPullResult>> {
+  protected async handle(args: GitPullArgs): Promise<ToolEnvelope<GitPullResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitPull(agentUrl, {
       remote: args.remote,

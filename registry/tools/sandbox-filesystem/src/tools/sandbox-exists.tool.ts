@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -11,14 +10,34 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxExistsArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxExists`.
+ *
+ * Identifies the container and the path to check for existence.
+ *
+ * @public
+ */
+export type SandboxExistsArgs = z.infer<typeof inputSchema>;
 
-interface SandboxExistsResult {
+/**
+ * Result of `SandboxExists`.
+ *
+ * Reports whether the path exists and, if so, its type (or `null` when absent).
+ *
+ * @public
+ */
+export interface SandboxExistsResult {
   path: string;
   exists: boolean;
   type: 'file' | 'directory' | 'symlink' | 'other' | null;
 }
 
+/**
+ * Tool that checks whether a path exists in a sandbox container and reports its type.
+ *
+ * @providedBy SandboxFilesystemModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_exists',
   description: 'Check if a file or directory exists in a sandbox container',
@@ -31,7 +50,7 @@ export class SandboxExists extends BaseTool<SandboxExistsArgs, object, SandboxEx
     super();
   }
 
-  protected async handle(args: SandboxExistsArgs, _ctx: RunContext): Promise<ToolResult<SandboxExistsResult>> {
+  protected async handle(args: SandboxExistsArgs): Promise<ToolEnvelope<SandboxExistsResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Checking existence of ${targetPath} in container ${containerId}`);

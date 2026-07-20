@@ -142,13 +142,13 @@ Inject `QuotaCalculatorRegistry` and register from any module's `onModuleInit`:
 
 ```ts
 import { Module, OnModuleInit } from '@nestjs/common';
-import { ToolExecutionContext, ToolResult } from '@loopstack/common';
+import { ToolEnvelope, ToolExecutionContext } from '@loopstack/common';
 import { QuotaCalculatorRegistry, ToolQuotaCalculator } from '@loopstack/quota';
 
 class ApiCallQuotaCalculator implements ToolQuotaCalculator {
   quotaType = 'api-calls';
 
-  calculateQuotaUsage(_context: ToolExecutionContext, _result: ToolResult) {
+  calculateQuotaUsage(_context: ToolExecutionContext, _result: ToolEnvelope) {
     return { quotaType: this.quotaType, actualAmount: 1 };
   }
 }
@@ -198,11 +198,11 @@ The registry key is the tool's **class name** (not the `@Tool({ name })` value).
 
 ## Dependencies
 
-| Package             | Role                                                                           |
-| ------------------- | ------------------------------------------------------------------------------ |
-| `@loopstack/common` | `ToolInterceptor`, `ToolExecutionContext`, `ToolResult`, `@UseToolInterceptor` |
-| `@nestjs/common`    | NestJS dependency injection                                                    |
-| `ioredis`           | Redis client for quota counters                                                |
+| Package             | Role                                                                             |
+| ------------------- | -------------------------------------------------------------------------------- |
+| `@loopstack/common` | `ToolInterceptor`, `ToolExecutionContext`, `ToolEnvelope`, `@UseToolInterceptor` |
+| `@nestjs/common`    | NestJS dependency injection                                                      |
+| `ioredis`           | Redis client for quota counters                                                  |
 
 ## Related
 

@@ -33,20 +33,32 @@ Enables authentication. When `false` (the default), a local development user is 
 
 Set `enableAuth: true` or `LOOPSTACK_AUTH=true` to require authentication via Loopstack Hub.
 
+#### Disabling authentication in production (advanced)
+
+Running with authentication disabled means every request resolves to the shared local user, which is convenient for local development but exposes all non-role-gated data and actions to anyone who can reach the server. To prevent an accidental unauthenticated public deployment, Loopstack **refuses to start** when authentication is disabled and `NODE_ENV=production`.
+
+If you intentionally run an unauthenticated instance in production — for example behind a trusted private network or an authenticating proxy — acknowledge it explicitly:
+
+| Env var                   | Default | Effect                                                                                   |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------- |
+| `LOOPSTACK_ALLOW_NO_AUTH` | —       | Set to `true` to allow booting with authentication disabled while `NODE_ENV=production`. |
+
+Outside production, disabling auth only logs a startup warning; no acknowledgment is required.
+
 ### `database`
 
 PostgreSQL connection settings. All fields are optional — defaults connect to a local PostgreSQL instance.
 
-| Option                | Env var             | Default     |
-| --------------------- | ------------------- | ----------- |
-| `database.host`       | `DATABASE_HOST`     | `localhost` |
-| `database.port`       | `DATABASE_PORT`     | `5432`      |
-| `database.username`   | `DATABASE_USERNAME` | `postgres`  |
-| `database.password`   | `DATABASE_PASSWORD` | `admin`     |
-| `database.database`   | `DATABASE_NAME`     | `postgres`  |
-| `database.connection` | —                   | —           |
+| Option                             | Env var             | Default     |
+| ---------------------------------- | ------------------- | ----------- |
+| `database.host`                    | `DATABASE_HOST`     | `localhost` |
+| `database.port`                    | `DATABASE_PORT`     | `5432`      |
+| `database.username`                | `DATABASE_USERNAME` | `postgres`  |
+| `database.password`                | `DATABASE_PASSWORD` | `admin`     |
+| `database.database`                | `DATABASE_NAME`     | `postgres`  |
+| `database.reuseExistingConnection` | —                   | `false`     |
 
-Set `database.connection` to reuse an existing TypeORM connection by name. When set, Loopstack skips its own `TypeOrmModule.forRoot()` registration.
+Set `database.reuseExistingConnection: true` to reuse the host application's **default** TypeORM connection. When enabled, Loopstack skips its own `TypeOrmModule.forRoot()` registration and its repositories resolve against the default connection you registered — which must point at PostgreSQL and load Loopstack's entities (e.g. `autoLoadEntities: true`).
 
 ### `redis`
 
@@ -62,15 +74,17 @@ Redis connection settings for BullMQ job queues.
 
 JWT and hub authentication settings. Only relevant when `enableAuth` is `true`.
 
-| Option                      | Env var                  | Default                                          |
-| --------------------------- | ------------------------ | ------------------------------------------------ |
-| `auth.jwt.secret`           | `JWT_SECRET`             | `dev-secret-change-me`                           |
-| `auth.jwt.expiresIn`        | `JWT_EXPIRES_IN`         | `1h`                                             |
-| `auth.jwt.refreshSecret`    | `JWT_REFRESH_SECRET`     | value of `JWT_SECRET`                            |
-| `auth.jwt.refreshExpiresIn` | `JWT_REFRESH_EXPIRES_IN` | `7d`                                             |
-| `auth.clientId`             | `CLIENT_ID`              | `local`                                          |
-| `auth.hub.issuer`           | `HUB_ISSUER`             | `https://hub.loopstack.ai`                       |
-| `auth.hub.jwksUri`          | `HUB_JWKS_URI`           | `https://hub.loopstack.ai/.well-known/jwks.json` |
+| Option                      | Env var                  | Default                         |
+| --------------------------- | ------------------------ | ------------------------------- |
+| `auth.jwt.secret`           | `JWT_SECRET`             | _required when auth is enabled_ |
+| `auth.jwt.expiresIn`        | `JWT_EXPIRES_IN`         | `1h`                            |
+| `auth.jwt.refreshSecret`    | `JWT_REFRESH_SECRET`     | value of `JWT_SECRET`           |
+| `auth.jwt.refreshExpiresIn` | `JWT_REFRESH_EXPIRES_IN` | `7d`                            |
+
+When `enableAuth` is `true`, `JWT_SECRET` (and `JWT_REFRESH_SECRET`) must be set to a strong, unique value of at least 32 characters — the server refuses to start otherwise, and known/default values are rejected. When auth is disabled, an insecure development secret is used automatically (it never signs trusted tokens, since the local-user shortcut bypasses JWT verification).
+| `auth.clientId` | `CLIENT_ID` | `local` |
+| `auth.hub.issuer` | `HUB_ISSUER` | `https://hub.loopstack.ai` |
+| `auth.hub.jwksUri` | `HUB_JWKS_URI` | `https://hub.loopstack.ai/.well-known/jwks.json` |
 
 ### `cors`
 

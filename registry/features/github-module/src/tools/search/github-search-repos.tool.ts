@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -13,8 +13,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubSearchReposTool`: the GitHub search `query`, optional `sort` and
+ * `perPage`/`page` paging.
+ *
+ * @public
+ */
 export type GitHubSearchReposArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubSearchReposTool`: `totalCount` and a `results` array of matching
+ * repositories, or an `error`.
+ *
+ * @public
+ */
 export type GitHubSearchReposResult =
   | {
       totalCount: number;
@@ -31,6 +43,12 @@ export type GitHubSearchReposResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that searches for repositories on GitHub using the GitHub search syntax.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_search_repos',
   description:
@@ -43,7 +61,7 @@ export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, objec
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubSearchReposArgs, ctx: RunContext): Promise<ToolResult<GitHubSearchReposResult>> {
+  protected async handle(args: GitHubSearchReposArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubSearchReposResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -52,6 +70,7 @@ export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, objec
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -78,6 +97,7 @@ export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, objec
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -89,6 +109,7 @@ export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, objec
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

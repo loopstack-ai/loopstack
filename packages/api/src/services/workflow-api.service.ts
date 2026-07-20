@@ -3,12 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { WorkflowCheckpointEntity, WorkflowEntity, WorkflowState } from '@loopstack/common';
+import type {
+  WorkflowCreateInterface,
+  WorkflowFilterInterface,
+  WorkflowSortByInterface,
+  WorkflowUpdateInterface,
+} from '@loopstack/contracts/api';
 import { CreateWorkflowService, WorkflowCheckpointService, WorkflowRegistryService } from '@loopstack/core';
-import { WorkflowCreateDto } from '../dtos/workflow-create.dto.js';
-import { WorkflowFilterDto } from '../dtos/workflow-filter.dto.js';
-import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto.js';
-import { WorkflowUpdateDto } from '../dtos/workflow-update.dto.js';
 import { getEntityColumns } from '../utils/get-entity-columns.util.js';
+import { resolvePagination } from '../utils/pagination.util.js';
 
 @Injectable()
 export class WorkflowApiService {
@@ -26,8 +29,8 @@ export class WorkflowApiService {
    */
   async findAll(
     user: string,
-    filter: WorkflowFilterDto,
-    sortBy: WorkflowSortByDto[],
+    filter: WorkflowFilterInterface | undefined,
+    sortBy: WorkflowSortByInterface[] | undefined,
     pagination: {
       page: number | undefined;
       limit: number | undefined;
@@ -40,7 +43,7 @@ export class WorkflowApiService {
     limit: number;
   }> {
     const defaultLimit = this.configService.get<number>('WORKFLOW_DEFAULT_LIMIT', 100);
-    const defaultSortBy = this.configService.get<WorkflowSortByDto[]>('WORKFLOW_DEFAULT_SORT_BY', []);
+    const defaultSortBy = this.configService.get<WorkflowSortByInterface[]>('WORKFLOW_DEFAULT_SORT_BY', []);
 
     const queryBuilder = this.workflowRepository
       .createQueryBuilder('workflow')
@@ -80,17 +83,13 @@ export class WorkflowApiService {
       queryBuilder.orderBy(orderBy);
     }
 
-    queryBuilder.take(pagination.limit ?? defaultLimit);
-    queryBuilder.skip(pagination.page && pagination.limit ? pagination.page * pagination.limit : 0);
+    const { skip, take, page, limit } = resolvePagination(pagination, defaultLimit);
+    queryBuilder.take(take);
+    queryBuilder.skip(skip);
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
-    return {
-      data,
-      total,
-      page: pagination.page ?? 1,
-      limit: pagination.limit ?? defaultLimit,
-    };
+    return { data, total, page, limit };
   }
 
   /**
@@ -132,7 +131,7 @@ export class WorkflowApiService {
   /**
    * Creates a new workflow.
    */
-  async create(workflowData: WorkflowCreateDto, user: string): Promise<WorkflowEntity> {
+  async create(workflowData: WorkflowCreateInterface, user: string): Promise<WorkflowEntity> {
     try {
       const { instance } = this.workflowRegistryService.resolve(workflowData.workflowName);
       return this.createWorkflowService.create(
@@ -154,7 +153,7 @@ export class WorkflowApiService {
   /**
    * Updates an existing workflow by ID.
    */
-  async update(id: string, workflowData: WorkflowUpdateDto, user: string): Promise<WorkflowEntity> {
+  async update(id: string, workflowData: WorkflowUpdateInterface, user: string): Promise<WorkflowEntity> {
     const workflow = await this.workflowRepository.findOne({
       where: {
         id,

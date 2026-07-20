@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -32,8 +32,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListWorkflowRunsTool`: the repository `owner`, `repo`, optional `branch`
+ * and `status` filters and `perPage`/`page` paging.
+ *
+ * @public
+ */
 export type GitHubListWorkflowRunsArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListWorkflowRunsTool`: `totalCount` and a `runs` array of workflow-run
+ * summaries with status and conclusion, or an `error`.
+ *
+ * @public
+ */
 export type GitHubListWorkflowRunsResult = {
   totalCount?: number;
   runs?: Array<{
@@ -52,6 +64,12 @@ export type GitHubListWorkflowRunsResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists GitHub Actions workflow runs for a repository, with branch and status filters.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_workflow_runs',
   description:
@@ -71,7 +89,7 @@ export class GitHubListWorkflowRunsTool extends BaseTool<
   protected async handle(
     args: GitHubListWorkflowRunsArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubListWorkflowRunsResult>> {
+  ): Promise<ToolEnvelope<GitHubListWorkflowRunsResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -80,6 +98,7 @@ export class GitHubListWorkflowRunsTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -107,6 +126,7 @@ export class GitHubListWorkflowRunsTool extends BaseTool<
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -118,6 +138,7 @@ export class GitHubListWorkflowRunsTool extends BaseTool<
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

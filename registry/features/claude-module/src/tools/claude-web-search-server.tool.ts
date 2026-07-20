@@ -1,14 +1,30 @@
 import { z } from 'zod';
 import { ServerTool, Tool } from '@loopstack/common';
 
+/**
+ * Zod schema for `ClaudeWebSearchServerTool` configuration.
+ *
+ * @public
+ */
 export const ClaudeWebSearchServerToolConfigSchema = z.object({
   maxUses: z.number().int().positive().default(8),
   allowedDomains: z.array(z.string()).optional(),
   blockedDomains: z.array(z.string()).optional(),
 });
 
-type ClaudeWebSearchServerToolConfig = z.infer<typeof ClaudeWebSearchServerToolConfigSchema>;
+/**
+ * Config for `ClaudeWebSearchServerTool`.
+ *
+ * @public
+ */
+export type ClaudeWebSearchServerToolConfig = z.infer<typeof ClaudeWebSearchServerToolConfigSchema>;
 
+/**
+ * Tool that runs Claude's built-in server-side web search for real-time information retrieval during agent conversations.
+ *
+ * @providedBy ClaudeModule
+ * @public
+ */
 @Tool({
   name: 'claude_web_search_server',
   description:

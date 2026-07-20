@@ -31,22 +31,16 @@ export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
 
     createWorkflow.mutate(
       {
-        workflowCreateDto: {
-          workflowName: 'connectGitHub',
-          title: null,
-          workspaceId,
-          transition: null,
-          args: {},
-        },
+        workflowName: 'connectGitHub',
+        title: null,
+        workspaceId,
+        transition: null,
+        args: {},
       },
       {
         onSuccess: (createdWorkflow) => {
           runWorkflow.mutate(
-            {
-              workflowId: createdWorkflow.id,
-              runWorkflowPayloadDto: {},
-              force: true,
-            },
+            { workflowId: createdWorkflow.id },
             {
               onSuccess: () => {
                 void router.navigateToWorkflow(createdWorkflow.id);

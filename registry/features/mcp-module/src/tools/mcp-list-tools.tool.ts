@@ -1,15 +1,31 @@
 import { z } from 'zod';
-import { Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { McpToolConfigSchema } from '../config/mcp-tool-config.schema.js';
 import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
 import { McpConnectionArgsSchema } from './mcp-connection-args.schema.js';
 import { McpToolBase } from './mcp-tool-base.js';
 
+/**
+ * Zod schema for `mcp_list_tools` tool arguments.
+ *
+ * @public
+ */
 export const McpListToolsArgsSchema = McpConnectionArgsSchema;
 
+/**
+ * Args for `McpListToolsTool` (`mcp_list_tools`).
+ *
+ * @public
+ */
 export type McpListToolsArgs = z.infer<typeof McpListToolsArgsSchema>;
 
+/**
+ * Tool that lists the tool definitions exposed by a remote MCP server.
+ *
+ * @providedBy McpModule
+ * @public
+ */
 @Tool({
   name: 'mcp_list_tools',
   description:
@@ -22,7 +38,7 @@ export class McpListToolsTool extends McpToolBase<McpListToolsArgs> {
     args: McpListToolsArgs,
     ctx: RunContext,
     options?: ToolCallOptions<McpToolConfig>,
-  ): Promise<ToolResult> {
+  ): Promise<ToolEnvelope> {
     const cfg = this.requireConfig(options?.config);
 
     const result = await this.mcp.listTools(args.serverUrl, cfg, {

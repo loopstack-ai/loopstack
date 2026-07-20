@@ -3,6 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SecretEntity } from '../entities/index.js';
 
+/**
+ * Service that performs workspace-scoped CRUD on secrets — find, create, update, upsert, and delete;
+ * inject it to read or write secret values programmatically from backend code.
+ *
+ * @providedBy SecretsModule
+ * @public
+ */
 @Injectable()
 export class SecretService {
   constructor(

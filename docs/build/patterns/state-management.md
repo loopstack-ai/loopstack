@@ -1,15 +1,15 @@
 ---
 title: State Management
-description: Defining, reading, and updating typed workflow state. Covers state interfaces, BaseWorkflow generics, state persistence across transitions, and state access patterns.
+description: Defining, reading, and updating typed workflow state. Covers state interfaces, per-transition state typing, state persistence across transitions, and state access patterns.
 ---
 
 # State Management
 
-Workflow state is managed through a typed state interface and passed as the first parameter to transition methods. State is returned from each transition and automatically persisted across transitions.
+Workflow state is managed through a typed state interface passed as the first parameter to transition methods. Transitions return nothing — they write through setter methods on `BaseWorkflow`, and the engine persists the updated state automatically across transitions. Use `async` when the body awaits.
 
 ## Defining State
 
-Define a state interface and pass it as a generic to `BaseWorkflow`:
+Define a state interface and reference it on each transition's `state` parameter:
 
 ```typescript
 interface MyState {
@@ -18,43 +18,51 @@ interface MyState {
   items?: string[];
 }
 
-export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
-  // ...
+export class MyWorkflow extends BaseWorkflow {
+  // State is typed per-transition via the `state` parameter — see below.
 }
 ```
 
-State begins as an empty object `{}` — the initial transition is responsible for populating it. For this reason, **all properties on a state schema should be optional**. If a property is required, the empty starting state (or any transition that returns `{}` to reset) will fail validation immediately. Treat missing fields as the absence of data and read them defensively (`state.counter ?? 0`).
+State begins as an empty object `{}` — the initial transition is responsible for populating it. For this reason, **all properties on a state schema should be optional**. If a property is required, the empty starting state will fail validation immediately. Treat missing fields as the absence of data and read them defensively (`state.counter ?? 0`).
 
 ## Writing State
 
-Return updated state from transition methods:
+`BaseWorkflow` exposes four setters. Pick the one that matches the write you want:
+
+| Setter                       | Effect                                                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `this.assignState(partial)`  | Shallow-merge `partial` into the current state. The most common form — leaves any field you don't mention untouched.          |
+| `this.setState(full)`        | Replace the state object outright. Use when you want to reset state or know you're writing every field.                       |
+| `this.assignResult(partial)` | Shallow-merge `partial` into the workflow's published `result` (the value parent callbacks and `WorkflowRunner` callers see). |
+| `this.setResult(full)`       | Replace the published `result` outright.                                                                                      |
+
+Transitions return nothing — mutate state via setters. Returning a value is a runtime error.
 
 ```typescript
 @Transition({ from: 'ready', to: 'processed' })
-async process(state: MyState): Promise<MyState> {
+async process(state: MyState) {
   const result = await this.llmGenerateText.call(
     {},
     { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
   );
-  return {
-    ...state,
+  this.assignState({
     llmResult: result.data,
     counter: (state.counter ?? 0) + 1,
     items: [...(state.items ?? []), 'new item'],
-  };
+  });
 }
 ```
 
-### Return value policy
+A transition that doesn't write state simply omits the setter call:
 
-| Return                         | Effect                                                                                                                                               |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `return;` / `return undefined` | Previous state is preserved unchanged. Use this when the transition has no state to write.                                                           |
-| `return { ... }`               | Object becomes the new state. Validated against `stateSchema` if defined.                                                                            |
-| `return {}`                    | State is reset to an empty object (validated against `stateSchema` if defined).                                                                      |
-| `return null` / primitive      | The returned value becomes the new state. If `stateSchema` is defined, the transition throws — `null` and primitives don't satisfy an object schema. |
+```typescript
+@Transition({ from: 'ready', to: 'logged' })
+log(state: MyState) {
+  this.logger.log(`counter = ${state.counter}`);
+}
+```
 
-Returning a new state always replaces the previous state — there is no automatic merge. Spread the previous state (`return { ...state, ... }`) when you want to keep existing fields.
+If `stateSchema` is defined on the workflow, the merged state is validated after every write.
 
 ## Reading State
 
@@ -62,12 +70,11 @@ Access state in any transition or guard method:
 
 ```typescript
 @Transition({ from: 'processed', to: 'end' })
-async display(state: MyState): Promise<unknown> {
+async display(state: MyState) {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     text: `Processed ${state.counter} items. Result: ${state.llmResult?.text}`,
   });
-  return {};
 }
 
 hasToolCalls(state: MyState): boolean {
@@ -75,20 +82,32 @@ hasToolCalls(state: MyState): boolean {
 }
 ```
 
+## Publishing a Result
+
+The workflow's `result` field is what `WorkflowRunner.runSync()` returns and what parent callbacks receive as `input.data`. Write to it on the final transition (or any earlier transition that wants to surface partial output):
+
+```typescript
+@Transition({ from: 'done', to: 'end' })
+finish(state: MyState) {
+  this.setResult({ concept: state.confirmedConcept! });
+}
+```
+
+Use `this.assignResult(partial)` to build the result up across multiple transitions, and `this.setResult(full)` to replace it.
+
 ## Persistence Across Pauses
 
 State survives when a workflow pauses at a `wait: true` transition and resumes later:
 
 ```typescript
 @Transition({ to: 'waiting' })
-async setup(state: MyState): Promise<MyState> {
-  return { ...state, counter: 42 };  // Set before pause
+setup(state: MyState) {
+  this.assignState({ counter: 42 }); // Set before pause
 }
 
 @Transition({ from: 'waiting', to: 'end', wait: true })
-async onResume(state: MyState): Promise<unknown> {
+onResume(state: MyState) {
   // state.counter is still 42
-  return {};
 }
 ```
 
@@ -97,15 +116,16 @@ async onResume(state: MyState): Promise<unknown> {
 Input arguments are available via `ctx.args`:
 
 ```typescript
+const MyArgsSchema = z.object({ value: z.number().default(150) });
+type MyArgs = z.infer<typeof MyArgsSchema>;
+
 @Workflow({
-  schema: z.object({ value: z.number().default(150) }),
+  schema: MyArgsSchema,
 })
-export class MyWorkflow extends BaseWorkflow<{ value: number }, MyState> {
+export class MyWorkflow extends BaseWorkflow<MyArgs> {
   @Transition({ to: 'ready' })
-  async setup(state: MyState, ctx: RunContext): Promise<MyState> {
-    const args = ctx.args as { value: number };
-    console.log(args.value); // 150
-    return state;
+  setup(state: MyState, ctx: RunContext<MyArgs>) {
+    console.log(ctx.args.value); // 150
   }
 }
 ```
@@ -115,14 +135,13 @@ export class MyWorkflow extends BaseWorkflow<{ value: number }, MyState> {
 Use regular private methods for reusable logic — no special decorator needed:
 
 ```typescript
-export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
+export class MyWorkflow extends BaseWorkflow {
   @Transition({ from: 'data_created', to: 'end' })
-  async showResults(state: MyState): Promise<unknown> {
+  async showResults(state: MyState) {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       text: this.formatMessage(state.message!),
     });
-    return {};
   }
 
   private formatMessage(text: string): string {
@@ -133,5 +152,5 @@ export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
 
 ## Registry References
 
-- [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-workflow-state-example-workflow) — Stores state in typed state interface, accesses in transitions, uses helper methods
-- [accessing-tool-results-example-workflow](https://loopstack.ai/registry/loopstack-accessing-tool-results-example-workflow) — Storing and accessing tool results via workflow state
+- [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#workflow-state) — Stores state in typed state interface, accesses in transitions, uses helper methods
+- [accessing-tool-results-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#workflow-state) — Storing and accessing tool results via workflow state

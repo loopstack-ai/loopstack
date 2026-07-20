@@ -1,12 +1,15 @@
 import type { CorsOptions } from 'cors';
+import type { SseStreamOptionsInterface } from '@loopstack/api';
 
 export interface LoopstackDatabaseOptions {
   /**
-   * Reuse an existing TypeORM connection by name. When set, LoopstackModule
-   * skips TypeORM.forRoot() registration and all internal modules use
-   * the specified connection. The connection must point at a PostgreSQL database.
+   * Reuse the host application's default TypeORM connection. When `true`,
+   * LoopstackModule skips its own `TypeOrmModule.forRoot()` registration and all
+   * internal repositories resolve against the default connection you registered.
+   * That connection must point at a PostgreSQL database and load Loopstack's
+   * entities (e.g. via `autoLoadEntities: true`).
    */
-  connection?: string;
+  reuseExistingConnection?: boolean;
 
   host?: string;
   port?: number;
@@ -41,8 +44,17 @@ export interface LoopstackModuleOptions {
   redis?: LoopstackRedisOptions;
   enableAuth?: boolean;
   /**
-   * CORS configuration. Defaults to `{ origin: true, credentials: true }`.
-   * Set to `false` to disable CORS entirely.
+   * Full CORS override. When set it is used verbatim (`false` disables CORS). When omitted, a safe
+   * default is used that allows any localhost origin plus `corsOrigins`, with credentials enabled.
    */
   cors?: CorsOptions | false;
+  /**
+   * Extra allowed origins for the default CORS policy (in addition to localhost). Falls back to the
+   * `CORS_ORIGINS` / `FRONTEND_URL` env vars. Ignored when `cors` is set.
+   */
+  corsOrigins?: string[];
+  /**
+   * Event stream tuning — replay buffer size/TTL and heartbeat interval.
+   */
+  sse?: SseStreamOptionsInterface;
 }

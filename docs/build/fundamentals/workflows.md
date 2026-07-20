@@ -7,17 +7,19 @@ description: How to define workflow state machines using BaseWorkflow, @Workflow
 
 A workflow is a state machine defined as a TypeScript class. Define transitions between named states, add guards for conditional routing, and use wait transitions to pause for user input or external events.
 
+> **Before you build much:** read [Best Practices](../best-practices.md) — when to choose scripted vs agentic flows, where logic belongs, the difference between state, result, and documents, and the conventions that keep workflows clean.
+
 ## Chat Example
 
 A simple chat workflow: wait for a user message, call LLM, display the response, and loop back.
 
 ```typescript
 import { z } from 'zod';
-import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
-  widget: __dirname + '/chat.ui.yaml', // UI config
+  widget: './chat.ui.yaml', // UI config
 })
 export class ChatWorkflow extends BaseWorkflow {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
@@ -26,9 +28,7 @@ export class ChatWorkflow extends BaseWorkflow {
 
   // 1. Entry point
   @Transition({ to: 'waiting_for_user' })
-  async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    return state;
-  }
+  setup(state: Record<string, unknown>) {}
 
   // 2. Wait for user message
   @Transition({
@@ -37,9 +37,8 @@ export class ChatWorkflow extends BaseWorkflow {
     wait: true,
     schema: z.string(),
   })
-  async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: payload });
-    return state;
+  async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
   }
 
   // 3. Call LLM and loop back
@@ -47,12 +46,8 @@ export class ChatWorkflow extends BaseWorkflow {
     from: 'ready',
     to: 'waiting_for_user',
   })
-  async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result = await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
-    await this.documentStore.save(LlmMessageDocument, result.data!.message, {
-      meta: { response: result.data!.response, provider: (result.metadata as { provider: string })?.provider },
-    });
-    return state;
+  async llmTurn(state: Record<string, unknown>) {
+    await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
   }
 }
 ```
@@ -67,7 +62,7 @@ start → waiting_for_user → [user sends message] → ready → llmTurn → wa
 
 ```typescript
 @Workflow({
-  widget: __dirname + '/chat.ui.yaml',
+  widget: './chat.ui.yaml',
 })
 ```
 
@@ -85,7 +80,7 @@ All options are optional.
 
 ```typescript
 @Workflow({
-  widget: __dirname + '/prompt.ui.yaml',
+  widget: './prompt.ui.yaml',
   schema: z.object({
     subject: z.string().default('coffee'),
   }),
@@ -114,8 +109,8 @@ Context is passed as a parameter to transition methods via `ctx: RunContext<TArg
 
 ```typescript
 @Transition({ to: 'ready', schema: z.object({ subject: z.string() }) })
-async setup(state: MyState, ctx: RunContext<{ subject: string }>): Promise<MyState> {
-  return { ...state, subject: ctx.args.subject };
+setup(state: MyState, ctx: RunContext<{ subject: string }>) {
+  this.assignState({ subject: ctx.args.subject });
 }
 ```
 
@@ -127,8 +122,8 @@ Runs once when the workflow starts. Uses `@Transition` with no `from` (defaults 
 
 ```typescript
 @Transition({ to: 'ready' })
-async setup(state: MyState, ctx: RunContext<{ subject: string }>): Promise<MyState> {
-  return { ...state, subject: ctx.args.subject };
+setup(state: MyState, ctx: RunContext<{ subject: string }>) {
+  this.assignState({ subject: ctx.args.subject });
 }
 ```
 
@@ -140,9 +135,9 @@ Moves between states. Fires automatically unless `wait: true` is set.
 
 ```typescript
 @Transition({ from: 'ready', to: 'processed' })
-async doWork(state: MyState): Promise<MyState> {
+async doWork(state: MyState) {
   const result = await this.myTool.call({ query: 'hello' });
-  return { ...state, data: result.data };
+  this.assignState({ data: result.data });
 }
 ```
 
@@ -151,12 +146,12 @@ A method can listen on **multiple source states**:
 ```typescript
 @Transition({ from: 'ready', to: 'prompt_executed' })
 @Transition({ from: 'tools_done', to: 'prompt_executed' })
-async llmTurn(state: MyState): Promise<MyState> { ... }
+async llmTurn(state: MyState) { ... }
 ```
 
 ### Wait Transition — Pause for Input
 
-Add `wait: true` to pause the workflow until externally triggered — by user input, a button click, or a sub-workflow callback. Use `schema` to validate and type the incoming payload.
+Add `wait: true` to pause the workflow until externally triggered — by user input, a button click, or a sub-workflow callback. Use `schema` to validate and type the incoming `data`; the transition method receives a `TransitionInput<TData>` envelope with `data` plus failure info (`hasError`, `errorMessage`, `status`).
 
 ```typescript
 @Transition({
@@ -165,12 +160,11 @@ Add `wait: true` to pause the workflow until externally triggered — by user in
   wait: true,
   schema: z.object({ message: z.string() }),
 })
-async userMessage(state: MyState, payload: { message: string }): Promise<MyState> {
+async userMessage(state: MyState, input: TransitionInput<{ message: string }>) {
   await this.documentStore.save(LlmMessageDocument, {
     role: 'user',
-    text: payload.message,
+    text: input.data.message,
   });
-  return state;
 }
 ```
 
@@ -178,12 +172,12 @@ For approval gates, confirmation dialogs, and other interactive pauses built on 
 
 ### Final Transition — Completion
 
-Uses `@Transition` with `to: 'end'`. The return value is the workflow's output (passed to parent workflow callbacks).
+Uses `@Transition` with `to: 'end'`. The workflow's output is published via `this.assignResult(...)` or `this.setResult(...)` — that value is what parent workflow callbacks and `WorkflowRunner` callers receive.
 
 ```typescript
 @Transition({ from: 'done', to: 'end' })
-async finish(state: MyState): Promise<{ concept: string }> {
-  return { concept: state.confirmedConcept! };
+finish(state: MyState) {
+  this.setResult({ concept: state.confirmedConcept! });
 }
 ```
 
@@ -198,16 +192,16 @@ When multiple transitions share the same `from` state, attach `@Guard('methodNam
 ```typescript
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
-async executeToolCalls(state: MyState): Promise<MyState> {
-  const result = await this.llmDelegateToolCalls.call({ message: state.llmResult!.message });
-  return { ...state, delegateResult: result.data };
+async executeToolCalls(state: MyState) {
+  const result = await this.llmDelegateToolCalls.call({
+    message: state.llmResult!.message,
+    callback: { transition: 'toolResultReceived' },
+  });
+  this.assignState({ delegateResult: result.data });
 }
 
 @Transition({ from: 'prompt_executed', to: 'end' })
-async respond(state: MyState): Promise<unknown> {
-  await this.documentStore.save(LlmMessageDocument, state.llmResult!.message);
-  return {};
-}
+respond(_state: MyState) {}
 
 hasToolCalls(state: MyState): boolean {
   return state.llmResult?.message.stopReason === 'tool_use';
@@ -218,7 +212,14 @@ From `prompt_executed`, `executeToolCalls` fires whenever the LLM requested tool
 
 ## State
 
-State is managed through a typed state interface passed as a parameter and returned from transitions:
+Transitions return nothing — mutate state via `this.assignState(...)`. Use `async` when the body awaits. State is read from the `state` parameter and written through setters on `BaseWorkflow`:
+
+| Setter                       | Effect                                                                                                    |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `this.assignState(partial)`  | Shallow-merge `partial` into the current state. The most common form.                                     |
+| `this.setState(full)`        | Replace the state object outright.                                                                        |
+| `this.assignResult(partial)` | Shallow-merge `partial` into the workflow's published `result` (visible to callers and parent callbacks). |
+| `this.setResult(full)`       | Replace the workflow's published `result` outright.                                                       |
 
 ```typescript
 interface MyState {
@@ -226,15 +227,15 @@ interface MyState {
   llmResult?: LlmGenerateTextResult;
 }
 
-export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, MyState> {
+export class MyWorkflow extends BaseWorkflow {
   @Transition({ from: 'ready', to: 'processed' })
-  async process(state: MyState): Promise<MyState> {
-    return { ...state, counter: (state.counter ?? 0) + 1 };
+  process(state: MyState) {
+    this.assignState({ counter: (state.counter ?? 0) + 1 });
   }
 }
 ```
 
-Values persist even when the workflow pauses and resumes.
+Values persist even when the workflow pauses and resumes. Returning a value from a transition is a runtime error — every write must go through the setters.
 
 ### Validating State with `stateSchema`
 
@@ -249,10 +250,10 @@ const MyStateSchema = z.object({
 @Workflow({
   stateSchema: MyStateSchema,
 })
-export class MyWorkflow extends BaseWorkflow<Record<string, unknown>, z.infer<typeof MyStateSchema>> {
+export class MyWorkflow extends BaseWorkflow {
   @Transition({ from: 'ready', to: 'processed' })
-  async process(state) {
-    return { ...state, counter: (state.counter ?? 0) + 1 };
+  process(state: z.infer<typeof MyStateSchema>) {
+    this.assignState({ counter: (state.counter ?? 0) + 1 });
   }
 }
 ```
@@ -269,12 +270,12 @@ constructor(
 ) { super(); }
 
 @Transition({ from: 'ready', to: 'done' })
-async process(state: MyState): Promise<MyState> {
+async process(state: MyState) {
   const result = await this.llmGenerateText.call(
     { prompt: 'Write a haiku' },
     { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
   );
-  return { ...state, llmResult: result.data };
+  this.assignState({ llmResult: result.data });
 }
 ```
 
@@ -289,15 +290,15 @@ await this.documentStore.save(LlmMessageDocument, {
   text: 'Hello!',
 });
 
-// Update an existing document by ID
+// Update an existing document by key (upsert in place)
 await this.documentStore.save(
   LlmMessageDocument,
   { role: 'assistant', text: 'Updated response' },
-  { id: 'response-1' },
+  { key: 'response-1' },
 );
 
-// Hidden document (not shown in UI)
-await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'System prompt' }, { meta: { hidden: true } });
+// Hidden context (not shown in UI — LLM still sees it as conversation history)
+await this.documentStore.save(LlmContextDocument, { role: 'user', text: 'System prompt' });
 ```
 
 ## Templates
@@ -305,7 +306,7 @@ await this.documentStore.save(LlmMessageDocument, { role: 'user', text: 'System 
 `render` is available directly on `BaseWorkflow` (like `documentStore`). Use `this.render()` to render Handlebars template files:
 
 ```typescript
-const rendered = this.render(__dirname + '/templates/prompt.md', {
+const rendered = this.render(join(__dirname, 'templates', 'prompt.md'), {
   subject: args.subject,
 });
 ```
@@ -396,12 +397,12 @@ src/
 
 ## Registry References
 
-- [chat-example-workflow](https://loopstack.ai/registry/loopstack-chat-example-workflow) — Multi-turn chat workflow (the minimal example on this page)
-- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-prompt-example-workflow) — Simple single-turn prompt workflow
-- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — Tool calling loop with guards and conditional routing
-- [dynamic-routing-example-workflow](https://loopstack.ai/registry/loopstack-dynamic-routing-example-workflow) — Multi-level guard-based routing
-- [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-workflow-state-example-workflow) — State management with typed state interface
-- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-run-sub-workflow-example) — Sub-workflow execution with callbacks
+- [chat-example-workflow](https://loopstack.ai/registry/loopstack-hitl-examples#prompt-input-chat) — Multi-turn chat workflow (the minimal example on this page)
+- [prompt-example-workflow](https://loopstack.ai/registry/loopstack-llm-examples#prompt) — Simple single-turn prompt workflow
+- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Tool calling loop with guards and conditional routing
+- [dynamic-routing-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#dynamic-routing) — Multi-level guard-based routing
+- [workflow-state-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#workflow-state) — State management with typed state interface
+- [run-sub-workflow-example](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#sub-workflow) — Sub-workflow execution with callbacks
 
 ---
 

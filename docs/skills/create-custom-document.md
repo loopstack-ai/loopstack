@@ -21,7 +21,7 @@ export const NotesSchema = z.object({
 
 @Document({
   schema: NotesSchema,
-  widget: __dirname + '/notes.ui.yaml',
+  widget: './notes.ui.yaml',
 })
 export class NotesDocument {
   text: string;
@@ -66,12 +66,11 @@ All options are optional.
 // Create a new document
 await this.documentStore.save(NotesDocument, { text: 'Hello!' });
 
-// Create or update with a specific ID (idempotent)
-await this.documentStore.save(NotesDocument, { text: 'Updated' }, { id: 'notes-1' });
-
-// Hidden from the UI (still persisted)
-await this.documentStore.save(NotesDocument, { text: 'Internal' }, { meta: { hidden: true } });
+// Create or update with a specific key (upsert in place — invalidates the previous version)
+await this.documentStore.save(NotesDocument, { text: 'Updated' }, { key: 'notes-1' });
 ```
+
+To hide a document type from the UI entirely, declare `internal: true` on its decorator (`@Document({ internal: true, ... })`) rather than passing a per-save flag. Internal documents are persisted and still readable server-side (e.g. by LLM providers), but never reach Studio.
 
 ### Save an instance instead
 
@@ -79,17 +78,18 @@ await this.documentStore.save(NotesDocument, { text: 'Internal' }, { meta: { hid
 const draft = this.documentStore.create(NotesDocument, { text: 'Initial' });
 draft.text += '\n\nMore.';
 await this.documentStore.save(draft); // overload: pre-built instance
-await this.documentStore.save(draft, { id: 'notes-1' }); // with save options
+await this.documentStore.save(draft, { key: 'notes-1' }); // with save options
 ```
 
 `create()` returns a typed class instance with the data attached. Nothing is persisted until `save()`.
 
 ### Save Options
 
-| Option        | Type      | Description                                                    |
-| ------------- | --------- | -------------------------------------------------------------- |
-| `id`          | `string`  | Custom ID — passing the same ID twice updates the same record. |
-| `meta.hidden` | `boolean` | Hide the document from the Studio UI.                          |
+| Option     | Type                           | Description                                                                                           |
+| ---------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `key`      | `string`                       | Stable upsert key — passing the same `key` twice replaces the previous row in place.                  |
+| `validate` | `'strict' \| 'safe' \| 'skip'` | Schema validation mode. Default `'strict'`.                                                           |
+| `meta`     | `Record<string, unknown>`      | Free-form extension data persisted on the row. For framework concerns, use decorator options instead. |
 
 ## Querying Documents
 
@@ -181,11 +181,24 @@ Used in `options.properties.<field>.widget`:
 | `widget`      | `string`  | Widget type (see above)            |
 | `placeholder` | `string`  | Placeholder text                   |
 | `rows`        | `number`  | Visible rows (textarea)            |
-| `readonly`    | `boolean` | Read-only field                    |
+| `readonly`    | `boolean` | Read-only field (server-enforced)  |
 | `hidden`      | `boolean` | Hide the field                     |
 | `disabled`    | `boolean` | Disable interaction                |
 | `collapsed`   | `boolean` | Collapse arrays/objects by default |
 | `items`       | `object`  | UI config for array items          |
+
+#### Read-only fields
+
+`readonly: true` is enforced, not just rendered: Studio shows the field as non-editable, the CLI discards `$EDITOR` changes to it, and the **backend rejects** any transition submission that changes the field's value relative to the active document's content (`400 — Field "subject" of document "feedback_form" is read-only.`). Use it for workflow-provided values the user must see but not alter:
+
+```yaml
+properties:
+  subject:
+    title: Subject
+    readonly: true
+```
+
+Enforcement applies to user submissions of transitions the widget declares (`actions[].transition` / `options.transition`); the workflow itself can always update its own documents. See `inline_form_example` in `@loopstack/hitl-examples` for a working example.
 
 ### Actions
 

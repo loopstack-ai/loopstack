@@ -1,8 +1,7 @@
 import { format } from 'date-fns';
 import { ChevronRight, Clock, Loader2, Play } from 'lucide-react';
 import React from 'react';
-import type { WorkflowItemInterface } from '@loopstack/contracts/api';
-import type { WorkflowCheckpoint } from '@/api/workflows.ts';
+import type { WorkflowCheckpointInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
 import { useWorkflowCheckpoints } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils.ts';
@@ -47,7 +46,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
             <div className="relative py-2">
               <div className="from-primary/60 via-primary/30 to-muted/20 absolute top-3 bottom-3 left-1.75 w-0.5 rounded-full bg-linear-to-b" />
 
-              {checkpoints.map((entry: WorkflowCheckpoint, index: number) => {
+              {checkpoints.map((entry: WorkflowCheckpointInterface, index: number) => {
                 const isLast = index === checkpoints.length - 1;
                 const place = entry.place ?? 'unknown';
                 const transitionName = entry.transitionId;

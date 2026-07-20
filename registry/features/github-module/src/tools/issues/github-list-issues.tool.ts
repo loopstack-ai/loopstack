@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -16,8 +16,20 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubListIssuesTool`: the repository `owner`, `repo`, issue `state`,
+ * optional `labels`/`assignee` filters and `perPage`/`page` paging.
+ *
+ * @public
+ */
 export type GitHubListIssuesArgs = z.input<typeof inputSchema>;
 
+/**
+ * Result for `GitHubListIssuesTool`: an `issues` array (each flagged with
+ * `isPullRequest` since the GitHub API mixes in pull requests), or an `error`.
+ *
+ * @public
+ */
 export type GitHubListIssuesResult = {
   issues?: Array<{
     id: number;
@@ -36,6 +48,13 @@ export type GitHubListIssuesResult = {
   message?: string;
 };
 
+/**
+ * Tool that lists issues for a GitHub repository, with state, label and assignee filters.
+ * Note that the GitHub API also returns pull requests, marked via `isPullRequest`.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_list_issues',
   description:
@@ -48,7 +67,7 @@ export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object,
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubListIssuesArgs, ctx: RunContext): Promise<ToolResult<GitHubListIssuesResult>> {
+  protected async handle(args: GitHubListIssuesArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListIssuesResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -57,6 +76,7 @@ export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object,
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -85,6 +105,7 @@ export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object,
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -96,6 +117,7 @@ export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object,
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

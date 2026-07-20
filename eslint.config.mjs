@@ -19,6 +19,7 @@ export default tseslint.config(
       'eslint.config.mjs',
       'prettier.config.mjs',
       'syncpack.config.mjs',
+      'packages/cli/fixtures/**',
       '**/src/components/ai-elements/**',
       '**/vitest.config.ts',
       '**/vite.config.ts',
@@ -66,6 +67,93 @@ export default tseslint.config(
     rules: {
       // Allow unused vars with underscore prefix
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    },
+  },
+
+  // Node scripts (plain ESM, no TypeScript)
+  {
+    files: ['packages/*/scripts/**/*.mjs', 'sandbox/*/scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
+  // Boundary: @loopstack/client is a headless SDK — it must run in bare Node
+  {
+    files: ['packages/client/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['react', 'react-dom', 'react/*', 'react-dom/*', '@tanstack/react-query'],
+              message: '@loopstack/client must stay React-free — presentation adapters belong in @loopstack/react.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // Boundary: @loopstack/cli talks HTTP via @loopstack/client only
+  {
+    files: ['packages/cli/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@nestjs/*', 'typeorm', 'reflect-metadata', 'axios', 'react', 'react-dom'],
+              message: '@loopstack/cli must stay a thin terminal layer over @loopstack/client.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // Boundary: @loopstack/react is a browser-side adapter — no server-only dependencies
+  {
+    files: ['packages/react/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@nestjs/*', 'class-validator', 'class-transformer', 'typeorm', 'reflect-metadata'],
+              message: '@loopstack/react must stay free of server-only dependencies.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // Boundary: @loopstack/contracts is shared with browser clients
+  {
+    files: ['packages/contracts/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@nestjs/*', 'class-validator', 'class-transformer', 'typeorm', 'reflect-metadata'],
+              message: '@loopstack/contracts must stay free of server-only dependencies.',
+            },
+          ],
+        },
+      ],
     },
   },
 

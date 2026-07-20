@@ -24,6 +24,9 @@
     "allowJs": false,
     "paths": {
       "@loopstack/contracts": ["./packages/contracts/src"],
+      "@loopstack/client": ["./packages/client/src"],
+      "@loopstack/react": ["./packages/react/src"],
+      "@loopstack/cli": ["./packages/cli/src"],
       "@loopstack/common": ["./packages/common/src"],
       "@loopstack/core": ["./packages/core/src"],
       "@loopstack/auth": ["./packages/auth/src"],
@@ -63,7 +66,6 @@
       "@loopstack/sandbox-example-workflow": ["./registry/examples/sandbox-example-workflow/src"],
       "@loopstack/secrets-example-workflow": ["./registry/examples/secrets-example-workflow/src"],
       "@loopstack/test-ui-documents-example-workflow": ["./registry/examples/test-ui-documents-example-workflow/src"],
-      "@loopstack/tool-call-example-workflow": ["./registry/examples/tool-call-example-workflow/src"],
       "@loopstack/workflow-state-example-workflow": ["./registry/examples/workflow-state-example-workflow/src"],
       "@loopstack/loopstack-studio": ["./frontend/studio/src"]
     }

@@ -38,19 +38,16 @@ interface LlmUsage {
 ## Reading usage from a tool call
 
 ```typescript
-import type { LlmResultMeta } from '@loopstack/llm-provider-module';
-
 const result = await this.llmGenerateText.call(
   { prompt: 'Write a haiku about coffee' },
   { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
 );
 
-const meta = result.metadata as LlmResultMeta | undefined;
-const usage = meta?.usage;
+const { provider, model, usage } = result.metadata;
 
 if (usage) {
   console.log(
-    `${meta!.provider}/${meta!.model}:`,
+    `${provider}/${model}:`,
     `in=${usage.inputTokens}`,
     `out=${usage.outputTokens}`,
     `cacheRead=${usage.cacheReadInputTokens ?? 0}`,
@@ -71,15 +68,15 @@ interface PromptState {
 }
 
 @Transition({ to: 'prompt_executed' })
-async prompt(state: PromptState, ctx: RunContext): Promise<PromptState> {
+async prompt(state: PromptState, ctx: RunContext) {
   const result = await this.llmGenerateText.call(
     { prompt: 'Write a haiku' },
     { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
   );
-  return {
+  this.assignState({
     llmResult: result.data,
-    llmMeta: result.metadata as LlmResultMeta | undefined,
-  };
+    llmMeta: result.metadata,
+  });
 }
 ```
 

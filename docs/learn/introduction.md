@@ -22,28 +22,25 @@ interface ReviewState {
   draft?: string;
 }
 
-@Workflow({ widget: __dirname + '/review.ui.yaml' })
-export class ReviewWorkflow extends BaseWorkflow<Record<string, unknown>, ReviewState> {
+@Workflow({ widget: './review.ui.yaml' })
+export class ReviewWorkflow extends BaseWorkflow {
   constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 
-  // Step 1: Call the LLM, save the result, move to waiting state
+  // Step 1: Call the LLM, move to waiting state
   @Transition({ to: 'waiting_for_approval' })
-  async generate(state: ReviewState): Promise<ReviewState> {
+  async generate(state: ReviewState) {
     const result = await this.llmGenerateText.call(
       { prompt: 'Write a one-paragraph product description for a coffee subscription.' },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
-    await this.documentStore.save(LlmMessageDocument, result.data!.message);
-    return { ...state, draft: result.data!.message.text };
+    this.assignState({ draft: result.data.message.text });
   }
 
   // Step 2: Workflow pauses here until the user clicks Approve in the Studio UI
   @Transition({ from: 'waiting_for_approval', to: 'end', wait: true })
-  async approve(state: ReviewState): Promise<ReviewState> {
-    return state;
-  }
+  approve(state: ReviewState) {}
 }
 ```
 

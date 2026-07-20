@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -16,8 +16,19 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GitHubCreateOrUpdateFileTool`: the repository `owner`, `repo`, file `path`,
+ * plain-text `content`, commit `message`, optional `branch` and `sha` of the file being replaced.
+ *
+ * @public
+ */
 export type GitHubCreateOrUpdateFileArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GitHubCreateOrUpdateFileTool`: the written `file` and resulting `commit`, or an `error`.
+ *
+ * @public
+ */
 export type GitHubCreateOrUpdateFileResult =
   | {
       file: {
@@ -33,6 +44,13 @@ export type GitHubCreateOrUpdateFileResult =
     }
   | { error: string; message: string };
 
+/**
+ * Tool that creates or updates a file in a GitHub repository, base64-encoding the
+ * provided text and committing it. Pass the existing file `sha` to update in place.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
 @Tool({
   name: 'github_create_or_update_file',
   description:
@@ -52,7 +70,7 @@ export class GitHubCreateOrUpdateFileTool extends BaseTool<
   protected async handle(
     args: GitHubCreateOrUpdateFileArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GitHubCreateOrUpdateFileResult>> {
+  ): Promise<ToolEnvelope<GitHubCreateOrUpdateFileResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
@@ -61,6 +79,7 @@ export class GitHubCreateOrUpdateFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
+        error: 'No valid GitHub token found. Please authenticate first.',
       };
     }
 
@@ -91,6 +110,7 @@ export class GitHubCreateOrUpdateFileTool extends BaseTool<
           error: '401',
           message: 'GitHub token was rejected. Please re-authenticate.',
         },
+        error: 'GitHub token was rejected. Please re-authenticate.',
       };
     }
 
@@ -102,6 +122,7 @@ export class GitHubCreateOrUpdateFileTool extends BaseTool<
           error: 'api_error',
           message: `GitHub API error: ${response.statusText}`,
         },
+        error: `GitHub API error: ${response.statusText}`,
       };
     }
 

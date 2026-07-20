@@ -43,7 +43,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflo
 
       runWorkflow.mutate({
         workflowId: parentWorkflow.id,
-        runWorkflowPayloadDto: {
+        payload: {
           transition: {
             id: transitionId,
             workflowId: workflow.id,

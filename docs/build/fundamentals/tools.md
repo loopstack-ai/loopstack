@@ -11,7 +11,7 @@ Tools are reusable TypeScript classes that encapsulate a single action — calli
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 
 @Tool({
@@ -25,7 +25,7 @@ import type { RunContext } from '@loopstack/common';
     .strict(),
 })
 export class SearchTool extends BaseTool<{ query: string; limit: number }, object, string> {
-  protected async handle(args: { query: string; limit: number }, ctx: RunContext): Promise<ToolResult<string>> {
+  protected async handle(args: { query: string; limit: number }, ctx: RunContext): Promise<ToolEnvelope<string>> {
     return { data: `Found results for: ${args.query}` };
   }
 }
@@ -60,33 +60,45 @@ protected async handle(
   args: TArgs,
   ctx: RunContext,
   options?: ToolCallOptions<TConfig>,
-): Promise<ToolResult<TData>> {
+): Promise<ToolEnvelope<TData>> {
   // Your logic here
   return { data: result };
 }
 ```
 
-The public `call()` method is the entry point — it routes through validation before calling `handle()`.
+The public `call()` method is the entry point — it routes through validation before calling `handle()`, then narrows the envelope: throws on `error`, throws on `pending`, returns a `ToolResult<TData>` with `data` and `metadata` non-optional.
 
-## ToolResult
+## ToolEnvelope vs ToolResult
+
+Two related types — pick the right one for the right side of the boundary:
 
 ```typescript
-type ToolResult<TData = any> = {
+// What handle() returns — internal/dispatcher shape.
+type ToolEnvelope<TData = unknown> = {
   type?: 'text' | 'image' | 'file';
   data?: TData;
   error?: string;
   metadata?: Record<string, unknown>;
+  pending?: { workflowId: string };
 };
+
+// What tool.call() returns — the narrowed success path workflow authors see.
+interface ToolResult<TData = unknown> {
+  data: TData;
+  metadata: Record<string, unknown>;
+  type?: 'text' | 'image' | 'file';
+}
 ```
 
-Return patterns:
+Return patterns inside `handle()`:
 
 ```typescript
 return { data: 42 };                                    // Simple value
 return { data: { name: 'result', items: [...] } };      // Typed data
-return { error: 'Something went wrong' };                // Error
+return { error: 'Something went wrong' };                // Recoverable failure (LLM tool loop reads this)
 return { type: 'text', data: 'Mostly sunny, 14C.' };    // Typed output
 return { data: result, metadata: { tokensUsed: 150 } };  // With metadata
+return { pending: { workflowId } };                      // Async sub-workflow launched
 ```
 
 ## Dependency Injection
@@ -106,7 +118,7 @@ export class MathSumTool extends BaseTool<{ a: number; b: number }, object, numb
     super();
   }
 
-  protected async handle(args: { a: number; b: number }, ctx: RunContext): Promise<ToolResult<number>> {
+  protected async handle(args: { a: number; b: number }, ctx: RunContext): Promise<ToolEnvelope<number>> {
     return { data: this.mathService.sum(args.a, args.b) };
   }
 }
@@ -125,7 +137,7 @@ When a tool is exposed to the LLM, the `description` and `schema` tell the LLM w
   }),
 })
 export class GetWeather extends BaseTool<{ location: string }, object, string> {
-  protected async handle(args: { location: string }, ctx: RunContext): Promise<ToolResult<string>> {
+  protected async handle(args: { location: string }, ctx: RunContext): Promise<ToolEnvelope<string>> {
     return Promise.resolve({ type: 'text', data: 'Mostly sunny, 14C.' });
   }
 }
@@ -150,12 +162,12 @@ const result = await this.llmGenerateText.call(
 A tool can launch a sub-workflow from `handle()` and finish asynchronously when that sub-workflow completes. The lifecycle has two halves:
 
 1. **`handle()`** returns `{ data, pending: { workflowId } }`. The `pending` field tells the framework "I started run `workflowId`, don't return to the LLM yet — wait for that run to finish, then call me back."
-2. **`complete(result)`** runs when the sub-workflow finishes. The argument is the sub-workflow's output. The return value is the `ToolResult` that's actually delivered to the LLM (or the caller).
+2. **`complete(result)`** runs when the sub-workflow finishes. The argument is the sub-workflow's output. The return value is the `ToolEnvelope` that's actually delivered to the LLM (or the caller).
 
 The default `complete()` on `BaseTool` passes the sub-workflow's data straight through:
 
 ```typescript
-async complete(result: Record<string, unknown>): Promise<ToolResult> {
+async complete(result: Record<string, unknown>): Promise<ToolEnvelope> {
   return { data: (result as { data?: unknown }).data ?? result };
 }
 ```
@@ -173,7 +185,7 @@ export class AskForApprovalTool extends BaseTool</* … */> {
     return { data: { workflowId }, pending: { workflowId } };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult<AskForApprovalResult>> {
+  async complete(result: Record<string, unknown>): Promise<ToolEnvelope<AskForApprovalResult>> {
     const { workflowId, data } = result as { workflowId: string; data: { confirmed: boolean } };
     return { data: { approved: data.confirmed, workflowId } };
   }
@@ -247,9 +259,9 @@ constructor(private readonly myTool: SearchTool) {
 }
 
 @Transition({ from: 'ready', to: 'done' })
-async process(state: MyState): Promise<MyState> {
+async process(state: MyState) {
   const result = await this.myTool.call({ query: 'hello', limit: 5 });
-  return { ...state, searchResults: result.data };
+  this.assignState({ searchResults: result.data });
 }
 ```
 
@@ -281,8 +293,8 @@ src/
 
 ## Registry References
 
-- [custom-tool-example-module](https://loopstack.ai/registry/loopstack-custom-tool-example-module) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
-- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-tool-call-example-workflow) — GetWeather tool exposed to the LLM for function calling
+- [custom-tool-example-module](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
+- [tool-call-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — GetWeather tool exposed to the LLM for function calling
 
 ---
 

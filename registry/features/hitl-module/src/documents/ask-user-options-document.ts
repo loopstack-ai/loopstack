@@ -12,8 +12,14 @@ export const AskUserOptionsDocumentSchema = z
 
 export type AskUserOptionsDocumentType = z.infer<typeof AskUserOptionsDocumentSchema>;
 
+/**
+ * Document that presents a question with a list of options for the user to pick from,
+ * optionally allowing a custom answer.
+ *
+ * @public
+ */
 @Document({
-  widget: import.meta.dirname + '/ask-user-options-document.yaml',
+  widget: './ask-user-options-document.yaml',
   schema: AskUserOptionsDocumentSchema,
 })
 export class AskUserOptionsDocument {

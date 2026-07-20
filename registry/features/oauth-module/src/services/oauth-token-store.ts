@@ -3,6 +3,11 @@ import { Redis } from 'ioredis';
 import type { OAuthTokenSet } from '../contracts/index.js';
 import { OAuthProviderRegistry } from './oauth-provider-registry.js';
 
+/**
+ * Persisted OAuth token record held by `OAuthTokenStore`.
+ *
+ * @public
+ */
 export interface StoredTokens {
   accessToken: string;
   refreshToken?: string;
@@ -13,6 +18,13 @@ export interface StoredTokens {
 const KEY_PREFIX = 'oauth:';
 const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
 
+/**
+ * Service that stores and retrieves per-user OAuth tokens (Redis-backed, with in-memory fallback) and
+ * transparently refreshes expired access tokens; inject it to read a valid access token for a provider.
+ *
+ * @providedBy OAuthModule
+ * @public
+ */
 @Injectable()
 export class OAuthTokenStore implements OnModuleDestroy {
   private readonly logger = new Logger(OAuthTokenStore.name);

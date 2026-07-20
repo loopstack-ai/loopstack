@@ -11,6 +11,13 @@ interface SecretsRequestState {
   variables: { key: string }[];
 }
 
+/**
+ * Workflow that presents a secrets request form to the user and waits for submission, completing once
+ * the user has entered and stored the requested secret values.
+ *
+ * @providedBy SecretsModule
+ * @public
+ */
 @Workflow({
   name: 'secrets_request',
   title: 'Secrets Request',
@@ -24,19 +31,18 @@ interface SecretsRequestState {
     ),
   }),
 })
-export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs, SecretsRequestState> {
+export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs> {
   @Transition({ to: 'requesting_secrets' })
-  async showForm(state: SecretsRequestState, ctx: RunContext): Promise<SecretsRequestState> {
-    const args = ctx.args as SecretsRequestArgs;
+  async showForm(state: SecretsRequestState, ctx: RunContext<SecretsRequestArgs>) {
     await this.documentStore.save(SecretRequestDocument, {
-      variables: args.variables,
+      variables: ctx.args.variables,
     });
 
-    return { ...state, variables: args.variables };
+    this.assignState({ variables: ctx.args.variables });
   }
 
   @Transition({ from: 'requesting_secrets', to: 'end', wait: true })
-  async secretsSubmitted(_state: SecretsRequestState): Promise<{ success: boolean }> {
-    return Promise.resolve({ success: true });
+  secretsSubmitted(_state: SecretsRequestState) {
+    this.setResult({ success: true } as unknown as Record<string, unknown>);
   }
 }

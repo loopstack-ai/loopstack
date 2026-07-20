@@ -9,7 +9,7 @@
     "exploration",
     "workflow"
   ],
-  "version": "0.4.4",
+  "version": "0.4.6",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,10 +32,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/agent": "^0.5.4",
-    "@loopstack/common": "^0.35.0",
-    "@loopstack/core": "^0.35.0",
-    "@loopstack/remote-client": "^0.25.4"
+    "@loopstack/agent": "^0.5.6",
+    "@loopstack/common": "^0.37.0",
+    "@loopstack/core": "^0.37.0",
+    "@loopstack/remote-client": "^0.26.1"
   },
   "devDependencies": {
     "@nestjs/common": "^11.1.19",

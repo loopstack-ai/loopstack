@@ -39,14 +39,17 @@ export class AppModule {}
 Inject `OAuthWorkflow` into your workflow and launch it as a sub-workflow when authentication is needed:
 
 ```typescript
-import { BaseWorkflow, CallbackSchema, Guard, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
+const CalendarSchema = z.object({ calendarId: z.string().default('primary') }).strict();
+type CalendarArgs = z.infer<typeof CalendarSchema>;
+
 @Workflow({
-  schema: z.object({ calendarId: z.string().default('primary') }).strict(),
+  schema: CalendarSchema,
 })
-export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, CalendarState> {
+export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   constructor(
     private readonly calendarFetchEvents: CalendarFetchEventsTool,
     private readonly oAuth: OAuthWorkflow,
@@ -55,41 +58,35 @@ export class CalendarWorkflow extends BaseWorkflow<{ calendarId: string }, Calen
   }
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarState, ctx: RunContext): Promise<CalendarState> {
-    const args = ctx.args as { calendarId: string };
-    const result = await this.calendarFetchEvents.call({ calendarId: args.calendarId });
-    return {
-      ...state,
-      requiresAuthentication: result.data!.error === 'unauthorized',
-      events: result.data!.events,
-    };
+  async fetchEvents(state: CalendarState, ctx: RunContext<CalendarArgs>) {
+    const result = await this.calendarFetchEvents.call({ calendarId: ctx.args.calendarId });
+    this.assignState({
+      requiresAuthentication: result.data.error === 'unauthorized',
+      events: result.data.events,
+    });
   }
 
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(state: CalendarState): Promise<CalendarState> {
+  async authRequired(state: CalendarState) {
     await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
       { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
-    return state;
   }
 
   needsAuth(state: CalendarState): boolean {
     return !!state.requiresAuthentication;
   }
 
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true, schema: CallbackSchema })
-  async authCompleted(state: CalendarState, _payload: { workflowId: string }): Promise<CalendarState> {
-    return state;
-  }
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
+  authCompleted(state: CalendarState, _input: TransitionInput) {}
 
   @Transition({ from: 'calendar_fetched', to: 'end' })
-  async displayResults(state: CalendarState): Promise<unknown> {
+  async displayResults(state: CalendarState) {
     await this.documentStore.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/summary.md', { events: state.events }),
+      markdown: this.render(join(__dirname, 'templates', 'summary.md'), { events: state.events }),
     });
-    return {};
   }
 }
 ```
@@ -116,11 +113,23 @@ oauth-module (generic)              provider module (e.g. google)
                                     └──────────────────────────────┘
 ```
 
-The module is split into three layers:
+The module is split into four layers:
 
 1. **Provider registry** — provider modules implement `OAuthProviderInterface` and self-register via `OnModuleInit`
 2. **OAuth workflow** — a generic workflow that builds the auth URL, shows a sign-in prompt, waits for the callback, then exchanges the code for tokens
 3. **Token store** — persists tokens per user per provider in Redis (falls back to in-memory if Redis is unavailable)
+4. **Public callback endpoints** — complete the flow from `code` + `state` alone; the single-use state token (10 minute TTL, registered via `OAuthSessionService` when the auth URL is built) resolves the pending workflow server-side
+
+### Callback / Redirect URI Modes
+
+The provider's `*_OAUTH_REDIRECT_URI` can point at either of two supported targets (register the one you use in the provider console):
+
+| Redirect URI                  | How the flow completes                                                                                                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<api>/api/v1/oauth/callback` | **Backend callback.** The API completes the exchange server-side and renders a minimal confirmation page. Works without the Studio frontend — CLI-printed auth URLs and headless deployments.             |
+| `<studio>/oauth/callback`     | **Studio callback page.** Opened as a popup from Studio it posts `code`/`state` back to the opener (classic flow); opened directly (e.g. from a CLI link) it falls back to `POST /api/v1/oauth/complete`. |
+
+Both paths fire the waiting workflow's `exchangeToken` transition as the user who started the flow; the state parameter stays the CSRF anchor and is additionally single-use server-side.
 
 ### OAuthWorkflow State Machine
 
@@ -152,7 +161,7 @@ Inject `OAuthTokenStore` to access stored tokens:
 
 ```typescript
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -166,7 +175,7 @@ export class MyApiFetchTool extends BaseTool {
     super();
   }
 
-  protected async handle(args: { query: string }, ctx: RunContext): Promise<ToolResult> {
+  protected async handle(args: { query: string }, ctx: RunContext): Promise<ToolEnvelope> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'my-provider');
 
     if (!accessToken) {

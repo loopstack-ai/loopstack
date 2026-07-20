@@ -1,0 +1,48 @@
+{
+  "name": "@loopstack/secrets-examples",
+  "displayName": "Loopstack Secrets Examples",
+  "description": "Workflow examples for secrets management in Loopstack — deterministic request/verify flow and an agentic LLM flow that calls secrets tools.",
+  "keywords": [
+    "loopstack",
+    "example",
+    "secrets",
+    "workflow"
+  ],
+  "version": "0.1.1",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/claude-module": "*",
+    "@loopstack/common": "*",
+    "@loopstack/llm-provider-module": "*",
+    "@loopstack/secrets-module": "*",
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
+  }
+}

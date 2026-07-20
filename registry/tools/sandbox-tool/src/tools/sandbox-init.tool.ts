@@ -1,7 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service.js';
 
 const inputSchema = z
@@ -14,13 +13,33 @@ const inputSchema = z
   })
   .strict();
 
-type SandboxInitArgs = z.infer<typeof inputSchema>;
+/**
+ * Args for `SandboxInit`.
+ *
+ * Specifies the container id, Docker image, container name, and the host path to mount.
+ *
+ * @public
+ */
+export type SandboxInitArgs = z.infer<typeof inputSchema>;
 
-interface SandboxInitResult {
+/**
+ * Result of `SandboxInit`.
+ *
+ * Reports the registered container id and the underlying Docker container id.
+ *
+ * @public
+ */
+export interface SandboxInitResult {
   containerId: string;
   dockerId: string;
 }
 
+/**
+ * Tool that initializes a new Docker sandbox container from an image and mounts a host directory into it.
+ *
+ * @providedBy SandboxToolModule
+ * @public
+ */
 @Tool({
   name: 'sandbox_init',
   description: 'Initialize a new sandbox container',
@@ -32,7 +51,7 @@ export class SandboxInit extends BaseTool<SandboxInitArgs, object, SandboxInitRe
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  protected async handle(args: SandboxInitArgs, _ctx: RunContext): Promise<ToolResult<SandboxInitResult>> {
+  protected async handle(args: SandboxInitArgs): Promise<ToolEnvelope<SandboxInitResult>> {
     const { containerId, imageName, containerName, projectOutPath, rootPath } = args;
 
     this.logger.debug(

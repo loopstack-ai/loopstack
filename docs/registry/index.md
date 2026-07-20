@@ -19,7 +19,7 @@ Examples: `@loopstack/claude-module`, `@loopstack/github-module`, `@loopstack/hi
 
 Example packages are complete, working workflows that demonstrate Loopstack patterns. Use them as starting points — install the package, study the source, and adapt it to your needs.
 
-Examples: `@loopstack/chat-example-workflow`, `@loopstack/tool-call-example-workflow`, `@loopstack/sandbox-example-workflow`
+Examples: `@loopstack/hitl-examples`, `@loopstack/agent-examples`, `@loopstack/filesystem-examples`
 
 ## Installing a Package
 
@@ -55,16 +55,16 @@ To browse the source code of any registry package, use [giget](https://github.co
 
 ```bash
 # Download a feature module
-npx giget@latest gh:loopstackai/loopstack/registry/features/claude-module /tmp/claude-module
+npx giget@latest gh:loopstack-ai/loopstack/registry/features/claude-module /tmp/claude-module
 
 # Download an example workflow
-npx giget@latest gh:loopstackai/loopstack/registry/examples/chat-example-workflow /tmp/chat-example
+npx giget@latest gh:loopstack-ai/loopstack/registry/examples/hitl-examples /tmp/chat-example
 ```
 
 The repo path pattern is:
 
 ```
-gh:loopstackai/loopstack/registry/<category>/<package-name>
+gh:loopstack-ai/loopstack/registry/<category>/<package-name>
 ```
 
 Where `<category>` is `features`, `tools`, or `examples`.

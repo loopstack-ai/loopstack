@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -11,8 +11,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GmailGetMessageTool`.
+ *
+ * @public
+ */
 export type GmailGetMessageArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GmailGetMessageTool`.
+ *
+ * @public
+ */
 export type GmailGetMessageResult =
   | {
       id: string;
@@ -38,6 +48,14 @@ interface GmailMessagePart {
   parts?: GmailMessagePart[];
 }
 
+/**
+ * Tool that gets the full content of a single Gmail message. Takes a `messageId` and `format`, and
+ * returns headers, decoded body text, snippet, label ids, and attachment metadata, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'gmail_get_message',
   description:
@@ -50,7 +68,7 @@ export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, G
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GmailGetMessageArgs, ctx: RunContext): Promise<ToolResult<GmailGetMessageResult>> {
+  protected async handle(args: GmailGetMessageArgs, ctx: RunContext): Promise<ToolEnvelope<GmailGetMessageResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -59,6 +77,7 @@ export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, G
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -75,6 +94,7 @@ export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, G
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -86,6 +106,7 @@ export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, G
           error: 'api_error',
           message: `Gmail API error: ${response.statusText}`,
         },
+        error: `Gmail API error: ${response.statusText}`,
       };
     }
 

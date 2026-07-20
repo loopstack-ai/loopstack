@@ -44,7 +44,6 @@ import { ExecutionScope, TemplateRenderer } from './workflow-processor/utils/ind
 import { FanOutWorkflow, SequenceWorkflow } from './workflows/index.js';
 
 export interface LoopCoreModuleOptions {
-  connection?: string;
   redis?: RedisOptions;
 }
 
@@ -179,7 +178,7 @@ export class LoopCoreModule {
       module: LoopCoreModule,
       global: true,
       imports: [
-        TypeOrmModule.forFeature(ENTITIES, options.connection),
+        TypeOrmModule.forFeature(ENTITIES),
         ConfigModule,
         EventEmitterModule.forRoot(),
         DiscoveryModule,

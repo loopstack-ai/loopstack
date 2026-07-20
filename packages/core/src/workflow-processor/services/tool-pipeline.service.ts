@@ -5,13 +5,14 @@ import {
   type RunContext,
   TOOL_INTERCEPTOR_METADATA_KEY,
   ToolCallOptions,
+  ToolEnvelope,
   ToolExecutionContext,
   ToolInterceptor,
   ToolPipeline,
-  ToolResult,
   getBlockArgsSchema,
   getBlockConfigSchema,
 } from '@loopstack/common';
+import { TransitionAbortedError } from '../../common/index.js';
 import { ExecutionScope } from '../utils/index.js';
 
 /**
@@ -69,7 +70,7 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
     tool: BaseTool<TArgs, TConfig, TResult, TMeta>,
     args: TArgs | undefined,
     options?: ToolCallOptions<TConfig>,
-  ): Promise<ToolResult<TResult, TMeta>> {
+  ): Promise<ToolEnvelope<TResult, TMeta>> {
     // 1. Validate args against the tool's Zod schema
     const argsSchema = getBlockArgsSchema(tool as object);
     const validArgs = argsSchema ? (argsSchema.parse(args ?? {}) as TArgs) : (args ?? ({} as TArgs));
@@ -84,14 +85,21 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
 
     // 3. Build execution context for interceptors (from ExecutionScope)
     const scope = this.executionScope.getOptional();
-    const runContext = scope
+
+    // Refuse to run a tool invoked from an abandoned (timed-out) transition.
+    if (scope?.abortController.signal.aborted) {
+      throw new TransitionAbortedError();
+    }
+
+    const runContext: RunContext = scope
       ? {
           userId: scope.userId,
           workspaceId: scope.workspaceId,
           workflowId: scope.workflowId,
           args: scope.args,
+          signal: scope.abortController.signal,
         }
-      : { userId: '', workspaceId: '', workflowId: '', args: undefined };
+      : { userId: '', workspaceId: '', workflowId: '', args: undefined, signal: new AbortController().signal };
 
     const execContext: ToolExecutionContext = {
       tool,
@@ -104,13 +112,15 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
     const toolCall = () =>
       (
         tool as unknown as {
-          handle(a: TArgs, c: RunContext, o?: ToolCallOptions<TConfig>): Promise<ToolResult<TResult, TMeta>>;
+          handle(a: TArgs, c: RunContext, o?: ToolCallOptions<TConfig>): Promise<ToolEnvelope<TResult, TMeta>>;
         }
       ).handle(validArgs, runContext, validOptions);
 
-    const chain = this.interceptors.reduceRight<() => Promise<ToolResult<TResult, TMeta>>>(
+    const chain = this.interceptors.reduceRight<() => Promise<ToolEnvelope<TResult, TMeta>>>(
       (next, interceptor) => () =>
-        interceptor.intercept(execContext, next as () => Promise<ToolResult>) as Promise<ToolResult<TResult, TMeta>>,
+        interceptor.intercept(execContext, next as () => Promise<ToolEnvelope>) as Promise<
+          ToolEnvelope<TResult, TMeta>
+        >,
       toolCall,
     );
 

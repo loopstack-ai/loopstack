@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
@@ -11,8 +11,18 @@ const inputSchema = z
   })
   .strict();
 
+/**
+ * Args for `GoogleDriveDownloadFileTool`.
+ *
+ * @public
+ */
 export type GoogleDriveDownloadFileArgs = z.infer<typeof inputSchema>;
 
+/**
+ * Result for `GoogleDriveDownloadFileTool`.
+ *
+ * @public
+ */
 export type GoogleDriveDownloadFileResult =
   | { content: string; mimeType: string }
   | { content: string; mimeType: string; encoding: 'base64' }
@@ -25,6 +35,15 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
   'application/vnd.google-apps.presentation': 'text/plain',
 };
 
+/**
+ * Tool that downloads or exports a file from Google Drive. Takes a `fileId` and optional
+ * `exportMimeType`, automatically handles Google Docs/Sheets/Slides export, and returns text or
+ * base64-encoded content with its mime type, or `{ error: 'unauthorized' }` when no valid Google
+ * token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
 @Tool({
   name: 'google_drive_download_file',
   description:
@@ -44,7 +63,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
   protected async handle(
     args: GoogleDriveDownloadFileArgs,
     ctx: RunContext,
-  ): Promise<ToolResult<GoogleDriveDownloadFileResult>> {
+  ): Promise<ToolEnvelope<GoogleDriveDownloadFileResult>> {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
@@ -53,6 +72,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
+        error: 'No valid Google token found. Please authenticate first.',
       };
     }
 
@@ -69,6 +89,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -80,6 +101,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${metaResponse.statusText}`,
         },
+        error: `Google Drive API error: ${metaResponse.statusText}`,
       };
     }
 
@@ -107,6 +129,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'unauthorized',
           message: 'Google token was rejected. Please re-authenticate.',
         },
+        error: 'Google token was rejected. Please re-authenticate.',
       };
     }
 
@@ -118,6 +141,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
           error: 'api_error',
           message: `Google Drive API error: ${downloadResponse.statusText}`,
         },
+        error: `Google Drive API error: ${downloadResponse.statusText}`,
       };
     }
 

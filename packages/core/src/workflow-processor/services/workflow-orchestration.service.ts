@@ -11,6 +11,7 @@ import {
   WorkflowState,
 } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
+import { TransitionAbortedError } from '../../common/index.js';
 import { WorkflowService } from '../../persistence/services/workflow.service.js';
 import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
 import { ExecutionScope } from '../utils/index.js';
@@ -41,6 +42,11 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
 
   async queue(workflowClass: Type, args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
     const scope = this.executionScope.get();
+
+    // Refuse to spawn a sub-workflow from an abandoned (timed-out) transition.
+    if (scope.abortController.signal.aborted) {
+      throw new TransitionAbortedError();
+    }
 
     if (scope.options?.stateless) {
       throw new Error('Sub-workflow launching requires stateful workflow execution.');
@@ -101,7 +107,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
         embed: show === 'inline',
         expanded: show === 'inline',
       },
-      { id: `link_${childWorkflowId}` },
+      { key: `link_${childWorkflowId}` },
     );
   }
 
@@ -195,7 +201,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
           hasError: workflowEntity.hasError ?? false,
           errorMessage: workflowEntity.errorMessage ?? null,
           data: workflowEntity.result ?? null,
-          ...(workflowEntity.callbackMetadata ? { _subscriberMetadata: workflowEntity.callbackMetadata } : {}),
+          ...(workflowEntity.callbackMetadata ? { meta: workflowEntity.callbackMetadata } : {}),
         },
         { transition: workflowEntity.callbackTransition },
       );
