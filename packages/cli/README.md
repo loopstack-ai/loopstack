@@ -40,16 +40,17 @@ Input only Studio can collect is named explicitly (with a deep link) instead of 
 
 ## Commands
 
-| Command                     | What it does                                                                                                                       |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `loopstack create <dir>`    | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)                                          |
-| `loopstack list [workflow]` | Workflows you can run; with a name: its arguments and a ready-to-run example                                                       |
-| `loopstack run <workflow>`  | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--arg k=@-` (stdin), `--detach`, `--quiet`, `--open`, `--json` |
-| `loopstack runs [run-id]`   | Recent runs (waiting-for-input first) or one run’s full transcript                                                                 |
-| `loopstack attach <run-id>` | Rejoin a run live — transcript so far, then streaming output and interactive prompts (docker/tmux semantics)                       |
-| `loopstack watch`           | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                                                                    |
-| `loopstack login`           | Save a backend environment to `~/.loopstack/config.json`                                                                           |
-| `loopstack env list\|use`   | Manage saved environments                                                                                                          |
+| Command                     | What it does                                                                                                                                                                                              |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `loopstack create <dir>`    | Scaffold a new Loopstack app (NestJS + LoopstackModule + hello workflow + docker-compose)                                                                                                                 |
+| `loopstack list [workflow]` | Workflows you can run; with a name: its arguments and a ready-to-run example                                                                                                                              |
+| `loopstack run <workflow>`  | Start a run and follow it live; `--arg k=v`, `--arg k=@file.json`, `--arg k=@-` (stdin), `--detach`, `--quiet`, `--open`, `--json`                                                                        |
+| `loopstack runs [run-id]`   | Recent runs (waiting-for-input first) or one run’s full transcript; `--json` includes the pending prompt (`pendingPrompt`), `--record <file>` derives a replay fixture from the run’s recorded tool calls |
+| `loopstack answer <run-id>` | Answer a waiting run’s prompt non-interactively — `--arg k=v` fields or `--payload <json>`; for agents and scripts                                                                                        |
+| `loopstack attach <run-id>` | Rejoin a run live — transcript so far, then streaming output and interactive prompts (docker/tmux semantics)                                                                                              |
+| `loopstack watch`           | Live event stream; `--workflow`, `--type`, NDJSON with `--json`                                                                                                                                           |
+| `loopstack login`           | Save a backend environment to `~/.loopstack/config.json`                                                                                                                                                  |
+| `loopstack env list\|use`   | Manage saved environments                                                                                                                                                                                 |
 
 ## CI
 

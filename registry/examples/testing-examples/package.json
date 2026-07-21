@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/testing-examples",
   "displayName": "Loopstack Testing Examples",
-  "description": "Placeholder for workflow testing examples — fixtures, assertions, mocked LLM responses (coming soon).",
+  "description": "Workflow testing examples — runWorkflow in-process tests, scripted HITL answers, tool unit tests with testTool, and record/replay fixtures.",
   "keywords": [
     "loopstack",
     "example",
@@ -30,13 +30,15 @@
   },
   "dependencies": {
     "@loopstack/common": "*",
-    "@nestjs/common": "^11.1.19"
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
   },
   "files": [
     "dist",
     "src"
   ],
   "devDependencies": {
+    "@loopstack/testing": "*",
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",
     "unplugin-swc": "^1.5.9"

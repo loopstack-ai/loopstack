@@ -11,6 +11,7 @@ import {
   TEMPLATE_RENDERER,
   TOOL_PIPELINE,
   TOOL_REGISTRY,
+  ToolCallRecordEntity,
   WORKFLOW_ORCHESTRATOR,
   WorkflowCheckpointEntity,
   WorkflowEntity,
@@ -29,7 +30,10 @@ import {
   FeatureRegistryService,
   ProcessorFactory,
   RootProcessorService,
+  StatelessChildRunner,
   StudioDiscoveryService,
+  ToolCallAuditInterceptor,
+  ToolCallAuditService,
   ToolLoggingInterceptor,
   ToolPipelineService,
   ToolRegistryService,
@@ -47,7 +51,7 @@ export interface LoopCoreModuleOptions {
   redis?: RedisOptions;
 }
 
-const ENTITIES = [WorkflowEntity, DocumentEntity, WorkspaceEntity, WorkflowCheckpointEntity];
+const ENTITIES = [WorkflowEntity, DocumentEntity, WorkspaceEntity, WorkflowCheckpointEntity, ToolCallRecordEntity];
 
 const PROVIDERS = [
   // Common
@@ -70,7 +74,10 @@ const PROVIDERS = [
   DocumentPersistenceService,
   DocumentStore,
   WorkflowOrchestrationService,
+  StatelessChildRunner,
   TransitionResolverService,
+  ToolCallAuditInterceptor,
+  ToolCallAuditService,
   ToolLoggingInterceptor,
   ToolPipelineService,
   TemplateRenderer,
@@ -138,6 +145,7 @@ const EXPORTS = [
   DocumentStore,
   WorkflowOrchestrationService,
   TransitionResolverService,
+  ToolCallAuditService,
   ToolPipelineService,
   TemplateRenderer,
   WorkflowRegistryService,

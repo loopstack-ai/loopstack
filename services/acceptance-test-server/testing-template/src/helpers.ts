@@ -1,25 +1,10 @@
-import { createHmac } from 'node:crypto';
+import { createClient } from '@loopstack/client';
 
 const APP_URL = process.env.APP_URL ?? 'http://localhost:3000';
 
-const LOCAL_DEV_USER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me';
-
-function base64url(input: string): string {
-  return Buffer.from(input).toString('base64url');
-}
-
-function localDevToken(): string {
-  const header = base64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const now = Math.floor(Date.now() / 1000);
-  const payload = base64url(
-    JSON.stringify({ sub: LOCAL_DEV_USER_ID, type: 'local', workerId: 'local', roles: [], iat: now, exp: now + 3600 }),
-  );
-  const signature = createHmac('sha256', JWT_SECRET).update(`${header}.${payload}`).digest('base64url');
-  return `${header}.${payload}.${signature}`;
-}
-
-const AUTH_TOKEN = localDevToken();
+// The app under test runs with auth disabled (Loopstack's default): every request resolves to
+// the lazily created local dev user — no token, no seeding, no headers.
+const client = createClient({ url: APP_URL });
 
 interface StartWorkflowResult {
   workflowId: string;
@@ -35,7 +20,7 @@ interface WorkflowResult {
   args: Record<string, unknown>;
   context: Record<string, unknown>;
   result: Record<string, unknown> | null;
-  availableTransitions: { id: string; from: string; to: string; trigger: string }[] | null;
+  availableTransitions: { id: string; from: string; to: string; trigger?: string }[] | null;
   hasError: boolean;
   errorMessage: string | null;
   createdAt: string;
@@ -56,34 +41,17 @@ interface DocumentResult {
   updatedAt: string;
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const url = `${APP_URL}${path}`;
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${AUTH_TOKEN}`, ...options?.headers },
-    ...options,
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`HTTP ${res.status} ${res.statusText}: ${body}`);
-  }
-  const text = await res.text();
-  return (text ? JSON.parse(text) : undefined) as T;
-}
-
 // A workflow can only be started inside a workspace bound to its @StudioApp. We create one lazily
 // (using the first registered app) and reuse it, so tests just call startWorkflow(name, args).
 let cachedWorkspaceId: string | undefined;
 
 async function ensureWorkspace(): Promise<string> {
   if (cachedWorkspaceId) return cachedWorkspaceId;
-  const apps = await request<{ appName: string }[]>('/api/v1/config/apps');
+  const apps = await client.config.apps();
   if (!apps.length) {
     throw new Error('No @StudioApp is registered in the app under test — a workflow must be declared in one.');
   }
-  const workspace = await request<{ id: string }>('/api/v1/workspaces', {
-    method: 'POST',
-    body: JSON.stringify({ appName: apps[0].appName, title: 'acceptance-test' }),
-  });
+  const workspace = await client.workspaces.create({ appName: apps[0].appName, title: 'acceptance-test' });
   cachedWorkspaceId = workspace.id;
   return cachedWorkspaceId;
 }
@@ -93,10 +61,8 @@ export async function startWorkflow(
   args?: Record<string, unknown>,
 ): Promise<StartWorkflowResult> {
   const workspaceId = await ensureWorkspace();
-  return request<StartWorkflowResult>('/api/v1/processor/start', {
-    method: 'POST',
-    body: JSON.stringify({ workflowName, workspaceId, args }),
-  });
+  const result = await client.processor.start({ workflowName, workspaceId, args });
+  return result as StartWorkflowResult;
 }
 
 export interface WorkflowInfo {
@@ -107,14 +73,9 @@ export interface WorkflowInfo {
   schema?: Record<string, unknown>;
 }
 
-interface AppConfig {
-  appName: string;
-  workflows?: WorkflowInfo[];
-}
-
 export async function listWorkflows(): Promise<WorkflowInfo[]> {
-  const apps = await request<AppConfig[]>('/api/v1/config/apps');
-  return apps.flatMap((app) => app.workflows ?? []);
+  const apps = await client.config.apps();
+  return apps.flatMap((app) => (app.workflows ?? []) as WorkflowInfo[]);
 }
 
 export async function getWorkflowSchema(workflowName: string): Promise<Record<string, unknown> | undefined> {
@@ -123,7 +84,7 @@ export async function getWorkflowSchema(workflowName: string): Promise<Record<st
 }
 
 export async function getWorkflow(workflowId: string): Promise<WorkflowResult> {
-  return request<WorkflowResult>(`/api/v1/workflows/${workflowId}`);
+  return (await client.workflows.get(workflowId)) as unknown as WorkflowResult;
 }
 
 /** Ids of the currently-available transitions (a transition's id is its name, e.g. `'review'`). */
@@ -156,17 +117,14 @@ export async function resumeTransition(
   transitionId: string,
   payload?: Record<string, unknown>,
 ): Promise<void> {
-  await request(`/api/v1/processor/run/${workflowId}`, {
-    method: 'POST',
-    body: JSON.stringify({ transition: { id: transitionId, payload } }),
+  await client.processor.run(workflowId, {
+    transition: { id: transitionId, workflowId, payload },
   });
 }
 
 export async function getDocuments(workflowId: string): Promise<DocumentResult[]> {
-  // The documents endpoint takes a JSON-encoded `filter` param; a bare `?workflowId=` is ignored.
-  const filter = encodeURIComponent(JSON.stringify({ workflowId }));
-  const result = await request<{ data: DocumentResult[] }>(`/api/v1/documents?filter=${filter}`);
-  return result.data;
+  const page = await client.documents.list({ filter: { workflowId } });
+  return page.data as unknown as DocumentResult[];
 }
 
 export async function getDocumentNames(workflowId: string): Promise<string[]> {

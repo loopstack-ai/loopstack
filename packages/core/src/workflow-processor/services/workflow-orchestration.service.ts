@@ -5,6 +5,7 @@ import {
   QueueResult,
   ResumeOptions,
   RunOptions,
+  StatelessChildRecord,
   SubWorkflowShow,
   WorkflowEntity,
   WorkflowOrchestrator,
@@ -14,9 +15,10 @@ import type { ScheduledTask } from '@loopstack/contracts/types';
 import { TransitionAbortedError } from '../../common/index.js';
 import { WorkflowService } from '../../persistence/services/workflow.service.js';
 import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
-import { ExecutionScope } from '../utils/index.js';
+import { ExecutionScope, ExecutionScopeData } from '../utils/index.js';
 import { CreateWorkflowService } from './create-workflow.service.js';
 import { DocumentStore } from './document-store.service.js';
+import { StatelessChildRunner } from './stateless-child-runner.service.js';
 import { WorkflowRegistryService } from './workflow-registry.service.js';
 
 /**
@@ -38,6 +40,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     private readonly workflowService: WorkflowService,
     private readonly workflowRegistryService: WorkflowRegistryService,
     private readonly documentStore: DocumentStore,
+    private readonly statelessChildRunner: StatelessChildRunner,
   ) {}
 
   async queue(workflowClass: Type, args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
@@ -49,7 +52,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     }
 
     if (scope.options?.stateless) {
-      throw new Error('Sub-workflow launching requires stateful workflow execution.');
+      return this.queueInline(scope, workflowClass, args, options);
     }
 
     const { instance: workflow, workflowName } = this.workflowRegistryService.resolve(workflowClass);
@@ -88,6 +91,68 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     return {
       workflowId: workflowEntity.id,
     };
+  }
+
+  /**
+   * Stateless mode: execute the child synchronously in-process. A terminal child queues its
+   * callback envelope (same shape as `complete()`) on the scope for the processor's drain loop;
+   * a parked child is recorded with its resume carrier so the caller can answer it.
+   */
+  private async queueInline(
+    scope: ExecutionScopeData,
+    workflowClass: Type,
+    args?: Record<string, unknown>,
+    options?: RunOptions,
+  ): Promise<QueueResult> {
+    const { instance, workflowName } = this.workflowRegistryService.resolve(workflowClass);
+    const childId = `stateless-${randomUUID()}`;
+
+    const childMeta = await this.statelessChildRunner.run(instance, {
+      workflowName,
+      userId: scope.userId,
+      workspaceId: scope.workspaceId,
+      args,
+    });
+
+    const callbackTransition = options?.callback?.transition ?? null;
+    const callbackMetadata = options?.callback?.metadata ?? null;
+
+    const record: StatelessChildRecord = {
+      workflowId: childId,
+      workflowName,
+      status: childMeta.status,
+      args,
+      callbackTransition,
+      callbackMetadata,
+      documents: childMeta.documents,
+      result: childMeta.result ?? null,
+      hasError: childMeta.hasError,
+      errorMessage: childMeta.errorMessage,
+      statelessState: childMeta.statelessState,
+    };
+    (scope.statelessChildren ??= []).push(record);
+
+    const terminal =
+      childMeta.status === WorkflowState.Completed ||
+      childMeta.status === WorkflowState.Failed ||
+      childMeta.status === WorkflowState.Canceled;
+
+    if (terminal && callbackTransition) {
+      (scope.statelessCallbacks ??= []).push({
+        id: callbackTransition,
+        workflowId: scope.workflowId,
+        payload: {
+          workflowId: childId,
+          status: childMeta.status,
+          hasError: childMeta.hasError ?? false,
+          errorMessage: childMeta.errorMessage ?? null,
+          data: childMeta.result ?? null,
+          ...(callbackMetadata ? { meta: callbackMetadata } : {}),
+        },
+      });
+    }
+
+    return { workflowId: childId };
   }
 
   private async persistSubWorkflowLink(

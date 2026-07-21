@@ -170,6 +170,12 @@ export class WorkflowRunner {
       return {
         status: meta.status as WorkflowState,
         result: meta.result ?? null,
+        place: meta.place,
+        history: meta.history,
+        documents: meta.documents,
+        availableTransitions: meta.availableTransitions,
+        hasError: meta.hasError,
+        errorMessage: meta.errorMessage,
       };
     }
 

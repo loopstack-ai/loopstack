@@ -57,4 +57,10 @@ export interface LoopstackModuleOptions {
    * Event stream tuning — replay buffer size/TTL and heartbeat interval.
    */
   sse?: SseStreamOptionsInterface;
+  /**
+   * Debug mode: persist every tool call's args + response envelope per run
+   * (`core_tool_call_record`). Powers `loopstack runs <id> --record` for deriving replay
+   * fixtures. Falls back to the `LOOPSTACK_RECORD_TOOL_CALLS` env var.
+   */
+  recordToolCalls?: boolean;
 }

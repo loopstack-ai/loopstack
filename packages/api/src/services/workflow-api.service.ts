@@ -2,14 +2,19 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
-import { WorkflowCheckpointEntity, WorkflowEntity, WorkflowState } from '@loopstack/common';
+import { ToolCallRecordEntity, WorkflowCheckpointEntity, WorkflowEntity, WorkflowState } from '@loopstack/common';
 import type {
   WorkflowCreateInterface,
   WorkflowFilterInterface,
   WorkflowSortByInterface,
   WorkflowUpdateInterface,
 } from '@loopstack/contracts/api';
-import { CreateWorkflowService, WorkflowCheckpointService, WorkflowRegistryService } from '@loopstack/core';
+import {
+  CreateWorkflowService,
+  ToolCallAuditService,
+  WorkflowCheckpointService,
+  WorkflowRegistryService,
+} from '@loopstack/core';
 import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 import { resolvePagination } from '../utils/pagination.util.js';
 
@@ -20,6 +25,7 @@ export class WorkflowApiService {
     private workflowRepository: Repository<WorkflowEntity>,
     private configService: ConfigService,
     private workflowCheckpointService: WorkflowCheckpointService,
+    private readonly toolCallAuditService: ToolCallAuditService,
     private readonly createWorkflowService: CreateWorkflowService,
     private readonly workflowRegistryService: WorkflowRegistryService,
   ) {}
@@ -283,5 +289,11 @@ export class WorkflowApiService {
     // Verify the user owns this workflow
     await this.findOneById(workflowId, user);
     return this.workflowCheckpointService.getHistory(workflowId);
+  }
+
+  async getToolCalls(workflowId: string, user: string): Promise<ToolCallRecordEntity[]> {
+    // Verify the user owns this workflow
+    await this.findOneById(workflowId, user);
+    return this.toolCallAuditService.findByWorkflowId(workflowId);
   }
 }

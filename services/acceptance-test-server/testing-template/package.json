@@ -7,6 +7,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@loopstack/client": "^0.37.0",
     "vitest": "^3.2.3"
   }
 }

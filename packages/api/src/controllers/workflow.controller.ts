@@ -5,6 +5,7 @@ import {
   BatchDeleteResultInterface,
   BatchDeleteSchema,
   PaginatedInterface,
+  ToolCallRecordInterface,
   WorkflowCheckpointInterface,
   WorkflowCreateInterface,
   WorkflowCreateSchema,
@@ -18,7 +19,13 @@ import {
   WorkflowUpdateSchema,
 } from '@loopstack/contracts/api';
 import { toPaginated } from '../mappers/paginated.util.js';
-import { toWorkflowCheckpoint, toWorkflowFull, toWorkflowItem, toWorkflowStatus } from '../mappers/workflow.mapper.js';
+import {
+  toToolCallRecord,
+  toWorkflowCheckpoint,
+  toWorkflowFull,
+  toWorkflowItem,
+  toWorkflowStatus,
+} from '../mappers/workflow.mapper.js';
 import { WorkflowSortByQuerySchema } from '../schemas/sort-by.schemas.js';
 import { WorkflowApiService } from '../services/workflow-api.service.js';
 
@@ -133,5 +140,17 @@ export class WorkflowController {
   ): Promise<WorkflowCheckpointInterface[]> {
     const checkpoints = await this.workflowService.getCheckpointHistory(id, user.userId);
     return checkpoints.map(toWorkflowCheckpoint);
+  }
+
+  /**
+   * Retrieves the tool-call audit records for a workflow (recorded in debug mode).
+   */
+  @Get(':id/tool-calls')
+  async getToolCalls(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<ToolCallRecordInterface[]> {
+    const records = await this.workflowService.getToolCalls(id, user.userId);
+    return records.map(toToolCallRecord);
   }
 }

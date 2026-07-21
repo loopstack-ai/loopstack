@@ -1,10 +1,13 @@
 import type { Command } from 'commander';
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import pc from 'picocolors';
 import type { LoopstackClient } from '@loopstack/client';
 import { SortOrder, WorkflowState } from '@loopstack/contracts/enums';
 import type { ResolvedConnection } from '../config/resolve.js';
 import { createClientFor, resolveConnection } from '../config/resolve.js';
 import { CliError, ExitCode } from '../errors.js';
+import { inspectPendingPrompt } from '../hitl/pending.js';
 import { colorStatus, printData, printStatus, renderResult, renderTable } from '../output/format.js';
 import { openInBrowser, studioRunUrl } from '../output/studio-link.js';
 import { renderRunTrail } from '../run/trail.js';
@@ -17,6 +20,7 @@ interface RunsOptions {
   search?: string;
   status?: string;
   open?: boolean;
+  record?: string;
 }
 
 interface Globals {
@@ -35,6 +39,7 @@ export function registerRunsCommand(program: Command): void {
     .option('--search <text>', 'search runs')
     .option('--status <status>', 'filter by status (e.g. waiting, completed, failed)')
     .option('--open', 'open the run in Studio (requires a run id)')
+    .option('--record <file>', 'write the run’s recorded tool calls as a replay fixture (JSON)')
     .action(async (runId: string | undefined, options: RunsOptions, cmd) => {
       const globals = cmd.optsWithGlobals() as Globals;
       const connection = resolveConnection(globals);
@@ -42,11 +47,46 @@ export function registerRunsCommand(program: Command): void {
 
       if (!runId) {
         if (options.open) throw new CliError('--open requires a run id: loopstack runs <run-id> --open');
+        if (options.record) throw new CliError('--record requires a run id: loopstack runs <run-id> --record <file>');
         await listRuns(client, connection, options, !!globals.json);
+        return;
+      }
+      if (options.record) {
+        await recordFixture(client, runId, options.record, !!globals.json);
         return;
       }
       await showRun(client, connection, runId, options, !!globals.json);
     });
+}
+
+/**
+ * Derive a replay fixture from the run's tool-call audit records (backend must run with
+ * `recordToolCalls` enabled). The fixture format matches `replay()` in `@loopstack/testing`.
+ */
+async function recordFixture(client: LoopstackClient, runId: string, file: string, json: boolean): Promise<void> {
+  const records = await client.workflows.toolCalls(runId);
+  if (records.length === 0) {
+    throw new CliError(
+      'No recorded tool calls for this run. Start the backend with recordToolCalls enabled ' +
+        '(LOOPSTACK_RECORD_TOOL_CALLS=true) and run the workflow again.',
+    );
+  }
+
+  const recordings = records.map((record) => ({
+    transition: record.transitionId ?? '',
+    seq: record.seq,
+    tool: record.toolName,
+    ...(record.args !== null ? { args: record.args } : {}),
+    envelope: record.envelope,
+  }));
+  const target = resolve(file);
+  writeFileSync(target, `${JSON.stringify({ version: 1, recordings }, null, 2)}\n`);
+
+  if (json) {
+    printData(JSON.stringify({ file: target, recordings: recordings.length }, null, 2));
+  } else {
+    printStatus(`${pc.green('✓')} wrote ${recordings.length} recording(s) to ${target}`);
+  }
 }
 
 /** The runs listing — the inbox: runs waiting for input are surfaced first. */
@@ -116,9 +156,18 @@ async function showRun(
 
   const workflow = await client.workflows.get(runId);
   const checkpoints = await client.workflows.checkpoints(runId);
+  const pendingPrompt = IDLE_STATES.includes(workflow.status)
+    ? await inspectPendingPrompt(client, runId).catch(() => undefined)
+    : undefined;
 
   if (json) {
-    printData(JSON.stringify({ workflow, checkpoints, ...(link && { studioUrl: link }) }, null, 2));
+    printData(
+      JSON.stringify(
+        { workflow, checkpoints, ...(pendingPrompt && { pendingPrompt }), ...(link && { studioUrl: link }) },
+        null,
+        2,
+      ),
+    );
     process.exit(ExitCode.Success);
   }
 
@@ -127,7 +176,16 @@ async function showRun(
   out.write('\n');
   if (renderResult(out, workflow.result)) out.write('\n');
   if (IDLE_STATES.includes(workflow.status)) {
-    out.write(`${pc.yellow('⏸')} run is waiting for input — answer with \`loopstack attach ${runId}\`\n`);
+    if (pendingPrompt && !pendingPrompt.studioOnly) {
+      out.write(`${pc.yellow('⏸')} waiting for input: ${pendingPrompt.description}\n`);
+      out.write(
+        pc.dim(
+          `  answer with \`loopstack answer ${runId} --arg k=v\` or interactively: \`loopstack attach ${runId}\`\n`,
+        ),
+      );
+    } else {
+      out.write(`${pc.yellow('⏸')} run is waiting for input — answer with \`loopstack attach ${runId}\`\n`);
+    }
   }
   process.exit(ExitCode.Success);
 }

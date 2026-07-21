@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ZodError } from 'zod';
 import {
+  StatelessExecutionState,
   TransitionMetadata,
   WorkflowCheckpointEntity,
   WorkflowEntity,
@@ -52,6 +53,7 @@ export class WorkflowProcessorService implements Processor {
       payload: Record<string, unknown>;
       workflowContext?: Record<string, unknown>;
       workflowEntity?: WorkflowEntity;
+      statelessState?: StatelessExecutionState;
       options: { stateless: boolean };
     },
   ): Promise<WorkflowMetadataInterface> {
@@ -71,6 +73,7 @@ export class WorkflowProcessorService implements Processor {
       documents: [],
       place: 'start',
       tools: {},
+      history: [],
       result: null,
       retryCount: 0,
       retryTransitionId: undefined,
@@ -79,6 +82,15 @@ export class WorkflowProcessorService implements Processor {
 
     if (isStateless) {
       meta.status = WorkflowStateEnum.Running;
+
+      const resume = context.statelessState;
+      if (resume) {
+        meta.place = resume.place;
+        meta.documents = resume.documents;
+        pendingTransition = (context.payload as Record<string, unknown>)?.transition as
+          | TransitionPayloadInterface
+          | undefined;
+      }
     } else {
       workflowEntity = context.workflowEntity!;
       context.workflowId = workflowEntity.id;
@@ -118,8 +130,10 @@ export class WorkflowProcessorService implements Processor {
       meta.status = WorkflowStateEnum.Running;
     }
 
-    // Load state from checkpoint or start empty
-    let state: Record<string, unknown> = latestCheckpoint ? (latestCheckpoint.state ?? {}) : {};
+    // Load state from checkpoint, resume carrier, or start empty
+    let state: Record<string, unknown> = latestCheckpoint
+      ? (latestCheckpoint.state ?? {})
+      : (context.statelessState?.state ?? {});
     const checkpointVersion = latestCheckpoint ? latestCheckpoint.version + 1 : 1;
     meta.version = checkpointVersion;
 
@@ -136,6 +150,8 @@ export class WorkflowProcessorService implements Processor {
       documents: meta.documents,
       persistenceState: meta.persistenceState,
       transition: undefined,
+      statelessCallbacks: context.statelessState?.callbacks ? [...context.statelessState.callbacks] : [],
+      statelessChildren: context.statelessState?.children ? [...context.statelessState.children] : [],
       // Replaced with a fresh controller before each transition in executeTransition.
       abortController: new AbortController(),
       // Re-seeded before each transition; initial values never read
@@ -149,6 +165,19 @@ export class WorkflowProcessorService implements Processor {
 
     try {
       state = await this.processStateMachine(scopeData, meta, workflow, pendingTransition, workflowEntity, state);
+
+      // Stateless: apply queued inline sub-workflow callbacks until none remain or the run ends.
+      // A callback that isn't applicable at the current place (e.g. parked on another wait
+      // transition) leaves history untouched — keep it queued and stop draining.
+      if (isStateless) {
+        const callbacks = scopeData.statelessCallbacks ?? [];
+        while (callbacks.length > 0 && !meta.hasError && meta.place !== 'end') {
+          const historyLength = meta.history.length;
+          state = await this.processStateMachine(scopeData, meta, workflow, callbacks[0], workflowEntity, state);
+          if (meta.history.length === historyLength) break;
+          callbacks.shift();
+        }
+      }
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e));
       this.logger.error(new ConfigTraceError(error, workflow));
@@ -177,6 +206,16 @@ export class WorkflowProcessorService implements Processor {
     // Sync documents back from scope (document persistence mutates the array)
     meta.documents = scopeData.documents;
     meta.persistenceState = scopeData.persistenceState;
+
+    if (isStateless) {
+      meta.statelessState = {
+        place: meta.place,
+        state,
+        documents: meta.documents,
+        ...(scopeData.statelessCallbacks?.length ? { callbacks: scopeData.statelessCallbacks } : {}),
+        ...(scopeData.statelessChildren?.length ? { children: scopeData.statelessChildren } : {}),
+      };
+    }
 
     this.memoryMonitor.logWorkflowEnd(workflow.constructor.name, meta.documents, meta.version);
 
@@ -524,6 +563,8 @@ export class WorkflowProcessorService implements Processor {
           }
         }
 
+        meta.history.push(meta.transition);
+
         if (workflowEntity) {
           await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
         }
@@ -658,6 +699,7 @@ export class WorkflowProcessorService implements Processor {
         payload: null,
       };
       scopeData.transition = meta.transition;
+      meta.history.push(meta.transition);
 
       if (workflowEntity) {
         await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);

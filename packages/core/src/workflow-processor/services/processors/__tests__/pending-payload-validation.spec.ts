@@ -61,6 +61,7 @@ describe('WorkflowProcessorService — invalid pending payload', () => {
       documents: [],
       place: 'awaiting_input',
       tools: {},
+      history: [],
       result: null,
       retryCount: 0,
       version: 1,

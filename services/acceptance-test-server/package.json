@@ -16,7 +16,7 @@
     "compile": "tsc --noEmit",
     "start": "node dist/index.js",
     "start:dev": "tsx src/index.ts",
-    "test": "jest --passWithNoTests",
+    "test": "jest --passWithNoTests --testPathIgnorePatterns /node_modules/ /dist/ /testing-template/",
     "docker:build": "docker buildx build --platform linux/amd64 --load -t registry.fly.io/acceptance-test-agent:latest .",
     "docker:push": "docker push registry.fly.io/acceptance-test-agent:latest"
   },

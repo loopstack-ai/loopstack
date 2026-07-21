@@ -1,5 +1,7 @@
-import { WorkflowCheckpointEntity, WorkflowEntity, assertResponse } from '@loopstack/common';
+import { ToolCallRecordEntity, WorkflowCheckpointEntity, WorkflowEntity, assertResponse } from '@loopstack/common';
 import {
+  ToolCallRecordInterface,
+  ToolCallRecordSchema,
   WorkflowCheckpointInterface,
   WorkflowCheckpointSchema,
   WorkflowFullInterface,
@@ -63,6 +65,19 @@ export function toWorkflowCheckpoint(
     transitionId: entity.transitionId ?? null,
     transitionFrom: entity.transitionFrom ?? null,
     version: entity.version,
+    createdAt: entity.createdAt.toISOString(),
+  });
+}
+
+export function toToolCallRecord(entity: ToolCallRecordEntity): ToolCallRecordInterface {
+  return assertResponse(ToolCallRecordSchema, {
+    id: entity.id,
+    transitionId: entity.transitionId ?? null,
+    place: entity.place ?? null,
+    seq: entity.seq,
+    toolName: entity.toolName,
+    args: entity.args ?? null,
+    envelope: entity.envelope,
     createdAt: entity.createdAt.toISOString(),
   });
 }

@@ -13,8 +13,8 @@ cd "$(dirname "$0")/.."
 LOOPSTACK_ROOT="$(cd ../.. && pwd)"
 OUT_DIR="$PWD/local-packages"
 
-# Dependency-ordered: contracts → common → core → auth/api → loopstack-module
-PACKAGES=(contracts common core auth api loopstack-module)
+# Dependency-ordered: contracts → common → core → auth/api → loopstack-module; client for the test helpers
+PACKAGES=(contracts common core auth api loopstack-module client)
 
 rm -f "$OUT_DIR"/*.tgz
 for pkg in "${PACKAGES[@]}"; do

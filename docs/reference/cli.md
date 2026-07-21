@@ -1,6 +1,6 @@
 ---
 title: CLI Reference
-description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition, LLM token, and tool call streaming, answer human-in-the-loop prompts inline (text, confirm, choices, forms with $EDITOR, chat inputs, secret entry), reattach to running or waiting runs with loopstack attach, retry failed runs interactively, inspect and watch runs, manage backend environments and API tokens. Covers loopstack create, list, run, runs, attach, watch, login, env, the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
+description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition, LLM token, and tool call streaming, answer human-in-the-loop prompts inline (text, confirm, choices, forms with $EDITOR, chat inputs, secret entry) or non-interactively with loopstack answer, reattach to running or waiting runs with loopstack attach, retry failed runs interactively, inspect and watch runs, derive replay fixtures with runs --record, manage backend environments and API tokens. Covers loopstack create, list, run, runs (incl. pendingPrompt and --record), answer, attach, watch, login, env, the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
 ---
 
 # CLI Reference
@@ -121,12 +121,16 @@ loopstack runs                          # recent runs — waiting-for-input firs
 loopstack runs --limit 5 --json
 loopstack runs --search invoice --status waiting
 loopstack runs <run-id>                 # full transcript: steps, documents, result
+loopstack runs <run-id> --record fixture.json    # replay fixture from recorded tool calls
+loopstack answer <run-id> --arg answer=yes       # answer a waiting prompt, non-interactive
 loopstack attach <run-id>               # rejoin live — streams and answers prompts
 loopstack watch                         # the environment's event firehose
 loopstack watch --type workflow.updated --json   # NDJSON, filterable
 ```
 
-`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it prints the run's full transcript — step lines with durations, the run tree's documents in chronological order, and the published result.
+`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it prints the run's full transcript — step lines with durations, the run tree's documents in chronological order, and the published result. When the run is waiting, `--json` additionally carries a `pendingPrompt` object — the question's description, the expected answer schema, the widget type, and the transition to answer — everything a script or agent needs to relay the question. `--record <file>` writes the run's recorded tool calls as a replay fixture for [workflow tests](/docs/build/testing) (requires the backend to run with `recordToolCalls` / `LOOPSTACK_RECORD_TOOL_CALLS=true`).
+
+`loopstack answer` is the non-interactive counterpart of the prompt widgets: it finds the prompt the run is parked on (following sub-workflows, exactly like `attach`), and submits the answer built from `--arg key=value` pairs (or `--payload '<json>'`, `@file`, `@-`). The wait transition is resolved automatically; `--transition <id>` picks one when several are available. Exit `0` on submit, `2` when nothing is pending or the input is Studio-only. The agent loop is: `run … --json` exits `3` → `runs <run-id> --json` shows `pendingPrompt` → relay the question → `answer <run-id> --arg …` → re-check `runs <run-id>`.
 
 `loopstack attach` rejoins a run the way `docker attach` joins a container: the transcript so far, then live output and interactive prompts — including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
 

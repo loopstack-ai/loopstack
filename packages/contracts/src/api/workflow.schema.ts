@@ -82,6 +82,18 @@ export const WorkflowCheckpointSchema = z.object({
 });
 export type WorkflowCheckpointInterface = z.infer<typeof WorkflowCheckpointSchema>;
 
+export const ToolCallRecordSchema = z.object({
+  id: z.string(),
+  transitionId: z.string().nullable(),
+  place: z.string().nullable(),
+  seq: z.number(),
+  toolName: z.string(),
+  args: z.record(z.string(), z.unknown()).nullable(),
+  envelope: z.record(z.string(), z.unknown()),
+  createdAt: z.iso.datetime(),
+});
+export type ToolCallRecordInterface = z.infer<typeof ToolCallRecordSchema>;
+
 export const RunWorkflowPayloadSchema = z.object({
   transition: TransitionPayloadSchema.partial({ id: true }).optional(),
 });

@@ -3,7 +3,13 @@ import { TestingModuleBuilder } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { vi } from 'vitest';
-import { DocumentEntity, WorkflowCheckpointEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
+import {
+  DocumentEntity,
+  ToolCallRecordEntity,
+  WorkflowCheckpointEntity,
+  WorkflowEntity,
+  WorkspaceEntity,
+} from '@loopstack/common';
 
 const createMockRepository = () => ({
   find: vi.fn().mockResolvedValue([]),
@@ -54,5 +60,7 @@ export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingM
     .overrideProvider(getRepositoryToken(WorkspaceEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkflowCheckpointEntity))
+    .useValue(createMockRepository())
+    .overrideProvider(getRepositoryToken(ToolCallRecordEntity))
     .useValue(createMockRepository());
 }

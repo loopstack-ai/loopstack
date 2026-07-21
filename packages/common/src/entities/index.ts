@@ -5,3 +5,4 @@ export * from './workflow-checkpoint.entity.js';
 export * from './workspace.entity.js';
 export * from './role.entity.js';
 export * from './user.entity.js';
+export * from './tool-call-record.entity.js';

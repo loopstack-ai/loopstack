@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "recordings": [
+    {
+      "transition": "classify",
+      "seq": 0,
+      "tool": "classify_ticket",
+      "args": { "text": "Production is down!" },
+      "envelope": {
+        "data": {
+          "severity": "high",
+          "reason": "replayed from recording"
+        }
+      }
+    }
+  ]
+}

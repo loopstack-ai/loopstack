@@ -16,3 +16,6 @@ export * from './tool-registry.service.js';
 export * from './block-processor.service.js';
 export * from './processor.factory.js';
 export * from './processors/workflow-processor.service.js';
+export * from './stateless-child-runner.service.js';
+export * from './tool-call-audit.service.js';
+export * from './tool-call-audit.interceptor.js';

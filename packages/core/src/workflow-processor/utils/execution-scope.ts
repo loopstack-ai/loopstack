@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { QueryRunner } from 'typeorm';
-import type { DocumentEntity } from '@loopstack/common';
-import type { HistoryTransition } from '@loopstack/contracts/types';
+import type { DocumentEntity, StatelessChildRecord } from '@loopstack/common';
+import type { HistoryTransition, TransitionPayloadInterface } from '@loopstack/contracts/types';
 
 /**
  * Data held in async-local-storage during a workflow transition.
@@ -28,6 +28,11 @@ export interface ExecutionScopeData {
   documents: DocumentEntity[];
   persistenceState: { documentsUpdated: boolean };
   transition?: HistoryTransition;
+
+  // Stateless sub-workflow orchestration (in-memory): callback envelopes of inline-executed
+  // children awaiting application to the parent, and the records of all inline children.
+  statelessCallbacks?: TransitionPayloadInterface[];
+  statelessChildren?: StatelessChildRecord[];
 
   // Aborted when the transition is torn down (e.g. on timeout). Framework I/O reads
   // `abortController.signal` and refuses to run once aborted, so an abandoned transition

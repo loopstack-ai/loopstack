@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { createRequire } from 'node:module';
+import { registerAnswerCommand } from './commands/answer.js';
 import { registerAttachCommand } from './commands/attach.js';
 import { registerCreateCommand } from './commands/create.js';
 import { registerEnvCommand } from './commands/env.js';
@@ -26,6 +27,7 @@ registerLoginCommand(program);
 registerEnvCommand(program);
 registerRunCommand(program);
 registerRunsCommand(program);
+registerAnswerCommand(program);
 registerAttachCommand(program);
 registerWatchCommand(program);
 registerListCommand(program);

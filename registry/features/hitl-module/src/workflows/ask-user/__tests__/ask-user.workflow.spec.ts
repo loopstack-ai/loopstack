@@ -45,6 +45,40 @@ describe('AskUserWorkflow', () => {
     });
   });
 
+  describe('stateless resume', () => {
+    it('resumes a parked run with the answer, carries state, and completes', async () => {
+      const parked = await processor.process(workflow, { question: 'Proceed?' }, createStatelessContext());
+
+      expect(parked.status).toBe('waiting');
+      expect(parked.place).toBe('waiting_for_user');
+      expect(parked.statelessState).toBeDefined();
+
+      const resumed = await processor.process(
+        workflow,
+        { question: 'Proceed?' },
+        createStatelessContext({
+          payload: { transition: { id: 'userAnswered', workflowId: '', payload: { data: { answer: 'yes' } } } },
+          statelessState: parked.statelessState,
+        }),
+      );
+
+      expect(resumed.hasError).toBe(false);
+      expect(resumed.status).toBe('completed');
+      expect(resumed.place).toBe('end');
+      expect(resumed.result).toEqual({ answer: 'yes' });
+      expect(resumed.history.map((t) => t.id)).toEqual(['userAnswered']);
+      // The answered document re-renders the question from carried state — proving state survived
+      expect(resumed.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            documentName: 'ask_user',
+            content: expect.objectContaining({ question: 'Proceed?', answer: 'yes' }),
+          }),
+        ]),
+      );
+    });
+  });
+
   describe('options mode', () => {
     it('renders an AskUserOptionsDocument with the options list', async () => {
       const context = createStatelessContext();
