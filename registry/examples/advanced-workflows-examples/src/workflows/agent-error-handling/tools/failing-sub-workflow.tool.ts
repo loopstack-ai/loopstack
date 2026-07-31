@@ -5,12 +5,15 @@ import { AgentErrorHandlingFailingSubWorkflow } from '../agent-error-handling-fa
 
 export type FailingSubWorkflowToolResult = { workflowId: string };
 
+export const FailingSubWorkflowToolResultSchema = z.strictObject({ workflowId: z.string() });
+
 @Tool({
   name: 'failing_sub_workflow',
   description:
     'Launch an async sub-workflow that always fails. ' +
     'Used to test that failed sub-workflow errors propagate back to the parent.',
   schema: z.object({}),
+  resultSchema: FailingSubWorkflowToolResultSchema,
 })
 export class FailingSubWorkflowTool extends BaseTool<object, object, FailingSubWorkflowToolResult> {
   constructor(private readonly failingWorkflow: AgentErrorHandlingFailingSubWorkflow) {

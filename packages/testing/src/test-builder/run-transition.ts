@@ -1,4 +1,5 @@
 import type { DocumentEntity } from '@loopstack/common';
+import { getWorkflowIdentifier } from '@loopstack/common';
 import { ExecutionScope, type ExecutionScopeData } from '@loopstack/core';
 
 /** What `runTransition` returns: the state and result drafts after the transition resolves. */
@@ -71,6 +72,7 @@ export async function runTransition<
     userId: options.scope?.userId ?? 'test-user',
     workspaceId: options.scope?.workspaceId ?? 'test-workspace',
     workflowId: options.scope?.workflowId ?? 'test-workflow',
+    workflowName: getWorkflowIdentifier(workflow),
     labels: options.scope?.labels ?? [],
     args: options.scope?.args,
     options: options.scope?.options ?? { stateless: false },

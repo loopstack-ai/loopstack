@@ -326,6 +326,24 @@ export type ExchangeOAuthTokenResult = {
 
 ## Variables
 
+### BuildOAuthUrlResultSchema
+
+Zod schema for `BuildOAuthUrlResult` — the `resultSchema` of `build_oauth_url`.
+
+```ts
+import { BuildOAuthUrlResultSchema } from '@loopstack/oauth-module';
+```
+
+```ts
+BuildOAuthUrlResultSchema: z.ZodObject<
+  {
+    authUrl: z.ZodString;
+    state: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
 ### BuildOAuthUrlSchema
 
 Zod schema for `BuildOAuthUrlTool` args.
@@ -339,6 +357,26 @@ BuildOAuthUrlSchema: z.ZodObject<
   {
     provider: z.ZodString;
     scopes: z.ZodArray<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### ExchangeOAuthTokenResultSchema
+
+Zod schema for `ExchangeOAuthTokenResult` — the `resultSchema` of `exchange_oauth_token`.
+
+```ts
+import { ExchangeOAuthTokenResultSchema } from '@loopstack/oauth-module';
+```
+
+```ts
+ExchangeOAuthTokenResultSchema: z.ZodObject<
+  {
+    accessToken: z.ZodString;
+    refreshToken: z.ZodOptional<z.ZodString>;
+    expiresIn: z.ZodOptional<z.ZodNumber>;
+    scope: z.ZodOptional<z.ZodString>;
   },
   z.core.$strict
 >;

@@ -42,6 +42,27 @@ export type GmailSearchMessagesResult =
   | { error: 'api_error'; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GmailSearchMessagesResult} — the message summaries
+ * and pagination token.
+ *
+ * @public
+ */
+export const GmailSearchMessagesResultSchema = z.strictObject({
+  messages: z.array(
+    z.strictObject({
+      id: z.string(),
+      threadId: z.string(),
+      snippet: z.string(),
+      from: z.string(),
+      to: z.string(),
+      subject: z.string(),
+      date: z.string(),
+    }),
+  ),
+  nextPageToken: z.string().optional(),
+});
+
+/**
  * Tool that searches Gmail messages using Gmail query syntax. Takes a `query`, optional `labelIds`,
  * and pagination, and returns message summaries with headers and snippets plus a `nextPageToken`, or
  * `{ error: 'unauthorized' }` when no valid Google token is available.
@@ -54,6 +75,7 @@ export type GmailSearchMessagesResult =
   description:
     'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GmailSearchMessagesResultSchema,
 })
 export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, object, GmailSearchMessagesResult> {
   private readonly logger = new Logger(GmailSearchMessagesTool.name);

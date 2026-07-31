@@ -11,6 +11,7 @@ import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
 import { LlmToolsHelperService } from '../services/llm-tools-helper.service.js';
+import { LlmGenerateTextResultSchema } from '../types/index.js';
 import type {
   LlmGenerateTextResult,
   LlmMessage,
@@ -77,6 +78,7 @@ export const LlmGenerateTextToolSchema = LlmGenerateTextArgsSchema;
     'Configure provider, model, system prompt, and tools via options.config.',
   schema: LlmGenerateTextArgsSchema,
   configSchema: LlmGenerateTextConfigSchema,
+  resultSchema: LlmGenerateTextResultSchema,
 })
 export class LlmGenerateTextTool extends BaseTool<
   LlmGenerateTextArgs,

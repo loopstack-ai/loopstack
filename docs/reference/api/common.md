@@ -35,7 +35,7 @@ export abstract class BaseTool<
     ctx: RunContext,
     options?: ToolCallOptions<TConfig>,
   ): Promise<ToolEnvelope<TResult, TMeta>>;
-  complete(result: Record<string, unknown>): Promise<ToolEnvelope>;
+  complete(_result: Record<string, unknown>): Promise<ToolEnvelope>;
 }
 ```
 
@@ -242,6 +242,7 @@ export interface RunContext<TArgs = unknown> {
   workspaceId: string;
   workflowId: string;
   args: TArgs;
+  signal: AbortSignal;
   execution?: {
     place: string;
     retryCount: number;
@@ -267,7 +268,9 @@ export interface RunResult {
 
 ### StatelessRunResult
 
-Result of a stateless `WorkflowRunner.runSync` (no persistence) — `status` and published `result`.
+Result of a stateless `WorkflowRunner.runSync` (no persistence) — the final `status` and
+published `result`, plus the in-memory run record: `place`, executed transition `history`,
+produced `documents`, currently `availableTransitions`, and error info.
 
 ```ts
 import { StatelessRunResult } from '@loopstack/common';
@@ -277,6 +280,12 @@ import { StatelessRunResult } from '@loopstack/common';
 export interface StatelessRunResult {
   status: WorkflowState;
   result: unknown;
+  place: string;
+  history: HistoryTransition[];
+  documents: DocumentEntity[];
+  availableTransitions: WorkflowTransitionType[];
+  hasError: boolean;
+  errorMessage?: string;
 }
 ```
 
@@ -347,6 +356,7 @@ export interface ToolOptions {
   widget?: WidgetRef | WidgetRef[];
   schema?: z.ZodType;
   configSchema?: z.ZodType;
+  resultSchema?: z.ZodType;
 }
 ```
 

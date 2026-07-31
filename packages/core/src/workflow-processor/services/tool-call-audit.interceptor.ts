@@ -46,6 +46,7 @@ export class ToolCallAuditInterceptor implements ToolInterceptor {
     try {
       await this.auditService.save({
         workflowId: scope.workflowId,
+        workflowName: scope.workflowName,
         workspaceId: scope.workspaceId,
         transitionId,
         place: scope.transition?.from ?? null,

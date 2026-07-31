@@ -16,9 +16,16 @@ export interface GreetResult {
   greeting: string;
 }
 
+export const GreetResultSchema = z.strictObject({
+  message: z.string(),
+  language: z.string(),
+  greeting: z.string(),
+});
+
 @Tool({
   name: 'greeter',
   schema: GreeterArgsSchema,
+  resultSchema: GreetResultSchema,
 })
 export class GreeterTool extends BaseTool<GreeterArgs, object, GreetResult> {
   @Inject(GREETER_CONFIG) private readonly config: GreeterConfig;

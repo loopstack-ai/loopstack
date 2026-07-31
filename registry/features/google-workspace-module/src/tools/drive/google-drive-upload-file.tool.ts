@@ -32,6 +32,18 @@ export type GoogleDriveUploadFileResult =
   | { error: 'api_error'; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GoogleDriveUploadFileResult} — the created file.
+ *
+ * @public
+ */
+export const GoogleDriveUploadFileResultSchema = z.strictObject({
+  id: z.string(),
+  name: z.string(),
+  mimeType: z.string(),
+  webViewLink: z.string().optional(),
+});
+
+/**
  * Tool that uploads a new file to Google Drive using multipart upload. Takes a name, content, mime
  * type, and optional folder and description, and returns the created file's id, name, and link, or
  * `{ error: 'unauthorized' }` when no valid Google token is available.
@@ -44,6 +56,7 @@ export type GoogleDriveUploadFileResult =
   description:
     'Uploads a new file to Google Drive using multipart upload. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GoogleDriveUploadFileResultSchema,
 })
 export class GoogleDriveUploadFileTool extends BaseTool<
   GoogleDriveUploadFileArgs,

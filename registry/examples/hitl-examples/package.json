@@ -31,7 +31,8 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
+    "test:live": "vitest run --config vitest.live.config.ts",
     "watch": "nest build --watch"
   },
   "dependencies": {

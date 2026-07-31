@@ -33,6 +33,16 @@ export interface SandboxReadFileResult {
 }
 
 /**
+ * Zod schema for {@link SandboxReadFileResult} — the `resultSchema` of `sandbox_read_file`.
+ *
+ * @public
+ */
+export const SandboxReadFileResultSchema = z.strictObject({
+  content: z.string(),
+  encoding: z.string(),
+});
+
+/**
  * Tool that reads a file's contents from a sandbox container, as utf8 or base64.
  *
  * @providedBy SandboxFilesystemModule
@@ -42,6 +52,7 @@ export interface SandboxReadFileResult {
   name: 'sandbox_read_file',
   description: 'Read file contents from a sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxReadFileResultSchema,
 })
 export class SandboxReadFile extends BaseTool<SandboxReadFileArgs, object, SandboxReadFileResult> {
   private readonly logger = new Logger(SandboxReadFile.name);

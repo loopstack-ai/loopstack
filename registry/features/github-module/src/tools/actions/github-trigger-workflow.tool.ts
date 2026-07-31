@@ -35,6 +35,16 @@ export type GitHubTriggerWorkflowResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubTriggerWorkflowResult}.
+ *
+ * @public
+ */
+export const GitHubTriggerWorkflowResultSchema = z.strictObject({
+  triggered: z.boolean(),
+  message: z.string(),
+});
+
+/**
  * Tool that triggers a GitHub Actions workflow dispatch event on a given ref.
  *
  * @providedBy GitHubModule
@@ -45,6 +55,7 @@ export type GitHubTriggerWorkflowResult =
   description:
     'Triggers a GitHub Actions workflow dispatch event. Returns 204 No Content on success. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubTriggerWorkflowResultSchema,
 })
 export class GitHubTriggerWorkflowTool extends BaseTool<
   GitHubTriggerWorkflowArgs,

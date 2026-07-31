@@ -6,6 +6,7 @@ import type { LlmContext } from '../contracts/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
+import { LlmGenerateObjectResultSchema } from '../types/index.js';
 import type { LlmGenerateObjectResult, LlmMessage, LlmResultMeta } from '../types/index.js';
 
 /**
@@ -66,6 +67,7 @@ export const LlmGenerateObjectToolSchema = LlmGenerateObjectArgsSchema;
     'Configure provider, model, and system prompt via options.config.',
   schema: LlmGenerateObjectArgsSchema,
   configSchema: LlmGenerateObjectConfigSchema,
+  resultSchema: LlmGenerateObjectResultSchema,
 })
 export class LlmGenerateObjectTool extends BaseTool<
   LlmGenerateObjectArgs,

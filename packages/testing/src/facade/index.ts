@@ -1,5 +1,7 @@
 import { ToolTestBuilder, createToolTest } from '../test-builder/tool-test-builder.js';
 
+export { AnswerQueue, queue } from './answers.js';
+export * from './record.js';
 export * from './replay.js';
 export * from './run-workflow.js';
 

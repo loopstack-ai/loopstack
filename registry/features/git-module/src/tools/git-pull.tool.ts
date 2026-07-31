@@ -24,6 +24,13 @@ export type GitPullResult = {
 };
 
 /**
+ * Zod schema for `GitPullResult`.
+ *
+ * @public
+ */
+export const GitPullResultSchema = z.strictObject({ success: z.boolean(), output: z.string().optional() });
+
+/**
  * Tool that pulls changes from a remote repository.
  *
  * @providedBy GitModule
@@ -39,6 +46,7 @@ export type GitPullResult = {
       token: z.string().optional().describe('Access token for authentication'),
     })
     .strict(),
+  resultSchema: GitPullResultSchema,
 })
 export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
   constructor(

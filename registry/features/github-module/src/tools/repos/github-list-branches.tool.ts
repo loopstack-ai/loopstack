@@ -36,6 +36,21 @@ export type GitHubListBranchesResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubListBranchesResult}.
+ *
+ * @public
+ */
+export const GitHubListBranchesResultSchema = z.strictObject({
+  branches: z.array(
+    z.strictObject({
+      name: z.string(),
+      commitSha: z.string(),
+      protected: z.boolean(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists branches for a GitHub repository.
  *
  * @providedBy GitHubModule
@@ -46,6 +61,7 @@ export type GitHubListBranchesResult = {
   description:
     'Lists branches for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubListBranchesResultSchema,
 })
 export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, object, GitHubListBranchesResult> {
   private readonly logger = new Logger(GitHubListBranchesTool.name);

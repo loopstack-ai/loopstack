@@ -15,6 +15,10 @@ export class ToolCallRecordEntity {
   @Index()
   workflowId!: string;
 
+  /** Registered name of the workflow the call executed in — keys fixture matching per workflow. */
+  @Column({ name: 'workflow_name' })
+  workflowName!: string;
+
   @Column({ name: 'workspace_id' })
   @Index()
   workspaceId!: string;

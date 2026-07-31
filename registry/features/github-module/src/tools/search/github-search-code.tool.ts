@@ -39,6 +39,24 @@ export type GitHubSearchCodeResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubSearchCodeResult}.
+ *
+ * @public
+ */
+export const GitHubSearchCodeResultSchema = z.strictObject({
+  totalCount: z.number(),
+  results: z.array(
+    z.strictObject({
+      name: z.string(),
+      path: z.string(),
+      sha: z.string(),
+      htmlUrl: z.string(),
+      repository: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that searches for code across GitHub repositories using the GitHub search syntax.
  *
  * @providedBy GitHubModule
@@ -49,6 +67,7 @@ export type GitHubSearchCodeResult = {
   description:
     'Searches for code across GitHub repositories using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubSearchCodeResultSchema,
 })
 export class GitHubSearchCodeTool extends BaseTool<GitHubSearchCodeArgs, object, GitHubSearchCodeResult> {
   private readonly logger = new Logger(GitHubSearchCodeTool.name);

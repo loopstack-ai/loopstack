@@ -225,3 +225,61 @@ import { SandboxInitArgs } from '@loopstack/sandbox-tool';
 ```ts
 export type SandboxInitArgs = z.infer<typeof inputSchema>;
 ```
+
+## Variables
+
+### CommandExecutionResultSchema
+
+Zod schema for `CommandExecutionResult` — the `resultSchema` of `sandbox_command`.
+
+```ts
+import { CommandExecutionResultSchema } from '@loopstack/sandbox-tool';
+```
+
+```ts
+CommandExecutionResultSchema: z.ZodObject<
+  {
+    stdout: z.ZodString;
+    stderr: z.ZodString;
+    exitCode: z.ZodNumber;
+    timedOut: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### SandboxDestroyResultSchema
+
+Zod schema for `SandboxDestroyResult` — the `resultSchema` of `sandbox_destroy`.
+
+```ts
+import { SandboxDestroyResultSchema } from '@loopstack/sandbox-tool';
+```
+
+```ts
+SandboxDestroyResultSchema: z.ZodObject<
+  {
+    containerId: z.ZodString;
+    removed: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### SandboxInitResultSchema
+
+Zod schema for `SandboxInitResult` — the `resultSchema` of `sandbox_init`.
+
+```ts
+import { SandboxInitResultSchema } from '@loopstack/sandbox-tool';
+```
+
+```ts
+SandboxInitResultSchema: z.ZodObject<
+  {
+    containerId: z.ZodString;
+    dockerId: z.ZodString;
+  },
+  z.core.$strict
+>;
+```

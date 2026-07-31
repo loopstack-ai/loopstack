@@ -3,12 +3,15 @@ import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 
 export type WeatherLookupResult = string;
 
+export const WeatherLookupResultSchema = z.string();
+
 @Tool({
   name: 'weather_lookup',
   description: 'Look up the current weather for a given city. Returns a simulated forecast.',
   schema: z.object({
     city: z.string().describe('The city name to look up weather for.'),
   }),
+  resultSchema: WeatherLookupResultSchema,
 })
 export class WeatherLookupTool extends BaseTool<{ city: string }, object, WeatherLookupResult> {
   protected async handle(args: { city: string }): Promise<ToolEnvelope<WeatherLookupResult>> {

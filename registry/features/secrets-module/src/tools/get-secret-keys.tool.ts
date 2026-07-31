@@ -1,4 +1,5 @@
 import { Inject } from '@nestjs/common';
+import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { SecretService } from '../services/index.js';
@@ -11,6 +12,18 @@ import { SecretService } from '../services/index.js';
 export type GetSecretKeysResult = { key: string; hasValue: boolean }[];
 
 /**
+ * Zod schema for {@link GetSecretKeysResult} — the `resultSchema` of `get_secret_keys`.
+ *
+ * @public
+ */
+export const GetSecretKeysResultSchema = z.array(
+  z.strictObject({
+    key: z.string(),
+    hasValue: z.boolean(),
+  }),
+);
+
+/**
  * Tool that returns the secret keys available in the current workspace without exposing their values.
  *
  * @providedBy SecretsModule
@@ -19,6 +32,7 @@ export type GetSecretKeysResult = { key: string; hasValue: boolean }[];
 @Tool({
   name: 'get_secret_keys',
   description: 'Returns the list of secret keys for the current workspace. Does not return secret values.',
+  resultSchema: GetSecretKeysResultSchema,
 })
 export class GetSecretKeysTool extends BaseTool<object, object, GetSecretKeysResult> {
   @Inject() private secretService: SecretService;

@@ -9,6 +9,7 @@ import {
   WorkflowInterface,
   WorkflowMetadataInterface,
   getGuardMetadataMap,
+  getWorkflowIdentifier,
   getWorkflowStateSchema,
 } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
@@ -142,6 +143,7 @@ export class WorkflowProcessorService implements Processor {
       userId: context.userId,
       workspaceId: context.workspaceId,
       workflowId: context.workflowId ?? '',
+      workflowName: getWorkflowIdentifier(workflow),
       labels: context.labels ?? [],
       args: args ? Object.freeze({ ...args }) : undefined,
       options: context.options,

@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
@@ -13,6 +14,16 @@ export type ResetWorkspaceResult = {
 };
 
 /**
+ * Zod schema for {@link ResetWorkspaceResult}.
+ *
+ * @public
+ */
+export const ResetWorkspaceResultSchema = z.strictObject({
+  success: z.boolean(),
+  message: z.string(),
+});
+
+/**
  * Tool that resets the remote workspace to its initial state, clearing changes, temp files, database, and Redis.
  *
  * @providedBy RemoteClientModule
@@ -21,6 +32,7 @@ export type ResetWorkspaceResult = {
 @Tool({
   name: 'reset_workspace',
   description: 'Resets the workspace to its initial state, clearing all changes, temp files, database, and Redis.',
+  resultSchema: ResetWorkspaceResultSchema,
 })
 export class ResetWorkspaceTool extends BaseTool<Record<string, never>, object, ResetWorkspaceResult> {
   constructor(

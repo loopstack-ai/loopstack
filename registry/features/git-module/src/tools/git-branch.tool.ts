@@ -13,6 +13,16 @@ export type GitBranchResult = {
 };
 
 /**
+ * Zod schema for `GitBranchResult`.
+ *
+ * @public
+ */
+export const GitBranchResultSchema = z.strictObject({
+  current: z.string(),
+  branches: z.array(z.strictObject({ name: z.string(), isCurrent: z.boolean() })),
+});
+
+/**
  * Tool that lists all local git branches and indicates the current branch.
  *
  * @providedBy GitModule
@@ -22,6 +32,7 @@ export type GitBranchResult = {
   name: 'git_branch',
   description: 'Lists all local git branches and indicates the current branch.',
   schema: z.object({}).strict(),
+  resultSchema: GitBranchResultSchema,
 })
 export class GitBranchTool extends BaseTool<object, object, GitBranchResult> {
   constructor(

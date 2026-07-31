@@ -1,10 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
   "recordings": [
     {
-      "transition": "classify",
-      "seq": 0,
       "tool": "classify_ticket",
+      "workflow": "triage_ticket",
+      "transition": "classify",
       "args": { "text": "Production is down!" },
       "envelope": {
         "data": {

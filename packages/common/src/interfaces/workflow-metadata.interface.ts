@@ -20,8 +20,8 @@ export interface StatelessExecutionState {
 
 /**
  * An inline-executed sub-workflow of a stateless run. Terminal children carry their result;
- * parked children carry their own `statelessState` so the caller can answer their wait
- * transition and deliver the callback to the parent.
+ * parked children carry their own `statelessState` and the transitions they are waiting on, so
+ * the caller can answer their wait transition and deliver the callback to the parent.
  */
 export interface StatelessChildRecord {
   workflowId: string;
@@ -35,6 +35,8 @@ export interface StatelessChildRecord {
   hasError: boolean;
   errorMessage?: string;
   statelessState?: StatelessExecutionState;
+  /** The transitions the child is waiting on while parked (empty when terminal). */
+  availableTransitions: WorkflowTransitionType[];
 }
 
 export interface WorkflowMetadataInterface {

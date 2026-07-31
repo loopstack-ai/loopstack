@@ -53,13 +53,13 @@ describe('GitCommitTool', () => {
 
   describe('execution', () => {
     it('forwards the commit through RemoteClient', async () => {
-      mockRemoteClient.gitCommit.mockResolvedValue({ hash: 'abc123' });
+      mockRemoteClient.gitCommit.mockResolvedValue({ hash: 'abc123', message: 'update from workflow' });
 
       const result = await tool.call({ message: 'update from workflow' });
 
       expect(mockEnv.getAgentUrl).toHaveBeenCalled();
       expect(mockRemoteClient.gitCommit).toHaveBeenCalledWith('https://agent.example', 'update from workflow');
-      expect(result.data).toEqual({ hash: 'abc123' });
+      expect(result.data).toEqual({ hash: 'abc123', message: 'update from workflow' });
     });
   });
 });

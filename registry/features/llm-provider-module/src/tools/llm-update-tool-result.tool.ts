@@ -4,6 +4,7 @@ import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common
 import type { RunContext } from '@loopstack/common';
 import { LlmMessageDocument } from '../documents/index.js';
 import { LlmDelegateService } from '../services/llm-delegate.service.js';
+import { LlmDelegateResultSchema } from '../types/index.js';
 import type { LlmDelegateResult } from '../types/index.js';
 
 /**
@@ -53,6 +54,7 @@ type LlmUpdateToolResultConfig = z.infer<typeof LlmUpdateToolResultConfigSchema>
   description: 'Handles async tool completion callbacks and updates the delegate result.',
   schema: LlmUpdateToolResultToolSchema,
   configSchema: LlmUpdateToolResultConfigSchema,
+  resultSchema: LlmDelegateResultSchema,
 })
 export class LlmUpdateToolResultTool extends BaseTool<
   LlmUpdateToolResultToolArgs,

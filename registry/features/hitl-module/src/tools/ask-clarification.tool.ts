@@ -41,6 +41,14 @@ type AskClarificationInput = z.infer<typeof AskClarificationInputSchema>;
 export type AskClarificationResult = { workflowId: string } | string | Record<string, unknown>;
 
 /**
+ * Zod schema for {@link AskClarificationResult} — the user's answer is a plain string
+ * or, for structured answer modes, a record.
+ *
+ * @public
+ */
+export const AskClarificationResultSchema = z.union([z.string(), z.record(z.string(), z.unknown())]);
+
+/**
  * Tool that asks the user a clarification question and waits for their answer.
  *
  * Runs the {@link AskUserWorkflow} as an inline sub-workflow in `text`, `options`, or
@@ -57,6 +65,7 @@ export type AskClarificationResult = { workflowId: string } | string | Record<st
     'Use this when you need more information from the user before you can proceed. ' +
     'IMPORTANT: This must be the only tool call in your response.',
   schema: AskClarificationInputSchema,
+  resultSchema: AskClarificationResultSchema,
 })
 export class AskClarificationTool extends BaseTool<AskClarificationInput, object, AskClarificationResult> {
   constructor(private readonly askUserWorkflow: AskUserWorkflow) {

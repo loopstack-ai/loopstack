@@ -16,6 +16,19 @@ export type GitStatusResult = {
 };
 
 /**
+ * Zod schema for `GitStatusResult`.
+ *
+ * @public
+ */
+export const GitStatusResultSchema = z.strictObject({
+  branch: z.string(),
+  staged: z.array(z.string()),
+  modified: z.array(z.string()),
+  untracked: z.array(z.string()),
+  deleted: z.array(z.string()),
+});
+
+/**
  * Tool that reports the git status of the workspace: current branch plus staged, modified,
  * untracked, and deleted files.
  *
@@ -27,6 +40,7 @@ export type GitStatusResult = {
   description:
     'Gets the git status of the workspace. Returns current branch, staged, modified, untracked, and deleted files.',
   schema: z.object({}).strict(),
+  resultSchema: GitStatusResultSchema,
 })
 export class GitStatusTool extends BaseTool<object, object, GitStatusResult> {
   constructor(

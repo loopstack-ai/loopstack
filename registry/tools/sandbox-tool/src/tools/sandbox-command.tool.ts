@@ -1,7 +1,11 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import { CommandExecutionResult, DockerContainerManagerService } from '../services/docker-container-manager.service.js';
+import {
+  CommandExecutionResult,
+  CommandExecutionResultSchema,
+  DockerContainerManagerService,
+} from '../services/docker-container-manager.service.js';
 
 const inputSchema = z
   .object({
@@ -34,6 +38,7 @@ export type SandboxCommandArgs = z.infer<typeof inputSchema>;
   name: 'sandbox_command',
   description: 'Execute a command in the sandbox environment',
   schema: inputSchema,
+  resultSchema: CommandExecutionResultSchema,
 })
 export class SandboxCommand extends BaseTool<SandboxCommandArgs, object, CommandExecutionResult> {
   private readonly logger = new Logger(SandboxCommand.name);

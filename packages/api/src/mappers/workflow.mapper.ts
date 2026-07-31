@@ -72,6 +72,7 @@ export function toWorkflowCheckpoint(
 export function toToolCallRecord(entity: ToolCallRecordEntity): ToolCallRecordInterface {
   return assertResponse(ToolCallRecordSchema, {
     id: entity.id,
+    workflowName: entity.workflowName,
     transitionId: entity.transitionId ?? null,
     place: entity.place ?? null,
     seq: entity.seq,

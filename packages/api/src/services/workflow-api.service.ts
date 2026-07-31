@@ -294,6 +294,7 @@ export class WorkflowApiService {
   async getToolCalls(workflowId: string, user: string): Promise<ToolCallRecordEntity[]> {
     // Verify the user owns this workflow
     await this.findOneById(workflowId, user);
-    return this.toolCallAuditService.findByWorkflowId(workflowId);
+    // Records of the whole run tree — a parent run's fixture needs its sub-workflows' calls too.
+    return this.toolCallAuditService.findByRunTree(workflowId);
   }
 }

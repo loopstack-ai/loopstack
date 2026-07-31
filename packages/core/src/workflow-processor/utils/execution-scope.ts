@@ -16,6 +16,8 @@ export interface ExecutionScopeData {
   userId: string;
   workspaceId: string;
   workflowId: string;
+  /** Registered name of the workflow being processed. */
+  workflowName: string;
   labels: string[];
   args: Readonly<Record<string, unknown> | undefined>;
   options: { stateless: boolean };

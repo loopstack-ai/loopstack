@@ -89,11 +89,14 @@ export abstract class BaseTool<
   ): Promise<ToolEnvelope<TResult, TMeta>>;
 
   /**
-   * Called when an async sub-workflow completes and the callback fires.
-   * Override to post-process the result (e.g. update link documents, transform data).
-   * The default implementation passes through the sub-workflow result.
+   * Called when an async sub-workflow completes successfully and the callback fires.
+   * Async tools implement this to shape the sub-workflow result into the tool's declared
+   * result (never called for failed or canceled sub-workflows). The base implementation
+   * throws: a tool that launches a sub-workflow must define what its completion means.
    */
-  async complete(result: Record<string, unknown>): Promise<ToolEnvelope> {
-    return { data: (result as { data?: unknown }).data ?? result };
+  async complete(_result: Record<string, unknown>): Promise<ToolEnvelope> {
+    return Promise.reject(
+      new Error(`Tool '${this.constructor.name}' launched a sub-workflow but does not implement complete().`),
+    );
   }
 }

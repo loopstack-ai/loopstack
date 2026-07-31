@@ -18,7 +18,7 @@ describe('TriageTicketWorkflow — replay', () => {
       {
         providers: [ClassifyTicketTool],
         answers: { approve: { approved: true } },
-        replay: replay(join(import.meta.dirname, '__recordings__/triage.json')),
+        replay: replay(join(__dirname, '__recordings__/triage.json')),
       },
     );
 
@@ -38,11 +38,9 @@ describe('TriageTicketWorkflow — replay', () => {
         providers: [ClassifyTicketTool],
         answers: { approve: { approved: true } },
         replay: replay({
-          version: 1,
+          version: 2,
           recordings: [
             {
-              transition: 'classify',
-              seq: 0,
               tool: 'classify_ticket',
               envelope: { data: { severity: 'normal', reason: 'inline fixture' } },
             },

@@ -14,12 +14,18 @@ export interface ClassificationResult {
   reason: string;
 }
 
+export const ClassificationResultSchema = z.strictObject({
+  severity: z.enum(['high', 'normal']),
+  reason: z.string(),
+});
+
 const URGENCY_KEYWORDS = ['down', 'outage', 'urgent', 'critical'];
 
 @Tool({
   name: 'classify_ticket',
   description: 'Classifies a support ticket as high or normal severity based on urgency keywords.',
   schema: ClassifyTicketSchema,
+  resultSchema: ClassificationResultSchema,
 })
 export class ClassifyTicketTool extends BaseTool<ClassifyTicketArgs, object, ClassificationResult> {
   protected async handle(args: ClassifyTicketArgs): Promise<ToolEnvelope<ClassificationResult>> {

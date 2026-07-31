@@ -4,6 +4,8 @@ import type { RunContext } from '@loopstack/common';
 
 export type RuntimeErrorToolResult = string;
 
+export const RuntimeErrorToolResultSchema = z.string();
+
 @Tool({
   name: 'runtime_error',
   description:
@@ -12,6 +14,7 @@ export type RuntimeErrorToolResult = string;
   schema: z.object({
     shouldFail: z.boolean().describe('Whether the tool should simulate a runtime failure.'),
   }),
+  resultSchema: RuntimeErrorToolResultSchema,
 })
 export class RuntimeErrorTool extends BaseTool<{ shouldFail: boolean }, object, RuntimeErrorToolResult> {
   protected async handle(

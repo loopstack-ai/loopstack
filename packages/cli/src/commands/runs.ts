@@ -21,6 +21,7 @@ interface RunsOptions {
   status?: string;
   open?: boolean;
   record?: string;
+  tools?: string;
 }
 
 interface Globals {
@@ -40,6 +41,7 @@ export function registerRunsCommand(program: Command): void {
     .option('--status <status>', 'filter by status (e.g. waiting, completed, failed)')
     .option('--open', 'open the run in Studio (requires a run id)')
     .option('--record <file>', 'write the run’s recorded tool calls as a replay fixture (JSON)')
+    .option('--tools <names>', 'comma-separated tool names to include in the fixture (default: all)')
     .action(async (runId: string | undefined, options: RunsOptions, cmd) => {
       const globals = cmd.optsWithGlobals() as Globals;
       const connection = resolveConnection(globals);
@@ -52,7 +54,7 @@ export function registerRunsCommand(program: Command): void {
         return;
       }
       if (options.record) {
-        await recordFixture(client, runId, options.record, !!globals.json);
+        await recordFixture(client, runId, options.record, options.tools, !!globals.json);
         return;
       }
       await showRun(client, connection, runId, options, !!globals.json);
@@ -61,31 +63,56 @@ export function registerRunsCommand(program: Command): void {
 
 /**
  * Derive a replay fixture from the run's tool-call audit records (backend must run with
- * `recordToolCalls` enabled). The fixture format matches `replay()` in `@loopstack/testing`.
+ * `recordToolCalls` enabled). The fixture is the strict response sequence `replay()` in
+ * `@loopstack/testing` consumes; `--tools` selects the mock boundary.
  */
-async function recordFixture(client: LoopstackClient, runId: string, file: string, json: boolean): Promise<void> {
-  const records = await client.workflows.toolCalls(runId);
-  if (records.length === 0) {
+async function recordFixture(
+  client: LoopstackClient,
+  runId: string,
+  file: string,
+  tools: string | undefined,
+  json: boolean,
+): Promise<void> {
+  const allRecords = await client.workflows.toolCalls(runId);
+  if (allRecords.length === 0) {
     throw new CliError(
       'No recorded tool calls for this run. Start the backend with recordToolCalls enabled ' +
         '(LOOPSTACK_RECORD_TOOL_CALLS=true) and run the workflow again.',
     );
   }
 
+  // The mock boundary: only the selected tools' responses belong in the script.
+  const boundary = tools ? new Set(tools.split(',').map((name) => name.trim())) : undefined;
+  const inBoundary = boundary ? allRecords.filter((record) => boundary.has(record.toolName)) : allRecords;
+  if (boundary && inBoundary.length === 0) {
+    throw new CliError(
+      `No recorded calls match --tools ${tools}. Recorded tools: ` +
+        `${[...new Set(allRecords.map((record) => record.toolName))].join(', ')}`,
+    );
+  }
+
+  // Pending envelopes reference sub-workflow machinery that replay can never have launched —
+  // they are unreplayable by definition and never belong in a fixture.
+  const records = inBoundary.filter((record) => !(record.envelope as { pending?: unknown }).pending);
+
   const recordings = records.map((record) => ({
-    transition: record.transitionId ?? '',
-    seq: record.seq,
     tool: record.toolName,
+    workflow: record.workflowName,
+    transition: record.transitionId ?? '',
     ...(record.args !== null ? { args: record.args } : {}),
     envelope: record.envelope,
   }));
   const target = resolve(file);
-  writeFileSync(target, `${JSON.stringify({ version: 1, recordings }, null, 2)}\n`);
+  writeFileSync(target, `${JSON.stringify({ version: 2, recordings }, null, 2)}\n`);
 
+  const skipped = inBoundary.length - records.length;
   if (json) {
-    printData(JSON.stringify({ file: target, recordings: recordings.length }, null, 2));
+    printData(JSON.stringify({ file: target, recordings: recordings.length, skippedPending: skipped }, null, 2));
   } else {
     printStatus(`${pc.green('✓')} wrote ${recordings.length} recording(s) to ${target}`);
+    if (skipped > 0) {
+      printStatus(`  ${skipped} pending envelope(s) skipped — async tools always run live in replayed tests`);
+    }
   }
 }
 

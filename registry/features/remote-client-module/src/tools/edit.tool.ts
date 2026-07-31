@@ -28,6 +28,17 @@ export type EditResult = {
 };
 
 /**
+ * Zod schema for {@link EditResult}.
+ *
+ * @public
+ */
+export const EditResultSchema = z.strictObject({
+  success: z.boolean(),
+  path: z.string(),
+  replacements: z.number(),
+});
+
+/**
  * Tool that performs an exact string replacement in a file on the remote instance.
  *
  * @providedBy RemoteClientModule
@@ -45,6 +56,7 @@ export type EditResult = {
       replace_all: z.boolean().optional().describe('Replace all occurrences (default: false)'),
     })
     .strict(),
+  resultSchema: EditResultSchema,
 })
 export class EditTool extends BaseTool<EditArgs, object, EditResult> {
   constructor(

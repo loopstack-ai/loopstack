@@ -42,6 +42,14 @@ export type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
 export type ExploreTaskResult = { workflowId: string } | string | Record<string, unknown>;
 
 /**
+ * Zod schema for {@link ExploreTaskResult} — the synthesized summary string or, when the
+ * sub-workflow returned no response text, its raw result record.
+ *
+ * @public
+ */
+export const ExploreTaskResultSchema = z.union([z.string(), z.record(z.string(), z.unknown())]);
+
+/**
  * Tool that launches an `AgentWorkflow` sub-agent to explore and analyze a codebase with the `glob`/`grep`/`read` tools and return a synthesized summary.
  *
  * @providedBy CodeAgentModule
@@ -56,6 +64,7 @@ export type ExploreTaskResult = { workflowId: string } | string | Record<string,
     'patterns, find specific implementations, or gather context before making changes. ' +
     'IMPORTANT: This must be the only tool call in your response.',
   schema: ExploreTaskInputSchema,
+  resultSchema: ExploreTaskResultSchema,
 })
 export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskResult> {
   constructor(private readonly agentWorkflow: AgentWorkflow) {

@@ -33,6 +33,16 @@ export interface SandboxCreateDirectoryResult {
 }
 
 /**
+ * Zod schema for {@link SandboxCreateDirectoryResult} — the `resultSchema` of `sandbox_create_directory`.
+ *
+ * @public
+ */
+export const SandboxCreateDirectoryResultSchema = z.strictObject({
+  path: z.string(),
+  created: z.boolean(),
+});
+
+/**
  * Tool that creates a directory in a sandbox container, optionally creating parent directories.
  *
  * @providedBy SandboxFilesystemModule
@@ -42,6 +52,7 @@ export interface SandboxCreateDirectoryResult {
   name: 'sandbox_create_directory',
   description: 'Create a directory in a sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxCreateDirectoryResultSchema,
 })
 export class SandboxCreateDirectory extends BaseTool<SandboxCreateDirectoryArgs, object, SandboxCreateDirectoryResult> {
   private readonly logger = new Logger(SandboxCreateDirectory.name);

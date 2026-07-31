@@ -10,6 +10,8 @@ import {
   WorkflowEntity,
   WorkflowOrchestrator,
   WorkflowState,
+  statelessChildCallback,
+  statelessChildResultFields,
 } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { TransitionAbortedError } from '../../common/index.js';
@@ -120,36 +122,16 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     const record: StatelessChildRecord = {
       workflowId: childId,
       workflowName,
-      status: childMeta.status,
       args,
       callbackTransition,
       callbackMetadata,
-      documents: childMeta.documents,
-      result: childMeta.result ?? null,
-      hasError: childMeta.hasError,
-      errorMessage: childMeta.errorMessage,
-      statelessState: childMeta.statelessState,
+      ...statelessChildResultFields(childMeta),
     };
     (scope.statelessChildren ??= []).push(record);
 
-    const terminal =
-      childMeta.status === WorkflowState.Completed ||
-      childMeta.status === WorkflowState.Failed ||
-      childMeta.status === WorkflowState.Canceled;
-
-    if (terminal && callbackTransition) {
-      (scope.statelessCallbacks ??= []).push({
-        id: callbackTransition,
-        workflowId: scope.workflowId,
-        payload: {
-          workflowId: childId,
-          status: childMeta.status,
-          hasError: childMeta.hasError ?? false,
-          errorMessage: childMeta.errorMessage ?? null,
-          data: childMeta.result ?? null,
-          ...(callbackMetadata ? { meta: callbackMetadata } : {}),
-        },
-      });
+    const callback = statelessChildCallback(record, scope.workflowId);
+    if (callback) {
+      (scope.statelessCallbacks ??= []).push(callback);
     }
 
     return { workflowId: childId };

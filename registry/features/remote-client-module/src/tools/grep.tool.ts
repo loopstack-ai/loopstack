@@ -27,6 +27,21 @@ export type GrepResult = {
 };
 
 /**
+ * Zod schema for {@link GrepResult}.
+ *
+ * @public
+ */
+export const GrepResultSchema = z.strictObject({
+  matches: z.array(
+    z.strictObject({
+      file: z.string(),
+      line: z.number(),
+      content: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that searches file contents on the remote instance by regex pattern.
  *
  * @providedBy RemoteClientModule
@@ -45,6 +60,7 @@ export type GrepResult = {
       case_insensitive: z.boolean().optional().describe('Case-insensitive search'),
     })
     .strict(),
+  resultSchema: GrepResultSchema,
 })
 export class GrepTool extends BaseTool<GrepArgs, object, GrepResult> {
   constructor(

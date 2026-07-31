@@ -1,4 +1,4 @@
-import { Inject, Logger, Optional } from '@nestjs/common';
+import { Inject, Optional } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
@@ -11,19 +11,21 @@ import {
 import { ExecutionScope } from '@loopstack/core';
 
 /**
- * One recorded tool response. `transition` is the transition method the call happened in,
- * `seq` its order within that transition, `tool` the tool's registered name.
+ * One scripted tool response. Only `tool` and `envelope` are required — `workflow`,
+ * `transition`, and `args` are assertion metadata: when present, the actual call must match
+ * them, so a drifted call position or changed arguments fails loudly instead of replaying a
+ * response that no longer fits.
  */
 export interface ToolRecording {
-  transition: string;
-  seq: number;
   tool: string;
+  workflow?: string;
+  transition?: string;
   args?: unknown;
   envelope: ToolEnvelope;
 }
 
 export interface ReplayFixture {
-  version: 1;
+  version: 2;
   recordings: ToolRecording[];
 }
 
@@ -31,42 +33,104 @@ export interface ReplayFixture {
 export const REPLAY_SOURCE = 'LOOPSTACK_REPLAY_SOURCE';
 
 /**
- * Replays recorded tool responses in order, keyed by (transition, tool). Tools that were never
- * recorded for a transition run live; an exhausted recording list is an error — a replayed test
- * must not silently fall through to a live provider mid-transition.
+ * Injection token under which `runWorkflow` provides the normalized mock boundary:
+ * `'*'` (all tools consume the script) or a set of registered tool names.
+ */
+export const REPLAY_TOOLS = 'LOOPSTACK_REPLAY_TOOLS';
+
+/** Recursively sorts object keys so semantically equal args serialize identically. */
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([key, entry]) => [key, canonicalize(entry)]),
+    );
+  }
+  return value;
+}
+
+/**
+ * A strict, ordered script of tool responses. Every call inside the mock boundary consumes the
+ * next entry — there is no matching or lookup. Each entry's metadata (`tool` always;
+ * `workflow`/`transition`/`args` when present) is asserted against the actual call, so any
+ * drift in call order, position, or arguments fails loudly with the exact position named.
  */
 export class ReplaySource {
-  private readonly byKey = new Map<string, ToolRecording[]>();
-  private readonly cursors = new Map<string, number>();
+  private cursor = 0;
 
   constructor(readonly fixture: ReplayFixture) {
-    for (const recording of [...fixture.recordings].sort((a, b) => a.seq - b.seq)) {
-      const key = `${recording.transition}::${recording.tool}`;
-      const list = this.byKey.get(key) ?? [];
-      list.push(recording);
-      this.byKey.set(key, list);
+    if (fixture.version !== 2) {
+      throw new Error(`Unsupported replay fixture version: ${String(fixture.version)}. Expected 2.`);
     }
-  }
-
-  has(transition: string, tool: string): boolean {
-    return this.byKey.has(`${transition}::${tool}`);
-  }
-
-  next(transition: string, tool: string): ToolRecording {
-    const key = `${transition}::${tool}`;
-    const list = this.byKey.get(key);
-    if (!list) {
-      throw new Error(`No recordings for tool '${tool}' in transition '${transition}'.`);
-    }
-    const cursor = this.cursors.get(key) ?? 0;
-    if (cursor >= list.length) {
+    const pendingIndex = fixture.recordings.findIndex((entry) => entry.envelope.pending);
+    if (pendingIndex !== -1) {
       throw new Error(
-        `Recordings for tool '${tool}' in transition '${transition}' exhausted after ${list.length} call(s) — ` +
+        `Replay fixture entry #${pendingIndex + 1} (tool '${fixture.recordings[pendingIndex].tool}') carries a ` +
+          `pending envelope — pending envelopes reference live sub-workflow machinery and cannot be replayed. ` +
+          `Async tools must run live: leave them out of the replayTools boundary and re-record the fixture.`,
+      );
+    }
+  }
+
+  next(call: { workflow: string; transition: string; tool: string; args: unknown }): ToolEnvelope {
+    const position = this.cursor + 1;
+    const where = `'${call.tool}' in ${call.workflow}.${call.transition}`;
+    const entry = this.fixture.recordings[this.cursor];
+    if (!entry) {
+      throw new Error(
+        `Replay script exhausted: call #${position} (${where}) has no scripted response — ` +
           `the workflow makes more calls than the fixture holds. Re-record the fixture.`,
       );
     }
-    this.cursors.set(key, cursor + 1);
-    return list[cursor];
+    this.cursor++;
+
+    if (entry.tool !== call.tool) {
+      throw new Error(
+        `Replay script mismatch at response #${position}: expected a call to '${entry.tool}'` +
+          `${entry.workflow || entry.transition ? ` in ${entry.workflow ?? '?'}.${entry.transition ?? '?'}` : ''}, ` +
+          `but got ${where} — the tool call order drifted. Re-record the fixture.`,
+      );
+    }
+    if (entry.workflow !== undefined && entry.workflow !== call.workflow) {
+      throw new Error(
+        `Replay script mismatch at response #${position}: '${call.tool}' was recorded in workflow ` +
+          `'${entry.workflow}' but called in '${call.workflow}' — the call position drifted. Re-record the fixture.`,
+      );
+    }
+    if (entry.transition !== undefined && entry.transition !== call.transition) {
+      throw new Error(
+        `Replay script mismatch at response #${position}: '${call.tool}' was recorded in transition ` +
+          `'${entry.transition}' but called in '${call.transition}' — the call position drifted. Re-record the fixture.`,
+      );
+    }
+    if (entry.args !== undefined) {
+      const recorded = JSON.stringify(canonicalize(entry.args));
+      const actual = JSON.stringify(canonicalize(call.args));
+      if (recorded !== actual) {
+        throw new Error(
+          `Replay drift at response #${position}: args for ${where} differ from the recording — ` +
+            `the replayed response no longer fits.\n  recorded: ${recorded}\n  actual:   ${actual}\n` +
+            `Delete the fixture file to re-record it on the next run ` +
+            `(or re-derive it from a real run with loopstack runs <run-id> --record).`,
+        );
+      }
+    }
+    return entry.envelope;
+  }
+
+  /** Fails when a completed run consumed fewer responses than the script holds. */
+  assertFullyConsumed(): void {
+    const leftover = this.fixture.recordings.length - this.cursor;
+    if (leftover > 0) {
+      const nextEntry = this.fixture.recordings[this.cursor];
+      throw new Error(
+        `Replay script has ${leftover} unconsumed response(s) — next would be '${nextEntry.tool}'` +
+          `${nextEntry.workflow || nextEntry.transition ? ` in ${nextEntry.workflow ?? '?'}.${nextEntry.transition ?? '?'}` : ''}. ` +
+          `The workflow makes fewer calls than the fixture holds. Re-record the fixture.`,
+      );
+    }
   }
 }
 
@@ -88,37 +152,38 @@ export function replay(source: string | ReplayFixture): ReplaySource {
 }
 
 /**
- * Tool interceptor that short-circuits tool execution with recorded envelopes. Registered by
- * `runWorkflow` when a `replay` source is passed; inactive (passes through) without one.
- * Matching is transition-scoped (D4): recordings are keyed by the executing transition, then
- * consumed in sequence. A drift warning is logged when the outgoing args differ from the recording.
+ * Tool interceptor that short-circuits tool execution with scripted envelopes. Registered by
+ * `runWorkflow` when a `replay` source is passed; inactive (passes through) without one. Only
+ * tools inside the mock boundary (`replayTools`) consume the script; all others run live.
  */
 @UseToolInterceptor({ priority: 10 })
 export class ReplayToolInterceptor implements ToolInterceptor {
-  private readonly logger = new Logger(ReplayToolInterceptor.name);
-
   constructor(
     @Optional() @Inject(REPLAY_SOURCE) private readonly source: ReplaySource | undefined,
+    @Optional() @Inject(REPLAY_TOOLS) private readonly boundary: '*' | Set<string> | undefined,
     private readonly executionScope: ExecutionScope,
   ) {}
 
   async intercept(context: ToolExecutionContext, next: () => Promise<ToolEnvelope>): Promise<ToolEnvelope> {
     if (!this.source) return next();
 
-    const transition = this.executionScope.getOptional()?.transition?.id ?? '';
     const tool = getBlockName(context.tool as never);
+    const boundary = this.boundary ?? '*';
+    if (boundary !== '*' && !boundary.has(tool)) return next();
 
-    if (!this.source.has(transition, tool)) {
-      return next();
-    }
-
-    const recording = this.source.next(transition, tool);
-    if (recording.args !== undefined && JSON.stringify(recording.args) !== JSON.stringify(context.args)) {
-      this.logger.warn(
-        `Replay drift: args for tool '${tool}' in transition '${transition}' (seq ${recording.seq}) ` +
-          `differ from the recording. The replayed response may no longer fit — consider re-recording.`,
+    const scope = this.executionScope.getOptional();
+    if (!scope?.workflowName || !scope.transition?.id) {
+      throw new Error(
+        `Replaying tool '${tool}' outside an active workflow transition — ` +
+          `no execution scope with workflowName and transition is set. This is a framework bug.`,
       );
     }
-    return recording.envelope;
+
+    return this.source.next({
+      workflow: scope.workflowName,
+      transition: scope.transition.id,
+      tool,
+      args: context.args,
+    });
   }
 }

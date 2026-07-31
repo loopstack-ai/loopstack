@@ -18,11 +18,19 @@ export interface ToolMock {
 }
 
 /**
- * Creates a standard tool mock with a call function
+ * Creates a standard tool mock with a call function. Unscripted calls reject — script every
+ * response the workflow will consume with `mockResolvedValue(...)` / `mockResolvedValueOnce(...)`.
  */
-export function createToolMock(): ToolMock {
+export function createToolMock(name?: string): ToolMock {
   return {
-    call: vi.fn().mockResolvedValue({ data: undefined }),
+    call: vi
+      .fn()
+      .mockRejectedValue(
+        new Error(
+          `Unscripted tool mock call${name ? ` on '${name}'` : ''} — script the response with ` +
+            `mockResolvedValue(...) before running the workflow.`,
+        ),
+      ),
   };
 }
 
@@ -94,7 +102,7 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
    * Mock a tool dependency with standard tool mock
    */
   withToolMock<T>(toolClass: Type<T>): this {
-    const mock = createToolMock();
+    const mock = createToolMock(toolClass.name);
     this.providers.push({
       provide: toolClass,
       useValue: mock,

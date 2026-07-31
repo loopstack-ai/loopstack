@@ -13,6 +13,13 @@ export type GitWorktreePruneResult = {
 };
 
 /**
+ * Zod schema for `GitWorktreePruneResult`.
+ *
+ * @public
+ */
+export const GitWorktreePruneResultSchema = z.strictObject({ success: z.boolean(), output: z.string().optional() });
+
+/**
  * Tool that prunes worktree administrative files for worktrees whose directories no longer exist.
  *
  * @providedBy GitModule
@@ -22,6 +29,7 @@ export type GitWorktreePruneResult = {
   name: 'git_worktree_prune',
   description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',
   schema: z.object({}).strict(),
+  resultSchema: GitWorktreePruneResultSchema,
 })
 export class GitWorktreePruneTool extends BaseTool<object, object, GitWorktreePruneResult> {
   constructor(

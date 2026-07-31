@@ -36,6 +36,23 @@ export type GoogleCalendarListCalendarsResult =
   | { error: 'api_error'; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GoogleCalendarListCalendarsResult} — the calendar list.
+ *
+ * @public
+ */
+export const GoogleCalendarListCalendarsResultSchema = z.strictObject({
+  calendars: z.array(
+    z.strictObject({
+      id: z.string(),
+      summary: z.string(),
+      description: z.string().optional(),
+      primary: z.boolean(),
+      timeZone: z.string().optional(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists all Google Calendars the authenticated user has access to. Returns each
  * calendar's id, summary, time zone, and primary flag, or `{ error: 'unauthorized' }` when no
  * valid Google token is available.
@@ -48,6 +65,7 @@ export type GoogleCalendarListCalendarsResult =
   description:
     'Lists all calendars the authenticated user has access to. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GoogleCalendarListCalendarsResultSchema,
 })
 export class GoogleCalendarListCalendarsTool extends BaseTool<
   GoogleCalendarListCalendarsArgs,

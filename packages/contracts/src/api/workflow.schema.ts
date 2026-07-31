@@ -84,6 +84,7 @@ export type WorkflowCheckpointInterface = z.infer<typeof WorkflowCheckpointSchem
 
 export const ToolCallRecordSchema = z.object({
   id: z.string(),
+  workflowName: z.string(),
   transitionId: z.string().nullable(),
   place: z.string().nullable(),
   seq: z.number(),

@@ -38,6 +38,20 @@ export type GitHubCreateIssueCommentResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubCreateIssueCommentResult}.
+ *
+ * @public
+ */
+export const GitHubCreateIssueCommentResultSchema = z.strictObject({
+  comment: z.strictObject({
+    id: z.number(),
+    htmlUrl: z.string(),
+    createdAt: z.string(),
+    user: z.string(),
+  }),
+});
+
+/**
  * Tool that adds a comment to a GitHub issue or pull request.
  *
  * @providedBy GitHubModule
@@ -48,6 +62,7 @@ export type GitHubCreateIssueCommentResult =
   description:
     'Creates a comment on a GitHub issue or pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubCreateIssueCommentResultSchema,
 })
 export class GitHubCreateIssueCommentTool extends BaseTool<
   GitHubCreateIssueCommentArgs,

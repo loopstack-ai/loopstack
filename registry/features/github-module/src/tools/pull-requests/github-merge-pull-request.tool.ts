@@ -40,6 +40,19 @@ export type GitHubMergePullRequestResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubMergePullRequestResult}.
+ *
+ * @public
+ */
+export const GitHubMergePullRequestResultSchema = z.strictObject({
+  merge: z.strictObject({
+    sha: z.string(),
+    merged: z.boolean(),
+    message: z.string(),
+  }),
+});
+
+/**
  * Tool that merges a GitHub pull request using the chosen merge method.
  *
  * @providedBy GitHubModule
@@ -49,6 +62,7 @@ export type GitHubMergePullRequestResult =
   name: 'github_merge_pull_request',
   description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubMergePullRequestResultSchema,
 })
 export class GitHubMergePullRequestTool extends BaseTool<
   GitHubMergePullRequestArgs,

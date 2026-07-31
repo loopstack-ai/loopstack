@@ -40,6 +40,8 @@ export interface BlockOptions {
   schema?: z.ZodType;
   /** Zod schema for config validation (provided via options.config) */
   configSchema?: z.ZodType;
+  /** Zod schema for result validation — parses `envelope.data` on success envelopes. */
+  resultSchema?: z.ZodType;
   /** Default tags assigned to every instance of this document. */
   tags?: string[];
   /** Static document meta — served via config endpoint, not persisted per instance. */
@@ -64,6 +66,8 @@ export interface ToolOptions {
   schema?: z.ZodType;
   /** Zod schema for tool config validation (provided via options.config) */
   configSchema?: z.ZodType;
+  /** Optional Zod schema for the tool's result — validates `envelope.data` on success envelopes. */
+  resultSchema?: z.ZodType;
 }
 
 /**

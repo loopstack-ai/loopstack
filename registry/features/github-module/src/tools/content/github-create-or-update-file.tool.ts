@@ -45,6 +45,24 @@ export type GitHubCreateOrUpdateFileResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubCreateOrUpdateFileResult}.
+ *
+ * @public
+ */
+export const GitHubCreateOrUpdateFileResultSchema = z.strictObject({
+  file: z.strictObject({
+    name: z.string(),
+    path: z.string(),
+    sha: z.string(),
+    htmlUrl: z.string(),
+  }),
+  commit: z.strictObject({
+    sha: z.string(),
+    message: z.string(),
+  }),
+});
+
+/**
  * Tool that creates or updates a file in a GitHub repository, base64-encoding the
  * provided text and committing it. Pass the existing file `sha` to update in place.
  *
@@ -56,6 +74,7 @@ export type GitHubCreateOrUpdateFileResult =
   description:
     'Creates or updates a file in a GitHub repository. Content is provided as plain text and encoded to base64 before sending. To update an existing file, provide the sha of the file being replaced. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubCreateOrUpdateFileResultSchema,
 })
 export class GitHubCreateOrUpdateFileTool extends BaseTool<
   GitHubCreateOrUpdateFileArgs,

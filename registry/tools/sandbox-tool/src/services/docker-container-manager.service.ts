@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, OnModuleDestroy, Optional } from '@nestjs/c
 import Docker from 'dockerode';
 import * as path from 'node:path';
 import { PassThrough } from 'node:stream';
+import { z } from 'zod';
 
 export const DOCKER_CLIENT = Symbol('DOCKER_CLIENT');
 
@@ -30,6 +31,18 @@ export interface CommandExecutionResult {
   exitCode: number;
   timedOut: boolean;
 }
+
+/**
+ * Zod schema for {@link CommandExecutionResult} — the `resultSchema` of `sandbox_command`.
+ *
+ * @public
+ */
+export const CommandExecutionResultSchema = z.strictObject({
+  stdout: z.string(),
+  stderr: z.string(),
+  exitCode: z.number(),
+  timedOut: z.boolean(),
+});
 
 interface ExecuteCommandOptions {
   containerId: string;

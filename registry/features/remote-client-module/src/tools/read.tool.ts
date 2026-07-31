@@ -25,6 +25,16 @@ export type ReadResult = {
 };
 
 /**
+ * Zod schema for {@link ReadResult}.
+ *
+ * @public
+ */
+export const ReadResultSchema = z.strictObject({
+  content: z.string(),
+  path: z.string(),
+});
+
+/**
  * Tool that reads a file from the remote instance, optionally limited to a line range.
  *
  * @providedBy RemoteClientModule
@@ -41,6 +51,7 @@ export type ReadResult = {
       limit: z.number().optional().describe('Number of lines to read'),
     })
     .strict(),
+  resultSchema: ReadResultSchema,
 })
 export class ReadTool extends BaseTool<ReadArgs, object, ReadResult> {
   constructor(

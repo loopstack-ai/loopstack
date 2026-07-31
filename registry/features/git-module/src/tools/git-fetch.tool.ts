@@ -23,6 +23,13 @@ export type GitFetchResult = {
 };
 
 /**
+ * Zod schema for `GitFetchResult`.
+ *
+ * @public
+ */
+export const GitFetchResultSchema = z.strictObject({ success: z.boolean(), output: z.string().optional() });
+
+/**
  * Tool that fetches refs and objects from a remote repository without merging.
  *
  * @providedBy GitModule
@@ -37,6 +44,7 @@ export type GitFetchResult = {
       token: z.string().optional().describe('Access token for authentication'),
     })
     .strict(),
+  resultSchema: GitFetchResultSchema,
 })
 export class GitFetchTool extends BaseTool<GitFetchArgs, object, GitFetchResult> {
   constructor(

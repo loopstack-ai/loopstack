@@ -21,6 +21,16 @@ export const McpListToolsArgsSchema = McpConnectionArgsSchema;
 export type McpListToolsArgs = z.infer<typeof McpListToolsArgsSchema>;
 
 /**
+ * Zod schema for the `mcp_list_tools` result — the remote server's tool definitions are
+ * passed through verbatim and intentionally uncontracted.
+ *
+ * @public
+ */
+export const McpListToolsResultSchema = z.strictObject({
+  tools: z.unknown(),
+});
+
+/**
  * Tool that lists the tool definitions exposed by a remote MCP server.
  *
  * @providedBy McpModule
@@ -32,6 +42,7 @@ export type McpListToolsArgs = z.infer<typeof McpListToolsArgsSchema>;
     'Lists tool definitions exposed by a remote MCP server (Streamable HTTP or legacy SSE). Requires `allowedHosts` (and optional auth headers) via tool config.',
   schema: McpListToolsArgsSchema,
   configSchema: McpToolConfigSchema,
+  resultSchema: McpListToolsResultSchema,
 })
 export class McpListToolsTool extends McpToolBase<McpListToolsArgs> {
   protected async handle(

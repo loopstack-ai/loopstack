@@ -54,6 +54,43 @@ export type GitHubGetCommitResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubGetCommitResult}.
+ *
+ * @public
+ */
+export const GitHubGetCommitResultSchema = z.strictObject({
+  commit: z.strictObject({
+    sha: z.string(),
+    message: z.string(),
+    author: z.strictObject({
+      name: z.string(),
+      email: z.string(),
+      date: z.string(),
+      login: z.string().nullable(),
+    }),
+    committer: z.strictObject({
+      name: z.string(),
+      date: z.string(),
+    }),
+    htmlUrl: z.string(),
+    stats: z.strictObject({
+      additions: z.number(),
+      deletions: z.number(),
+      total: z.number(),
+    }),
+    files: z.array(
+      z.strictObject({
+        filename: z.string(),
+        status: z.string(),
+        additions: z.number(),
+        deletions: z.number(),
+        changes: z.number(),
+      }),
+    ),
+  }),
+});
+
+/**
  * Tool that fetches detailed information about a single commit in a GitHub repository,
  * including diff stats and changed files.
  *
@@ -65,6 +102,7 @@ export type GitHubGetCommitResult =
   description:
     'Gets detailed information about a specific commit in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubGetCommitResultSchema,
 })
 export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, GitHubGetCommitResult> {
   private readonly logger = new Logger(GitHubGetCommitTool.name);

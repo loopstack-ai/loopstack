@@ -36,6 +36,16 @@ export interface SandboxWriteFileResult {
 }
 
 /**
+ * Zod schema for {@link SandboxWriteFileResult} — the `resultSchema` of `sandbox_write_file`.
+ *
+ * @public
+ */
+export const SandboxWriteFileResultSchema = z.strictObject({
+  path: z.string(),
+  bytesWritten: z.number(),
+});
+
+/**
  * Tool that writes content to a file in a sandbox container, optionally creating parent directories.
  *
  * @providedBy SandboxFilesystemModule
@@ -45,6 +55,7 @@ export interface SandboxWriteFileResult {
   name: 'sandbox_write_file',
   description: 'Write content to a file in a sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxWriteFileResultSchema,
 })
 export class SandboxWriteFile extends BaseTool<SandboxWriteFileArgs, object, SandboxWriteFileResult> {
   private readonly logger = new Logger(SandboxWriteFile.name);

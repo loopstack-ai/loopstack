@@ -11,6 +11,7 @@ import {
   ToolPipeline,
   getBlockArgsSchema,
   getBlockConfigSchema,
+  parseToolResult,
 } from '@loopstack/common';
 import { TransitionAbortedError } from '../../common/index.js';
 import { ExecutionScope } from '../utils/index.js';
@@ -124,6 +125,8 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
       toolCall,
     );
 
-    return chain();
+    // 5. Validate the final envelope's data against the tool's resultSchema (covers live
+    // results, interceptor-transformed envelopes, and replayed fixtures identically).
+    return parseToolResult(tool, await chain());
   }
 }

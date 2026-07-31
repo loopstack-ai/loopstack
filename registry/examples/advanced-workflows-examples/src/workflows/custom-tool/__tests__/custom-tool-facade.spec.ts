@@ -21,7 +21,7 @@ describe('CustomToolExampleWorkflow — runWorkflow facade', () => {
     expect(run.result).toEqual({ total: 5 });
   });
 
-  it('replays recorded tool responses transition-scoped and in sequence', async () => {
+  it('replays the scripted tool responses strictly in sequence', async () => {
     const run = await runWorkflow(
       CustomToolExampleWorkflow,
       { a: 2, b: 3 },
@@ -29,15 +29,16 @@ describe('CustomToolExampleWorkflow — runWorkflow facade', () => {
         providers: [CounterTool, MathSumTool, MathService],
         answers: { userContinue: {} },
         replay: replay({
-          version: 1,
+          version: 2,
           recordings: [
-            { transition: 'calculate', seq: 0, tool: 'math_sum', args: { a: 2, b: 3 }, envelope: { data: 999 } },
-            { transition: 'calculate', seq: 0, tool: 'counter', envelope: { data: 101 } },
-            { transition: 'calculate', seq: 1, tool: 'counter', envelope: { data: 102 } },
-            { transition: 'calculate', seq: 2, tool: 'counter', envelope: { data: 103 } },
-            { transition: 'continueCount', seq: 0, tool: 'counter', envelope: { data: 104 } },
-            { transition: 'continueCount', seq: 1, tool: 'counter', envelope: { data: 105 } },
-            { transition: 'continueCount', seq: 2, tool: 'counter', envelope: { data: 106 } },
+            // The strict response sequence, in call order; transition names are assertions.
+            { tool: 'math_sum', transition: 'calculate', args: { a: 2, b: 3 }, envelope: { data: 999 } },
+            { tool: 'counter', transition: 'calculate', envelope: { data: 101 } },
+            { tool: 'counter', transition: 'calculate', envelope: { data: 102 } },
+            { tool: 'counter', transition: 'calculate', envelope: { data: 103 } },
+            { tool: 'counter', transition: 'continueCount', envelope: { data: 104 } },
+            { tool: 'counter', transition: 'continueCount', envelope: { data: 105 } },
+            { tool: 'counter', transition: 'continueCount', envelope: { data: 106 } },
           ],
         }),
       },

@@ -49,6 +49,29 @@ export type GitHubListIssuesResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubListIssuesResult}.
+ *
+ * @public
+ */
+export const GitHubListIssuesResultSchema = z.strictObject({
+  issues: z.array(
+    z.strictObject({
+      id: z.number(),
+      number: z.number(),
+      title: z.string(),
+      state: z.string(),
+      user: z.string(),
+      labels: z.array(z.string()),
+      assignees: z.array(z.string()),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      htmlUrl: z.string(),
+      isPullRequest: z.boolean(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists issues for a GitHub repository, with state, label and assignee filters.
  * Note that the GitHub API also returns pull requests, marked via `isPullRequest`.
  *
@@ -60,6 +83,7 @@ export type GitHubListIssuesResult = {
   description:
     'Lists issues for a GitHub repository. Note: the GitHub API returns both issues and pull requests; pull requests have a pull_request key. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubListIssuesResultSchema,
 })
 export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object, GitHubListIssuesResult> {
   private readonly logger = new Logger(GitHubListIssuesTool.name);

@@ -44,6 +44,28 @@ export type GoogleDriveListFilesResult =
   | { error: 'api_error'; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GoogleDriveListFilesResult} — the file list and
+ * pagination token.
+ *
+ * @public
+ */
+export const GoogleDriveListFilesResultSchema = z.strictObject({
+  files: z.array(
+    z.strictObject({
+      id: z.string(),
+      name: z.string(),
+      mimeType: z.string(),
+      size: z.string().optional(),
+      modifiedTime: z.string(),
+      createdTime: z.string(),
+      owners: z.array(z.strictObject({ displayName: z.string(), email: z.string() })).optional(),
+      webViewLink: z.string().optional(),
+    }),
+  ),
+  nextPageToken: z.string().optional(),
+});
+
+/**
  * Tool that lists and searches files in Google Drive. Supports Drive query syntax, folder browsing,
  * ordering, and pagination, and returns file metadata plus a `nextPageToken`, or
  * `{ error: 'unauthorized' }` when no valid Google token is available.
@@ -56,6 +78,7 @@ export type GoogleDriveListFilesResult =
   description:
     'Lists and searches files in Google Drive. Supports Drive query syntax and folder browsing. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GoogleDriveListFilesResultSchema,
 })
 export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs, object, GoogleDriveListFilesResult> {
   private readonly logger = new Logger(GoogleDriveListFilesTool.name);

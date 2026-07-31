@@ -32,6 +32,17 @@ export type GmailReplyToMessageResult =
   | { error: 'api_error'; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GmailReplyToMessageResult} — the sent reply.
+ *
+ * @public
+ */
+export const GmailReplyToMessageResultSchema = z.strictObject({
+  id: z.string(),
+  threadId: z.string(),
+  labelIds: z.array(z.string()),
+});
+
+/**
  * Tool that replies to an existing Gmail message in-thread. Fetches the original message to set
  * proper reply headers, supports `replyAll`, and returns the sent reply's id, thread id, and label
  * ids, or `{ error: 'unauthorized' }` when no valid Google token is available.
@@ -44,6 +55,7 @@ export type GmailReplyToMessageResult =
   description:
     'Replies to an existing Gmail message in-thread. Fetches the original message to set proper headers. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GmailReplyToMessageResultSchema,
 })
 export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, object, GmailReplyToMessageResult> {
   private readonly logger = new Logger(GmailReplyToMessageTool.name);

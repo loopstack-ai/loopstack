@@ -17,6 +17,16 @@ type SyncSecretsInput = z.infer<typeof SyncSecretsInputSchema>;
 export type SyncSecretsResult = { success: true; count: 0; message: string } | { success: boolean; count: number };
 
 /**
+ * Zod schema for {@link SyncSecretsResult}.
+ *
+ * @public
+ */
+export const SyncSecretsResultSchema = z.union([
+  z.strictObject({ success: z.literal(true), count: z.literal(0), message: z.string() }),
+  z.strictObject({ success: z.boolean(), count: z.number() }),
+]);
+
+/**
  * Tool that syncs all workspace secrets to the remote environment as `.env` variables and restarts the app.
  *
  * @providedBy RemoteClientModule
@@ -29,6 +39,7 @@ export type SyncSecretsResult = { success: true; count: 0; message: string } | {
     'Call this before or during app restart to ensure secrets (API keys, config values) are available. ' +
     'Returns the count of synced secrets.',
   schema: SyncSecretsInputSchema,
+  resultSchema: SyncSecretsResultSchema,
 })
 export class SyncSecretsTool extends BaseTool<SyncSecretsInput, object, SyncSecretsResult> {
   constructor(

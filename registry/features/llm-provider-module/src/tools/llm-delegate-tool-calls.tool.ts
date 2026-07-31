@@ -4,7 +4,7 @@ import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common
 import type { RunContext } from '@loopstack/common';
 import { LlmMessageDocument } from '../documents/index.js';
 import { LlmDelegateService } from '../services/llm-delegate.service.js';
-import { LlmNormalizedMessageSchema } from '../types/index.js';
+import { LlmDelegateResultSchema, LlmNormalizedMessageSchema } from '../types/index.js';
 import type { LlmContentBlock, LlmDelegateResult, LlmNormalizedMessage } from '../types/index.js';
 
 /**
@@ -50,6 +50,7 @@ type LlmDelegateToolCallsConfig = z.infer<typeof LlmDelegateToolCallsConfigSchem
   description: 'Delegates tool calls from an LLM response. Resolves tools via ToolRegistry.',
   schema: LlmDelegateToolCallsToolSchema,
   configSchema: LlmDelegateToolCallsConfigSchema,
+  resultSchema: LlmDelegateResultSchema,
 })
 export class LlmDelegateToolCallsTool extends BaseTool<
   LlmDelegateToolCallsToolArgs,

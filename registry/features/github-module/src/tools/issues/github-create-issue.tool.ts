@@ -41,6 +41,21 @@ export type GitHubCreateIssueResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubCreateIssueResult}.
+ *
+ * @public
+ */
+export const GitHubCreateIssueResultSchema = z.strictObject({
+  issue: z.strictObject({
+    id: z.number(),
+    number: z.number(),
+    title: z.string(),
+    htmlUrl: z.string(),
+    state: z.string(),
+  }),
+});
+
+/**
  * Tool that creates a new issue in a GitHub repository.
  *
  * @providedBy GitHubModule
@@ -51,6 +66,7 @@ export type GitHubCreateIssueResult =
   description:
     'Creates a new issue in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubCreateIssueResultSchema,
 })
 export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, object, GitHubCreateIssueResult> {
   private readonly logger = new Logger(GitHubCreateIssueTool.name);

@@ -29,6 +29,18 @@ export type GoogleDriveDownloadFileResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Zod schema for the success shape of {@link GoogleDriveDownloadFileResult} — the file content,
+ * base64-encoded when binary.
+ *
+ * @public
+ */
+export const GoogleDriveDownloadFileResultSchema = z.strictObject({
+  content: z.string(),
+  mimeType: z.string(),
+  encoding: z.literal('base64').optional(),
+});
+
 const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
   'application/vnd.google-apps.document': 'text/plain',
   'application/vnd.google-apps.spreadsheet': 'text/csv',
@@ -49,6 +61,7 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
   description:
     'Downloads or exports a file from Google Drive. Automatically handles Google Docs/Sheets/Slides export. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GoogleDriveDownloadFileResultSchema,
 })
 export class GoogleDriveDownloadFileTool extends BaseTool<
   GoogleDriveDownloadFileArgs,

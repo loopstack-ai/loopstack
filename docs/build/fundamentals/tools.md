@@ -1,6 +1,6 @@
 ---
 title: Creating Tools
-description: How to define custom tools with BaseTool, Zod argument schemas, @Tool() decorator, handle() method signature, tool configuration, and dependency injection into workflows.
+description: How to define custom tools with BaseTool, Zod argument schemas, @Tool() decorator, handle() method signature, resultSchema result contracts, tool configuration, and dependency injection into workflows.
 ---
 
 # Creating Tools
@@ -50,6 +50,7 @@ All options are optional.
 | `widget`       | `WidgetRef \| WidgetRef[]` | —                  | Custom Studio widget(s) for rendering tool calls/results — YAML file path(s) or inline widget object(s).                                                               |
 | `schema`       | `z.ZodType`                | —                  | Zod schema validating tool arguments before `handle()` is invoked.                                                                                                     |
 | `configSchema` | `z.ZodType`                | —                  | Zod schema validating tool config (provided via `options.config` on `call()`).                                                                                         |
+| `resultSchema` | `z.ZodType`                | —                  | Zod schema validating the tool's result (`envelope.data` on success). Optional — without it, results are not validated.                                                |
 
 ## The `handle()` Method
 
@@ -100,6 +101,36 @@ return { type: 'text', data: 'Mostly sunny, 14C.' };    // Typed output
 return { data: result, metadata: { tokensUsed: 150 } };  // With metadata
 return { pending: { workflowId } };                      // Async sub-workflow launched
 ```
+
+## Result Contract
+
+Declare what your tool returns with `resultSchema`. On every successful call, the framework parses `envelope.data` against it — a result that doesn't match fails loudly with an error naming the tool. Error and pending envelopes are exempt; they carry no data contract.
+
+```typescript
+const SearchResultSchema = z.strictObject({
+  results: z.array(z.strictObject({ title: z.string(), url: z.string() })),
+  totalCount: z.number(),
+});
+
+@Tool({
+  name: 'search',
+  description: 'Searches the index.',
+  schema: z.object({ query: z.string() }).strict(),
+  resultSchema: SearchResultSchema,
+})
+export class SearchTool extends BaseTool<{ query: string }, object, z.infer<typeof SearchResultSchema>> {
+  // ...
+}
+```
+
+Conventions:
+
+- Use `z.strictObject({...})` — unknown keys in a result are a contract violation and should fail, in both live runs and test fixtures.
+- Raw third-party payloads passed through verbatim (a provider response, an API blob) are declared as `z.unknown()` **fields**, never as the whole schema. Note that a `z.unknown()` field must still be present — mark it `.optional()` if your code sometimes omits it.
+- Derive the `TResult` generic from the schema (`z.infer<typeof SearchResultSchema>`) so the compile-time type and the runtime contract cannot drift.
+- Parsing applies schema defaults, so a declared `.default(...)` reaches consumers even when `handle()` omits the field.
+
+Because validation happens in the tool pipeline, replayed test fixtures are checked against the same contract as live results — a fixture that drifts from what the tool really returns fails the test instead of silently passing.
 
 ## Dependency Injection
 
@@ -162,17 +193,11 @@ const result = await this.llmGenerateText.call(
 A tool can launch a sub-workflow from `handle()` and finish asynchronously when that sub-workflow completes. The lifecycle has two halves:
 
 1. **`handle()`** returns `{ data, pending: { workflowId } }`. The `pending` field tells the framework "I started run `workflowId`, don't return to the LLM yet — wait for that run to finish, then call me back."
-2. **`complete(result)`** runs when the sub-workflow finishes. The argument is the sub-workflow's output. The return value is the `ToolEnvelope` that's actually delivered to the LLM (or the caller).
+2. **`complete(result)`** runs when the sub-workflow finishes **successfully**. The argument is the sub-workflow's output. The return value is the `ToolEnvelope` that's actually delivered to the LLM (or the caller). Failed or canceled sub-workflows never reach `complete()` — the framework delivers an error envelope directly.
 
-The default `complete()` on `BaseTool` passes the sub-workflow's data straight through:
+Every async tool must implement `complete()` — it defines what the sub-workflow's completion means as the tool's result. The `BaseTool` implementation throws, so a tool that returns `pending` without implementing `complete()` fails loudly on its first completion. The result it returns is validated against the tool's `resultSchema` like any other success envelope.
 
-```typescript
-async complete(result: Record<string, unknown>): Promise<ToolEnvelope> {
-  return { data: (result as { data?: unknown }).data ?? result };
-}
-```
-
-Override it when you need to post-process: transform the payload, validate, or short-circuit. The HITL pattern uses this — `AskForApprovalTool.handle()` launches the sub-workflow with `show: 'inline'` so its UI appears in the parent's run view, and returns `pending`; `complete()` returns the user's decision as the typed answer.
+The HITL pattern shows the shape — `AskForApprovalTool.handle()` launches the sub-workflow with `show: 'inline'` so its UI appears in the parent's run view, and returns `pending`; `complete()` returns the user's decision as the typed answer.
 
 ```typescript
 @Tool({ name: 'ask_for_approval', description: 'Ask the user to approve.', /* … */ })
@@ -192,7 +217,7 @@ export class AskForApprovalTool extends BaseTool</* … */> {
 }
 ```
 
-Use this when a tool genuinely depends on an async outcome (HITL, long-running provisioning, external job completion). For tools that finish synchronously inside `handle()`, you don't need `complete()` at all.
+Use this when a tool genuinely depends on an async outcome (HITL, long-running provisioning, external job completion). Tools that finish synchronously inside `handle()` never go pending, so `complete()` is not involved.
 
 ## Server Tools
 

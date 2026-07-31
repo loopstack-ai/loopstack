@@ -20,6 +20,17 @@ export type GoogleCalendarFetchEventsResult = {
   events?: { id: string; summary: string; start: string | undefined; end: string | undefined }[];
 };
 
+export const GoogleCalendarFetchEventsResultSchema = z.strictObject({
+  events: z.array(
+    z.strictObject({
+      id: z.string(),
+      summary: z.string(),
+      start: z.string().optional(),
+      end: z.string().optional(),
+    }),
+  ),
+});
+
 interface GoogleCalendarEvent {
   id: string;
   summary: string;
@@ -35,6 +46,7 @@ interface GoogleCalendarListResponse {
   name: 'google_calendar_fetch_events',
   description: 'Fetches events from Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   schema: GoogleCalendarFetchEventsSchema,
+  resultSchema: GoogleCalendarFetchEventsResultSchema,
 })
 export class GoogleCalendarFetchEventsTool extends BaseTool<
   GoogleCalendarFetchEventsArgs,

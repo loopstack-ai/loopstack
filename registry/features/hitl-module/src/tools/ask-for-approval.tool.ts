@@ -23,6 +23,16 @@ type AskForApprovalInput = z.infer<typeof AskForApprovalInputSchema>;
 export type AskForApprovalResult = { workflowId: string } | { approved: boolean; message: string; concept?: string };
 
 /**
+ * Zod schema for {@link AskForApprovalResult}.
+ *
+ * @public
+ */
+export const AskForApprovalResultSchema = z.union([
+  z.strictObject({ workflowId: z.string() }),
+  z.strictObject({ approved: z.boolean(), message: z.string(), concept: z.string().optional() }),
+]);
+
+/**
  * Tool that presents a concept to the user for approval and waits for their decision.
  *
  * Runs the {@link ConfirmUserWorkflow} as an inline sub-workflow, rendering the `concept`
@@ -41,6 +51,7 @@ export type AskForApprovalResult = { workflowId: string } | { approved: boolean;
     'on approval, `concept` is the final markdown, which may have been edited by the user. ' +
     'IMPORTANT: This must be the only tool call in your response.',
   schema: AskForApprovalInputSchema,
+  resultSchema: AskForApprovalResultSchema,
 })
 export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, AskForApprovalResult> {
   constructor(private readonly confirmUserWorkflow: ConfirmUserWorkflow) {

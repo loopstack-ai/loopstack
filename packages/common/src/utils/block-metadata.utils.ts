@@ -83,6 +83,16 @@ export function getBlockConfigSchema(target: object | Constructor): z.ZodType | 
 }
 
 /**
+ * Gets the result schema from the class decorator metadata (e.g., `@Tool({ resultSchema })`).
+ * The schema is enforced on `envelope.data` of success envelopes by the tool pipeline.
+ */
+export function getBlockResultSchema(target: object | Constructor): z.ZodType | undefined {
+  const ctor = getConstructor(target);
+  const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
+  return options?.resultSchema;
+}
+
+/**
  * Gets the state schema from a `@Workflow({ stateSchema })` decorator.
  * The schema is enforced by the workflow processor on each transition's resulting state.
  */

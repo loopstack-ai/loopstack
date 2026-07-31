@@ -4,6 +4,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { z } from 'zod';
 import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
 import { McpAuthError, McpProtocolError, McpTimeoutError, McpTransportError, McpUrlSecurityError } from '../errors.js';
 import type { McpTransportKind } from '../types.js';
@@ -57,6 +58,27 @@ export type McpCallToolResult =
       isError?: unknown;
       meta?: unknown;
     };
+
+/**
+ * Zod schema for {@link McpCallToolResult} — the `resultSchema` of `mcp_call`. The proxied
+ * tool payloads (`toolResult`, `content`, `structuredContent`, `meta`) are intentionally uncontracted.
+ *
+ * @public
+ */
+export const McpCallToolResultSchema = z.union([
+  z.strictObject({
+    kind: z.literal('legacyToolResult'),
+    toolResult: z.unknown(),
+    meta: z.unknown().optional(),
+  }),
+  z.strictObject({
+    kind: z.literal('callToolResult'),
+    content: z.unknown(),
+    structuredContent: z.unknown().optional(),
+    isError: z.unknown().optional(),
+    meta: z.unknown().optional(),
+  }),
+]);
 
 /**
  * Service that connects to remote MCP servers; inject it to list and call tools on an MCP endpoint.
