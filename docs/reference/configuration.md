@@ -1,6 +1,6 @@
 ---
 title: Configuration Reference
-description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS, and default settings.
+description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS, run trace persistence (trace / LOOPSTACK_TRACE), and default settings.
 ---
 
 # Configuration
@@ -89,6 +89,16 @@ When `enableAuth` is `true`, `JWT_SECRET` (and `JWT_REFRESH_SECRET`) must be set
 ### `cors`
 
 Standard NestJS/Express CORS options (the [`cors`](https://github.com/expressjs/cors#configuration-options) package). Defaults to `{ origin: true, credentials: true }`. Set to `false` to disable CORS.
+
+### `trace`
+
+Persist every run's [trace](/docs/build/fundamentals/workflows#the-run-trace) — transitions, tool calls with args and result envelopes, documents — as queryable rows, powering `loopstack runs <id> --record` for deriving replay fixtures.
+
+| Option  | Env var           | Default |
+| ------- | ----------------- | ------- |
+| `trace` | `LOOPSTACK_TRACE` | `false` |
+
+Off by default: the in-memory trace always exists, but nothing is written to the database. Individual runs opt in with `loopstack run <workflow> --trace` (or `trace: true` on the start payload) — sub-workflows inherit the flag. Set `trace: true` / `LOOPSTACK_TRACE=true` to record every run, e.g. on a development backend.
 
 ## Other Environment Variables
 

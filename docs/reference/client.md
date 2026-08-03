@@ -39,16 +39,16 @@ console.log(result); // → { greeting: 'Hello, SDK! 👋' }
 
 ## Resources
 
-| Resource            | What it covers                                                                                                                                                   |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `client.workflows`  | Runs: `get`, `status`, `list` (filter/sort/search/pagination), `create`, `update`, `delete`, `batchDelete`, `checkpoints`                                        |
-| `client.documents`  | Documents produced by runs: `get`, `list`                                                                                                                        |
-| `client.processor`  | Execution: `start` a workflow, `run` a transition — answering human-in-the-loop prompts is a transition with a payload                                           |
-| `client.workspaces` | Workspaces: CRUD, favourites, batch delete                                                                                                                       |
-| `client.config`     | What the backend serves: `apps` (workflows, documents, UI config per `@StudioApp`), `tools`, `tool`, `workflowConfig`, `workflowSource`, `availableEnvironments` |
-| `client.dashboard`  | `stats` — recent runs and recent errors                                                                                                                          |
-| `client.auth`       | `me`, `workerHealth`, `hubLogin`, `refresh`, `logout`                                                                                                            |
-| `client.http`       | The typed fetch layer (`get`/`post`/`put`/`patch`/`delete`) — the escape hatch for endpoints without a resource yet                                              |
+| Resource            | What it covers                                                                                                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `client.workflows`  | Runs: `get`, `status`, `list` (filter/sort/search/pagination), `create`, `update`, `delete`, `batchDelete`, `checkpoints`, `toolCalls` (recorded tool calls of a traced run) |
+| `client.documents`  | Documents produced by runs: `get`, `list`                                                                                                                                    |
+| `client.processor`  | Execution: `start` a workflow, `run` a transition — answering human-in-the-loop prompts is a transition with a payload                                                       |
+| `client.workspaces` | Workspaces: CRUD, favourites, batch delete                                                                                                                                   |
+| `client.config`     | What the backend serves: `apps` (workflows, documents, UI config per `@StudioApp`), `tools`, `tool`, `workflowConfig`, `workflowSource`, `availableEnvironments`             |
+| `client.dashboard`  | `stats` — recent runs and recent errors                                                                                                                                      |
+| `client.auth`       | `me`, `workerHealth`, `hubLogin`, `refresh`, `logout`                                                                                                                        |
+| `client.http`       | The typed fetch layer (`get`/`post`/`put`/`patch`/`delete`) — the escape hatch for endpoints without a resource yet                                                          |
 
 ## Live events
 
