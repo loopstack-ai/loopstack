@@ -101,10 +101,12 @@ async function recordFixture(
     workflow: record.workflowName,
     transition: record.transitionId ?? '',
     ...(record.args !== null ? { args: record.args } : {}),
+    ...(record.config !== null ? { config: record.config } : {}),
     envelope: record.envelope,
   }));
   const target = resolve(file);
-  writeFileSync(target, `${JSON.stringify({ version: 2, recordings }, null, 2)}\n`);
+  // Version literal kept in sync with FIXTURE_VERSION in @loopstack/testing (the CLI is client-only).
+  writeFileSync(target, `${JSON.stringify({ version: 3, recordings }, null, 2)}\n`);
 
   const skipped = inBoundary.length - records.length;
   if (json) {

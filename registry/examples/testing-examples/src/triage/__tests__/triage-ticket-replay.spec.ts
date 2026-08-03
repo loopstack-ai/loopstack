@@ -38,7 +38,7 @@ describe('TriageTicketWorkflow — replay', () => {
         providers: [ClassifyTicketTool],
         answers: { approve: { approved: true } },
         replay: replay({
-          version: 2,
+          version: 3,
           recordings: [
             {
               tool: 'classify_ticket',

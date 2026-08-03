@@ -39,7 +39,7 @@ describe('AgentAskClarificationExampleWorkflow', () => {
     const run = await runWorkflow(AgentAskClarificationExampleWorkflow, undefined, {
       imports: [LlmProviderModule, AgentModule, HitlExamplesModule],
       replayTools: [LlmGenerateTextTool],
-      replay: replay({ version: 2, recordings: [CLARIFICATION_TURN, RECOMMENDATION_TURN] }),
+      replay: replay({ version: 3, recordings: [CLARIFICATION_TURN, RECOMMENDATION_TURN] }),
       answers: { userAnswered: { answer: 'Budget €2000, warm climate please' } },
     });
 
@@ -64,7 +64,7 @@ describe('AgentAskClarificationExampleWorkflow', () => {
     const run = await runWorkflow(AgentAskClarificationExampleWorkflow, undefined, {
       imports: [LlmProviderModule, AgentModule, HitlExamplesModule],
       replayTools: [LlmGenerateTextTool],
-      replay: replay({ version: 2, recordings: [CLARIFICATION_TURN] }),
+      replay: replay({ version: 3, recordings: [CLARIFICATION_TURN] }),
     });
 
     expect(run.status).toBe('waiting');

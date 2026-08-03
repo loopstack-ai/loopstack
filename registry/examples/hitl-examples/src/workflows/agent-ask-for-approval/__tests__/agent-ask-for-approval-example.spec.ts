@@ -34,7 +34,7 @@ describe('AgentAskForApprovalExampleWorkflow', () => {
     const run = await runWorkflow(AgentAskForApprovalExampleWorkflow, undefined, {
       imports: [LlmProviderModule, AgentModule, HitlExamplesModule],
       replayTools: [LlmGenerateTextTool],
-      replay: replay({ version: 2, recordings: [DRAFT_TURN, FINAL_TURN] }),
+      replay: replay({ version: 3, recordings: [DRAFT_TURN, FINAL_TURN] }),
       answers: { userConfirmed: {} },
     });
 
@@ -65,7 +65,7 @@ describe('AgentAskForApprovalExampleWorkflow', () => {
     const run = await runWorkflow(AgentAskForApprovalExampleWorkflow, undefined, {
       imports: [LlmProviderModule, AgentModule, HitlExamplesModule],
       replayTools: [LlmGenerateTextTool],
-      replay: replay({ version: 2, recordings: [DRAFT_TURN, rejectionTurn] }),
+      replay: replay({ version: 3, recordings: [DRAFT_TURN, rejectionTurn] }),
       answers: { userDenied: {} },
     });
 

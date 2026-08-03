@@ -10,22 +10,26 @@ import {
 } from '@loopstack/common';
 import { ExecutionScope } from '@loopstack/core';
 
+/** The current replay fixture format version. Older versions are rejected — re-record. */
+export const FIXTURE_VERSION = 3 as const;
+
 /**
  * One scripted tool response. Only `tool` and `envelope` are required — `workflow`,
- * `transition`, and `args` are assertion metadata: when present, the actual call must match
- * them, so a drifted call position or changed arguments fails loudly instead of replaying a
- * response that no longer fits.
+ * `transition`, `args`, and `config` are assertion metadata: when present, the actual call
+ * must match them, so a drifted call position, changed arguments, or changed config (e.g. a
+ * system prompt) fails loudly instead of replaying a response that no longer fits.
  */
 export interface ToolRecording {
   tool: string;
   workflow?: string;
   transition?: string;
   args?: unknown;
+  config?: unknown;
   envelope: ToolEnvelope;
 }
 
 export interface ReplayFixture {
-  version: 2;
+  version: typeof FIXTURE_VERSION;
   recordings: ToolRecording[];
 }
 
@@ -54,15 +58,20 @@ function canonicalize(value: unknown): unknown {
 /**
  * A strict, ordered script of tool responses. Every call inside the mock boundary consumes the
  * next entry — there is no matching or lookup. Each entry's metadata (`tool` always;
- * `workflow`/`transition`/`args` when present) is asserted against the actual call, so any
- * drift in call order, position, or arguments fails loudly with the exact position named.
+ * `workflow`/`transition`/`args`/`config` when present) is asserted against the actual call, so
+ * any drift in call order, position, arguments, or config fails loudly with the exact position
+ * named.
  */
 export class ReplaySource {
   private cursor = 0;
 
   constructor(readonly fixture: ReplayFixture) {
-    if (fixture.version !== 2) {
-      throw new Error(`Unsupported replay fixture version: ${String(fixture.version)}. Expected 2.`);
+    if ((fixture.version as number) !== FIXTURE_VERSION) {
+      throw new Error(
+        `Unsupported replay fixture version: ${String(fixture.version)}. Expected ${FIXTURE_VERSION} — ` +
+          `v3 additionally asserts tool config (e.g. system prompts). Re-record via the fixture/record ` +
+          `options or loopstack runs <run-id> --record, or bump a hand-written fixture to version: 3.`,
+      );
     }
     const pendingIndex = fixture.recordings.findIndex((entry) => entry.envelope.pending);
     if (pendingIndex !== -1) {
@@ -74,7 +83,7 @@ export class ReplaySource {
     }
   }
 
-  next(call: { workflow: string; transition: string; tool: string; args: unknown }): ToolEnvelope {
+  next(call: { workflow: string; transition: string; tool: string; args: unknown; config?: unknown }): ToolEnvelope {
     const position = this.cursor + 1;
     const where = `'${call.tool}' in ${call.workflow}.${call.transition}`;
     const entry = this.fixture.recordings[this.cursor];
@@ -112,6 +121,19 @@ export class ReplaySource {
         throw new Error(
           `Replay drift at response #${position}: args for ${where} differ from the recording — ` +
             `the replayed response no longer fits.\n  recorded: ${recorded}\n  actual:   ${actual}\n` +
+            `Delete the fixture file to re-record it on the next run ` +
+            `(or re-derive it from a real run with loopstack runs <run-id> --record).`,
+        );
+      }
+    }
+    if (entry.config !== undefined) {
+      const recorded = JSON.stringify(canonicalize(entry.config));
+      const actual = JSON.stringify(canonicalize(call.config));
+      if (recorded !== actual) {
+        throw new Error(
+          `Replay drift at response #${position}: config for ${where} differs from the recording — ` +
+            `the replayed response no longer fits (e.g. a changed system prompt, model, or tool list).\n` +
+            `  recorded: ${recorded}\n  actual:   ${actual}\n` +
             `Delete the fixture file to re-record it on the next run ` +
             `(or re-derive it from a real run with loopstack runs <run-id> --record).`,
         );
@@ -184,6 +206,7 @@ export class ReplayToolInterceptor implements ToolInterceptor {
       transition: scope.transition.id,
       tool,
       args: context.args,
+      config: context.config,
     });
   }
 }

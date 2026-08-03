@@ -5,6 +5,8 @@ import type { RunContext } from './run-context.interface.js';
 export interface ToolExecutionContext {
   tool: object;
   args: Record<string, unknown> | undefined;
+  /** The call's validated config, when the tool was called with one */
+  config?: Record<string, unknown>;
   /** Read-only per-job framework context */
   runContext: RunContext;
   /** Mutable metadata — interceptors can attach data here for downstream interceptors */

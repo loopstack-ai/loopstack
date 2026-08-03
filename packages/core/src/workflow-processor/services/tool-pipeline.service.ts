@@ -106,6 +106,7 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
     const execContext: ToolExecutionContext = {
       tool,
       args: validArgs as Record<string, unknown> | undefined,
+      ...(validConfig !== undefined ? { config: validConfig as Record<string, unknown> } : {}),
       runContext,
       metadata: {},
     };
@@ -134,14 +135,24 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
     const toolName = getBlockName(tool);
     const transitionId = scope?.transition?.id;
     const toolSeq = trace?.nextToolSeq(transitionId) ?? 0;
-    trace?.emit({ type: 'tool.called', transitionId, toolName, toolSeq, args: validArgs });
+    const traceConfig = validConfig !== undefined ? { config: validConfig } : {};
+    trace?.emit({ type: 'tool.called', transitionId, toolName, toolSeq, args: validArgs, ...traceConfig });
     this.logger.debug(`${toolName} — executing`);
 
     const startedAt = performance.now();
     try {
       const envelope = parseToolResult(tool, await chain());
       const durationMs = Math.round(performance.now() - startedAt);
-      trace?.emit({ type: 'tool.completed', transitionId, toolName, toolSeq, args: validArgs, envelope, durationMs });
+      trace?.emit({
+        type: 'tool.completed',
+        transitionId,
+        toolName,
+        toolSeq,
+        args: validArgs,
+        ...traceConfig,
+        envelope,
+        durationMs,
+      });
       this.logger.debug(`${toolName} — completed in ${durationMs}ms`);
       return envelope;
     } catch (error) {
@@ -153,6 +164,7 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
         toolName,
         toolSeq,
         args: validArgs,
+        ...traceConfig,
         error: message,
         durationMs,
       });

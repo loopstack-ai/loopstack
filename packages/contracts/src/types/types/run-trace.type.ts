@@ -61,6 +61,8 @@ export const ToolCalledEventSchema = z.object({
   /** 0-based order of this call within its transition. */
   toolSeq: z.number(),
   args: z.unknown().optional(),
+  /** The call's validated config, when the tool was called with one. */
+  config: z.unknown().optional(),
 });
 
 export const ToolCompletedEventSchema = z.object({
@@ -71,6 +73,8 @@ export const ToolCompletedEventSchema = z.object({
   toolSeq: z.number(),
   /** The validated args of the call — repeated here so the event is self-contained (fixture derivation). */
   args: z.unknown().optional(),
+  /** The call's validated config, when the tool was called with one. */
+  config: z.unknown().optional(),
   /** The full ToolEnvelope the pipeline returned. */
   envelope: z.unknown(),
   durationMs: z.number(),
@@ -83,6 +87,7 @@ export const ToolFailedEventSchema = z.object({
   toolName: z.string(),
   toolSeq: z.number(),
   args: z.unknown().optional(),
+  config: z.unknown().optional(),
   error: z.string(),
   durationMs: z.number(),
 });

@@ -24,7 +24,7 @@ describe('MeetingNotesExampleWorkflow', () => {
           confirm: OPTIMIZED,
         },
         replay: replay({
-          version: 2,
+          version: 3,
           recordings: [{ tool: 'llm_generate_object', envelope: { data: { data: OPTIMIZED, response: {} } } }],
         }),
       },

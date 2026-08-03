@@ -28,7 +28,7 @@ describe('PromptInputChatExampleWorkflow', () => {
       imports: [LlmProviderModule, HitlExamplesModule],
       answers: { userMessage: queue('What is Loopstack?', 'And what about pricing?') },
       replay: replay({
-        version: 2,
+        version: 3,
         recordings: [assistantReply('Loopstack is a workflow framework.'), assistantReply('It is open source.')],
       }),
     });

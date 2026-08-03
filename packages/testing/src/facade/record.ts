@@ -9,31 +9,39 @@ import {
   getBlockName,
 } from '@loopstack/common';
 import { ExecutionScope } from '@loopstack/core';
-import { REPLAY_TOOLS, type ReplayFixture, type ToolRecording } from './replay.js';
+import { FIXTURE_VERSION, REPLAY_TOOLS, type ReplayFixture, type ToolRecording } from './replay.js';
 
 /** Injection token under which `runWorkflow` provides the active `RecordSink`. */
 export const RECORD_SINK = 'LOOPSTACK_RECORD_SINK';
 
 /**
  * Collects tool responses during a live in-process run, in call order — the fixture is the
- * strict sequence a later replay consumes. `workflow`/`transition`/`args` are stored as
- * assertion metadata.
+ * strict sequence a later replay consumes. `workflow`/`transition`/`args`/`config` are stored
+ * as assertion metadata.
  */
 export class RecordSink {
   private readonly recordings: ToolRecording[] = [];
 
-  add(workflow: string, transition: string, tool: string, args: unknown, envelope: ToolEnvelope): void {
+  add(
+    workflow: string,
+    transition: string,
+    tool: string,
+    args: unknown,
+    config: unknown,
+    envelope: ToolEnvelope,
+  ): void {
     this.recordings.push({
       tool,
       workflow,
       transition,
       ...(args !== undefined ? { args } : {}),
+      ...(config !== undefined ? { config } : {}),
       envelope,
     });
   }
 
   toFixture(): ReplayFixture {
-    return { version: 2, recordings: [...this.recordings] };
+    return { version: FIXTURE_VERSION, recordings: [...this.recordings] };
   }
 
   writeTo(file: string): string {
@@ -82,7 +90,7 @@ export class RecordToolInterceptor implements ToolInterceptor {
           `no execution scope with workflowName and transition is set. This is a framework bug.`,
       );
     }
-    this.sink.add(scope.workflowName, scope.transition.id, tool, context.args, envelope);
+    this.sink.add(scope.workflowName, scope.transition.id, tool, context.args, context.config, envelope);
     return envelope;
   }
 }

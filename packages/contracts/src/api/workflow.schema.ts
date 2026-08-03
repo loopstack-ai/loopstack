@@ -90,6 +90,7 @@ export const ToolCallRecordSchema = z.object({
   seq: z.number(),
   toolName: z.string(),
   args: z.record(z.string(), z.unknown()).nullable(),
+  config: z.record(z.string(), z.unknown()).nullable(),
   envelope: z.record(z.string(), z.unknown()),
   createdAt: z.iso.datetime(),
 });

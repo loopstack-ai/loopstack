@@ -18,6 +18,17 @@ class ThrowingTool extends BaseTool<object, object, never> {
   }
 }
 
+@Tool({ name: 'configured', configSchema: z.object({ label: z.string() }) })
+class ConfiguredTool extends BaseTool<object, { label: string }, string> {
+  protected async handle(
+    _args: object,
+    _ctx: never,
+    options?: { config?: { label: string } },
+  ): Promise<ToolEnvelope<string>> {
+    return Promise.resolve({ data: options?.config?.label ?? 'none' });
+  }
+}
+
 describe('ToolPipelineService — trace emission', () => {
   const makeScopeData = (trace: RunTraceCollector): ExecutionScopeData =>
     ({
@@ -56,6 +67,26 @@ describe('ToolPipelineService — trace emission', () => {
     expect(trace.events[1]).toMatchObject({ toolSeq: 0, envelope: { data: 3 } });
     expect(trace.events[2]).toMatchObject({ toolSeq: 1 });
     expect((trace.events[1] as { durationMs: number }).durationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('carries the validated config on tool events, absent when the call has none', async () => {
+    const scope = new ExecutionScope();
+    const pipeline = new ToolPipelineService(scope, {} as never);
+    const trace = new RunTraceCollector();
+
+    await scope.run(makeScopeData(trace), async () => {
+      await pipeline.execute(new ConfiguredTool(), {}, { config: { label: 'hi' } });
+      await pipeline.execute(new SumTool(), { a: 1, b: 1 });
+    });
+
+    expect(trace.events[0]).toMatchObject({ type: 'tool.called', config: { label: 'hi' } });
+    expect(trace.events[1]).toMatchObject({
+      type: 'tool.completed',
+      config: { label: 'hi' },
+      envelope: { data: 'hi' },
+    });
+    expect('config' in trace.events[2]).toBe(false);
+    expect('config' in trace.events[3]).toBe(false);
   });
 
   it('emits tool.failed on a throw and still propagates the error', async () => {

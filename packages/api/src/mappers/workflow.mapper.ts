@@ -81,6 +81,7 @@ export function toToolCallRecord(entity: RunTraceEventEntity): ToolCallRecordInt
     seq: event.toolSeq,
     toolName: event.toolName,
     args: (event.args as Record<string, unknown> | undefined) ?? null,
+    config: (event.config as Record<string, unknown> | undefined) ?? null,
     envelope: (event.envelope as Record<string, unknown> | undefined) ?? {},
     createdAt: entity.createdAt.toISOString(),
   });
