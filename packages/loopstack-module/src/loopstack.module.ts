@@ -76,7 +76,7 @@ function buildAppConfig(options: LoopstackModuleOptions) {
   return registerAs<AppConfig>('app', () => ({
     nodeEnv: process.env.NODE_ENV ?? 'development',
     enableAuth: resolveEnableAuth(options),
-    recordToolCalls: options.recordToolCalls ?? process.env.LOOPSTACK_RECORD_TOOL_CALLS === 'true',
+    trace: options.trace ?? process.env.LOOPSTACK_TRACE === 'true',
   }));
 }
 

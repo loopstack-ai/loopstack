@@ -105,6 +105,8 @@ export const StartWorkflowPayloadSchema = z.object({
   workspaceId: z.string().min(1),
   args: z.record(z.string(), z.any()).optional(),
   labels: z.array(z.string()).optional(),
+  /** Persist the run's trace events (tool calls, transitions), including sub-workflows. */
+  trace: z.boolean().optional(),
 });
 export type StartWorkflowPayloadInterface = z.infer<typeof StartWorkflowPayloadSchema>;
 

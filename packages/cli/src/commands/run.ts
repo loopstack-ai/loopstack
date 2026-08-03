@@ -23,6 +23,7 @@ interface RunOptions {
   detach?: boolean;
   quiet?: boolean;
   open?: boolean;
+  trace?: boolean;
 }
 
 export function registerRunCommand(program: Command): void {
@@ -37,6 +38,7 @@ export function registerRunCommand(program: Command): void {
     )
     .option('--workspace <id>', 'workspace to run in (default: newest workspace of the workflow’s app)')
     .option('--detach', 'start the run, print its id, exit immediately')
+    .option('--trace', 'persist the run trace (tool calls, transitions) — enables `runs <id> --record`')
     .option('--quiet', 'no progress — print only the final result')
     .option('--open', 'open the run in Studio')
     .action(async (workflowName: string, options: RunOptions, cmd) => {
@@ -61,7 +63,12 @@ export function registerRunCommand(program: Command): void {
       const events = options.detach ? undefined : client.stream.events();
       if (events) await client.stream.waitForOpen();
       const startedAt = Date.now();
-      const run = await client.processor.start({ workflowName, workspaceId, args });
+      const run = await client.processor.start({
+        workflowName,
+        workspaceId,
+        args,
+        ...(options.trace ? { trace: true } : {}),
+      });
       out.write(pc.dim(`▸ run ${run.workflowId} started\n`));
 
       const link = studioRunUrl(connection, run.workflowId);

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { executedTransitions } from '@loopstack/contracts/types';
 import { ExecutionScope } from '../../../utils/index.js';
 import { WorkflowProcessorService } from '../workflow-processor.service.js';
 
@@ -57,6 +58,7 @@ describe('WorkflowProcessorService — stateless park and resume', () => {
       new ExecutionScope(),
       memoryMonitor as never,
       {} as never, // dataSource — unused on the stateless path
+      {} as never, // runTraceService — unused without a workflowEntity
     );
   });
 
@@ -73,8 +75,14 @@ describe('WorkflowProcessorService — stateless park and resume', () => {
 
     expect(meta.status).toBe('waiting');
     expect(meta.place).toBe('awaiting_input');
-    expect(meta.history.map((t) => t.id)).toEqual(['begin']);
-    expect(meta.statelessState).toEqual({ place: 'awaiting_input', state: {}, documents: [] });
+    expect(executedTransitions(meta.trace).map((e) => e.transitionId)).toEqual(['begin']);
+    expect(meta.statelessState).toMatchObject({ place: 'awaiting_input', state: {}, documents: [] });
+    // The carrier carries the trace — including the park settle with what the run waits on.
+    expect(meta.statelessState?.trace?.at(-1)).toMatchObject({
+      type: 'run.settled',
+      status: 'waiting',
+      availableTransitions: ['onSubmit'],
+    });
   });
 
   it('resumes from the carrier, preserves state, and completes', async () => {
@@ -91,7 +99,7 @@ describe('WorkflowProcessorService — stateless park and resume', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(meta.status).toBe('completed');
     expect(meta.place).toBe('end');
-    expect(meta.history.map((t) => t.id)).toEqual(['onSubmit']);
+    expect(executedTransitions(meta.trace).map((e) => e.transitionId)).toEqual(['onSubmit']);
     expect(meta.statelessState?.state).toMatchObject({ counter: 7 });
   });
 

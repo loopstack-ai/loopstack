@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { executedTransitions } from '@loopstack/contracts/types';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { AskUserWorkflow } from '../ask-user.workflow.js';
@@ -66,7 +67,12 @@ describe('AskUserWorkflow', () => {
       expect(resumed.status).toBe('completed');
       expect(resumed.place).toBe('end');
       expect(resumed.result).toEqual({ answer: 'yes' });
-      expect(resumed.history.map((t) => t.id)).toEqual(['userAnswered']);
+      // The trace rides the resume carrier, so it holds the full run — ending in the answer.
+      expect(
+        executedTransitions(resumed.trace)
+          .map((e) => e.transitionId)
+          .at(-1),
+      ).toBe('userAnswered');
       // The answered document re-renders the question from carried state — proving state survived
       expect(resumed.documents).toEqual(
         expect.arrayContaining([

@@ -62,9 +62,10 @@ export function registerRunsCommand(program: Command): void {
 }
 
 /**
- * Derive a replay fixture from the run's tool-call audit records (backend must run with
- * `recordToolCalls` enabled). The fixture is the strict response sequence `replay()` in
- * `@loopstack/testing` consumes; `--tools` selects the mock boundary.
+ * Derive a replay fixture from the run's persisted trace (the run must have been started
+ * with `loopstack run --trace`, or the backend with `LOOPSTACK_TRACE=true`). The fixture is
+ * the strict response sequence `replay()` in `@loopstack/testing` consumes; `--tools`
+ * selects the mock boundary.
  */
 async function recordFixture(
   client: LoopstackClient,
@@ -76,8 +77,8 @@ async function recordFixture(
   const allRecords = await client.workflows.toolCalls(runId);
   if (allRecords.length === 0) {
     throw new CliError(
-      'No recorded tool calls for this run. Start the backend with recordToolCalls enabled ' +
-        '(LOOPSTACK_RECORD_TOOL_CALLS=true) and run the workflow again.',
+      'No recorded tool calls for this run. Start the run with `loopstack run <workflow> --trace` ' +
+        '(or the backend with LOOPSTACK_TRACE=true) and run the workflow again.',
     );
   }
 

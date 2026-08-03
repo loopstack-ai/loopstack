@@ -1,6 +1,6 @@
 import type { DocumentEntity } from '@loopstack/common';
 import { getWorkflowIdentifier } from '@loopstack/common';
-import { ExecutionScope, type ExecutionScopeData } from '@loopstack/core';
+import { ExecutionScope, type ExecutionScopeData, RunTraceCollector } from '@loopstack/core';
 
 /** What `runTransition` returns: the state and result drafts after the transition resolves. */
 export interface TransitionDraftResult<TState = Record<string, unknown>, TResult = Record<string, unknown>> {
@@ -81,6 +81,8 @@ export async function runTransition<
     documents: [] as DocumentEntity[],
     persistenceState: { documentsUpdated: false },
     transition: undefined,
+    trace: new RunTraceCollector(),
+    tracePersist: false,
     abortController: new AbortController(),
     stateDraft: { ...(options.state ?? {}) },
     resultDraft: { ...(options.result ?? {}) },

@@ -16,7 +16,8 @@ import type { RunContext } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor, TransitionAbortedError } from '../../../common/index.js';
-import { ExecutionScope, ExecutionScopeData } from '../../utils/index.js';
+import { ExecutionScope, ExecutionScopeData, RunTraceCollector, shallowStateDiff } from '../../utils/index.js';
+import { RunTraceService } from '../run-trace.service.js';
 import { TransitionResolverService } from '../transition-resolver.service.js';
 import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service.js';
 import { WorkflowStateService } from '../workflow-state.service.js';
@@ -40,6 +41,7 @@ export class WorkflowProcessorService implements Processor {
     private readonly executionScope: ExecutionScope,
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
     private readonly dataSource: DataSource,
+    private readonly runTraceService: RunTraceService,
   ) {}
 
   async process(
@@ -64,6 +66,10 @@ export class WorkflowProcessorService implements Processor {
     let pendingTransition: TransitionPayloadInterface | undefined;
     let latestCheckpoint: WorkflowCheckpointEntity | null = null;
 
+    // The trace collector — seeded from the resume carrier so a resumed stateless run's
+    // trace stays complete and `seq` continues monotonically.
+    const trace = new RunTraceCollector(context.statelessState?.trace);
+
     // Initialize processor metadata
     const meta: ProcessorMetadata = {
       hasError: false,
@@ -74,7 +80,7 @@ export class WorkflowProcessorService implements Processor {
       documents: [],
       place: 'start',
       tools: {},
-      history: [],
+      trace: trace.events,
       result: null,
       retryCount: 0,
       retryTransitionId: undefined,
@@ -128,6 +134,12 @@ export class WorkflowProcessorService implements Processor {
         return meta;
       }
 
+      if (this.runTraceService.isEnabled(workflowEntity.trace)) {
+        // Continue the trace sequence from the persisted rows — stateful runs get the same
+        // per-run monotonic `seq` the stateless resume carrier provides for free.
+        trace.continueFrom(await this.runTraceService.nextSeq(workflowEntity.id));
+      }
+
       meta.status = WorkflowStateEnum.Running;
     }
 
@@ -152,6 +164,8 @@ export class WorkflowProcessorService implements Processor {
       documents: meta.documents,
       persistenceState: meta.persistenceState,
       transition: undefined,
+      trace,
+      tracePersist: workflowEntity ? this.runTraceService.isEnabled(workflowEntity.trace) : false,
       statelessCallbacks: context.statelessState?.callbacks ? [...context.statelessState.callbacks] : [],
       statelessChildren: context.statelessState?.children ? [...context.statelessState.children] : [],
       // Replaced with a fresh controller before each transition in executeTransition.
@@ -174,9 +188,9 @@ export class WorkflowProcessorService implements Processor {
       if (isStateless) {
         const callbacks = scopeData.statelessCallbacks ?? [];
         while (callbacks.length > 0 && !meta.hasError && meta.place !== 'end') {
-          const historyLength = meta.history.length;
+          const traceLength = meta.trace.length;
           state = await this.processStateMachine(scopeData, meta, workflow, callbacks[0], workflowEntity, state);
-          if (meta.history.length === historyLength) break;
+          if (trace.startedSince(traceLength) === 0) break;
           callbacks.shift();
         }
       }
@@ -209,11 +223,22 @@ export class WorkflowProcessorService implements Processor {
     meta.documents = scopeData.documents;
     meta.persistenceState = scopeData.persistenceState;
 
+    // Every settle is an event — parks included, with what the run is waiting on.
+    trace.emit({
+      type: 'run.settled',
+      status: meta.status,
+      place: meta.place,
+      ...(meta.status === WorkflowState.Waiting
+        ? { availableTransitions: meta.availableTransitions.map((t) => t.id) }
+        : {}),
+    });
+
     if (isStateless) {
       meta.statelessState = {
         place: meta.place,
         state,
         documents: meta.documents,
+        trace: trace.events,
         ...(scopeData.statelessCallbacks?.length ? { callbacks: scopeData.statelessCallbacks } : {}),
         ...(scopeData.statelessChildren?.length ? { children: scopeData.statelessChildren } : {}),
       };
@@ -223,6 +248,13 @@ export class WorkflowProcessorService implements Processor {
 
     if (workflowEntity) {
       await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
+      if (scopeData.tracePersist) {
+        // Persist this call's trace events (observability — a failure logs, never throws).
+        await this.runTraceService.saveBatch(
+          { workflowId: workflowEntity.id, workflowName: scopeData.workflowName, workspaceId: scopeData.workspaceId },
+          trace.events,
+        );
+      }
     }
     return meta;
   }
@@ -565,7 +597,13 @@ export class WorkflowProcessorService implements Processor {
           }
         }
 
-        meta.history.push(meta.transition);
+        scopeData.trace.emit({
+          type: 'transition.started',
+          transitionId: waitTransition.methodName,
+          from: meta.place,
+          to: waitTransition.to,
+          payload: pendingTransition.payload,
+        });
 
         if (workflowEntity) {
           await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
@@ -587,6 +625,13 @@ export class WorkflowProcessorService implements Processor {
             `Wait transition '${waitTransition.methodName}' received ${status} callback: ${errorMessage}`,
           );
           await this.handleTransitionError(meta, subError, waitTransition);
+          scopeData.trace.emit({
+            type: 'transition.failed',
+            transitionId: waitTransition.methodName,
+            error: errorMessage,
+            retryCount: meta.retryCount ?? 0,
+            willRetry: !!meta._retrySignal,
+          });
 
           const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
           meta.availableTransitions = errorAvailable.map((t) => ({
@@ -640,6 +685,7 @@ export class WorkflowProcessorService implements Processor {
           ...(rawPayload.meta !== undefined ? { meta: rawPayload.meta } : {}),
         };
 
+        const startedAt = performance.now();
         try {
           const result = await this.executeTransition(
             scopeData,
@@ -653,12 +699,27 @@ export class WorkflowProcessorService implements Processor {
             workflowName,
             waitTransition,
           );
+          scopeData.trace.emit({
+            type: 'transition.completed',
+            transitionId: waitTransition.methodName,
+            durationMs: Math.round(performance.now() - startedAt),
+            stateDiff: shallowStateDiff(state, result.newState),
+            resultDirty: scopeData.resultDirty,
+          });
           state = result.newState;
           this.clearRetryState(meta, waitTransition.methodName);
         } catch (e) {
           const error = e instanceof Error ? e : new Error(String(e));
           this.logger.error(new ConfigTraceError(error, workflow));
           await this.handleTransitionError(meta, error, waitTransition);
+          scopeData.trace.emit({
+            type: 'transition.failed',
+            transitionId: waitTransition.methodName,
+            durationMs: Math.round(performance.now() - startedAt),
+            error: error.message,
+            retryCount: meta.retryCount ?? 0,
+            willRetry: !!meta._retrySignal,
+          });
 
           const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
           meta.availableTransitions = errorAvailable.map((t) => ({
@@ -701,12 +762,18 @@ export class WorkflowProcessorService implements Processor {
         payload: null,
       };
       scopeData.transition = meta.transition;
-      meta.history.push(meta.transition);
+      scopeData.trace.emit({
+        type: 'transition.started',
+        transitionId: next.methodName,
+        from: meta.place,
+        to: next.to,
+      });
 
       if (workflowEntity) {
         await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
       }
 
+      const startedAt = performance.now();
       try {
         const result = await this.executeTransition(
           scopeData,
@@ -720,12 +787,27 @@ export class WorkflowProcessorService implements Processor {
           workflowName,
           next,
         );
+        scopeData.trace.emit({
+          type: 'transition.completed',
+          transitionId: next.methodName,
+          durationMs: Math.round(performance.now() - startedAt),
+          stateDiff: shallowStateDiff(state, result.newState),
+          resultDirty: scopeData.resultDirty,
+        });
         state = result.newState;
         this.clearRetryState(meta, next.methodName);
       } catch (e) {
         const error = e instanceof Error ? e : new Error(String(e));
         this.logger.error(new ConfigTraceError(error, workflow));
         await this.handleTransitionError(meta, error, next);
+        scopeData.trace.emit({
+          type: 'transition.failed',
+          transitionId: next.methodName,
+          durationMs: Math.round(performance.now() - startedAt),
+          error: error.message,
+          retryCount: meta.retryCount ?? 0,
+          willRetry: !!meta._retrySignal,
+        });
 
         const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
         meta.availableTransitions = errorAvailable.map((t) => ({

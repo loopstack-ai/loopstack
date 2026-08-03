@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 import { vi } from 'vitest';
 import {
   DocumentEntity,
-  ToolCallRecordEntity,
+  RunTraceEventEntity,
   WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
@@ -61,6 +61,6 @@ export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingM
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkflowCheckpointEntity))
     .useValue(createMockRepository())
-    .overrideProvider(getRepositoryToken(ToolCallRecordEntity))
+    .overrideProvider(getRepositoryToken(RunTraceEventEntity))
     .useValue(createMockRepository());
 }

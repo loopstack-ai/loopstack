@@ -19,6 +19,23 @@ describe('CustomToolExampleWorkflow — runWorkflow facade', () => {
     expect(run.status).toBe('completed');
     expect(run.path).toEqual(['calculate', 'userContinue', 'continueCount']);
     expect(run.result).toEqual({ total: 5 });
+
+    // The trace carries the run's full story: every tool call with its envelope, the park
+    // settle with what the run waited on, and the documents each transition emitted.
+    expect(run.toolCalls.map((c) => c.toolName)).toEqual([
+      'math_sum',
+      'counter',
+      'counter',
+      'counter',
+      'counter',
+      'counter',
+      'counter',
+    ]);
+    expect(run.toolCalls[0]).toMatchObject({ type: 'tool.completed', args: { a: 2, b: 3 }, envelope: { data: 5 } });
+    expect(run.trace).toContainEqual(
+      expect.objectContaining({ type: 'run.settled', status: 'waiting', availableTransitions: ['userContinue'] }),
+    );
+    expect(run.trace.filter((e) => e.type === 'document.emitted').length).toBeGreaterThan(0);
   });
 
   it('replays the scripted tool responses strictly in sequence', async () => {

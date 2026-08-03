@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
-import { ToolCallRecordEntity, WorkflowCheckpointEntity, WorkflowEntity, WorkflowState } from '@loopstack/common';
+import { RunTraceEventEntity, WorkflowCheckpointEntity, WorkflowEntity, WorkflowState } from '@loopstack/common';
 import type {
   WorkflowCreateInterface,
   WorkflowFilterInterface,
@@ -11,7 +11,7 @@ import type {
 } from '@loopstack/contracts/api';
 import {
   CreateWorkflowService,
-  ToolCallAuditService,
+  RunTraceService,
   WorkflowCheckpointService,
   WorkflowRegistryService,
 } from '@loopstack/core';
@@ -25,7 +25,7 @@ export class WorkflowApiService {
     private workflowRepository: Repository<WorkflowEntity>,
     private configService: ConfigService,
     private workflowCheckpointService: WorkflowCheckpointService,
-    private readonly toolCallAuditService: ToolCallAuditService,
+    private readonly runTraceService: RunTraceService,
     private readonly createWorkflowService: CreateWorkflowService,
     private readonly workflowRegistryService: WorkflowRegistryService,
   ) {}
@@ -291,10 +291,10 @@ export class WorkflowApiService {
     return this.workflowCheckpointService.getHistory(workflowId);
   }
 
-  async getToolCalls(workflowId: string, user: string): Promise<ToolCallRecordEntity[]> {
+  async getToolCalls(workflowId: string, user: string): Promise<RunTraceEventEntity[]> {
     // Verify the user owns this workflow
     await this.findOneById(workflowId, user);
-    // Records of the whole run tree — a parent run's fixture needs its sub-workflows' calls too.
-    return this.toolCallAuditService.findByRunTree(workflowId);
+    // Tool events of the whole run tree — a parent run's fixture needs its sub-workflows' calls too.
+    return this.runTraceService.findByRunTree(workflowId, ['tool.completed']);
   }
 }

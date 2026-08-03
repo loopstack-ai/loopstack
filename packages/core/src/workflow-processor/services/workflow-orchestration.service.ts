@@ -68,6 +68,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
         args: { ...args },
         callbackTransition: options?.callback?.transition ?? null,
         callbackMetadata: options?.callback?.metadata ?? null,
+        ...(scope.tracePersist ? { trace: true } : {}),
       },
       scope.userId,
       scope.workflowId,
@@ -89,6 +90,14 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     } satisfies ScheduledTask);
 
     await this.persistSubWorkflowLink(workflowEntity.id, workflowName, options);
+
+    scope.trace.emit({
+      type: 'child.queued',
+      transitionId: scope.transition?.id,
+      childWorkflowId: workflowEntity.id,
+      workflowName,
+      ...(options?.show ? { show: options.show } : {}),
+    });
 
     return {
       workflowId: workflowEntity.id,
@@ -128,6 +137,17 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
       ...statelessChildResultFields(childMeta),
     };
     (scope.statelessChildren ??= []).push(record);
+
+    scope.trace.emit({
+      type: 'child.queued',
+      transitionId: scope.transition?.id,
+      childWorkflowId: childId,
+      workflowName,
+      ...(options?.show ? { show: options.show } : {}),
+    });
+    if (record.status !== WorkflowState.Waiting) {
+      scope.trace.emit({ type: 'child.settled', childWorkflowId: childId, status: record.status });
+    }
 
     const callback = statelessChildCallback(record, scope.workflowId);
     if (callback) {

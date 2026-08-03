@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { executedTransitions } from '@loopstack/contracts/types';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../sub-workflow-parent.workflow';
@@ -35,7 +36,7 @@ describe('RunSubWorkflowExampleParentWorkflow — stateless inline children', ()
     expect(result.hasError).toBe(false);
     expect(result.status).toBe('completed');
     expect(result.place).toBe('end');
-    expect(result.history.map((t) => t.id)).toEqual([
+    expect(executedTransitions(result.trace).map((e) => e.transitionId)).toEqual([
       'runWorkflow',
       'subWorkflowCallback',
       'runWorkflow2',

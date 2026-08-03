@@ -45,7 +45,7 @@ export function createWorkflowsResource(http: HttpClient) {
     checkpoints: (id: string): Promise<WorkflowCheckpointInterface[]> =>
       http.get(`/api/v1/workflows/${id}/checkpoints`),
 
-    /** Tool-call audit records of a run (persisted when the backend runs with `recordToolCalls`). */
+    /** Recorded tool calls of a run (persisted when the run was started with trace enabled). */
     toolCalls: (id: string): Promise<ToolCallRecordInterface[]> => http.get(`/api/v1/workflows/${id}/tool-calls`),
   };
 }

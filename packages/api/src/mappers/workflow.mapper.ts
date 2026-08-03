@@ -1,4 +1,4 @@
-import { ToolCallRecordEntity, WorkflowCheckpointEntity, WorkflowEntity, assertResponse } from '@loopstack/common';
+import { RunTraceEventEntity, WorkflowCheckpointEntity, WorkflowEntity, assertResponse } from '@loopstack/common';
 import {
   ToolCallRecordInterface,
   ToolCallRecordSchema,
@@ -11,6 +11,7 @@ import {
   WorkflowStatusInterface,
   WorkflowStatusSchema,
 } from '@loopstack/contracts/api';
+import type { RunTraceEvent } from '@loopstack/contracts/types';
 
 /** `loadRelationCountAndMap` attaches the children count dynamically. */
 type WorkflowEntityWithChildCount = WorkflowEntity & { hasChildren?: number };
@@ -69,16 +70,18 @@ export function toWorkflowCheckpoint(
   });
 }
 
-export function toToolCallRecord(entity: ToolCallRecordEntity): ToolCallRecordInterface {
+/** Maps a persisted `tool.completed` trace event to the tool-call record response shape. */
+export function toToolCallRecord(entity: RunTraceEventEntity): ToolCallRecordInterface {
+  const event = entity.payload as Extract<RunTraceEvent, { type: 'tool.completed' }>;
   return assertResponse(ToolCallRecordSchema, {
     id: entity.id,
     workflowName: entity.workflowName,
-    transitionId: entity.transitionId ?? null,
-    place: entity.place ?? null,
-    seq: entity.seq,
-    toolName: entity.toolName,
-    args: entity.args ?? null,
-    envelope: entity.envelope,
+    transitionId: event.transitionId ?? null,
+    place: null,
+    seq: event.toolSeq,
+    toolName: event.toolName,
+    args: (event.args as Record<string, unknown> | undefined) ?? null,
+    envelope: (event.envelope as Record<string, unknown> | undefined) ?? {},
     createdAt: entity.createdAt.toISOString(),
   });
 }

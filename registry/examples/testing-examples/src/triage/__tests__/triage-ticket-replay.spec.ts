@@ -7,7 +7,7 @@ import { TriageTicketWorkflow } from '../triage-ticket.workflow';
 /**
  * Replay: recorded tool responses are returned instead of executing the tool — the workflow's
  * own code still runs for real. Fixtures come from a live run via
- * `loopstack runs <run-id> --record <file>` (backend started with LOOPSTACK_RECORD_TOOL_CALLS=true)
+ * `loopstack runs <run-id> --record <file>` (run started with `loopstack run --trace`)
  * and are committed next to the test.
  */
 describe('TriageTicketWorkflow — replay', () => {

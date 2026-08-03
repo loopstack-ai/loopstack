@@ -63,6 +63,7 @@ loopstack run hello --arg name=Maya
 - `--arg notes=@-` — read the value from stdin: `cat notes.txt | loopstack run summarize --arg notes=@-`
 - `--workspace <id>` — pin the workspace; by default the newest workspace of the workflow's app is used (created on demand)
 - `--detach` — start the run, print its id, exit immediately
+- `--trace` — persist the run's trace (tool calls, transitions) for the whole run tree, enabling `runs <id> --record`
 - `--quiet` — no progress, print only the final result (pipe-friendly)
 - `--open` — open the run in Studio
 
@@ -128,7 +129,7 @@ loopstack watch                         # the environment's event firehose
 loopstack watch --type workflow.updated --json   # NDJSON, filterable
 ```
 
-`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it prints the run's full transcript — step lines with durations, the run tree's documents in chronological order, and the published result. When the run is waiting, `--json` additionally carries a `pendingPrompt` object — the question's description, the expected answer schema, the widget type, and the transition to answer — everything a script or agent needs to relay the question. `--record <file>` writes the run's recorded tool calls as a replay fixture for [workflow tests](/docs/build/testing) (requires the backend to run with `recordToolCalls` / `LOOPSTACK_RECORD_TOOL_CALLS=true`).
+`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it prints the run's full transcript — step lines with durations, the run tree's documents in chronological order, and the published result. When the run is waiting, `--json` additionally carries a `pendingPrompt` object — the question's description, the expected answer schema, the widget type, and the transition to answer — everything a script or agent needs to relay the question. `--record <file>` writes the run's recorded tool calls as a replay fixture for [workflow tests](/docs/build/testing) (requires the run to have been started with `loopstack run --trace`, or the backend to record every run via the `trace` module option / `LOOPSTACK_TRACE=true`).
 
 `loopstack answer` is the non-interactive counterpart of the prompt widgets: it finds the prompt the run is parked on (following sub-workflows, exactly like `attach`), and submits the answer built from `--arg key=value` pairs (or `--payload '<json>'`, `@file`, `@-`). The wait transition is resolved automatically; `--transition <id>` picks one when several are available. Exit `0` on submit, `2` when nothing is pending or the input is Studio-only. The agent loop is: `run … --json` exits `3` → `runs <run-id> --json` shows `pendingPrompt` → relay the question → `answer <run-id> --arg …` → re-check `runs <run-id>`.
 

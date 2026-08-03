@@ -14,7 +14,13 @@ import {
 } from '@loopstack/common';
 import type { WorkflowArgs } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
-import type { HistoryTransition, WorkflowTransitionType } from '@loopstack/contracts/types';
+import { executedTransitions } from '@loopstack/contracts/types';
+import type {
+  RunTraceEvent,
+  ToolCompletedEvent,
+  ToolFailedEvent,
+  WorkflowTransitionType,
+} from '@loopstack/contracts/types';
 import { WorkflowProcessorService, WorkflowRegistryService } from '@loopstack/core';
 import { createWorkflowTest } from '../test-builder/workflow-test-builder.js';
 import { ScriptedAnswers } from './answers.js';
@@ -95,9 +101,12 @@ export interface TestRun {
   status: WorkflowState;
   result: unknown;
   place: string;
-  /** Ids of every executed transition, across all resume steps, in order. */
+  /** Ids of every executed transition (successes and failures alike), across all resume steps, in order. */
   path: string[];
-  history: HistoryTransition[];
+  /** The run's full event trace — transitions, tool calls, documents, children, settles. */
+  trace: RunTraceEvent[];
+  /** Every tool call the run made, in order (completed and failed). */
+  toolCalls: Array<ToolCompletedEvent | ToolFailedEvent>;
   documents: DocumentEntity[];
   /** Inline-executed sub-workflow runs. */
   children: StatelessChildRecord[];
@@ -191,9 +200,7 @@ export async function runWorkflow<W extends BaseWorkflow>(
       ? (argsSchema.parse(args ?? {}) as Record<string, unknown>)
       : (args as Record<string, unknown> | undefined);
 
-    const history: HistoryTransition[] = [];
     let meta = await processor.process(workflow, runArgs, { ...baseContext, payload: {} });
-    history.push(...meta.history);
 
     // Answer loop: while parked, resolve one scripted answer to a concrete (workflowId,
     // transition) target — the run itself first, then the parked node tree — and deliver to
@@ -208,14 +215,14 @@ export async function runWorkflow<W extends BaseWorkflow>(
 
       const rootAnswerId = matchAnswer(meta.availableTransitions, answers);
       if (rootAnswerId) {
+        const traceBefore = meta.trace.length;
         meta = await processor.process(workflow, runArgs, {
           ...baseContext,
           payload: { transition: { id: rootAnswerId, workflowId: '', payload: { data: answers.peek(rootAnswerId) } } },
           statelessState: meta.statelessState,
         });
-        if (meta.history.length === 0) break; // transition guard rejected — no progress
+        if (!hasTransitionAttemptSince(meta.trace, traceBefore)) break; // transition guard rejected — no progress
         answers.consume(rootAnswerId);
-        history.push(...meta.history);
         continue;
       }
 
@@ -230,7 +237,6 @@ export async function runWorkflow<W extends BaseWorkflow>(
         payload: {},
         statelessState: meta.statelessState,
       });
-      history.push(...meta.history);
     }
 
     // A completed run must have consumed the whole script — fewer calls than scripted is drift.
@@ -243,12 +249,16 @@ export async function runWorkflow<W extends BaseWorkflow>(
     }
 
     const documents = meta.documents;
+    const trace = meta.trace;
     return {
       status: meta.status,
       result: meta.result,
       place: meta.place,
-      path: history.map((t) => t.id),
-      history,
+      path: executedTransitions(trace).map((e) => e.transitionId),
+      trace,
+      toolCalls: trace.filter(
+        (e): e is ToolCompletedEvent | ToolFailedEvent => e.type === 'tool.completed' || e.type === 'tool.failed',
+      ),
       documents,
       children: meta.statelessState?.children ?? [],
       error: meta.errorMessage,
@@ -299,6 +309,17 @@ function resolveReplayMode(options: RunWorkflowOptions): { record?: boolean | st
 /** The first wait-transition id among `transitions` that has an applicable scripted answer. */
 function matchAnswer(transitions: WorkflowTransitionType[] | undefined, answers: ScriptedAnswers): string | undefined {
   return (transitions ?? []).map((t) => t.id).find((id) => answers.has(id));
+}
+
+/**
+ * Whether a transition attempt (`transition.started`) was recorded at or after the given trace
+ * index — the progress probe distinguishing "answer applied" from "guard rejected".
+ */
+function hasTransitionAttemptSince(trace: RunTraceEvent[], index: number): boolean {
+  for (let i = index; i < trace.length; i++) {
+    if (trace[i].type === 'transition.started') return true;
+  }
+  return false;
 }
 
 /**
@@ -353,6 +374,7 @@ async function deliverAnswer(
   const targetIndex = target.chain.length - 1;
   const record = target.chain[targetIndex];
   const { instance } = registry.resolve(record.workflowName);
+  const traceBefore = record.statelessState?.trace?.length ?? 0;
   const targetMeta = await processor.process(instance, record.args, {
     ...baseContext,
     payload: {
@@ -364,7 +386,7 @@ async function deliverAnswer(
     },
     statelessState: record.statelessState,
   });
-  if (targetMeta.history.length === 0) return false;
+  if (!hasTransitionAttemptSince(targetMeta.trace, traceBefore)) return false;
   answers.consume(target.transitionId);
   applyChildMeta(record, targetMeta, parentCarrierOf(targetIndex), parentIdOf(targetIndex));
 

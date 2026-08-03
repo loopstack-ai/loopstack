@@ -58,9 +58,10 @@ export interface LoopstackModuleOptions {
    */
   sse?: SseStreamOptionsInterface;
   /**
-   * Debug mode: persist every tool call's args + response envelope per run
-   * (`core_tool_call_record`). Powers `loopstack runs <id> --record` for deriving replay
-   * fixtures. Falls back to the `LOOPSTACK_RECORD_TOOL_CALLS` env var.
+   * Persist every run's trace (`core_run_trace_event` — transitions, tool calls with args
+   * and envelopes, documents). Powers `loopstack runs <id> --record` for deriving replay
+   * fixtures. Off by default — individual runs opt in via `loopstack run --trace`.
+   * Falls back to the `LOOPSTACK_TRACE` env var.
    */
-  recordToolCalls?: boolean;
+  trace?: boolean;
 }

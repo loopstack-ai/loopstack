@@ -28,8 +28,8 @@ npm test
 Fixtures are derived from real runs, not written by hand:
 
 ```bash
-LOOPSTACK_RECORD_TOOL_CALLS=true npm run start:dev   # backend with tool-call recording
-loopstack run triage_ticket --arg text="Production is down!"
+npm run start:dev                                    # start the backend
+loopstack run triage_ticket --arg text="Production is down!" --trace
 loopstack runs <run-id> --record src/triage/__tests__/__recordings__/triage.json
 ```
 

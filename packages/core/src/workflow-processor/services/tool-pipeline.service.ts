@@ -11,6 +11,7 @@ import {
   ToolPipeline,
   getBlockArgsSchema,
   getBlockConfigSchema,
+  getBlockName,
   parseToolResult,
 } from '@loopstack/common';
 import { TransitionAbortedError } from '../../common/index.js';
@@ -125,8 +126,38 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
       toolCall,
     );
 
-    // 5. Validate the final envelope's data against the tool's resultSchema (covers live
-    // results, interceptor-transformed envelopes, and replayed fixtures identically).
-    return parseToolResult(tool, await chain());
+    // 5. Run the chain with trace emission: tool.called before, tool.completed after result
+    // validation, tool.failed on a throw (error propagates unchanged). The final envelope's
+    // data is validated against the tool's resultSchema — covering live results,
+    // interceptor-transformed envelopes, and replayed fixtures identically.
+    const trace = scope?.trace;
+    const toolName = getBlockName(tool);
+    const transitionId = scope?.transition?.id;
+    const toolSeq = trace?.nextToolSeq(transitionId) ?? 0;
+    trace?.emit({ type: 'tool.called', transitionId, toolName, toolSeq, args: validArgs });
+    this.logger.debug(`${toolName} — executing`);
+
+    const startedAt = performance.now();
+    try {
+      const envelope = parseToolResult(tool, await chain());
+      const durationMs = Math.round(performance.now() - startedAt);
+      trace?.emit({ type: 'tool.completed', transitionId, toolName, toolSeq, args: validArgs, envelope, durationMs });
+      this.logger.debug(`${toolName} — completed in ${durationMs}ms`);
+      return envelope;
+    } catch (error) {
+      const durationMs = Math.round(performance.now() - startedAt);
+      const message = error instanceof Error ? error.message : String(error);
+      trace?.emit({
+        type: 'tool.failed',
+        transitionId,
+        toolName,
+        toolSeq,
+        args: validArgs,
+        error: message,
+        durationMs,
+      });
+      this.logger.warn(`${toolName} — failed after ${durationMs}ms: ${message}`);
+      throw error;
+    }
   }
 }

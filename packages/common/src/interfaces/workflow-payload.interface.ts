@@ -5,6 +5,8 @@ export interface WorkflowPayload<TArgs = unknown> {
   transition?: TransitionPayload;
   /** Optional labels for categorizing/filtering workflow runs (e.g. ['session:abc-123']) */
   labels?: string[];
+  /** Persist this run's trace events (rows in `core_run_trace_event`), including sub-workflows. */
+  trace?: boolean;
 }
 
 export interface TransitionPayload {

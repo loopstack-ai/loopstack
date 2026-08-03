@@ -1,7 +1,20 @@
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { WorkflowTransitionType } from '@loopstack/contracts/types';
-import { HistoryTransition, TransitionPayloadInterface } from '@loopstack/contracts/types';
+import { RunTraceEvent, TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { DocumentEntity } from '../entities/index.js';
+
+/**
+ * The transition currently being executed — the correlation object the processor sets on the
+ * execution scope before each transition. Document persistence, the tool pipeline, and
+ * checkpointing read it to stamp provenance onto what happens inside the transition.
+ */
+export interface ActiveTransition {
+  id: string;
+  from: string | null;
+  to: string;
+  payload?: unknown;
+  meta?: unknown;
+}
 
 /**
  * In-memory execution state of a stateless run. Returned on the metadata when a stateless run
@@ -16,6 +29,8 @@ export interface StatelessExecutionState {
   callbacks?: TransitionPayloadInterface[];
   /** Inline-executed sub-workflow runs of this run (terminal and parked). */
   children?: StatelessChildRecord[];
+  /** Accumulated run trace — survives park/resume so a resumed run's story stays complete. */
+  trace?: RunTraceEvent[];
 }
 
 /**
@@ -53,9 +68,12 @@ export interface WorkflowMetadataInterface {
   documents: DocumentEntity[];
   place: string;
   tools: Record<string, any>;
-  transition?: HistoryTransition;
-  /** Ordered record of the transitions executed during this processing run. */
-  history: HistoryTransition[];
+  transition?: ActiveTransition;
+  /**
+   * The run's event trace. For stateless runs this includes events seeded from the resume
+   * carrier, so after a park/resume cycle it is the complete story of the run so far.
+   */
+  trace: RunTraceEvent[];
 
   result: Record<string, unknown> | null;
 

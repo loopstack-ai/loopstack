@@ -1,4 +1,3 @@
-export * from './history-transition.interface.js';
 export * from './transition-info.interface.js';
 export * from './transition-payload.interface.js';
 export * from './transition-metadata.interface.js';

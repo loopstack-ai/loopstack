@@ -269,7 +269,7 @@ export interface RunResult {
 ### StatelessRunResult
 
 Result of a stateless `WorkflowRunner.runSync` (no persistence) — the final `status` and
-published `result`, plus the in-memory run record: `place`, executed transition `history`,
+published `result`, plus the in-memory run record: `place`, the run `trace`,
 produced `documents`, currently `availableTransitions`, and error info.
 
 ```ts
@@ -281,7 +281,7 @@ export interface StatelessRunResult {
   status: WorkflowState;
   result: unknown;
   place: string;
-  history: HistoryTransition[];
+  trace: RunTraceEvent[];
   documents: DocumentEntity[];
   availableTransitions: WorkflowTransitionType[];
   hasError: boolean;

@@ -82,7 +82,7 @@ export class ProcessorApiService {
 
     return this.workflowRunner.execute(
       workflowName,
-      { workspaceId: payload.workspaceId, args: payload.args, labels: payload.labels },
+      { workspaceId: payload.workspaceId, args: payload.args, labels: payload.labels, trace: payload.trace },
       { userId, appName },
     );
   }

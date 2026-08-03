@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { QueryRunner } from 'typeorm';
-import type { DocumentEntity, StatelessChildRecord } from '@loopstack/common';
-import type { HistoryTransition, TransitionPayloadInterface } from '@loopstack/contracts/types';
+import type { ActiveTransition, DocumentEntity, StatelessChildRecord } from '@loopstack/common';
+import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
+import type { RunTraceCollector } from './run-trace-collector.js';
 
 /**
  * Data held in async-local-storage during a workflow transition.
@@ -29,7 +30,13 @@ export interface ExecutionScopeData {
   queryRunner: QueryRunner | null;
   documents: DocumentEntity[];
   persistenceState: { documentsUpdated: boolean };
-  transition?: HistoryTransition;
+  transition?: ActiveTransition;
+
+  /** The run's trace collector — emission sites (pipeline, documents, orchestration) write here. */
+  trace: RunTraceCollector;
+
+  /** Whether this run persists its trace rows — inherited by sub-workflows queued from it. */
+  tracePersist: boolean;
 
   // Stateless sub-workflow orchestration (in-memory): callback envelopes of inline-executed
   // children awaiting application to the parent, and the records of all inline children.

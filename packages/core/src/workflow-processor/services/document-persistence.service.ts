@@ -151,6 +151,15 @@ export class DocumentPersistenceService {
       documents.push(document);
     }
 
+    scope.trace.emit({
+      type: 'document.emitted',
+      transitionId: scope.transition?.id,
+      ...(document.id ? { documentId: document.id } : {}),
+      ...(document.key ? { key: document.key } : {}),
+      documentName: document.documentName,
+      ...(invalidated.length > 0 || inheritedIndex !== undefined ? { invalidatedKey: document.key } : {}),
+    });
+
     scope.persistenceState = { documentsUpdated: true };
   }
 

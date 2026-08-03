@@ -1,6 +1,6 @@
 ---
 title: Testing Workflows and Tools
-description: How to test Loopstack workflows and tools — runWorkflow() in-process workflow tests with scripted HITL answers (queue() for cyclic workflows), provider overrides, tool mocks (createToolMock), and inline sub-workflows; testTool() unit tests; strict-sequence record/replay of tool responses (the fixture option with automatic record/replay and CI guard, record, the replayTools mock boundary, recordToolCalls, loopstack runs --record --tools, replay()); live-LLM regression tests; and CI smoke runs with loopstack run --json. Covers @loopstack/testing, TestRun assertions (status, path, result, document, recordings), replay fixtures as ordered response scripts with metadata assertions, drift detection, resultSchema contract validation of replayed envelopes, replay boundaries (pending envelopes, async tools always live), and the three strategies for scripting an async tool's answer.
+description: How to test Loopstack workflows and tools — runWorkflow() in-process workflow tests with scripted HITL answers (queue() for cyclic workflows), provider overrides, tool mocks (createToolMock), and inline sub-workflows; testTool() unit tests; strict-sequence record/replay of tool responses (the fixture option with automatic record/replay and CI guard, record, the replayTools mock boundary, the --trace flag and LOOPSTACK_TRACE, loopstack runs --record --tools, replay()); live-LLM regression tests; and CI smoke runs with loopstack run --json. Covers @loopstack/testing, TestRun assertions (status, path, result, document, recordings, the run trace via trace and toolCalls), replay fixtures as ordered response scripts with metadata assertions, drift detection, resultSchema contract validation of replayed envelopes, replay boundaries (pending envelopes, async tools always live), and the three strategies for scripting an async tool's answer.
 ---
 
 # Testing Workflows and Tools
@@ -70,6 +70,8 @@ Tools can also be **mocked** instead of run live or replayed: pass `{ provide: M
 
 Sub-workflows started with `this.someWorkflow.run(...)` execute **inline**: children run to completion synchronously, their callbacks fire, and the whole composition finishes in one call. Child runs are available on `run.children` (status, result, documents per child). Fan-out children run sequentially in tests.
 
+Beyond `path`, the run object carries the full **run trace** — the ordered event journal of everything the run did: `run.trace` holds every `transition.started/completed/failed` (with duration and a per-key state diff), `tool.called/completed/failed` (with args and envelope), `document.emitted`, `child.queued/settled`, and one `run.settled` per park or terminal settle (parks include the transitions the run waited on). `run.toolCalls` is the tool-call view of the same trace. `path` derives from the trace's terminal transition events, so it lists transitions that actually executed — successes and failures alike, one entry per attempt; use `run.trace` when a test needs to distinguish outcomes or assert on timings, diffs, or the exact failure point.
+
 ## Record and replay tool responses
 
 Replay makes non-deterministic tools — above all LLM calls — deterministic: the recorded response envelope is returned instead of executing the tool. Your code, transitions, and assertions all run for real; only the tool boundary is replayed. A failing replay test means _your code_ changed behavior, not the model.
@@ -95,16 +97,14 @@ For explicit control there are two lower-level options, mutually exclusive with 
 **Recording from a real run** — when the fixture should reflect exactly what a deployed backend produced (a trust run, an agent-driven run):
 
 ```bash
-# 1. Run the backend with tool-call recording enabled (debug mode)
-LOOPSTACK_RECORD_TOOL_CALLS=true npm run start:dev
-#    …or in code: LoopstackModule.forRoot({ recordToolCalls: true })
+# 1. Run the workflow for real with trace persistence on (--trace covers the whole run tree)
+loopstack run triage_ticket --arg text="Production is down!" --trace
 
-# 2. Run the workflow for real
-loopstack run triage_ticket --arg text="Production is down!"
-
-# 3. Derive a replay fixture from the run's recorded tool calls
+# 2. Derive a replay fixture from the run's recorded tool calls
 loopstack runs <run-id> --record src/triage/__tests__/__recordings__/triage.json
 ```
+
+Trace persistence is off by default — `--trace` enables it per run. To record every run (e.g. on a dev backend), enable it globally with `LOOPSTACK_TRACE=true` or `LoopstackModule.forRoot({ trace: true })`.
 
 Replay the committed fixture in tests:
 

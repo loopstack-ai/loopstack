@@ -43,7 +43,7 @@ Tests are ordinary vitest tests that run the real engine in-process — no backe
 
 - `runWorkflow(MyWorkflow, args, { providers, answers })` from `@loopstack/testing` executes the workflow and returns `{ status, path, result, documents, document(key) }` for assertions. Script HITL input with `answers: { waitTransitionName: payload }`; sub-workflows run inline.
 - `testTool().forTool(MyTool)` unit-tests a tool's `handle()` in isolation.
-- For deterministic LLM/tool regression tests, record a live run (start the backend with `LOOPSTACK_RECORD_TOOL_CALLS=true`, then `loopstack runs <run-id> --record fixture.json`) and pass `replay: replay('fixture.json')` to `runWorkflow`. Omit `replay` to test against real providers — keep those assertions structural and run them on demand, not in CI.
+- For deterministic LLM/tool regression tests, record a live run (`loopstack run <workflow> --trace`, then `loopstack runs <run-id> --record fixture.json`) and pass `replay: replay('fixture.json')` to `runWorkflow`. Omit `replay` to test against real providers — keep those assertions structural and run them on demand, not in CI.
 
 Write workflow tests for every non-trivial workflow you build. Guide: https://loopstack.ai/docs/build/testing
 

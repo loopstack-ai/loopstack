@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { executedTransitions } from '@loopstack/contracts/types';
 import { ExecutionScope } from '../../../utils/index.js';
 import { WorkflowProcessorService } from '../workflow-processor.service.js';
 
@@ -60,6 +61,7 @@ describe('WorkflowProcessorService — stateless callback drain', () => {
       scope,
       memoryMonitor as never,
       {} as never,
+      {} as never, // runTraceService — unused without a workflowEntity
     );
   };
 
@@ -103,7 +105,7 @@ describe('WorkflowProcessorService — stateless callback drain', () => {
 
     expect(meta.status).toBe('completed');
     expect(meta.place).toBe('end');
-    expect(meta.history.map((t) => t.id)).toEqual(['begin', 'onChildDone']);
+    expect(executedTransitions(meta.trace).map((e) => e.transitionId)).toEqual(['begin', 'onChildDone']);
     expect(onChildDone).toHaveBeenCalledTimes(1);
     expect(meta.statelessState?.callbacks).toBeUndefined(); // fully drained
     expect(meta.statelessState?.children).toBeUndefined(); // simulated child — no record
@@ -147,6 +149,6 @@ describe('WorkflowProcessorService — stateless callback drain', () => {
     );
 
     expect(meta.status).toBe('completed');
-    expect(meta.history.map((t) => t.id)).toEqual(['onChildDone']);
+    expect(executedTransitions(meta.trace).map((e) => e.transitionId)).toEqual(['onChildDone']);
   });
 });

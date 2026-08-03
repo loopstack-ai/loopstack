@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { ExecutionScope } from '../../../utils/index.js';
+import { ExecutionScope, RunTraceCollector } from '../../../utils/index.js';
 import { WorkflowProcessorService } from '../workflow-processor.service.js';
 
 /**
@@ -48,6 +48,7 @@ describe('WorkflowProcessorService — invalid pending payload', () => {
       new ExecutionScope(),
       memoryMonitor as never,
       {} as never, // dataSource — unused on this path (stateless branch)
+      {} as never, // runTraceService — unused without a workflowEntity
     );
   });
 
@@ -61,7 +62,7 @@ describe('WorkflowProcessorService — invalid pending payload', () => {
       documents: [],
       place: 'awaiting_input',
       tools: {},
-      history: [],
+      trace: [],
       result: null,
       retryCount: 0,
       version: 1,
@@ -78,6 +79,8 @@ describe('WorkflowProcessorService — invalid pending payload', () => {
       documents: [],
       persistenceState: { documentsUpdated: false },
       transition: undefined,
+      trace: new RunTraceCollector(),
+      tracePersist: false,
       abortController: new AbortController(),
       stateDraft: {},
       resultDraft: {},
