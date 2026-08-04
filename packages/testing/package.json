@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.37.0",
+    "@loopstack/contracts": "^0.37.0",
     "@loopstack/core": "^0.37.0",
     "lodash": "^4.18.1",
     "vitest": "^4.1.6"

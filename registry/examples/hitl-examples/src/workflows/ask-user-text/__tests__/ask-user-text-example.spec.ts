@@ -23,6 +23,9 @@ describe('AskUserTextExampleWorkflow', () => {
 
     const texts = run.documents.map((d) => (d.content as { text?: string }).text ?? '');
     expect(texts).toContain('Hello, Ada!');
+
+    // A completed run shows the user nothing to answer.
+    expect(run.parkView()).toBeUndefined();
   });
 
   it('parks with the question shown when no answer is scripted', async () => {
@@ -32,8 +35,18 @@ describe('AskUserTextExampleWorkflow', () => {
 
     expect(run.status).toBe('waiting');
     expect(run.children[0].status).toBe('waiting');
-    expect(
-      run.children[0].documents.some((d) => (d.content as { question?: string }).question === 'What is your name?'),
-    ).toBe(true);
+
+    // What the user would actually see: the text prompt of the ask_user sub-workflow —
+    // resolved by the same canonical rules the CLI and Studio use.
+    const view = run.parkView();
+    expect(view).toMatchObject({
+      workflowId: run.children[0].workflowId,
+      workflowName: 'ask_user',
+      widget: 'text-prompt',
+      documentName: 'ask_user',
+      content: { question: 'What is your name?' },
+      transitions: ['userAnswered'],
+      defaultTransition: 'userAnswered',
+    });
   });
 });

@@ -1,6 +1,6 @@
 ---
 title: Testing Workflows and Tools
-description: How to test Loopstack workflows and tools — runWorkflow() in-process workflow tests with scripted HITL answers (queue() for cyclic workflows), provider overrides, contract-validated tool fakes (createContractFake) and tool mocks (createToolMock), state-machine coverage (coverage), trace diffing (diffTraces), and inline sub-workflows; testTool() unit tests; strict-sequence record/replay of tool responses (the fixture option with automatic record/replay and CI guard, record, the replayTools mock boundary, the --trace flag and LOOPSTACK_TRACE, loopstack runs --record --tools, replay()); live-LLM regression tests; and CI smoke runs with loopstack run --json. Covers @loopstack/testing, TestRun assertions (status, path, result, document, recordings, the run trace via trace and toolCalls), replay fixtures as ordered response scripts with metadata assertions, drift detection, resultSchema contract validation of replayed envelopes, replay boundaries (envelope-declared documents replay, pending envelopes, async tools always live), and the three strategies for scripting an async tool's answer.
+description: How to test Loopstack workflows and tools — runWorkflow() in-process workflow tests with scripted HITL answers (queue() for cyclic workflows), provider overrides, contract-validated tool fakes (createContractFake) and tool mocks (createToolMock), state-machine coverage (coverage), trace diffing (diffTraces), park-view assertions (parkView — what the user would see at a park, shared rules with the CLI), and inline sub-workflows; testTool() unit tests; strict-sequence record/replay of tool responses (the fixture option with automatic record/replay and CI guard, record, the replayTools mock boundary, the --trace flag and LOOPSTACK_TRACE, loopstack runs --record --tools, replay()); live-LLM regression tests; and CI smoke runs with loopstack run --json. Covers @loopstack/testing, TestRun assertions (status, path, result, document, recordings, the run trace via trace and toolCalls), replay fixtures as ordered response scripts with metadata assertions, drift detection, resultSchema contract validation of replayed envelopes, replay boundaries (envelope-declared documents replay, pending envelopes, async tools always live), and the three strategies for scripting an async tool's answer.
 ---
 
 # Testing Workflows and Tools
@@ -74,6 +74,29 @@ Sub-workflows started with `this.someWorkflow.run(...)` execute **inline**: chil
 Beyond `path`, the run object carries the full **run trace** — the ordered event journal of everything the run did: `run.trace` holds every `transition.started/completed/failed` (with duration and a per-key state diff), `tool.called/completed/failed` (with args and envelope), `document.emitted`, `child.queued/settled`, and one `run.settled` per park or terminal settle (parks include the transitions the run waited on). `run.toolCalls` is the tool-call view of the same trace. `path` derives from the trace's terminal transition events, so it lists transitions that actually executed — successes and failures alike, one entry per attempt; use `run.trace` when a test needs to distinguish outcomes or assert on timings, diffs, or the exact failure point.
 
 Two helpers turn traces into answers. `coverage(runs, WorkflowClass)` reports state-machine coverage — which declared transitions and parks a set of runs actually exercised (`missingTransitions` / `missingParks` / `complete`), so "did my tests cover every path?" is a query, not a feeling. `diffTraces(expected, actual)` compares two traces by behavioral identity (timings, sequence numbers, and generated keys are ignored) and returns the **first divergence** with both events and the differing field — or `null` when the runs did the same thing.
+
+## Asserting the park view
+
+A workflow can park at the right place and still show the user nothing answerable — a document saved at the wrong place, a widget whose transition isn't available, a prompt hidden by `hideAtPlaces`. `run.status` and `run.place` cannot catch that class of bug; `run.parkView()` can. It answers "what would the human actually see?" using the **same canonical rules** the CLI's interactive prompts run on (shared via `@loopstack/contracts/park-view`), walking the whole run tree — HITL prompts usually live on a sub-workflow:
+
+```ts
+const run = await runWorkflow(AskUserTextExampleWorkflow, undefined, {
+  imports: [LlmProviderModule, HitlModule, HitlExamplesModule],
+});
+
+const view = run.parkView();
+expect(view).toMatchObject({
+  workflowId: run.children[0].workflowId, // the ask_user sub-workflow asks, not the root
+  widget: 'text-prompt',
+  content: { question: 'What is your name?' },
+  transitions: ['userAnswered'],
+  defaultTransition: 'userAnswered', // what an unqualified answer resolves to
+});
+```
+
+The view carries the prompting workflow, the widget type, the prompt `content`, the answer-payload `schema`, widget `options`, the available `transitions`, the `defaultTransition`, and — for multi-action forms — the currently submittable action labels in `actions`. The rules honor visibility (`hideAtPlaces`, internal documents), place activity (`enableAtPlaces` included), and answered-ness (`answer: false` is an answer — presence counts, not truthiness). A run failed at an error place with recovery transitions is a prompt source too, so recovery screens are assertable like any other park.
+
+Two degenerate results are themselves meaningful assertions: a park with nothing renderable returns a view **without** `widget`/`documentName` (the user would see a bare waiting run — often the bug), and a terminal run returns `undefined`.
 
 ## Record and replay tool responses
 
@@ -205,6 +228,7 @@ One final JSON object on stdout, progress on stderr, and the exit-code contract:
 
 ## Where to look next
 
+- How to organize these tools into an acceptance-criteria-driven suite: [Testing Methodology](/docs/build/testing-methodology).
 - Runnable versions of every pattern on this page: the [`@loopstack/testing-examples`](https://loopstack.ai/registry) registry package; every HITL and agent flavor tested side by side: [`@loopstack/hitl-examples`](https://loopstack.ai/registry).
 - Design guidance on what to test where: [Best Practices](/docs/build/best-practices).
 - CLI flags and exit codes: [CLI reference](/docs/reference/cli).

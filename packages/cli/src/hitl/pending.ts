@@ -1,7 +1,6 @@
 import type { LoopstackClient } from '@loopstack/client';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { fetchDocumentWidgets, findActivePrompt } from './discovery.js';
-import type { ActivePrompt, WidgetConfig } from './discovery.js';
 import { describePrompt } from './prompt.js';
 
 /**
@@ -32,28 +31,6 @@ export interface PendingPromptInfo {
   studioOnly?: boolean;
 }
 
-/** Transitions a widget config declares (`options.transition` and form `options.actions[].transition`). */
-function declaredTransitions(widget: WidgetConfig): string[] {
-  const transitions: string[] = [];
-  const configured = widget.options?.transition;
-  if (typeof configured === 'string') transitions.push(configured);
-  const actions = widget.options?.actions;
-  if (Array.isArray(actions)) {
-    for (const action of actions as { transition?: unknown }[]) {
-      if (typeof action.transition === 'string') transitions.push(action.transition);
-    }
-  }
-  return transitions;
-}
-
-function defaultTransition(prompt: ActivePrompt, available: string[]): string | undefined {
-  if (prompt.widget) {
-    const declared = declaredTransitions(prompt.widget).find((transition) => available.includes(transition));
-    if (declared) return declared;
-  }
-  return available.length === 1 ? available[0] : undefined;
-}
-
 /**
  * Inspects what a run is waiting on. Returns `undefined` when the run is not parked
  * (running or terminal) or no prompt could be found in its tree.
@@ -81,7 +58,7 @@ export async function inspectPendingPrompt(
       place: prompt.workflow.place ?? null,
       description: describePrompt(prompt),
       transitions: available,
-      transition: defaultTransition(prompt, available),
+      transition: prompt.submitTransition,
       widget: prompt.widget?.widget,
       schema: prompt.widget?.schema,
       options: prompt.widget?.options,

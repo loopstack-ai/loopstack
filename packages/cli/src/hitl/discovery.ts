@@ -1,25 +1,22 @@
 import type { LoopstackClient } from '@loopstack/client';
 import type { DocumentItemInterface, WorkflowFullInterface } from '@loopstack/contracts/api';
 import { SortOrder, WorkflowState } from '@loopstack/contracts/enums';
+import {
+  type ParkViewDocumentInput,
+  type ParkViewWidgetConfig,
+  type ParkViewWorkflowInput,
+  type PromptCandidate,
+  evaluateWorkflowPrompts,
+  isAnswerableState,
+  pickPrompt,
+} from '@loopstack/contracts/park-view';
 import { isCollectable } from '../widgets/registry.js';
 
-/** First widget of a document's UI config — where prompt type and transition live. */
-export interface WidgetConfig {
-  widget: string;
-  options?: Record<string, unknown>;
-  /** Places the widget is active in (workflow-level widgets). */
-  enabledWhen?: string[];
-  /** Alternate spelling used by some widget configs — same semantics. */
-  showWhen?: string[];
-  /** The document's JSON schema — seeds the $EDITOR payload skeleton for forms. */
-  schema?: Record<string, unknown>;
-  /**
-   * Extra places the document stays active in (`meta.enableAtPlaces` on the
-   * document config) — Studio's escape hatch for prompts answered in a later
-   * place than they were saved in.
-   */
-  enableAtPlaces?: string[];
-}
+/**
+ * The canonical flattened widget config — prompt type, transitions, schema, and
+ * visibility settings. Re-exported so collect widgets and prompt rendering share one type.
+ */
+export type WidgetConfig = ParkViewWidgetConfig;
 
 /** documentName → widget config, from the same app config Studio's renderers use. */
 export async function fetchDocumentWidgets(client: LoopstackClient): Promise<Map<string, WidgetConfig>> {
@@ -27,13 +24,15 @@ export async function fetchDocumentWidgets(client: LoopstackClient): Promise<Map
   const widgets = new Map<string, WidgetConfig>();
   for (const app of apps) {
     for (const document of app.documents ?? []) {
-      const widget = document.ui?.widgets?.[0] as WidgetConfig | undefined;
+      const widget = (document.ui as { widgets?: WidgetConfig[] } | undefined)?.widgets?.[0];
       if (widget) {
-        const meta = (document as { meta?: { enableAtPlaces?: string[] } }).meta;
+        const meta = (document as { meta?: { enableAtPlaces?: string[]; hideAtPlaces?: string[] } }).meta;
         widgets.set(document.documentName, {
           ...widget,
           schema: document.schema as Record<string, unknown> | undefined,
           enableAtPlaces: meta?.enableAtPlaces,
+          hideAtPlaces: meta?.hideAtPlaces,
+          internal: (document as { tags?: string[] }).tags?.includes('internal') || undefined,
         });
       }
     }
@@ -47,6 +46,8 @@ export interface ActivePrompt {
   /** The unanswered prompt document; absent for workflow-level widgets and the raw fallback. */
   document?: DocumentItemInterface;
   widget?: WidgetConfig;
+  /** The transition an answer resolves to when none is given explicitly. */
+  submitTransition?: string;
 }
 
 /** An active, interactive widget the CLI has no collect implementation for — Studio-only input. */
@@ -82,40 +83,12 @@ const TERMINAL_STATES = new Set([WorkflowState.Completed, WorkflowState.Failed, 
  */
 const PARKED_STATES = new Set([WorkflowState.Waiting, WorkflowState.Paused]);
 
-/** Transitions a widget config declares (`options.transition` and form `options.actions[].transition`). */
-function declaredTransitions(widget: WidgetConfig): string[] {
-  const transitions: string[] = [];
-  const configured = widget.options?.transition;
-  if (typeof configured === 'string') transitions.push(configured);
-  const actions = widget.options?.actions;
-  if (Array.isArray(actions)) {
-    for (const action of actions as { transition?: unknown }[]) {
-      if (typeof action.transition === 'string') transitions.push(action.transition);
-    }
-  }
-  return transitions;
-}
-
-/** Studio's `canSubmit` gate: a declared transition is currently available. */
-function isSubmittable(widget: WidgetConfig, available: string[]): boolean {
-  return declaredTransitions(widget).some((transition) => available.includes(transition));
-}
-
 /**
- * A collectable widget is askable when its declared transition is available —
- * or when it declares none: the collect widget then resolves a lone
- * available transition itself.
+ * The documents of a waiting workflow worth evaluating: those saved at the current place
+ * (a server-side fetch optimization — the canonical activity rule re-checks), plus
+ * documents another place saved but the static config enables here (`meta.enableAtPlaces`).
  */
-function isAskable(widget: WidgetConfig, available: string[]): boolean {
-  return declaredTransitions(widget).length === 0 || isSubmittable(widget, available);
-}
-
-/**
- * The active documents of a waiting workflow — Studio's `isDocumentActive`:
- * saved at the current place (documents are stamped with their transition's
- * target place), or explicitly enabled here via `meta.enableAtPlaces`.
- */
-async function fetchActiveDocuments(
+async function fetchCandidateDocuments(
   client: LoopstackClient,
   workflow: WorkflowFullInterface,
   widgets: Map<string, WidgetConfig>,
@@ -124,7 +97,7 @@ async function fetchActiveDocuments(
     filter: { workflowId: workflow.id, isInvalidated: false, place: workflow.place },
     sortBy: [{ field: 'index', order: SortOrder.DESC }],
   });
-  const active = [...page.data];
+  const candidates = [...page.data];
 
   // enableAtPlaces documents live at another place — one extra page, only
   // when the static config actually declares the current place.
@@ -141,44 +114,41 @@ async function fetchActiveDocuments(
     });
     for (const document of extras.data) {
       if (extraNames.has(document.documentName) && document.place !== workflow.place) {
-        active.push(document);
+        candidates.push(document);
       }
     }
   }
-  return active;
+  return candidates;
 }
 
 /**
- * The workflow's own prompt widget (e.g. `prompt-input`), active in the
- * workflow's current place. Cached per workflow name — chat loops rediscover
- * every round.
+ * The workflow's own prompt widgets (e.g. `prompt-input`), from the workflow config.
+ * Cached per workflow name — chat loops rediscover every round. Place gating happens in
+ * the canonical rules (`showWhen` hides, `enabledWhen` disables).
  */
-async function findWorkflowWidget(
+async function fetchWorkflowWidgets(
   client: LoopstackClient,
   workflow: WorkflowFullInterface,
   cache: Map<string, WidgetConfig[]>,
-): Promise<WidgetConfig | undefined> {
+): Promise<WidgetConfig[]> {
   let widgets = cache.get(workflow.workflowName);
   if (!widgets) {
     const config = await client.config.workflowConfig(workflow.workflowName).catch(() => undefined);
     widgets = (config?.ui as { widgets?: WidgetConfig[] } | undefined)?.widgets ?? [];
     cache.set(workflow.workflowName, widgets);
   }
-  return widgets.find((widget) => {
-    const places = widget.enabledWhen ?? widget.showWhen;
-    return !places || places.includes(workflow.place ?? '');
-  });
+  return widgets;
 }
 
 /**
  * Finds the prompt a paused run is waiting on. HITL prompts often live on a
- * sub-workflow (e.g. AskUserWorkflow), so the run tree is searched
- * breadth-first for a waiting workflow with an active, interactive widget —
- * Studio's rules (`isDocumentActive` by place, `canSubmit` by transition
- * availability), answerability derived from the widget registry: answerable
- * = a collect implementation exists. Declared-but-unimplemented widgets are
- * reported as `unsupported` (Studio-only input) instead of being mistaken
- * for a still-moving run.
+ * sub-workflow (e.g. AskUserWorkflow), so the run tree is searched breadth-first for a
+ * waiting workflow with an active, interactive widget. Visibility, activity, and
+ * submittability come from the canonical park-view rules in `@loopstack/contracts` —
+ * the same rules `TestRun.parkView()` asserts against. Answerability stays CLI-local:
+ * answerable = a collect implementation exists; declared-but-unimplemented widgets are
+ * reported as `unsupported` (Studio-only input) instead of being mistaken for a
+ * still-moving run.
  */
 export async function findActivePrompt(
   client: LoopstackClient,
@@ -201,59 +171,68 @@ export async function findActivePrompt(
     visited.add(id);
 
     const workflow = await client.workflows.get(id);
-    // The place decides what is answerable (Studio's rule): waiting/paused
-    // runs and failed runs parked at an error place with transitions (e.g.
-    // a Recover button) are both prompt sources.
-    const answerable =
-      workflow.status === WorkflowState.Waiting ||
-      workflow.status === WorkflowState.Paused ||
-      workflow.status === WorkflowState.Failed;
-
     if (id !== rootWorkflowId && !TERMINAL_STATES.has(workflow.status) && !PARKED_STATES.has(workflow.status)) {
       hasActiveDescendants = true;
     }
 
-    if (answerable && workflow.availableTransitions?.length) {
-      const available = workflow.availableTransitions.map((transition) => transition.id);
-      const documents = await fetchActiveDocuments(client, workflow, widgets).catch(
-        () => [] as DocumentItemInterface[],
-      );
+    const workflowInput: ParkViewWorkflowInput = {
+      id: workflow.id,
+      workflowName: workflow.workflowName,
+      status: workflow.status,
+      place: workflow.place ?? null,
+      availableTransitions: workflow.availableTransitions?.map((transition) => transition.id) ?? [],
+    };
 
-      for (const document of documents) {
-        const widget = widgets.get(document.documentName);
-        if (!widget) continue;
-        const content = document.content as { answer?: unknown } | null;
-        if (content && content.answer !== undefined) continue;
+    // Only answerable nodes are worth the document/config fetches — the rules would
+    // produce no candidates for the rest anyway.
+    const answerable = isAnswerableState(workflowInput.status, workflowInput.availableTransitions);
+    const documents = answerable
+      ? await fetchCandidateDocuments(client, workflow, widgets).catch(() => [] as DocumentItemInterface[])
+      : [];
+    const documentBySource = new Map<ParkViewDocumentInput, DocumentItemInterface>();
+    const documentInputs = documents.map((document) => {
+      const input: ParkViewDocumentInput = {
+        documentName: document.documentName,
+        place: document.place ?? null,
+        content: (document.content ?? null) as Record<string, unknown> | null,
+        tags: (document as { tags?: string[] }).tags,
+      };
+      documentBySource.set(input, document);
+      return input;
+    });
 
-        if (isCollectable(widget.widget)) {
-          if (isAskable(widget, available)) {
-            return { prompt: { workflow, document, widget }, hasActiveDescendants };
-          }
-        } else if (isSubmittable(widget, available)) {
-          // Studio could submit this (declared transition is available), the
-          // CLI can't collect it — display-only widgets never end up here.
-          unsupported ??= {
-            workflow,
-            widgetName: widget.widget,
-            documentName: document.documentName,
-            content: (document.content ?? undefined) as Record<string, unknown> | undefined,
-          };
-        }
-      }
+    const candidates = answerable
+      ? evaluateWorkflowPrompts(
+          workflowInput,
+          documentInputs,
+          widgets,
+          await fetchWorkflowWidgets(client, workflow, workflowWidgets),
+        )
+      : [];
 
-      // No prompt document — the workflow itself may carry the prompt
-      // widget (e.g. the chat input from `@Workflow({ widget })`).
-      const workflowWidget = await findWorkflowWidget(client, workflow, workflowWidgets);
-      if (workflowWidget) {
-        if (isCollectable(workflowWidget.widget)) {
-          if (isAskable(workflowWidget, available)) {
-            return { prompt: { workflow, widget: workflowWidget }, hasActiveDescendants };
-          }
-        } else if (isSubmittable(workflowWidget, available)) {
-          unsupported ??= { workflow, widgetName: workflowWidget.widget };
-        }
-      }
-      fallback ??= { workflow };
+    const toActivePrompt = (candidate: PromptCandidate): ActivePrompt => ({
+      workflow,
+      document: candidate.document ? documentBySource.get(candidate.document) : undefined,
+      widget: candidate.widget,
+      submitTransition: candidate.submitTransition,
+    });
+
+    const picked = pickPrompt(candidates, (candidate) => !!candidate.widget && isCollectable(candidate.widget.widget));
+    if (picked.prompt) {
+      return { prompt: toActivePrompt(picked.prompt), hasActiveDescendants };
+    }
+    if (picked.blocked?.widget) {
+      // Studio could submit this (its transition is available), the CLI can't collect it —
+      // display-only widgets never end up here.
+      unsupported ??= {
+        workflow,
+        widgetName: picked.blocked.widget.widget,
+        documentName: picked.blocked.document?.documentName,
+        content: picked.blocked.document?.content ?? undefined,
+      };
+    }
+    if (picked.fallback) {
+      fallback ??= toActivePrompt(picked.fallback);
     }
 
     const children = await client.workflows.list({ filter: { parentId: id } });

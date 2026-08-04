@@ -15,6 +15,7 @@ import {
 } from '@loopstack/common';
 import type { Clock, WorkflowArgs } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
+import type { ParkView } from '@loopstack/contracts/park-view';
 import { executedTransitions } from '@loopstack/contracts/types';
 import type {
   RunTraceEvent,
@@ -22,9 +23,10 @@ import type {
   ToolFailedEvent,
   WorkflowTransitionType,
 } from '@loopstack/contracts/types';
-import { WorkflowProcessorService, WorkflowRegistryService } from '@loopstack/core';
+import { StudioDiscoveryService, WorkflowProcessorService, WorkflowRegistryService } from '@loopstack/core';
 import { createWorkflowTest } from '../test-builder/workflow-test-builder.js';
 import { FailureAnswer, ScriptedAnswers } from './answers.js';
+import { collectParkViewData, computeParkView } from './park-view.js';
 import { RECORD_SINK, RecordSink, RecordToolInterceptor } from './record.js';
 import {
   REPLAY_SOURCE,
@@ -121,6 +123,13 @@ export interface TestRun {
   recordings?: ReplayFixture;
   /** Content of the latest non-invalidated document matching the given key or document name. */
   document(nameOrKey: string): unknown;
+  /**
+   * What a human would see at this park — the prompting workflow (root or a sub-workflow),
+   * the active widget, its content/schema/options, and the default transition, resolved by
+   * the same canonical rules the CLI uses. A bare wait (nothing renderable) returns a view
+   * without `widget`/`documentName`; terminal runs return `undefined`.
+   */
+  parkView(): ParkView | undefined;
   /** The raw engine metadata of the final processing step. */
   raw: WorkflowMetadataInterface;
 }
@@ -261,6 +270,14 @@ export async function runWorkflow<W extends BaseWorkflow>(
 
     const documents = meta.documents;
     const trace = meta.trace;
+    // Captured while the module is open — parkView() itself runs pure rules lazily.
+    const parkViewData = collectParkViewData(
+      meta,
+      registry.resolve(workflowClass).workflowName,
+      module.get(StudioDiscoveryService),
+      registry,
+    );
+    let parkViewCache: { value: ParkView | undefined } | undefined;
     return {
       status: meta.status,
       result: meta.result,
@@ -277,6 +294,7 @@ export async function runWorkflow<W extends BaseWorkflow>(
       document: (nameOrKey: string) =>
         documents.filter((d) => !d.isInvalidated && (d.key === nameOrKey || d.documentName === nameOrKey)).at(-1)
           ?.content,
+      parkView: () => (parkViewCache ??= { value: computeParkView(parkViewData) }).value,
       raw: meta,
     };
   } finally {

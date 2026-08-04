@@ -1,5 +1,6 @@
 import { ToolTestBuilder, createToolTest } from '../test-builder/tool-test-builder.js';
 
+export type { ParkView } from '@loopstack/contracts/park-view';
 export { AnswerQueue, FailureAnswer, failure, queue } from './answers.js';
 export * from './contract-fake.js';
 export * from './coverage.js';
