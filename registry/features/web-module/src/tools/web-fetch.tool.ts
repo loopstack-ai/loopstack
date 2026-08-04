@@ -46,6 +46,7 @@ export type WebFetchArgs = z.infer<typeof WebFetchSchema>;
     'Supports HTTPS upgrade, same-origin redirect following with cross-host report, a 15-minute in-memory cache, size and redirect caps, and a preapproved-host allowlist.',
   schema: WebFetchSchema,
   resultSchema: WebFetchResultSchema,
+  effects: 'none',
 })
 export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult> {
   @Inject() private readonly fetcher: WebFetchFetcherService;

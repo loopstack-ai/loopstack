@@ -51,6 +51,7 @@ export const BashResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: BashResultSchema,
+  effects: 'external',
 })
 export class BashTool extends BaseTool<BashArgs, object, BashResult> {
   constructor(

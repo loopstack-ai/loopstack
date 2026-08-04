@@ -63,6 +63,7 @@ export const GitHubCreateIssueCommentResultSchema = z.strictObject({
     'Creates a comment on a GitHub issue or pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubCreateIssueCommentResultSchema,
+  effects: 'external',
 })
 export class GitHubCreateIssueCommentTool extends BaseTool<
   GitHubCreateIssueCommentArgs,

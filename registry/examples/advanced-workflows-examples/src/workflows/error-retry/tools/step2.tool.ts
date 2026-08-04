@@ -9,6 +9,7 @@ export const Step2ToolResultSchema = z.string();
   name: 'step2',
   description: 'A tool that fails when shouldFail is true.',
   resultSchema: Step2ToolResultSchema,
+  effects: 'none',
 })
 export class Step2Tool extends BaseTool<{ shouldFail: boolean }, object, Step2ToolResult> {
   protected async handle(args: { shouldFail: boolean }): Promise<ToolEnvelope<Step2ToolResult>> {

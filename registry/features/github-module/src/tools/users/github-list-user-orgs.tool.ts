@@ -61,6 +61,7 @@ export const GitHubListUserOrgsResultSchema = z.strictObject({
     'Lists organizations for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubListUserOrgsResultSchema,
+  effects: 'none',
 })
 export class GitHubListUserOrgsTool extends BaseTool<GitHubListUserOrgsArgs, object, GitHubListUserOrgsResult> {
   private readonly logger = new Logger(GitHubListUserOrgsTool.name);

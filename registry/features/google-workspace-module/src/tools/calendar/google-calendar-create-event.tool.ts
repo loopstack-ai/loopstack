@@ -76,6 +76,7 @@ export const GoogleCalendarCreateEventResultSchema = z.strictObject({
     'Creates a new event on Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GoogleCalendarCreateEventResultSchema,
+  effects: 'external',
 })
 export class GoogleCalendarCreateEventTool extends BaseTool<
   GoogleCalendarCreateEventArgs,

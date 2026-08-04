@@ -39,6 +39,7 @@ export type SandboxCommandArgs = z.infer<typeof inputSchema>;
   description: 'Execute a command in the sandbox environment',
   schema: inputSchema,
   resultSchema: CommandExecutionResultSchema,
+  effects: 'external',
 })
 export class SandboxCommand extends BaseTool<SandboxCommandArgs, object, CommandExecutionResult> {
   private readonly logger = new Logger(SandboxCommand.name);

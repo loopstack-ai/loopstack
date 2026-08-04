@@ -2,6 +2,7 @@ import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
+import { resolveDocumentName } from '@loopstack/core';
 import { LlmMessageDocument } from '../documents/index.js';
 import { LlmDelegateService } from '../services/llm-delegate.service.js';
 import { LlmDelegateResultSchema } from '../types/index.js';
@@ -55,6 +56,7 @@ type LlmUpdateToolResultConfig = z.infer<typeof LlmUpdateToolResultConfigSchema>
   schema: LlmUpdateToolResultToolSchema,
   configSchema: LlmUpdateToolResultConfigSchema,
   resultSchema: LlmDelegateResultSchema,
+  effects: 'none',
 })
 export class LlmUpdateToolResultTool extends BaseTool<
   LlmUpdateToolResultToolArgs,
@@ -74,22 +76,27 @@ export class LlmUpdateToolResultTool extends BaseTool<
     );
 
     const config = options?.config;
-    if (config?.save !== false && result.allCompleted && result.toolResults.length > 0) {
-      await this.documentStore.save(
-        LlmMessageDocument,
-        {
-          role: 'user',
-          blocks: result.toolResults.map((tr) => ({
-            type: 'tool_result' as const,
-            toolCallId: tr.toolCallId,
-            content: tr.content ?? '',
-            isError: tr.isError ?? false,
-          })),
-        },
-        { meta: { ...(config?.meta ?? {}) } },
-      );
-    }
+    const saveResults = config?.save !== false && result.allCompleted && result.toolResults.length > 0;
 
-    return { data: result };
+    return {
+      data: result,
+      ...(saveResults && {
+        documents: [
+          {
+            documentName: resolveDocumentName(LlmMessageDocument),
+            content: {
+              role: 'user',
+              blocks: result.toolResults.map((tr) => ({
+                type: 'tool_result' as const,
+                toolCallId: tr.toolCallId,
+                content: tr.content ?? '',
+                isError: tr.isError ?? false,
+              })),
+            },
+            options: { meta: { ...(config?.meta ?? {}) } },
+          },
+        ],
+      }),
+    };
   }
 }

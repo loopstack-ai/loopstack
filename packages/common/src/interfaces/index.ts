@@ -1,3 +1,4 @@
+export * from './clock.interface.js';
 export * from './handler.interface.js';
 
 export * from './role.interface.js';

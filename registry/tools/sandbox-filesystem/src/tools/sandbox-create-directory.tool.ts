@@ -53,6 +53,7 @@ export const SandboxCreateDirectoryResultSchema = z.strictObject({
   description: 'Create a directory in a sandbox container',
   schema: inputSchema,
   resultSchema: SandboxCreateDirectoryResultSchema,
+  effects: 'external',
 })
 export class SandboxCreateDirectory extends BaseTool<SandboxCreateDirectoryArgs, object, SandboxCreateDirectoryResult> {
   private readonly logger = new Logger(SandboxCreateDirectory.name);

@@ -82,6 +82,7 @@ export const GitHubGetWorkflowRunResultSchema = z.strictObject({
     'Gets detailed information about a specific GitHub Actions workflow run. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubGetWorkflowRunResultSchema,
+  effects: 'none',
 })
 export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs, object, GitHubGetWorkflowRunResult> {
   private readonly logger = new Logger(GitHubGetWorkflowRunTool.name);

@@ -67,6 +67,7 @@ export const GitHubCreateIssueResultSchema = z.strictObject({
     'Creates a new issue in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubCreateIssueResultSchema,
+  effects: 'external',
 })
 export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, object, GitHubCreateIssueResult> {
   private readonly logger = new Logger(GitHubCreateIssueTool.name);

@@ -103,6 +103,7 @@ export const GitHubGetCommitResultSchema = z.strictObject({
     'Gets detailed information about a specific commit in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubGetCommitResultSchema,
+  effects: 'none',
 })
 export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, GitHubGetCommitResult> {
   private readonly logger = new Logger(GitHubGetCommitTool.name);

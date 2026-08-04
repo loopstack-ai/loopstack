@@ -33,6 +33,7 @@ export const GitBranchResultSchema = z.strictObject({
   description: 'Lists all local git branches and indicates the current branch.',
   schema: z.object({}).strict(),
   resultSchema: GitBranchResultSchema,
+  effects: 'none',
 })
 export class GitBranchTool extends BaseTool<object, object, GitBranchResult> {
   constructor(

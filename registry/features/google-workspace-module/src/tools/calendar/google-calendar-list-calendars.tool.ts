@@ -66,6 +66,7 @@ export const GoogleCalendarListCalendarsResultSchema = z.strictObject({
     'Lists all calendars the authenticated user has access to. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GoogleCalendarListCalendarsResultSchema,
+  effects: 'none',
 })
 export class GoogleCalendarListCalendarsTool extends BaseTool<
   GoogleCalendarListCalendarsArgs,

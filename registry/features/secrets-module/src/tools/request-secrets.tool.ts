@@ -45,6 +45,7 @@ export const RequestSecretsResultSchema = z.strictObject({
     'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: RequestSecretsInputSchema,
   resultSchema: RequestSecretsResultSchema,
+  effects: 'none',
 })
 export class RequestSecretsTool extends BaseTool<RequestSecretsInput, object, RequestSecretsResult> {
   protected async handle(args: RequestSecretsInput): Promise<ToolEnvelope<RequestSecretsResult>> {

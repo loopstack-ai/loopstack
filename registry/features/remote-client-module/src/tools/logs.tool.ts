@@ -53,6 +53,7 @@ export const LogsResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: LogsResultSchema,
+  effects: 'none',
 })
 export class LogsTool extends BaseTool<LogsArgs, object, LogsResult> {
   constructor(

@@ -14,6 +14,7 @@ export const FailingSubWorkflowToolResultSchema = z.strictObject({ workflowId: z
     'Used to test that failed sub-workflow errors propagate back to the parent.',
   schema: z.object({}),
   resultSchema: FailingSubWorkflowToolResultSchema,
+  effects: 'none',
 })
 export class FailingSubWorkflowTool extends BaseTool<object, object, FailingSubWorkflowToolResult> {
   constructor(private readonly failingWorkflow: AgentErrorHandlingFailingSubWorkflow) {

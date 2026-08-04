@@ -20,6 +20,7 @@ export const MathSumToolResultSchema = z.number();
   description: 'Math tool calculating the sum of two arguments by using an injected service.',
   schema: MathSumSchema,
   resultSchema: MathSumToolResultSchema,
+  effects: 'none',
 })
 export class MathSumTool extends BaseTool<MathSumArgs, object, MathSumToolResult> {
   constructor(private readonly mathService: MathService) {

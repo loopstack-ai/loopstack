@@ -52,6 +52,7 @@ export const AskForApprovalResultSchema = z.union([
     'IMPORTANT: This must be the only tool call in your response.',
   schema: AskForApprovalInputSchema,
   resultSchema: AskForApprovalResultSchema,
+  effects: 'none',
 })
 export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, AskForApprovalResult> {
   constructor(private readonly confirmUserWorkflow: ConfirmUserWorkflow) {

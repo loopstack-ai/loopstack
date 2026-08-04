@@ -56,6 +56,7 @@ export const SandboxWriteFileResultSchema = z.strictObject({
   description: 'Write content to a file in a sandbox container',
   schema: inputSchema,
   resultSchema: SandboxWriteFileResultSchema,
+  effects: 'external',
 })
 export class SandboxWriteFile extends BaseTool<SandboxWriteFileArgs, object, SandboxWriteFileResult> {
   private readonly logger = new Logger(SandboxWriteFile.name);

@@ -54,6 +54,7 @@ export const SandboxDeleteResultSchema = z.strictObject({
   description: 'Delete a file or directory in a sandbox container',
   schema: inputSchema,
   resultSchema: SandboxDeleteResultSchema,
+  effects: 'external',
 })
 export class SandboxDelete extends BaseTool<SandboxDeleteArgs, object, SandboxDeleteResult> {
   private readonly logger = new Logger(SandboxDelete.name);

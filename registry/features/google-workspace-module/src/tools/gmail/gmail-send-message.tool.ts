@@ -56,6 +56,7 @@ export const GmailSendMessageResultSchema = z.strictObject({
   description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GmailSendMessageResultSchema,
+  effects: 'external',
 })
 export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object, GmailSendMessageResult> {
   private readonly logger = new Logger(GmailSendMessageTool.name);

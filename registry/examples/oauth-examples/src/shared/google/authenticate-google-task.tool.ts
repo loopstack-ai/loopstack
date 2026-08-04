@@ -33,6 +33,7 @@ export const AuthenticateGoogleTaskResultSchema = z.string();
     'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: AuthenticateGoogleTaskInputSchema,
   resultSchema: AuthenticateGoogleTaskResultSchema,
+  effects: 'external',
 })
 export class AuthenticateGoogleTask extends BaseTool<
   AuthenticateGoogleTaskInput,

@@ -75,6 +75,7 @@ export const GoogleCalendarFetchEventsResultSchema = z.strictObject({
     'Fetches events from a Google Calendar within a time range. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GoogleCalendarFetchEventsResultSchema,
+  effects: 'none',
 })
 export class GoogleCalendarFetchEventsTool extends BaseTool<
   GoogleCalendarFetchEventsArgs,

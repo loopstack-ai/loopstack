@@ -62,6 +62,13 @@ describe('WorkflowProcessorService — stateless callback drain', () => {
       memoryMonitor as never,
       {} as never,
       {} as never, // runTraceService — unused without a workflowEntity
+      {
+        now: () => Date.now(),
+        schedule: (fn: () => void, ms: number) => {
+          const t = setTimeout(fn, ms);
+          return () => clearTimeout(t);
+        },
+      } as never, // clock
     );
   };
 

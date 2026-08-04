@@ -9,6 +9,7 @@ export const CounterToolResultSchema = z.number();
   name: 'counter',
   description: 'Counter tool.',
   resultSchema: CounterToolResultSchema,
+  effects: 'none',
 })
 export class CounterTool extends BaseTool<object, object, CounterToolResult> {
   count: number = 0;

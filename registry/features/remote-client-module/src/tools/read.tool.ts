@@ -52,6 +52,7 @@ export const ReadResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: ReadResultSchema,
+  effects: 'none',
 })
 export class ReadTool extends BaseTool<ReadArgs, object, ReadResult> {
   constructor(

@@ -76,6 +76,7 @@ export const GmailSearchMessagesResultSchema = z.strictObject({
     'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GmailSearchMessagesResultSchema,
+  effects: 'none',
 })
 export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, object, GmailSearchMessagesResult> {
   private readonly logger = new Logger(GmailSearchMessagesTool.name);

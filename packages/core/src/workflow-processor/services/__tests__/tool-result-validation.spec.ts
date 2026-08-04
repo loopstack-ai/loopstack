@@ -41,7 +41,7 @@ class ErroringTool extends BaseTool<object, object, { total: number }> {
   }
 }
 
-const makePipeline = () => new ToolPipelineService(new ExecutionScope(), {} as never);
+const makePipeline = () => new ToolPipelineService(new ExecutionScope(), {} as never, {} as never);
 
 describe('parseToolResult', () => {
   it('parses success data and applies schema defaults without mutating the input envelope', () => {

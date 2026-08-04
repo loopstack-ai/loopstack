@@ -57,6 +57,7 @@ export const EditResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: EditResultSchema,
+  effects: 'external',
 })
 export class EditTool extends BaseTool<EditArgs, object, EditResult> {
   constructor(

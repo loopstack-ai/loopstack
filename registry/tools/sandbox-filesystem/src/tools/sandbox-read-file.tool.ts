@@ -53,6 +53,7 @@ export const SandboxReadFileResultSchema = z.strictObject({
   description: 'Read file contents from a sandbox container',
   schema: inputSchema,
   resultSchema: SandboxReadFileResultSchema,
+  effects: 'none',
 })
 export class SandboxReadFile extends BaseTool<SandboxReadFileArgs, object, SandboxReadFileResult> {
   private readonly logger = new Logger(SandboxReadFile.name);

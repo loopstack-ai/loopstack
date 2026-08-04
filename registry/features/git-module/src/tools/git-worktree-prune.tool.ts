@@ -30,6 +30,7 @@ export const GitWorktreePruneResultSchema = z.strictObject({ success: z.boolean(
   description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',
   schema: z.object({}).strict(),
   resultSchema: GitWorktreePruneResultSchema,
+  effects: 'external',
 })
 export class GitWorktreePruneTool extends BaseTool<object, object, GitWorktreePruneResult> {
   constructor(

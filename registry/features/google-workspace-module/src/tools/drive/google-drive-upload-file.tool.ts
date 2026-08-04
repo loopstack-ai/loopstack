@@ -57,6 +57,7 @@ export const GoogleDriveUploadFileResultSchema = z.strictObject({
     'Uploads a new file to Google Drive using multipart upload. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GoogleDriveUploadFileResultSchema,
+  effects: 'external',
 })
 export class GoogleDriveUploadFileTool extends BaseTool<
   GoogleDriveUploadFileArgs,

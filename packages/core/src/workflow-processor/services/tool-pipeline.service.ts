@@ -5,6 +5,7 @@ import {
   type RunContext,
   TOOL_INTERCEPTOR_METADATA_KEY,
   ToolCallOptions,
+  ToolDocumentDeclarationSchema,
   ToolEnvelope,
   ToolExecutionContext,
   ToolInterceptor,
@@ -16,6 +17,7 @@ import {
 } from '@loopstack/common';
 import { TransitionAbortedError } from '../../common/index.js';
 import { ExecutionScope } from '../utils/index.js';
+import { DocumentStore, resolveDocumentClass } from './document-store.service.js';
 
 /**
  * Internal pipeline service injected into BaseTool via property injection.
@@ -37,6 +39,7 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
   constructor(
     private readonly executionScope: ExecutionScope,
     private readonly discoveryService: DiscoveryService,
+    private readonly documentStore: DocumentStore,
   ) {}
 
   onModuleInit(): void {
@@ -142,6 +145,7 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
     const startedAt = performance.now();
     try {
       const envelope = parseToolResult(tool, await chain());
+      await this.applyDocumentDeclarations(toolName, envelope);
       const durationMs = Math.round(performance.now() - startedAt);
       trace?.emit({
         type: 'tool.completed',
@@ -170,6 +174,20 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
       });
       this.logger.warn(`${toolName} — failed after ${durationMs}ms: ${message}`);
       throw error;
+    }
+  }
+
+  /**
+   * Apply envelope-declared documents through the document store. Runs post-chain, so
+   * declarations on replayed envelopes are applied exactly like live ones. Success
+   * envelopes only — error/pending envelopes are exempt, mirroring result validation.
+   * A failing save fails the tool call.
+   */
+  private async applyDocumentDeclarations(toolName: string, envelope: ToolEnvelope<unknown, unknown>): Promise<void> {
+    if (!envelope.documents?.length || envelope.error !== undefined || envelope.pending) return;
+    const declarations = ToolDocumentDeclarationSchema.array().parse(envelope.documents);
+    for (const decl of declarations) {
+      await this.documentStore.save(resolveDocumentClass(decl.documentName, toolName), decl.content, decl.options);
     }
   }
 }

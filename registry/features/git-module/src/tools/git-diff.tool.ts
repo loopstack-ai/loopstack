@@ -54,6 +54,7 @@ export const GitDiffResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: GitDiffResultSchema,
+  effects: 'none',
 })
 export class GitDiffTool extends BaseTool<GitDiffArgs, object, GitDiffResult> {
   constructor(

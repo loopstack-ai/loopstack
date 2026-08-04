@@ -12,6 +12,7 @@ export const WeatherLookupResultSchema = z.string();
     city: z.string().describe('The city name to look up weather for.'),
   }),
   resultSchema: WeatherLookupResultSchema,
+  effects: 'none',
 })
 export class WeatherLookupTool extends BaseTool<{ city: string }, object, WeatherLookupResult> {
   protected async handle(args: { city: string }): Promise<ToolEnvelope<WeatherLookupResult>> {

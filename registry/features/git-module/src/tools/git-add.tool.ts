@@ -40,6 +40,7 @@ export const GitAddResultSchema = z.strictObject({ success: z.boolean() });
     })
     .strict(),
   resultSchema: GitAddResultSchema,
+  effects: 'external',
 })
 export class GitAddTool extends BaseTool<GitAddArgs, object, GitAddResult> {
   constructor(

@@ -89,6 +89,7 @@ interface GmailMessagePart {
     'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GmailGetMessageResultSchema,
+  effects: 'none',
 })
 export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, GmailGetMessageResult> {
   private readonly logger = new Logger(GmailGetMessageTool.name);

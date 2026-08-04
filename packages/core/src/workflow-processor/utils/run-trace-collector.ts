@@ -10,7 +10,10 @@ export class RunTraceCollector {
   private seq: number;
   private toolSeqByTransition = new Map<string, number>();
 
-  constructor(seed?: RunTraceEvent[]) {
+  constructor(
+    seed?: RunTraceEvent[],
+    private readonly now: () => number = () => Date.now(),
+  ) {
     this.events = seed ? [...seed] : [];
     this.seq = this.events.length > 0 ? this.events[this.events.length - 1].seq + 1 : 0;
   }
@@ -24,7 +27,7 @@ export class RunTraceCollector {
   }
 
   emit(event: RunTraceEventInput): void {
-    this.events.push({ ...event, seq: this.seq++, ts: Date.now() } as RunTraceEvent);
+    this.events.push({ ...event, seq: this.seq++, ts: this.now() } as RunTraceEvent);
   }
 
   /** 0-based order of the next tool call within the given transition. */

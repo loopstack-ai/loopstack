@@ -62,6 +62,7 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
     'Downloads or exports a file from Google Drive. Automatically handles Google Docs/Sheets/Slides export. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GoogleDriveDownloadFileResultSchema,
+  effects: 'none',
 })
 export class GoogleDriveDownloadFileTool extends BaseTool<
   GoogleDriveDownloadFileArgs,

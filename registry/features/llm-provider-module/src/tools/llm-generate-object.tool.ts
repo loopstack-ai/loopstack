@@ -68,6 +68,7 @@ export const LlmGenerateObjectToolSchema = LlmGenerateObjectArgsSchema;
   schema: LlmGenerateObjectArgsSchema,
   configSchema: LlmGenerateObjectConfigSchema,
   resultSchema: LlmGenerateObjectResultSchema,
+  effects: 'none',
 })
 export class LlmGenerateObjectTool extends BaseTool<
   LlmGenerateObjectArgs,

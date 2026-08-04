@@ -9,6 +9,7 @@ export const SlowToolResultSchema = z.string();
   name: 'slow',
   description: 'A tool that takes a configurable amount of time to complete.',
   resultSchema: SlowToolResultSchema,
+  effects: 'none',
 })
 export class SlowTool extends BaseTool<{ delayMs: number }, object, SlowToolResult> {
   protected async handle(args: { delayMs: number }): Promise<ToolEnvelope<SlowToolResult>> {

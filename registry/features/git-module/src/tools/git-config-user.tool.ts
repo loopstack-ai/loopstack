@@ -42,6 +42,7 @@ export const GitConfigUserResultSchema = z.strictObject({ success: z.boolean() }
     })
     .strict(),
   resultSchema: GitConfigUserResultSchema,
+  effects: 'external',
 })
 export class GitConfigUserTool extends BaseTool<GitConfigUserArgs, object, GitConfigUserResult> {
   constructor(

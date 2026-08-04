@@ -82,6 +82,7 @@ export const GitHubGetIssueResultSchema = z.strictObject({
     'Gets detailed information about a specific GitHub issue. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubGetIssueResultSchema,
+  effects: 'none',
 })
 export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, GitHubGetIssueResult> {
   private readonly logger = new Logger(GitHubGetIssueTool.name);

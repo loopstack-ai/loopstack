@@ -62,6 +62,7 @@ export const ExchangeOAuthTokenResultSchema = z.strictObject({
     'Exchanges an OAuth 2.0 authorization code for access and refresh tokens, and stores them globally for the user.',
   schema: ExchangeOAuthTokenSchema,
   resultSchema: ExchangeOAuthTokenResultSchema,
+  effects: 'external',
 })
 export class ExchangeOAuthTokenTool extends BaseTool<ExchangeOAuthTokenArgs, object, ExchangeOAuthTokenResult> {
   private readonly logger = new Logger(ExchangeOAuthTokenTool.name);

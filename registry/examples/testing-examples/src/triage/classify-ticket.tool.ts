@@ -26,6 +26,7 @@ const URGENCY_KEYWORDS = ['down', 'outage', 'urgent', 'critical'];
   description: 'Classifies a support ticket as high or normal severity based on urgency keywords.',
   schema: ClassifyTicketSchema,
   resultSchema: ClassificationResultSchema,
+  effects: 'none',
 })
 export class ClassifyTicketTool extends BaseTool<ClassifyTicketArgs, object, ClassificationResult> {
   protected async handle(args: ClassifyTicketArgs): Promise<ToolEnvelope<ClassificationResult>> {

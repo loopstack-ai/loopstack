@@ -75,6 +75,7 @@ export const GitHubCreateOrUpdateFileResultSchema = z.strictObject({
     'Creates or updates a file in a GitHub repository. Content is provided as plain text and encoded to base64 before sending. To update an existing file, provide the sha of the file being replaced. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubCreateOrUpdateFileResultSchema,
+  effects: 'external',
 })
 export class GitHubCreateOrUpdateFileTool extends BaseTool<
   GitHubCreateOrUpdateFileArgs,

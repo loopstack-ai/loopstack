@@ -49,6 +49,7 @@ export const GitWorktreeRemoveResultSchema = z.strictObject({ success: z.boolean
   description: 'Removes a git worktree at the given path. Use force=true to remove dirty or locked worktrees.',
   schema: GitWorktreeRemoveSchema,
   resultSchema: GitWorktreeRemoveResultSchema,
+  effects: 'external',
 })
 export class GitWorktreeRemoveTool extends BaseTool<GitWorktreeRemoveArgs, object, GitWorktreeRemoveResult> {
   constructor(

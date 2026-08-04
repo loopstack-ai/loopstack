@@ -70,6 +70,7 @@ export const GitHubGetAuthenticatedUserResultSchema = z.strictObject({
     'Gets the profile of the currently authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubGetAuthenticatedUserResultSchema,
+  effects: 'none',
 })
 export class GitHubGetAuthenticatedUserTool extends BaseTool<
   GitHubGetAuthenticatedUserArgs,

@@ -33,6 +33,7 @@ export const ResetWorkspaceResultSchema = z.strictObject({
   name: 'reset_workspace',
   description: 'Resets the workspace to its initial state, clearing all changes, temp files, database, and Redis.',
   resultSchema: ResetWorkspaceResultSchema,
+  effects: 'external',
 })
 export class ResetWorkspaceTool extends BaseTool<Record<string, never>, object, ResetWorkspaceResult> {
   constructor(

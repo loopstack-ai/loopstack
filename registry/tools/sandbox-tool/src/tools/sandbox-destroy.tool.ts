@@ -55,6 +55,7 @@ export const SandboxDestroyResultSchema = z.strictObject({
   description: 'Stop and destroy a sandbox container',
   schema: inputSchema,
   resultSchema: SandboxDestroyResultSchema,
+  effects: 'external',
 })
 export class SandboxDestroy extends BaseTool<SandboxDestroyArgs, object, SandboxDestroyResult> {
   private readonly logger = new Logger(SandboxDestroy.name);

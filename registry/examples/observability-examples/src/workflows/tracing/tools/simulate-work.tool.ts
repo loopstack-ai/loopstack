@@ -23,6 +23,7 @@ export const SimulateWorkToolResultSchema = z.strictObject({
   description: 'Sleeps for the given duration so interceptors have something to measure.',
   schema: SimulateWorkSchema,
   resultSchema: SimulateWorkToolResultSchema,
+  effects: 'none',
 })
 export class SimulateWorkTool extends BaseTool<SimulateWorkArgs, object, SimulateWorkToolResult> {
   protected async handle(args: SimulateWorkArgs): Promise<ToolEnvelope<SimulateWorkToolResult>> {

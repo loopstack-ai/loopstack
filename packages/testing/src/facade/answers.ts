@@ -64,3 +64,36 @@ export class ScriptedAnswers {
     return Object.keys(this.answers);
   }
 }
+
+/**
+ * A scripted failure answer — delivers a failed/canceled sub-workflow callback instead of data.
+ * Created with `failure()`.
+ */
+export class FailureAnswer {
+  constructor(
+    readonly errorMessage?: string,
+    readonly status: 'failed' | 'canceled' = 'failed',
+  ) {}
+}
+
+/**
+ * Script a **failure** for a wait transition: the run receives a callback with
+ * `status: 'failed'` (or `'canceled'`) instead of answer data — exactly what a crashed or
+ * canceled sub-workflow delivers. This makes error handling reachable from ordinary tests:
+ * a wait transition with `errorPlace`/`retryAttempts` routes accordingly; one without them
+ * runs its body with `input.status === 'failed'` for inline handling.
+ *
+ * ```ts
+ * const run = await runWorkflow(ProvisionWorkflow, args, {
+ *   answers: { onProvisioned: failure('Provisioning crashed') },
+ * });
+ * expect(run.place).toBe('recovery');
+ * ```
+ *
+ * Composes with `queue()`: `queue({ ok: true }, failure('then the child dies'))`.
+ *
+ * @public
+ */
+export function failure(errorMessage?: string, status: 'failed' | 'canceled' = 'failed'): FailureAnswer {
+  return new FailureAnswer(errorMessage, status);
+}

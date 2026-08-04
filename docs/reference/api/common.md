@@ -175,6 +175,22 @@ export abstract class ServerTool<TConfig extends object = object> {
 
 ## Interfaces
 
+### Clock
+
+The framework's time source — inject via the `CLOCK` token instead of calling `Date.now()`
+or `setTimeout` directly, so time-dependent logic stays deterministic under a test clock.
+
+```ts
+import { Clock } from '@loopstack/common';
+```
+
+```ts
+export interface Clock {
+  now(): number;
+  schedule(fn: () => void, ms: number): () => void;
+}
+```
+
 ### DocumentOptions
 
 Options for the `@Document()` decorator.
@@ -341,6 +357,32 @@ export interface ToolCallOptions<TConfig = object> {
 }
 ```
 
+### ToolDocumentDeclaration
+
+A document a tool declares as part of its result envelope instead of writing it
+inside `handle()`. The tool pipeline applies declarations through the document
+store after the interceptor chain, so declared documents appear identically for
+live and replayed tool calls.
+
+`documentName` is the document's registered name (the `@Document({ name })` option,
+or the kebab-case derivation of the class name). `options` mirror `DocumentSaveOptions`.
+
+```ts
+import { ToolDocumentDeclaration } from '@loopstack/common';
+```
+
+```ts
+export interface ToolDocumentDeclaration {
+  documentName: string;
+  content: Record<string, unknown>;
+  options?: {
+    key?: string;
+    meta?: Record<string, unknown>;
+    validate?: 'strict' | 'safe' | 'skip';
+  };
+}
+```
+
 ### ToolOptions
 
 Options for the `@Tool()` decorator.
@@ -357,6 +399,7 @@ export interface ToolOptions {
   schema?: z.ZodType;
   configSchema?: z.ZodType;
   resultSchema?: z.ZodType;
+  effects?: 'none' | 'external';
 }
 ```
 
@@ -515,6 +558,7 @@ export type ToolEnvelope<TData = unknown, TMeta = Record<string, unknown>> = {
   pending?: {
     workflowId: string;
   };
+  documents?: ToolDocumentDeclaration[];
 };
 ```
 

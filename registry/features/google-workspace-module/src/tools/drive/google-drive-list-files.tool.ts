@@ -79,6 +79,7 @@ export const GoogleDriveListFilesResultSchema = z.strictObject({
     'Lists and searches files in Google Drive. Supports Drive query syntax and folder browsing. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GoogleDriveListFilesResultSchema,
+  effects: 'none',
 })
 export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs, object, GoogleDriveListFilesResult> {
   private readonly logger = new Logger(GoogleDriveListFilesTool.name);

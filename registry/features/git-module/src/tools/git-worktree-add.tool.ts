@@ -60,6 +60,7 @@ export const GitWorktreeAddResultSchema = z.strictObject({
     'Creates a new git worktree at the given path. Optionally checks out an existing branch or creates a new one with "newBranch: true".',
   schema: GitWorktreeAddSchema,
   resultSchema: GitWorktreeAddResultSchema,
+  effects: 'external',
 })
 export class GitWorktreeAddTool extends BaseTool<GitWorktreeAddArgs, object, GitWorktreeAddResult> {
   constructor(

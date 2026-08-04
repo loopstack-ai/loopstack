@@ -44,6 +44,7 @@ export const AgentFinishResultSchema = z.strictObject({
     'IMPORTANT: This must be the only tool call in your response.',
   schema: AgentFinishInputSchema,
   resultSchema: AgentFinishResultSchema,
+  effects: 'none',
 })
 export class AgentFinishTool extends BaseTool<AgentFinishInput, object, AgentFinishResult> {
   protected async handle(args: AgentFinishInput): Promise<ToolEnvelope<AgentFinishResult>> {

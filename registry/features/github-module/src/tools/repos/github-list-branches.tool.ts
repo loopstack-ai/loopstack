@@ -62,6 +62,7 @@ export const GitHubListBranchesResultSchema = z.strictObject({
     'Lists branches for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubListBranchesResultSchema,
+  effects: 'none',
 })
 export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, object, GitHubListBranchesResult> {
   private readonly logger = new Logger(GitHubListBranchesTool.name);

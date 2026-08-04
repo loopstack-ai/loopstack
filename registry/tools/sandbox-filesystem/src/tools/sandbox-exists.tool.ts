@@ -54,6 +54,7 @@ export const SandboxExistsResultSchema = z.strictObject({
   description: 'Check if a file or directory exists in a sandbox container',
   schema: inputSchema,
   resultSchema: SandboxExistsResultSchema,
+  effects: 'none',
 })
 export class SandboxExists extends BaseTool<SandboxExistsArgs, object, SandboxExistsResult> {
   private readonly logger = new Logger(SandboxExists.name);

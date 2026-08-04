@@ -4,6 +4,7 @@ import { DiscoveryModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
+  CLOCK,
   DOCUMENT_STORE,
   DocumentEntity,
   EXECUTION_SCOPE,
@@ -18,6 +19,7 @@ import {
   WorkspaceEntity,
 } from '@loopstack/common';
 import { ClientMessageService } from './common/services/client-message.service.js';
+import { SystemClock } from './common/services/system-clock.js';
 import { WorkflowCheckpointService, WorkflowService, WorkspaceService } from './persistence/services/index.js';
 import type { RedisOptions } from './scheduler/interfaces/redis-options.interface.js';
 import { TaskSchedulerService } from './scheduler/services/task-scheduler.service.js';
@@ -54,6 +56,7 @@ const ENTITIES = [WorkflowEntity, DocumentEntity, WorkspaceEntity, WorkflowCheck
 const PROVIDERS = [
   // Common
   ClientMessageService,
+  { provide: CLOCK, useClass: SystemClock },
 
   // Persistence
   WorkflowService,
@@ -121,6 +124,7 @@ const PROVIDERS = [
 const EXPORTS = [
   // Common
   ClientMessageService,
+  CLOCK,
 
   // Persistence
   WorkflowService,

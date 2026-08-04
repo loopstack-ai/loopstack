@@ -26,6 +26,7 @@ export const GreetResultSchema = z.strictObject({
   name: 'greeter',
   schema: GreeterArgsSchema,
   resultSchema: GreetResultSchema,
+  effects: 'none',
 })
 export class GreeterTool extends BaseTool<GreeterArgs, object, GreetResult> {
   @Inject(GREETER_CONFIG) private readonly config: GreeterConfig;

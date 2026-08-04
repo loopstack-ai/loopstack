@@ -49,6 +49,7 @@ export const GitPushResultSchema = z.strictObject({ success: z.boolean(), output
     })
     .strict(),
   resultSchema: GitPushResultSchema,
+  effects: 'external',
 })
 export class GitPushTool extends BaseTool<GitPushArgs, object, GitPushResult> {
   constructor(

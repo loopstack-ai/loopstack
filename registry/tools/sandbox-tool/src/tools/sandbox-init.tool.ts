@@ -55,6 +55,7 @@ export const SandboxInitResultSchema = z.strictObject({
   description: 'Initialize a new sandbox container',
   schema: inputSchema,
   resultSchema: SandboxInitResultSchema,
+  effects: 'external',
 })
 export class SandboxInit extends BaseTool<SandboxInitArgs, object, SandboxInitResult> {
   private readonly logger = new Logger(SandboxInit.name);

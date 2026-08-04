@@ -63,6 +63,7 @@ export type ClaudeWebSearchConfig = z.infer<typeof ClaudeWebSearchConfigSchema>;
   schema: ClaudeWebSearchArgsSchema,
   configSchema: ClaudeWebSearchConfigSchema,
   resultSchema: WebSearchResultSchema,
+  effects: 'none',
 })
 export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSearchConfig, WebSearchResult> {
   private readonly logger = new Logger(ClaudeWebSearch.name);

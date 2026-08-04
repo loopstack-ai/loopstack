@@ -33,6 +33,7 @@ export const RebuildAppResultSchema = z.strictObject({
   name: 'rebuild_app',
   description: 'Rebuilds and restarts the app on a remote instance.',
   resultSchema: RebuildAppResultSchema,
+  effects: 'external',
 })
 export class RebuildAppTool extends BaseTool<Record<string, never>, object, RebuildAppResult> {
   constructor(

@@ -49,6 +49,7 @@ export const WriteResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: WriteResultSchema,
+  effects: 'external',
 })
 export class WriteTool extends BaseTool<WriteArgs, object, WriteResult> {
   constructor(

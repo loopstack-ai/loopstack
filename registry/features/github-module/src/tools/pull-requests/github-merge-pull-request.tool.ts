@@ -63,6 +63,7 @@ export const GitHubMergePullRequestResultSchema = z.strictObject({
   description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubMergePullRequestResultSchema,
+  effects: 'external',
 })
 export class GitHubMergePullRequestTool extends BaseTool<
   GitHubMergePullRequestArgs,

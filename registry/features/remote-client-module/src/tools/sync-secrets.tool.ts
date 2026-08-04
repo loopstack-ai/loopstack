@@ -40,6 +40,7 @@ export const SyncSecretsResultSchema = z.union([
     'Returns the count of synced secrets.',
   schema: SyncSecretsInputSchema,
   resultSchema: SyncSecretsResultSchema,
+  effects: 'external',
 })
 export class SyncSecretsTool extends BaseTool<SyncSecretsInput, object, SyncSecretsResult> {
   constructor(

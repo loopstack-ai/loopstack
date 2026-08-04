@@ -15,6 +15,7 @@ export const CalculatorResultSchema = z.string();
     b: z.number().describe('Second operand.'),
   }),
   resultSchema: CalculatorResultSchema,
+  effects: 'none',
 })
 export class CalculatorTool extends BaseTool<{ operation: string; a: number; b: number }, object, CalculatorResult> {
   protected async handle(

@@ -71,6 +71,7 @@ export const GitHubGetFileContentResultSchema = z.strictObject({
     'Gets the content of a file from a GitHub repository. Decodes base64-encoded content from the API. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubGetFileContentResultSchema,
+  effects: 'none',
 })
 export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs, object, GitHubGetFileContentResult> {
   private readonly logger = new Logger(GitHubGetFileContentTool.name);

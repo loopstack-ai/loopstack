@@ -67,6 +67,7 @@ export const SandboxListDirectoryResultSchema = z.strictObject({
   description: 'List files and directories in a sandbox container',
   schema: inputSchema,
   resultSchema: SandboxListDirectoryResultSchema,
+  effects: 'none',
 })
 export class SandboxListDirectory extends BaseTool<SandboxListDirectoryArgs, object, SandboxListDirectoryResult> {
   private readonly logger = new Logger(SandboxListDirectory.name);

@@ -47,7 +47,7 @@ describe('abort guards', () => {
   describe('ToolPipelineService.execute', () => {
     it('throws when the owning scope is aborted', async () => {
       const scope = abortedScope();
-      const service = new ToolPipelineService({ getOptional: () => scope } as never, {} as never);
+      const service = new ToolPipelineService({ getOptional: () => scope } as never, {} as never, {} as never);
       const tool = { handle: vi.fn() };
 
       await expect(service.execute(tool as never, {}, undefined)).rejects.toBeInstanceOf(TransitionAbortedError);

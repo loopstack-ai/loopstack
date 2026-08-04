@@ -48,6 +48,7 @@ export const RequestSecretsTaskResultSchema = z.string();
     'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: RequestSecretsTaskInputSchema,
   resultSchema: RequestSecretsTaskResultSchema,
+  effects: 'none',
 })
 export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object, RequestSecretsTaskResult> {
   private readonly logger = new Logger(RequestSecretsTask.name);

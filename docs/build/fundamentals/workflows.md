@@ -279,6 +279,8 @@ async process(state: MyState) {
 }
 ```
 
+Any provider can be injected the same way. For time-dependent logic, inject the framework clock (`@Inject(CLOCK) private readonly clock: Clock`) instead of calling `Date.now()` or `setTimeout` directly — under a test clock the workflow stays deterministic.
+
 ## Documents
 
 Use `this.documentStore.save()` to create or update documents. Reference document classes directly — no injection needed.

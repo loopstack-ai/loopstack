@@ -15,6 +15,7 @@ export const RuntimeErrorToolResultSchema = z.string();
     shouldFail: z.boolean().describe('Whether the tool should simulate a runtime failure.'),
   }),
   resultSchema: RuntimeErrorToolResultSchema,
+  effects: 'none',
 })
 export class RuntimeErrorTool extends BaseTool<{ shouldFail: boolean }, object, RuntimeErrorToolResult> {
   protected async handle(

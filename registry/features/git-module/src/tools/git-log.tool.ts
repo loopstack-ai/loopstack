@@ -65,6 +65,7 @@ export const GitLogResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: GitLogResultSchema,
+  effects: 'none',
 })
 export class GitLogTool extends BaseTool<GitLogArgs, object, GitLogResult> {
   constructor(

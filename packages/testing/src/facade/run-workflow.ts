@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   BaseWorkflow,
+  CLOCK,
   DocumentEntity,
   StatelessChildRecord,
   StatelessExecutionState,
@@ -12,7 +13,7 @@ import {
   statelessChildCallback,
   statelessChildResultFields,
 } from '@loopstack/common';
-import type { WorkflowArgs } from '@loopstack/common';
+import type { Clock, WorkflowArgs } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { executedTransitions } from '@loopstack/contracts/types';
 import type {
@@ -23,7 +24,7 @@ import type {
 } from '@loopstack/contracts/types';
 import { WorkflowProcessorService, WorkflowRegistryService } from '@loopstack/core';
 import { createWorkflowTest } from '../test-builder/workflow-test-builder.js';
-import { ScriptedAnswers } from './answers.js';
+import { FailureAnswer, ScriptedAnswers } from './answers.js';
 import { RECORD_SINK, RecordSink, RecordToolInterceptor } from './record.js';
 import {
   REPLAY_SOURCE,
@@ -88,6 +89,11 @@ export interface RunWorkflowOptions {
    * Mutually exclusive with `replay`.
    */
   record?: boolean | string;
+  /**
+   * Replace the framework clock — pass a `TestClock` for reproducible trace timestamps and
+   * testable transition timeouts (advance it to fire them).
+   */
+  clock?: Clock;
   userId?: string;
   workspaceId?: string;
 }
@@ -156,6 +162,9 @@ export async function runWorkflow<W extends BaseWorkflow>(
   for (const [token, useValue] of options.overrides ?? []) {
     builder.withOverride(token, useValue as object);
   }
+  if (options.clock) {
+    builder.withOverride(CLOCK, options.clock);
+  }
   if (options.replayTools !== undefined && !record && !replaySource) {
     throw new Error('runWorkflow: `replayTools` has no effect without `record`, `replay`, or `fixture`.');
   }
@@ -218,7 +227,9 @@ export async function runWorkflow<W extends BaseWorkflow>(
         const traceBefore = meta.trace.length;
         meta = await processor.process(workflow, runArgs, {
           ...baseContext,
-          payload: { transition: { id: rootAnswerId, workflowId: '', payload: { data: answers.peek(rootAnswerId) } } },
+          payload: {
+            transition: { id: rootAnswerId, workflowId: '', payload: answerPayload(answers.peek(rootAnswerId)) },
+          },
           statelessState: meta.statelessState,
         });
         if (!hasTransitionAttemptSince(meta.trace, traceBefore)) break; // transition guard rejected — no progress
@@ -312,6 +323,21 @@ function matchAnswer(transitions: WorkflowTransitionType[] | undefined, answers:
 }
 
 /**
+ * The transition payload a scripted answer delivers: a `failure()` marker becomes a
+ * failed/canceled sub-workflow callback; any other value becomes the answer's `data`.
+ */
+function answerPayload(value: unknown): Record<string, unknown> {
+  return value instanceof FailureAnswer
+    ? {
+        status: value.status,
+        errorMessage: value.errorMessage ?? `Scripted ${value.status} answer`,
+        hasError: true,
+        data: null,
+      }
+    : { data: value };
+}
+
+/**
  * Whether a transition attempt (`transition.started`) was recorded at or after the given trace
  * index — the progress probe distinguishing "answer applied" from "guard rejected".
  */
@@ -381,7 +407,7 @@ async function deliverAnswer(
       transition: {
         id: target.transitionId,
         workflowId: record.workflowId,
-        payload: { data: answers.peek(target.transitionId) },
+        payload: answerPayload(answers.peek(target.transitionId)),
       },
     },
     statelessState: record.statelessState,

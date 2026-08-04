@@ -68,6 +68,7 @@ export const GitHubListPrReviewsResultSchema = z.strictObject({
     'Lists reviews on a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubListPrReviewsResultSchema,
+  effects: 'none',
 })
 export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, object, GitHubListPrReviewsResult> {
   private readonly logger = new Logger(GitHubListPrReviewsTool.name);

@@ -37,6 +37,7 @@ export type McpCallToolArgs = z.infer<typeof McpCallToolArgsSchema>;
   schema: McpCallToolArgsSchema,
   configSchema: McpToolConfigSchema,
   resultSchema: McpCallToolResultSchema,
+  effects: 'external',
 })
 export class McpCallTool extends McpToolBase<McpCallToolArgs> {
   protected async handle(

@@ -66,6 +66,7 @@ export const AskClarificationResultSchema = z.union([z.string(), z.record(z.stri
     'IMPORTANT: This must be the only tool call in your response.',
   schema: AskClarificationInputSchema,
   resultSchema: AskClarificationResultSchema,
+  effects: 'none',
 })
 export class AskClarificationTool extends BaseTool<AskClarificationInput, object, AskClarificationResult> {
   constructor(private readonly askUserWorkflow: AskUserWorkflow) {

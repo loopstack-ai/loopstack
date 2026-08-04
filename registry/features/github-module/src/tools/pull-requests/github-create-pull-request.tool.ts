@@ -70,6 +70,7 @@ export const GitHubCreatePullRequestResultSchema = z.strictObject({
     'Creates a new pull request in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubCreatePullRequestResultSchema,
+  effects: 'external',
 })
 export class GitHubCreatePullRequestTool extends BaseTool<
   GitHubCreatePullRequestArgs,

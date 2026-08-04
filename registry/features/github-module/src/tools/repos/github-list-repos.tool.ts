@@ -77,6 +77,7 @@ export const GitHubListReposResultSchema = z.strictObject({
     'Lists repositories for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubListReposResultSchema,
+  effects: 'none',
 })
 export class GitHubListReposTool extends BaseTool<GitHubListReposArgs, object, GitHubListReposResult> {
   private readonly logger = new Logger(GitHubListReposTool.name);

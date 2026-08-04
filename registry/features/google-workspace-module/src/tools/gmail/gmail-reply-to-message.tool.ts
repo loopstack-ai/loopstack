@@ -56,6 +56,7 @@ export const GmailReplyToMessageResultSchema = z.strictObject({
     'Replies to an existing Gmail message in-thread. Fetches the original message to set proper headers. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GmailReplyToMessageResultSchema,
+  effects: 'external',
 })
 export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, object, GmailReplyToMessageResult> {
   private readonly logger = new Logger(GmailReplyToMessageTool.name);

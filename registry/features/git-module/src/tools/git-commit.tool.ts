@@ -40,6 +40,7 @@ export const GitCommitResultSchema = z.strictObject({ hash: z.string(), message:
     })
     .strict(),
   resultSchema: GitCommitResultSchema,
+  effects: 'external',
 })
 export class GitCommitTool extends BaseTool<GitCommitArgs, object, GitCommitResult> {
   constructor(

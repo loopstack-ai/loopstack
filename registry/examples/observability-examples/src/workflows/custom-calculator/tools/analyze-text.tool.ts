@@ -22,6 +22,7 @@ export const AnalyzeTextToolResultSchema = z.strictObject({
   description: 'Counts words and characters in a text. Its usage is metered by WordsProcessedQuotaCalculator.',
   schema: AnalyzeTextSchema,
   resultSchema: AnalyzeTextToolResultSchema,
+  effects: 'none',
 })
 export class AnalyzeTextTool extends BaseTool<AnalyzeTextArgs, object, AnalyzeTextToolResult> {
   protected async handle(args: AnalyzeTextArgs): Promise<ToolEnvelope<AnalyzeTextToolResult>> {

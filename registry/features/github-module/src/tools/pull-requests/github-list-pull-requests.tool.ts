@@ -83,6 +83,7 @@ export const GitHubListPullRequestsResultSchema = z.strictObject({
     'Lists pull requests for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubListPullRequestsResultSchema,
+  effects: 'none',
 })
 export class GitHubListPullRequestsTool extends BaseTool<
   GitHubListPullRequestsArgs,

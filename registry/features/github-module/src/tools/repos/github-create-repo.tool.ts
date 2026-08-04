@@ -67,6 +67,7 @@ export const GitHubCreateRepoResultSchema = z.strictObject({
     'Creates a new GitHub repository for the authenticated user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubCreateRepoResultSchema,
+  effects: 'external',
 })
 export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object, GitHubCreateRepoResult> {
   private readonly logger = new Logger(GitHubCreateRepoTool.name);

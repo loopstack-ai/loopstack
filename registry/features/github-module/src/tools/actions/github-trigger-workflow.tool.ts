@@ -56,6 +56,7 @@ export const GitHubTriggerWorkflowResultSchema = z.strictObject({
     'Triggers a GitHub Actions workflow dispatch event. Returns 204 No Content on success. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubTriggerWorkflowResultSchema,
+  effects: 'external',
 })
 export class GitHubTriggerWorkflowTool extends BaseTool<
   GitHubTriggerWorkflowArgs,

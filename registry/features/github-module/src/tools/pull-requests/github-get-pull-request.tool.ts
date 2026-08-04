@@ -96,6 +96,7 @@ export const GitHubGetPullRequestResultSchema = z.strictObject({
     'Gets detailed information about a specific GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubGetPullRequestResultSchema,
+  effects: 'none',
 })
 export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs, object, GitHubGetPullRequestResult> {
   private readonly logger = new Logger(GitHubGetPullRequestTool.name);

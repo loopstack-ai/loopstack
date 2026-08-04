@@ -40,6 +40,7 @@ export const GitRemoteConfigureResultSchema = z.strictObject({ success: z.boolea
     })
     .strict(),
   resultSchema: GitRemoteConfigureResultSchema,
+  effects: 'external',
 })
 export class GitRemoteConfigureTool extends BaseTool<GitRemoteConfigureArgs, object, GitRemoteConfigureResult> {
   constructor(

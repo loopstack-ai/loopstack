@@ -47,6 +47,7 @@ export const GitPullResultSchema = z.strictObject({ success: z.boolean(), output
     })
     .strict(),
   resultSchema: GitPullResultSchema,
+  effects: 'external',
 })
 export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
   constructor(

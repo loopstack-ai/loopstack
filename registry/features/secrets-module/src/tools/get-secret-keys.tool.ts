@@ -33,6 +33,7 @@ export const GetSecretKeysResultSchema = z.array(
   name: 'get_secret_keys',
   description: 'Returns the list of secret keys for the current workspace. Does not return secret values.',
   resultSchema: GetSecretKeysResultSchema,
+  effects: 'none',
 })
 export class GetSecretKeysTool extends BaseTool<object, object, GetSecretKeysResult> {
   @Inject() private secretService: SecretService;

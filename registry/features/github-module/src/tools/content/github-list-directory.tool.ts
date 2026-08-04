@@ -69,6 +69,7 @@ export const GitHubListDirectoryResultSchema = z.strictObject({
     'Lists the contents of a directory in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubListDirectoryResultSchema,
+  effects: 'none',
 })
 export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, object, GitHubListDirectoryResult> {
   private readonly logger = new Logger(GitHubListDirectoryTool.name);

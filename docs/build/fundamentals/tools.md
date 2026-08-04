@@ -43,14 +43,15 @@ export class SearchTool extends BaseTool<{ query: string; limit: number }, objec
 
 All options are optional.
 
-| Option         | Type                       | Default            | Description                                                                                                                                                            |
-| -------------- | -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`         | `string`                   | class name (as-is) | Unique identifier used in the LLM tool-calling wire format. Always set this to a snake_case identifier (e.g. `git_status`, `math_sum`) — the class name is a fallback. |
-| `description`  | `string`                   | —                  | Human-readable description shown to LLMs for tool-use. Critical for autonomous tool calling.                                                                           |
-| `widget`       | `WidgetRef \| WidgetRef[]` | —                  | Custom Studio widget(s) for rendering tool calls/results — YAML file path(s) or inline widget object(s).                                                               |
-| `schema`       | `z.ZodType`                | —                  | Zod schema validating tool arguments before `handle()` is invoked.                                                                                                     |
-| `configSchema` | `z.ZodType`                | —                  | Zod schema validating tool config (provided via `options.config` on `call()`).                                                                                         |
-| `resultSchema` | `z.ZodType`                | —                  | Zod schema validating the tool's result (`envelope.data` on success). Optional — without it, results are not validated.                                                |
+| Option         | Type                       | Default            | Description                                                                                                                                                                                   |
+| -------------- | -------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`         | `string`                   | class name (as-is) | Unique identifier used in the LLM tool-calling wire format. Always set this to a snake_case identifier (e.g. `git_status`, `math_sum`) — the class name is a fallback.                        |
+| `description`  | `string`                   | —                  | Human-readable description shown to LLMs for tool-use. Critical for autonomous tool calling.                                                                                                  |
+| `widget`       | `WidgetRef \| WidgetRef[]` | —                  | Custom Studio widget(s) for rendering tool calls/results — YAML file path(s) or inline widget object(s).                                                                                      |
+| `schema`       | `z.ZodType`                | —                  | Zod schema validating tool arguments before `handle()` is invoked.                                                                                                                            |
+| `configSchema` | `z.ZodType`                | —                  | Zod schema validating tool config (provided via `options.config` on `call()`).                                                                                                                |
+| `resultSchema` | `z.ZodType`                | —                  | Zod schema validating the tool's result (`envelope.data` on success). Optional — without it, results are not validated.                                                                       |
+| `effects`      | `'none' \| 'external'`     | —                  | Effect classification: `'none'` = reads/computes only, safe to repeat; `'external'` = writes outside the run (sends mail, pushes commits). Unset = treated as external by cautious consumers. |
 
 ## The `handle()` Method
 
@@ -81,6 +82,7 @@ type ToolEnvelope<TData = unknown> = {
   error?: string;
   metadata?: Record<string, unknown>;
   pending?: { workflowId: string };
+  documents?: ToolDocumentDeclaration[];
 };
 
 // What tool.call() returns — the narrowed success path workflow authors see.
@@ -131,6 +133,27 @@ Conventions:
 - Parsing applies schema defaults, so a declared `.default(...)` reaches consumers even when `handle()` omits the field.
 
 Because validation happens in the tool pipeline, replayed test fixtures are checked against the same contract as live results — a fixture that drifts from what the tool really returns fails the test instead of silently passing.
+
+## Producing Documents
+
+A tool that produces documents **declares** them on its result envelope instead of writing them inside `handle()`. The tool pipeline applies each declaration through the document store after the call completes — the tool decides _whether_ and _what_, the framework does the writing:
+
+```typescript
+return {
+  data: result,
+  documents: [
+    {
+      documentName: 'llm_message', // registered @Document name (or the kebab-derived class name)
+      content: result.message,
+      options: { meta: { provider: 'claude' } }, // key / meta / validate — same options as documentStore.save()
+    },
+  ],
+};
+```
+
+Declarations are applied on success envelopes only (error and pending envelopes carry none), validated against the document's schema, and a failing save fails the tool call. Because application happens in the pipeline — after any interceptor or replay substitution — a replayed test fixture materializes the same documents a live call would.
+
+_Reading_ documents is different: use `this.documentStore` (`findAll`, `findAllDocuments`, `findByTag`) inside `handle()` as usual — the declaration pattern covers writes.
 
 ## Dependency Injection
 

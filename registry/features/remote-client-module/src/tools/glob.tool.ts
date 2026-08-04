@@ -48,6 +48,7 @@ export const GlobResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: GlobResultSchema,
+  effects: 'none',
 })
 export class GlobTool extends BaseTool<GlobArgs, object, GlobResult> {
   constructor(

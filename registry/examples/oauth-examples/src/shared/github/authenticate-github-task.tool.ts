@@ -31,6 +31,7 @@ export const AuthenticateGitHubTaskResultSchema = z.string();
     'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: AuthenticateGitHubTaskInputSchema,
   resultSchema: AuthenticateGitHubTaskResultSchema,
+  effects: 'external',
 })
 export class AuthenticateGitHubTask extends BaseTool<
   AuthenticateGitHubTaskInput,

@@ -72,6 +72,7 @@ export const GoogleDriveGetFileMetadataResultSchema = z.strictObject({
     'Gets detailed metadata for a single Google Drive file. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GoogleDriveGetFileMetadataResultSchema,
+  effects: 'none',
 })
 export class GoogleDriveGetFileMetadataTool extends BaseTool<
   GoogleDriveGetFileMetadataArgs,

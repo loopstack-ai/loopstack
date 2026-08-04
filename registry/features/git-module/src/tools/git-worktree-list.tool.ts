@@ -57,6 +57,7 @@ export const GitWorktreeListResultSchema = z.strictObject({
     'Lists all git worktrees attached to the repository. Each entry includes path, HEAD commit, branch, and flags (bare, detached, locked, prunable).',
   schema: z.object({}).strict(),
   resultSchema: GitWorktreeListResultSchema,
+  effects: 'none',
 })
 export class GitWorktreeListTool extends BaseTool<object, object, GitWorktreeListResult> {
   constructor(

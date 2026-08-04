@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ZodError } from 'zod';
 import {
+  CLOCK,
   StatelessExecutionState,
   TransitionMetadata,
   WorkflowCheckpointEntity,
@@ -12,7 +13,7 @@ import {
   getWorkflowIdentifier,
   getWorkflowStateSchema,
 } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { Clock, RunContext } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor, TransitionAbortedError } from '../../../common/index.js';
@@ -42,6 +43,7 @@ export class WorkflowProcessorService implements Processor {
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
     private readonly dataSource: DataSource,
     private readonly runTraceService: RunTraceService,
+    @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
   async process(
@@ -68,7 +70,7 @@ export class WorkflowProcessorService implements Processor {
 
     // The trace collector — seeded from the resume carrier so a resumed stateless run's
     // trace stays complete and `seq` continues monotonically.
-    const trace = new RunTraceCollector(context.statelessState?.trace);
+    const trace = new RunTraceCollector(context.statelessState?.trace, () => this.clock.now());
 
     // Initialize processor metadata
     const meta: ProcessorMetadata = {
@@ -399,17 +401,17 @@ export class WorkflowProcessorService implements Processor {
       if (timeoutMs <= 0) return methodPromise;
 
       // Race the method against a timeout. Promise.race cannot cancel the loser, so on timeout we
-      // also abort the scope (stopping the zombie cooperatively) and always clear the timer to
+      // also abort the scope (stopping the zombie cooperatively) and always cancel the timer to
       // avoid pinning the event loop for the full timeout after the method wins.
-      let timer: ReturnType<typeof setTimeout>;
+      let cancel: () => void;
       const timeoutPromise = new Promise<never>((_, reject) => {
-        timer = setTimeout(() => {
+        cancel = this.clock.schedule(() => {
           const timeoutError = new TransitionAbortedError(`Transition '${methodName}' timed out after ${timeoutMs}ms`);
           scopeData.abortController.abort(timeoutError);
           reject(timeoutError);
         }, timeoutMs);
       });
-      return Promise.race([methodPromise, timeoutPromise]).finally(() => clearTimeout(timer));
+      return Promise.race([methodPromise, timeoutPromise]).finally(() => cancel());
     };
 
     // Stateless workflows skip transactions

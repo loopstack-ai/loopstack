@@ -14,6 +14,7 @@ export const StrictSchemaToolResultSchema = z.string();
     })
     .strict(),
   resultSchema: StrictSchemaToolResultSchema,
+  effects: 'none',
 })
 export class StrictSchemaTool extends BaseTool<{ name: string }, object, StrictSchemaToolResult> {
   protected async handle(args: { name: string }): Promise<ToolEnvelope<StrictSchemaToolResult>> {

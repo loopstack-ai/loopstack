@@ -42,6 +42,7 @@ export const GitCheckoutResultSchema = z.strictObject({ branch: z.string() });
     })
     .strict(),
   resultSchema: GitCheckoutResultSchema,
+  effects: 'external',
 })
 export class GitCheckoutTool extends BaseTool<GitCheckoutArgs, object, GitCheckoutResult> {
   constructor(

@@ -54,7 +54,7 @@ describe('ToolPipelineService — trace emission', () => {
 
   it('emits tool.called and tool.completed with args, envelope, toolSeq, and duration', async () => {
     const scope = new ExecutionScope();
-    const pipeline = new ToolPipelineService(scope, {} as never);
+    const pipeline = new ToolPipelineService(scope, {} as never, {} as never);
     const trace = new RunTraceCollector();
 
     await scope.run(makeScopeData(trace), async () => {
@@ -71,7 +71,7 @@ describe('ToolPipelineService — trace emission', () => {
 
   it('carries the validated config on tool events, absent when the call has none', async () => {
     const scope = new ExecutionScope();
-    const pipeline = new ToolPipelineService(scope, {} as never);
+    const pipeline = new ToolPipelineService(scope, {} as never, {} as never);
     const trace = new RunTraceCollector();
 
     await scope.run(makeScopeData(trace), async () => {
@@ -91,7 +91,7 @@ describe('ToolPipelineService — trace emission', () => {
 
   it('emits tool.failed on a throw and still propagates the error', async () => {
     const scope = new ExecutionScope();
-    const pipeline = new ToolPipelineService(scope, {} as never);
+    const pipeline = new ToolPipelineService(scope, {} as never, {} as never);
     const trace = new RunTraceCollector();
 
     await expect(scope.run(makeScopeData(trace), () => pipeline.execute(new ThrowingTool(), {}))).rejects.toThrow(
@@ -103,7 +103,7 @@ describe('ToolPipelineService — trace emission', () => {
   });
 
   it('executes without a scope (no trace) unchanged', async () => {
-    const pipeline = new ToolPipelineService(new ExecutionScope(), {} as never);
+    const pipeline = new ToolPipelineService(new ExecutionScope(), {} as never, {} as never);
 
     const envelope = await pipeline.execute(new SumTool(), { a: 2, b: 5 });
 

@@ -43,6 +43,7 @@ export const McpListToolsResultSchema = z.strictObject({
   schema: McpListToolsArgsSchema,
   configSchema: McpToolConfigSchema,
   resultSchema: McpListToolsResultSchema,
+  effects: 'none',
 })
 export class McpListToolsTool extends McpToolBase<McpListToolsArgs> {
   protected async handle(

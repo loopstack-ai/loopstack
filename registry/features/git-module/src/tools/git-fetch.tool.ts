@@ -45,6 +45,7 @@ export const GitFetchResultSchema = z.strictObject({ success: z.boolean(), outpu
     })
     .strict(),
   resultSchema: GitFetchResultSchema,
+  effects: 'external',
 })
 export class GitFetchTool extends BaseTool<GitFetchArgs, object, GitFetchResult> {
   constructor(

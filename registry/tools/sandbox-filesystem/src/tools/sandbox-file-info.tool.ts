@@ -69,6 +69,7 @@ export const SandboxFileInfoResultSchema = z.strictObject({
   description: 'Get detailed information about a file or directory in a sandbox container',
   schema: inputSchema,
   resultSchema: SandboxFileInfoResultSchema,
+  effects: 'none',
 })
 export class SandboxFileInfo extends BaseTool<SandboxFileInfoArgs, object, SandboxFileInfoResult> {
   private readonly logger = new Logger(SandboxFileInfo.name);

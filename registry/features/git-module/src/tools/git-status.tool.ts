@@ -41,6 +41,7 @@ export const GitStatusResultSchema = z.strictObject({
     'Gets the git status of the workspace. Returns current branch, staged, modified, untracked, and deleted files.',
   schema: z.object({}).strict(),
   resultSchema: GitStatusResultSchema,
+  effects: 'none',
 })
 export class GitStatusTool extends BaseTool<object, object, GitStatusResult> {
   constructor(

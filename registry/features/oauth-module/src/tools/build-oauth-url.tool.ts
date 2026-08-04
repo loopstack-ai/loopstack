@@ -54,6 +54,7 @@ export const BuildOAuthUrlResultSchema = z.strictObject({
   description: 'Builds an OAuth 2.0 authorization URL for the given provider with CSRF state parameter.',
   schema: BuildOAuthUrlSchema,
   resultSchema: BuildOAuthUrlResultSchema,
+  effects: 'none',
 })
 export class BuildOAuthUrlTool extends BaseTool<BuildOAuthUrlArgs, object, BuildOAuthUrlResult> {
   @Inject()

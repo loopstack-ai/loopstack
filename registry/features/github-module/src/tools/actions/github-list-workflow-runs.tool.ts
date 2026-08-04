@@ -99,6 +99,7 @@ export const GitHubListWorkflowRunsResultSchema = z.strictObject({
     'Lists workflow runs for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubListWorkflowRunsResultSchema,
+  effects: 'none',
 })
 export class GitHubListWorkflowRunsTool extends BaseTool<
   GitHubListWorkflowRunsArgs,

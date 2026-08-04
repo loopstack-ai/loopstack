@@ -47,6 +47,7 @@ interface GoogleCalendarListResponse {
   description: 'Fetches events from Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   schema: GoogleCalendarFetchEventsSchema,
   resultSchema: GoogleCalendarFetchEventsResultSchema,
+  effects: 'none',
 })
 export class GoogleCalendarFetchEventsTool extends BaseTool<
   GoogleCalendarFetchEventsArgs,

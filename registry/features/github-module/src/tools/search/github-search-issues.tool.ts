@@ -80,6 +80,7 @@ export const GitHubSearchIssuesResultSchema = z.strictObject({
     'Searches for issues and pull requests across GitHub using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubSearchIssuesResultSchema,
+  effects: 'none',
 })
 export class GitHubSearchIssuesTool extends BaseTool<GitHubSearchIssuesArgs, object, GitHubSearchIssuesResult> {
   private readonly logger = new Logger(GitHubSearchIssuesTool.name);

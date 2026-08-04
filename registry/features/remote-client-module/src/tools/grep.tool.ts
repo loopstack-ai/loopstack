@@ -61,6 +61,7 @@ export const GrepResultSchema = z.strictObject({
     })
     .strict(),
   resultSchema: GrepResultSchema,
+  effects: 'none',
 })
 export class GrepTool extends BaseTool<GrepArgs, object, GrepResult> {
   constructor(

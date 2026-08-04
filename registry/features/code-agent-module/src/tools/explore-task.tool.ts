@@ -65,6 +65,7 @@ export const ExploreTaskResultSchema = z.union([z.string(), z.record(z.string(),
     'IMPORTANT: This must be the only tool call in your response.',
   schema: ExploreTaskInputSchema,
   resultSchema: ExploreTaskResultSchema,
+  effects: 'none',
 })
 export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskResult> {
   constructor(private readonly agentWorkflow: AgentWorkflow) {
