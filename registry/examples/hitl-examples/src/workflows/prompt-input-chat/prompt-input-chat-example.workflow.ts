@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { TransitionInput } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
@@ -17,17 +17,25 @@ export class PromptInputChatExampleWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'waiting_for_user' })
   async greet() {
-    await this.documentStore.save(MessageDocument, {
+    // Same document type as every other chat turn: renders like one and, being tagged
+    // 'message', joins the conversation history the provider builds below.
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
       text: 'Hi! Ask me anything.',
     });
   }
 
-  @Transition({ from: 'waiting_for_user', to: 'reply_sent', wait: true, schema: z.string() })
+  // Storing the message and generating the reply are separate transitions on purpose:
+  // each transition commits its own transaction, so the user's message becomes visible
+  // in the UI immediately — before the (slow) LLM turn even starts.
+  @Transition({ from: 'waiting_for_user', to: 'generating_reply', wait: true, schema: z.string() })
   async userMessage(state: Record<string, unknown>, input: TransitionInput<string>) {
     // Tagged 'message', so it becomes part of the conversation history below
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
+  }
 
+  @Transition({ from: 'generating_reply', to: 'waiting_for_user' })
+  async generateReply() {
     // No prompt/messages args: the provider builds the conversation from all
     // documents tagged 'message' and saves the assistant reply automatically
     await this.llmGenerateText.call(
@@ -41,7 +49,4 @@ export class PromptInputChatExampleWorkflow extends BaseWorkflow {
       },
     );
   }
-
-  @Transition({ from: 'reply_sent', to: 'waiting_for_user' })
-  loop() {}
 }

@@ -1,4 +1,6 @@
-import type { DocumentItemInterface } from '@loopstack/contracts/api';
+import { useMemo } from 'react';
+import type { DocumentItemInterface, WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentRendererProps } from '@/features/documents/DocumentRenderer.tsx';
 import AiMessage from '@/features/documents/renderers/AiMessage.tsx';
 import DocumentDebugRenderer from '@/features/documents/renderers/DocumentDebugRenderer.tsx';
 import DocumentMessageRenderer from '@/features/documents/renderers/DocumentMessageRenderer.tsx';
@@ -6,6 +8,7 @@ import ErrorMessageRenderer from '@/features/documents/renderers/ErrorMessageRen
 import LlmMessage from '@/features/documents/renderers/LlmMessage.tsx';
 import MarkdownMessageRenderer from '@/features/documents/renderers/MarkdownMessageRenderer.tsx';
 import PlainMessageRenderer from '@/features/documents/renderers/PlainMessageRenderer.tsx';
+import { useFeatureRegistry } from '@/features/feature-registry';
 import { InertPromptEntry } from './prompts/cards.tsx';
 import type { TranscriptEntry } from './transcript.ts';
 
@@ -25,9 +28,39 @@ const displayRenderers = new Map<string, (document: DocumentItemInterface, isLas
   ['debug', (document) => <DocumentDebugRenderer document={document} />],
 ]);
 
-function TranscriptDocument({ entry, isLastItem }: { entry: TranscriptEntry; isLastItem: boolean }) {
+function TranscriptDocument({
+  entry,
+  isLastItem,
+  featureRenderers,
+  workflows,
+  rootWorkflow,
+}: {
+  entry: TranscriptEntry;
+  isLastItem: boolean;
+  featureRenderers: Map<string, React.ComponentType<DocumentRendererProps>>;
+  workflows: Map<string, WorkflowFullInterface>;
+  rootWorkflow?: WorkflowFullInterface;
+}) {
   const display = entry.widget ? displayRenderers.get(entry.widget) : undefined;
   if (display) return <>{display(entry.document, isLastItem)}</>;
+
+  // Feature-registered renderers (e.g. secret-input) render as inert history:
+  // isActive={false} disables their submit paths; the one *picked* prompt stays
+  // run-view-native at the bottom.
+  const FeatureRenderer = entry.widget ? featureRenderers.get(entry.widget) : undefined;
+  const workflow = workflows.get(entry.document.workflowId);
+  if (FeatureRenderer && workflow) {
+    return (
+      <FeatureRenderer
+        parentWorkflow={rootWorkflow ?? workflow}
+        workflow={workflow}
+        document={entry.document as unknown as DocumentRendererProps['document']}
+        isActive={false}
+        isLastItem={isLastItem}
+      />
+    );
+  }
+
   if (entry.widget) return <InertPromptEntry document={entry.document} />;
   // No widget config — JSON fallback, the CLI's honest default for unknown documents.
   return (
@@ -38,7 +71,26 @@ function TranscriptDocument({ entry, isLastItem }: { entry: TranscriptEntry; isL
 }
 
 /** The chronological, depth-indented document trail — the CLI transcript, rendered. */
-export function Transcript({ entries }: { entries: TranscriptEntry[] }) {
+export function Transcript({
+  entries,
+  workflows,
+  rootWorkflow,
+}: {
+  entries: TranscriptEntry[];
+  workflows: Map<string, WorkflowFullInterface>;
+  rootWorkflow?: WorkflowFullInterface;
+}) {
+  const features = useFeatureRegistry();
+  const featureRenderers = useMemo(() => {
+    const map = new Map<string, React.ComponentType<DocumentRendererProps>>();
+    for (const feature of features) {
+      for (const [widget, renderer] of Object.entries(feature.documentRenderers ?? {})) {
+        map.set(widget, renderer);
+      }
+    }
+    return map;
+  }, [features]);
+
   return (
     <div className="space-y-3">
       {entries.map((entry, index) => (
@@ -47,7 +99,13 @@ export function Transcript({ entries }: { entries: TranscriptEntry[] }) {
           style={entry.depth > 0 ? { marginLeft: entry.depth * 20 } : undefined}
           className={entry.depth > 0 ? 'border-muted border-l-2 pl-3' : undefined}
         >
-          <TranscriptDocument entry={entry} isLastItem={index === entries.length - 1} />
+          <TranscriptDocument
+            entry={entry}
+            isLastItem={index === entries.length - 1}
+            featureRenderers={featureRenderers}
+            workflows={workflows}
+            rootWorkflow={rootWorkflow}
+          />
         </div>
       ))}
     </div>

@@ -7,6 +7,7 @@ import { promptRegistry } from './prompts/registry.tsx';
 import { composeTranscript } from './transcript.ts';
 import { useRunPrompts } from './useRunPrompts.ts';
 import { useRunTree } from './useRunTree.ts';
+import { useStreamingNodes } from './useTreeLlmStreams.ts';
 
 /** Extract the primary widget name from a document's UI config (no `form` default — honesty over legacy quirk). */
 function resolveWidgetName(ui: unknown): string | undefined {
@@ -19,21 +20,29 @@ function resolveWidgetName(ui: unknown): string | undefined {
  * tree, the one canonical prompt pinned at the bottom. Runs entirely on the shared
  * park-view rules. Pure content component: hosts (the workbench's workflow area, the
  * standalone `/runs/:id` page) own the surrounding chrome.
+ *
+ * Immediate feedback after a submit is the workflow's design concern, not a view
+ * workaround: a transition's documents become visible when it commits, so workflows
+ * store user input in its own (fast) transition before slow work starts — see the
+ * prompt-input-chat example.
  */
 export function RunView({ workflowId }: { workflowId: string | undefined }) {
   const { nodes, isLoading } = useRunTree(workflowId);
   const prompts = useRunPrompts(nodes);
   const documentConfigs = useDocumentConfigs();
   const runWorkflow = useRunWorkflow();
+  // In-flight LLM messages render as they stream; the persisted document replaces them.
+  const streamingNodes = useStreamingNodes(nodes);
 
   const entries = useMemo(
     () =>
       composeTranscript(
-        nodes.map((node) => ({ workflowId: node.workflowId, depth: node.depth, documents: node.documents })),
+        streamingNodes.map((node) => ({ workflowId: node.workflowId, depth: node.depth, documents: node.documents })),
         (documentName) => resolveWidgetName(documentConfigs.get(documentName)?.ui),
       ),
-    [nodes, documentConfigs],
+    [streamingNodes, documentConfigs],
   );
+  const workflows = useMemo(() => new Map(nodes.map((node) => [node.workflowId, node.workflow])), [nodes]);
 
   const picked = prompts.picked;
   const PromptComponent = picked?.view.widget ? promptRegistry.get(picked.view.widget) : undefined;
@@ -53,12 +62,17 @@ export function RunView({ workflowId }: { workflowId: string | undefined }) {
   return (
     <div className="w-full max-w-3xl">
       {isLoading && <p className="text-muted-foreground text-sm">Loading run…</p>}
-      <Transcript entries={entries} />
+      <Transcript entries={entries} workflows={workflows} rootWorkflow={nodes[0]?.workflow} />
 
       <div className="mt-6">
         {picked && PromptComponent && (
           <div className="bg-background rounded-lg border p-4 shadow-sm">
-            <PromptComponent view={picked.view} submit={submit} isSubmitting={runWorkflow.isPending} />
+            <PromptComponent
+              view={picked.view}
+              submit={submit}
+              isSubmitting={runWorkflow.isPending}
+              workspaceId={nodes[0]?.workflow.workspaceId}
+            />
           </div>
         )}
         {!picked && prompts.blocked && <NotSupportedCard view={prompts.blocked.view} />}

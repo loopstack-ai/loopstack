@@ -45,10 +45,12 @@ describe('PromptInputChatExampleWorkflow', () => {
     });
 
     expect(run.error).toBeUndefined();
-    // The chat loops back to waiting after each reply — two scripted turns, then parked again
+    // The chat loops back to waiting after each reply — two scripted turns, then parked again.
+    // Storing the message (userMessage) and generating the reply (generateReply) are separate
+    // transitions so the user's message is committed — and visible — before the LLM turn runs.
     expect(run.status).toBe('waiting');
     expect(run.place).toBe('waiting_for_user');
-    expect(run.path).toEqual(['greet', 'userMessage', 'loop', 'userMessage', 'loop']);
+    expect(run.path).toEqual(['greet', 'userMessage', 'generateReply', 'userMessage', 'generateReply']);
 
     // Both sides of the conversation are documents: user messages from the workflow,
     // assistant replies from the replayed envelopes' document declarations.

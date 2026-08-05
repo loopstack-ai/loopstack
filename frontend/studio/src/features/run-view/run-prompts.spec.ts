@@ -67,12 +67,22 @@ describe('run view prompt evaluation — the canonical rules over Studio data', 
 
   it('a widget outside the run view registry is blocked, not picked', () => {
     const candidates = evaluateWorkflowPrompts(
-      { id: 'wf', workflowName: 'probe', status: 'waiting', place: 'ask', availableTransitions: ['submitted'] },
-      [{ documentName: 'ask_user', place: 'ask', content: { variables: ['API_KEY'] } }],
-      docConfigs({ widget: 'secret-input', options: { transition: 'submitted' } }),
+      { id: 'wf', workflowName: 'probe', status: 'waiting', place: 'ask', availableTransitions: ['ran'] },
+      [{ documentName: 'ask_user', place: 'ask', content: {} }],
+      docConfigs({ widget: 'sandbox-run', options: { transition: 'ran' } }),
     );
     const { prompt, blocked } = pickPrompt(candidates, eligible);
     expect(prompt).toBeUndefined();
-    expect(blocked?.widget?.widget).toBe('secret-input');
+    expect(blocked?.widget?.widget).toBe('sandbox-run');
+  });
+
+  it('secret-input is picked — registered as a run-view-native prompt', () => {
+    const candidates = evaluateWorkflowPrompts(
+      { id: 'wf', workflowName: 'probe', status: 'waiting', place: 'ask', availableTransitions: ['submitted'] },
+      [{ documentName: 'ask_user', place: 'ask', content: { variables: [{ key: 'API_KEY' }] } }],
+      docConfigs({ widget: 'secret-input', options: { transition: 'submitted' } }),
+    );
+    const { prompt } = pickPrompt(candidates, eligible);
+    expect(toParkView(prompt!)).toMatchObject({ widget: 'secret-input', defaultTransition: 'submitted' });
   });
 });
