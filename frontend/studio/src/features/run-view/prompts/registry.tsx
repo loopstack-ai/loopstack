@@ -2,7 +2,14 @@ import type { ComponentType } from 'react';
 import { FormPrompt } from './FormPrompt.tsx';
 import { OAuthPrompt } from './OAuthPrompt.tsx';
 import { SecretPrompt } from './SecretPrompt.tsx';
-import { ActionButton, ChoicesPrompt, ConfirmPrompt, PromptInput, TextPrompt } from './SimplePrompts.tsx';
+import {
+  ActionButton,
+  ChoicesPrompt,
+  ConfirmPrompt,
+  FullWidthActionButton,
+  PromptInput,
+  TextPrompt,
+} from './SimplePrompts.tsx';
 import type { RunPromptProps } from './types.ts';
 
 /**
@@ -19,4 +26,5 @@ export const promptRegistry = new Map<string, ComponentType<RunPromptProps>>([
   ['oauth-prompt', OAuthPrompt],
   ['prompt-input', PromptInput],
   ['button', ActionButton],
+  ['button-full-w', FullWidthActionButton],
 ]);

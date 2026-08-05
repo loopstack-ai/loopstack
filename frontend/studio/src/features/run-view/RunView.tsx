@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useRunWorkflow } from '@loopstack/react';
 import { useDocumentConfigs } from '@/hooks/useConfig.ts';
 import { Transcript } from './Transcript.tsx';
+import { SandboxRunButton } from './prompts/SandboxRunButton.tsx';
 import { BareWaitCard, NotSupportedCard } from './prompts/cards.tsx';
 import { promptRegistry } from './prompts/registry.tsx';
 import { composeTranscript } from './transcript.ts';
@@ -44,6 +45,15 @@ export function RunView({ workflowId }: { workflowId: string | undefined }) {
   );
   const workflows = useMemo(() => new Map(nodes.map((node) => [node.workflowId, node.workflow])), [nodes]);
 
+  // The picked prompt's document renders once — interactively, pinned at the bottom —
+  // not a second time as transcript history. Content reference identity is exact: the
+  // candidate's input shares the node document's content object.
+  const visibleEntries = useMemo(() => {
+    const pickedContent = prompts.picked?.candidate.document?.content;
+    if (!pickedContent) return entries;
+    return entries.filter((entry) => entry.document.content !== pickedContent);
+  }, [entries, prompts.picked]);
+
   const picked = prompts.picked;
   const PromptComponent = picked?.view.widget ? promptRegistry.get(picked.view.widget) : undefined;
 
@@ -62,9 +72,16 @@ export function RunView({ workflowId }: { workflowId: string | undefined }) {
   return (
     <div className="w-full max-w-3xl">
       {isLoading && <p className="text-muted-foreground text-sm">Loading run…</p>}
-      <Transcript entries={entries} workflows={workflows} rootWorkflow={nodes[0]?.workflow} />
+      <Transcript entries={visibleEntries} workflows={workflows} rootWorkflow={nodes[0]?.workflow} />
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-2">
+        {prompts.sandboxSlots.length > 0 && (
+          <div className="flex justify-end gap-2">
+            {prompts.sandboxSlots.map((slot) => (
+              <SandboxRunButton key={slot.slotId ?? 'default'} slotId={slot.slotId} label={slot.label} />
+            ))}
+          </div>
+        )}
         {picked && PromptComponent && (
           <div className="bg-background rounded-lg border p-4 shadow-sm">
             <PromptComponent

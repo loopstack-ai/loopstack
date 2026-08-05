@@ -9,6 +9,6 @@ export { PreviewWorkbench } from './components/PreviewWorkbench';
 export { PreviewEmptyState } from './components/PreviewEmptyState';
 export { RecentRunItem } from './components/RecentRunItem';
 export { useEmbedBridge } from './hooks/useEmbedBridge';
-export { useWorkbenchLayout } from './providers/WorkbenchLayoutProvider';
+export { useOptionalWorkbenchLayout, useWorkbenchLayout } from './providers/WorkbenchLayoutProvider';
 export type { WorkbenchSettingsInterface } from './WorkflowList';
 export type { DocumentRendererProps } from '@/features/documents';

@@ -3,6 +3,7 @@ import type { DocumentItemInterface, WorkflowFullInterface } from '@loopstack/co
 import type { DocumentRendererProps } from '@/features/documents/DocumentRenderer.tsx';
 import AiMessage from '@/features/documents/renderers/AiMessage.tsx';
 import DocumentDebugRenderer from '@/features/documents/renderers/DocumentDebugRenderer.tsx';
+import DocumentFormRenderer from '@/features/documents/renderers/DocumentFormRenderer.tsx';
 import DocumentMessageRenderer from '@/features/documents/renderers/DocumentMessageRenderer.tsx';
 import ErrorMessageRenderer from '@/features/documents/renderers/ErrorMessageRenderer.tsx';
 import LlmMessage from '@/features/documents/renderers/LlmMessage.tsx';
@@ -44,11 +45,28 @@ function TranscriptDocument({
   const display = entry.widget ? displayRenderers.get(entry.widget) : undefined;
   if (display) return <>{display(entry.document, isLastItem)}</>;
 
+  const workflow = workflows.get(entry.document.workflowId);
+
+  // Past form submissions render as the read-only field-by-field form — the legacy
+  // renderer in viewOnly mode carries no submit UI.
+  if (entry.widget === 'form' && workflow) {
+    return (
+      <div className="rounded-md border p-3">
+        <DocumentFormRenderer
+          parentWorkflow={rootWorkflow ?? workflow}
+          workflow={workflow}
+          document={entry.document as unknown as DocumentRendererProps['document']}
+          enabled={false}
+          viewOnly={true}
+        />
+      </div>
+    );
+  }
+
   // Feature-registered renderers (e.g. secret-input) render as inert history:
   // isActive={false} disables their submit paths; the one *picked* prompt stays
   // run-view-native at the bottom.
   const FeatureRenderer = entry.widget ? featureRenderers.get(entry.widget) : undefined;
-  const workflow = workflows.get(entry.document.workflowId);
   if (FeatureRenderer && workflow) {
     return (
       <FeatureRenderer

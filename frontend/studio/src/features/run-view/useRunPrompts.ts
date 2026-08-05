@@ -26,6 +26,12 @@ export interface RunPrompts {
   fallback?: { candidate: PromptCandidate; view: ParkView };
   /** Per-document answered verdicts (presence semantics) for transcript rendering. */
   answered: (document: { content: unknown }) => boolean;
+  /**
+   * `sandbox-run` widgets visible at their workflow's current place. Not prompts — they
+   * declare no transition and answer nothing; they open a preview environment (auxiliary
+   * control, workbench-hosted only).
+   */
+  sandboxSlots: { slotId?: string; label?: string }[];
 }
 
 interface UiWidgetLike {
@@ -127,11 +133,23 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
     const withView = (candidate: PromptCandidate | undefined) =>
       candidate ? { candidate, view: toParkView(candidate) } : undefined;
 
+    const sandboxSlots = new Map<string, { slotId?: string; label?: string }>();
+    for (const node of nodes) {
+      if (node.workflow.status === 'completed') continue;
+      for (const widget of workflowWidgets.get(node.workflow.workflowName) ?? []) {
+        if (widget.widget !== 'sandbox-run') continue;
+        if (widget.showWhen && !widget.showWhen.includes(node.workflow.place ?? '')) continue;
+        const options = widget.options as { slotId?: string; label?: string } | undefined;
+        sandboxSlots.set(options?.slotId ?? '', { slotId: options?.slotId, label: options?.label });
+      }
+    }
+
     return {
       picked: withView(picked.prompt),
       blocked: withView(picked.blocked),
       fallback: withView(picked.fallback),
       answered: (document) => isAnswered(document.content as Record<string, unknown> | null),
+      sandboxSlots: [...sandboxSlots.values()],
     };
   }, [nodes, docConfigs, workflowWidgets]);
 }

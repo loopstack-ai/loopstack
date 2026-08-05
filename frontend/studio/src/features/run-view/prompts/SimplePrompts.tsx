@@ -120,3 +120,13 @@ export function ActionButton({ view, submit, isSubmitting }: RunPromptProps) {
     </Button>
   );
 }
+
+/** `button-full-w`: the `button` widget in its full-width variant. */
+export function FullWidthActionButton({ view, submit, isSubmitting }: RunPromptProps) {
+  const label = typeof view.options?.label === 'string' ? view.options.label : (view.defaultTransition ?? 'Continue');
+  return (
+    <Button className="w-full" onClick={() => submit({})} disabled={isSubmitting}>
+      {label}
+    </Button>
+  );
+}

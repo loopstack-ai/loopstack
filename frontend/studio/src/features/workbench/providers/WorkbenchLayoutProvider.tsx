@@ -177,3 +177,8 @@ export function useWorkbenchLayout(): WorkbenchLayoutContextType {
   }
   return ctx;
 }
+
+/** Layout context when hosted in the workbench, `null` elsewhere (e.g. the standalone run page). */
+export function useOptionalWorkbenchLayout(): WorkbenchLayoutContextType | null {
+  return useContext(WorkbenchLayoutContext);
+}
