@@ -1,4 +1,6 @@
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import type { ParkView } from '@loopstack/contracts/park-view';
+import { Button } from '@/components/ui/button.tsx';
 
 /** A picked prompt the run view has no component for — inert, no handoff. */
 export function NotSupportedCard({ view }: { view: ParkView }) {
@@ -14,6 +16,38 @@ export function BareWaitCard({ view }: { view: ParkView }) {
   return (
     <div className="text-muted-foreground rounded-md border border-dashed p-3 text-sm">
       Waiting on <code className="font-mono">{view.transitions.join(', ') || '—'}</code> — nothing to show.
+    </div>
+  );
+}
+
+/**
+ * A failed workflow without an answerable recovery prompt — the CLI's `offerRetry`
+ * fallback branch: recovery prompts take precedence via the canonical rules; plain
+ * re-run is what remains.
+ */
+export function FailedRunCard({
+  workflowName,
+  errorMessage,
+  onRetry,
+  isRetrying,
+}: {
+  workflowName: string;
+  errorMessage?: string | null;
+  onRetry: () => void;
+  isRetrying: boolean;
+}) {
+  return (
+    <div className="border-destructive/40 space-y-2 rounded-md border p-3">
+      <p className="flex items-center gap-2 text-sm">
+        <AlertCircle className="text-destructive h-4 w-4 shrink-0" />
+        <span>
+          <span className="font-medium">{workflowName}</span> failed{errorMessage ? `: ${errorMessage}` : '.'}
+        </span>
+      </p>
+      <Button variant="outline" size="sm" onClick={onRetry} disabled={isRetrying}>
+        <RefreshCw className="mr-2 h-3.5 w-3.5" />
+        Retry
+      </Button>
     </div>
   );
 }

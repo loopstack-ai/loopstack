@@ -24,6 +24,11 @@ export interface RunPrompts {
   blocked?: { candidate: PromptCandidate; view: ParkView };
   /** Bare wait — the tree is parked but nothing is renderable. */
   fallback?: { candidate: PromptCandidate; view: ParkView };
+  /**
+   * A workflow-level input rendered disabled while its workflow is running (nothing is
+   * answerable yet) — classic parity: the chat input stays visible during generation.
+   */
+  idlePrompt?: { candidate: PromptCandidate; view: ParkView };
   /** Per-document answered verdicts (presence semantics) for transcript rendering. */
   answered: (document: { content: unknown }) => boolean;
   /**
@@ -133,6 +138,26 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
     const withView = (candidate: PromptCandidate | undefined) =>
       candidate ? { candidate, view: toParkView(candidate) } : undefined;
 
+    let idlePrompt: { candidate: PromptCandidate; view: ParkView } | undefined;
+    if (!picked.prompt && !picked.blocked) {
+      for (const node of nodes) {
+        if (node.workflow.status !== 'running' && node.workflow.status !== 'pending') continue;
+        for (const widget of workflowWidgets.get(node.workflow.workflowName) ?? []) {
+          if (!promptRegistry.has(widget.widget)) continue;
+          if (widget.showWhen && !widget.showWhen.includes(node.workflow.place ?? '')) continue;
+          const candidate: PromptCandidate = {
+            kind: 'workflow',
+            workflow: toWorkflowInput(node.workflow),
+            widget,
+            state: 'disabled',
+          };
+          idlePrompt = { candidate, view: toParkView(candidate) };
+          break;
+        }
+        if (idlePrompt) break;
+      }
+    }
+
     const sandboxSlots = new Map<string, { slotId?: string; label?: string }>();
     for (const node of nodes) {
       if (node.workflow.status === 'completed') continue;
@@ -148,6 +173,7 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
       picked: withView(picked.prompt),
       blocked: withView(picked.blocked),
       fallback: withView(picked.fallback),
+      idlePrompt,
       answered: (document) => isAnswered(document.content as Record<string, unknown> | null),
       sandboxSlots: [...sandboxSlots.values()],
     };

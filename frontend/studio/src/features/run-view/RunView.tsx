@@ -3,7 +3,7 @@ import { useRunWorkflow } from '@loopstack/react';
 import { useDocumentConfigs } from '@/hooks/useConfig.ts';
 import { Transcript } from './Transcript.tsx';
 import { SandboxRunButton } from './prompts/SandboxRunButton.tsx';
-import { BareWaitCard, NotSupportedCard } from './prompts/cards.tsx';
+import { BareWaitCard, FailedRunCard, NotSupportedCard } from './prompts/cards.tsx';
 import { promptRegistry } from './prompts/registry.tsx';
 import { composeTranscript } from './transcript.ts';
 import { useRunPrompts } from './useRunPrompts.ts';
@@ -27,7 +27,12 @@ function resolveWidgetName(ui: unknown): string | undefined {
  * store user input in its own (fast) transition before slow work starts — see the
  * prompt-input-chat example.
  */
-export function RunView({ workflowId }: { workflowId: string | undefined }) {
+export interface RunViewSettings {
+  enableDebugMode: boolean;
+  showFullMessageHistory: boolean;
+}
+
+export function RunView({ workflowId, settings }: { workflowId: string | undefined; settings?: RunViewSettings }) {
   const { nodes, isLoading } = useRunTree(workflowId);
   const prompts = useRunPrompts(nodes);
   const documentConfigs = useDocumentConfigs();
@@ -35,14 +40,17 @@ export function RunView({ workflowId }: { workflowId: string | undefined }) {
   // In-flight LLM messages render as they stream; the persisted document replaces them.
   const streamingNodes = useStreamingNodes(nodes);
 
-  const entries = useMemo(
-    () =>
-      composeTranscript(
-        streamingNodes.map((node) => ({ workflowId: node.workflowId, depth: node.depth, documents: node.documents })),
-        (documentName) => resolveWidgetName(documentConfigs.get(documentName)?.ui),
-      ),
-    [streamingNodes, documentConfigs],
-  );
+  const entries = useMemo(() => {
+    // Classic parity: internal-tagged documents hidden unless "show full message history".
+    const sources = streamingNodes.map((node) => ({
+      workflowId: node.workflowId,
+      depth: node.depth,
+      documents: settings?.showFullMessageHistory
+        ? node.documents
+        : node.documents.filter((document) => !document.tags?.includes('internal')),
+    }));
+    return composeTranscript(sources, (documentName) => resolveWidgetName(documentConfigs.get(documentName)?.ui));
+  }, [streamingNodes, documentConfigs, settings?.showFullMessageHistory]);
   const workflows = useMemo(() => new Map(nodes.map((node) => [node.workflowId, node.workflow])), [nodes]);
 
   // The picked prompt's document renders once — interactively, pinned at the bottom —
@@ -56,6 +64,15 @@ export function RunView({ workflowId }: { workflowId: string | undefined }) {
 
   const picked = prompts.picked;
   const PromptComponent = picked?.view.widget ? promptRegistry.get(picked.view.widget) : undefined;
+  const idle = prompts.idlePrompt;
+  const IdleComponent = idle?.view.widget ? promptRegistry.get(idle.view.widget) : undefined;
+
+  // The CLI's offerRetry fallback: a failed workflow without an answerable recovery
+  // prompt (those take precedence via the canonical rules) offers a plain re-run.
+  const failedNode =
+    !picked && !prompts.blocked
+      ? nodes.find((node) => node.workflow.hasError && node.workflow.status === 'failed')
+      : undefined;
 
   const submit = (payload: unknown, transitionId?: string) => {
     if (!picked) return;
@@ -72,7 +89,12 @@ export function RunView({ workflowId }: { workflowId: string | undefined }) {
   return (
     <div className="w-full max-w-3xl">
       {isLoading && <p className="text-muted-foreground text-sm">Loading run…</p>}
-      <Transcript entries={visibleEntries} workflows={workflows} rootWorkflow={nodes[0]?.workflow} />
+      <Transcript
+        entries={visibleEntries}
+        workflows={workflows}
+        rootWorkflow={nodes[0]?.workflow}
+        debug={settings?.enableDebugMode}
+      />
 
       <div className="mt-6 space-y-2">
         {prompts.sandboxSlots.length > 0 && (
@@ -92,8 +114,23 @@ export function RunView({ workflowId }: { workflowId: string | undefined }) {
             />
           </div>
         )}
+        {!picked && idle && IdleComponent && (
+          <div className="bg-background rounded-lg border p-4 opacity-70 shadow-sm">
+            <IdleComponent view={idle.view} submit={() => undefined} isSubmitting={true} />
+          </div>
+        )}
         {!picked && prompts.blocked && <NotSupportedCard view={prompts.blocked.view} />}
-        {!picked && !prompts.blocked && prompts.fallback && <BareWaitCard view={prompts.fallback.view} />}
+        {failedNode && (
+          <FailedRunCard
+            workflowName={failedNode.workflow.title ?? failedNode.workflow.workflowName}
+            errorMessage={failedNode.workflow.errorMessage}
+            onRetry={() => runWorkflow.mutate({ workflowId: failedNode.workflowId })}
+            isRetrying={runWorkflow.isPending}
+          />
+        )}
+        {!picked && !idle && !prompts.blocked && !failedNode && prompts.fallback && (
+          <BareWaitCard view={prompts.fallback.view} />
+        )}
       </div>
     </div>
   );

@@ -161,7 +161,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
         <div className="max-w-4xl py-1">
           {view === 'run' ? (
             <div className="p-4">
-              <RunView workflowId={workflow.id} />
+              <RunView workflowId={workflow.id} settings={settings} />
             </div>
           ) : (
             <WorkflowItem workflow={workflow} workflowId={workflow.id} scrollTo={scrollTo} settings={settings} />

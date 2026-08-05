@@ -88,15 +88,29 @@ function TranscriptDocument({
   );
 }
 
+/** Classic debug-mode parity: the per-document metadata line. */
+function DebugMeta({ entry }: { entry: TranscriptEntry }) {
+  const parts = [
+    entry.document.documentName,
+    entry.widget ?? 'no widget',
+    `place: ${entry.document.place ?? '—'}`,
+    `index: ${entry.document.index}`,
+  ];
+  if (entry.document.isInvalidated) parts.push('invalidated');
+  return <p className="text-muted-foreground font-mono text-[10px]">{parts.join(' · ')}</p>;
+}
+
 /** The chronological, depth-indented document trail — the CLI transcript, rendered. */
 export function Transcript({
   entries,
   workflows,
   rootWorkflow,
+  debug,
 }: {
   entries: TranscriptEntry[];
   workflows: Map<string, WorkflowFullInterface>;
   rootWorkflow?: WorkflowFullInterface;
+  debug?: boolean;
 }) {
   const features = useFeatureRegistry();
   const featureRenderers = useMemo(() => {
@@ -117,6 +131,7 @@ export function Transcript({
           style={entry.depth > 0 ? { marginLeft: entry.depth * 20 } : undefined}
           className={entry.depth > 0 ? 'border-muted border-l-2 pl-3' : undefined}
         >
+          {debug && <DebugMeta entry={entry} />}
           <TranscriptDocument
             entry={entry}
             isLastItem={index === entries.length - 1}
