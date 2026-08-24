@@ -1,5 +1,5 @@
 // Example test structure — delete this file and write your own tests
-import { getDocuments, pollUntilComplete, scrub, startWorkflow } from './helpers';
+import { pollUntilComplete, startWorkflow } from './helpers';
 
 describe('ExampleWorkflow', () => {
   it('workflow should reach completed state', async () => {

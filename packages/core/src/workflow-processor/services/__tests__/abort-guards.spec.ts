@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TransitionAbortedError } from '../../../common/index.js';
 import type { ExecutionScopeData } from '../../utils/index.js';
 import { DocumentPersistenceService } from '../document-persistence.service.js';
