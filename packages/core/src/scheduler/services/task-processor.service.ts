@@ -8,6 +8,11 @@ import { WorkspaceLockService } from './workspace-lock.service.js';
 @Processor('task-queue', {
   concurrency: 10,
   autorun: false,
+  // A job stalls when its process dies mid-transition (crash or non-graceful
+  // deploy). Allow a few stalls before BullMQ fails the job permanently —
+  // the default of 1 kills a run on its second interruption. Kept low enough
+  // to still stop poison jobs that crash the worker on every attempt.
+  maxStalledCount: 3,
 })
 export class TaskProcessorService extends WorkerHost implements OnApplicationBootstrap {
   private readonly logger = new Logger(TaskProcessorService.name);
