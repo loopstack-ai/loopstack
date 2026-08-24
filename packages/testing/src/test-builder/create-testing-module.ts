@@ -1,7 +1,7 @@
 import { DynamicModule, ForwardReference, Provider, Type } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModuleBuilder } from '@nestjs/testing';
-import { MockDataSourceModule } from './core-module-mock.js';
+import { MockInfraModule } from './core-module-mock.js';
 
 type ModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
@@ -11,7 +11,7 @@ export function createTestingModule(options: { imports: ModuleImport[]; provider
       ConfigModule.forRoot({
         isGlobal: true,
       }),
-      MockDataSourceModule,
+      MockInfraModule,
       ...options.imports,
     ],
     providers: [...options.providers],
