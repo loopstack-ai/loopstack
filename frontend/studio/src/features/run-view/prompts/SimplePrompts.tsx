@@ -40,10 +40,10 @@ export function ConfirmPrompt({ view, submit, isSubmitting }: RunPromptProps) {
     <div className="space-y-2">
       <p className="text-sm font-medium">{question(view)}</p>
       <div className="flex gap-2">
-        <Button onClick={() => submit({ answer: 'yes' })} disabled={isSubmitting}>
+        <Button className="flex-1" onClick={() => submit({ answer: 'yes' })} disabled={isSubmitting}>
           Yes
         </Button>
-        <Button variant="outline" onClick={() => submit({ answer: 'no' })} disabled={isSubmitting}>
+        <Button variant="outline" className="flex-1" onClick={() => submit({ answer: 'no' })} disabled={isSubmitting}>
           No
         </Button>
       </div>
@@ -59,9 +59,15 @@ export function ChoicesPrompt({ view, submit, isSubmitting }: RunPromptProps) {
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium">{question(view)}</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2">
         {options.map((option) => (
-          <Button key={option} variant="outline" onClick={() => submit({ answer: option })} disabled={isSubmitting}>
+          <Button
+            key={option}
+            variant="outline"
+            className="w-full"
+            onClick={() => submit({ answer: option })}
+            disabled={isSubmitting}
+          >
             {option}
           </Button>
         ))}
