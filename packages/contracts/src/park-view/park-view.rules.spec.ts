@@ -176,6 +176,19 @@ describe('selection semantics', () => {
     expect(fallback).toMatchObject({ kind: 'bare' });
   });
 
+  it('a display-only widget is never a prompt candidate, even with a lone available transition', () => {
+    // A message document at a park with one available transition must NOT be surfaced as a
+    // prompt via the lone-transition leniency — it is transcript content (DISPLAY_WIDGETS).
+    const message = widget({ widget: 'llm-message', options: {} });
+    const candidates = evaluateWorkflowPrompts(wf(), [doc({ content: { text: 'Hi!' } })], configs(message));
+    expect(candidates.filter((c) => c.kind === 'document')).toEqual([]);
+    // With no eligibility predicate (the facade's default) it resolves to the bare wait,
+    // not the message.
+    const { prompt, fallback } = pickPrompt(candidates);
+    expect(prompt).toBeUndefined();
+    expect(fallback).toMatchObject({ kind: 'bare' });
+  });
+
   it('nothing renderable falls back to the bare wait', () => {
     const { prompt, fallback } = pickPrompt(evaluateWorkflowPrompts(wf(), [], configs()));
     expect(prompt).toBeUndefined();

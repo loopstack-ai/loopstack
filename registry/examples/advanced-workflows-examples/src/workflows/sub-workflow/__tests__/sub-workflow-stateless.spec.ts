@@ -2,16 +2,18 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { executedTransitions } from '@loopstack/contracts/types';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { createStatelessContext, createWorkflowTest, runWorkflow } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../sub-workflow-parent.workflow';
 import { RunSubWorkflowExampleSubWorkflow } from '../sub-workflow-sub.workflow';
 
 /**
- * Stateless in-process execution of a parent workflow with sub-workflows: children run inline,
- * their callbacks are applied automatically, and the whole composition completes in a single
- * `process()` call — no Redis, no Postgres.
+ * Advanced — the low-level processor API the facade wraps, shown for authors who need direct
+ * access to the stateless carrier (children, callbacks, trace). **Most workflow tests should
+ * use `runWorkflow` (second describe below)**, which exposes the same outcomes without the
+ * plumbing. Children run inline, callbacks are applied automatically, and the whole
+ * composition completes in a single `process()` call — no Redis, no Postgres.
  */
-describe('RunSubWorkflowExampleParentWorkflow — stateless inline children', () => {
+describe('RunSubWorkflowExampleParentWorkflow — stateless inline children (low-level API)', () => {
   let module: TestingModule;
   let workflow: RunSubWorkflowExampleParentWorkflow;
   let processor: WorkflowProcessorService;
@@ -65,8 +67,6 @@ describe('RunSubWorkflowExampleParentWorkflow — stateless inline children', ()
 
 describe('RunSubWorkflowExampleParentWorkflow — runWorkflow facade', () => {
   it('completes the whole composition through the facade', async () => {
-    const { runWorkflow } = await import('@loopstack/testing');
-
     const run = await runWorkflow(RunSubWorkflowExampleParentWorkflow, undefined, {
       providers: [RunSubWorkflowExampleSubWorkflow],
     });

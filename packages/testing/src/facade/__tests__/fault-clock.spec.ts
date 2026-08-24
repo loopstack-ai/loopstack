@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { TransitionInput } from '@loopstack/common';
-import { TestClock, failure, queue, runWorkflow } from '@loopstack/testing';
+import { TestClock, failure, queue, runWorkflow } from '../index.js';
 
 // --- Probes ---------------------------------------------------------------------------------
 

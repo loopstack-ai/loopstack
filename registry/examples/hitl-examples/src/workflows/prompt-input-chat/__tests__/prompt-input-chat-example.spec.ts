@@ -70,5 +70,14 @@ describe('PromptInputChatExampleWorkflow', () => {
     expect(run.path).toEqual(['greet']);
     const texts = run.documents.map((d) => (d.content as { text?: string }).text ?? '');
     expect(texts).toContain('Hi! Ask me anything.');
+
+    // The chat input the user would type into — a workflow-level `prompt-input` widget
+    // (from the workflow's own `widget:` config), active at the waiting_for_user place.
+    // The greeting message above is display content, not a prompt, so it isn't surfaced here.
+    expect(run.parkView()).toMatchObject({
+      widget: 'prompt-input',
+      options: { label: 'Send' },
+      defaultTransition: 'userMessage',
+    });
   });
 });

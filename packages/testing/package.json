@@ -22,7 +22,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {

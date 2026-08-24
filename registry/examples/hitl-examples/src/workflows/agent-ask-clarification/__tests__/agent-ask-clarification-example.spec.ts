@@ -5,10 +5,18 @@ import { replay, runWorkflow } from '@loopstack/testing';
 import { HitlExamplesModule } from '../../../hitl-examples.module';
 import { AgentAskClarificationExampleWorkflow } from '../agent-ask-clarification-example.workflow';
 
-/** A scripted agent LLM turn in the shape `llm_generate_text` returns. */
-const llmTurn = (message: object) => ({
+/**
+ * A scripted agent LLM turn in the shape `llm_generate_text` returns — including the
+ * `documents` declaration the live tool emits, so replay materializes the assistant message
+ * as a conversation document exactly like a real call would.
+ */
+const llmTurn = (message: { id: string; role: string; text: string; blocks: unknown[]; stopReason: string }) => ({
   tool: 'llm_generate_text',
-  envelope: { data: { message, response: {} }, metadata: { provider: 'claude', model: 'claude-sonnet-4-6' } },
+  envelope: {
+    data: { message, response: {} },
+    metadata: { provider: 'claude', model: 'claude-sonnet-4-6' },
+    documents: [{ documentName: 'llm_message', content: message, options: { meta: { provider: 'claude' } } }],
+  },
 });
 
 const CLARIFICATION_TURN = llmTurn({
@@ -48,16 +56,12 @@ describe('AgentAskClarificationExampleWorkflow', () => {
     expect(run.path).toEqual(['start', 'agentComplete']);
     expect(run.result).toEqual({ response: 'With €2000 and a warm climate in mind, I recommend Lisbon, Portugal.' });
 
-    // The agent child really ran the loop: clarification asked, answered, second turn taken
+    // The agent child ran the loop to completion — assert its outcome, not its internals.
     expect(run.children).toHaveLength(1);
     const agent = run.children[0];
     expect(agent.workflowName).toBe('agent');
     expect(agent.status).toBe('completed');
     expect(agent.result).toEqual({ response: 'With €2000 and a warm climate in mind, I recommend Lisbon, Portugal.' });
-
-    // The real AskUserWorkflow grandchild was launched and answered
-    const grandchildren = agent.statelessState?.children ?? [];
-    expect(grandchildren.some((c) => c.workflowName === 'ask_user' && c.status === 'completed')).toBe(true);
   });
 
   it('parks with the clarification question shown when no answer is scripted', async () => {
@@ -68,12 +72,15 @@ describe('AgentAskClarificationExampleWorkflow', () => {
     });
 
     expect(run.status).toBe('waiting');
-    const agent = run.children[0];
-    expect(agent.status).toBe('waiting');
-    const askUser = (agent.statelessState?.children ?? []).find((c) => c.workflowName === 'ask_user');
-    expect(askUser?.status).toBe('waiting');
-    expect(
-      askUser?.documents.some((d) => ((d.content as { question?: string }).question ?? '').includes('budget')),
-    ).toBe(true);
+    // The clarification prompt lives on the AskUserWorkflow launched by the agent's tool call,
+    // several levels down. parkView() walks the tree and surfaces what the user would see —
+    // no manual traversal of the stateless carrier.
+    const view = run.parkView();
+    expect(view).toMatchObject({
+      workflowName: 'ask_user',
+      widget: 'text-prompt',
+      content: { question: expect.stringContaining('budget') },
+      defaultTransition: 'userAnswered',
+    });
   });
 });

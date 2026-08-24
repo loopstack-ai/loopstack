@@ -98,6 +98,8 @@ The view carries the prompting workflow, the widget type, the prompt `content`, 
 
 Two degenerate results are themselves meaningful assertions: a park with nothing renderable returns a view **without** `widget`/`documentName` (the user would see a bare waiting run — often the bug), and a terminal run returns `undefined`.
 
+To resolve a widget, `parkView()` needs the widget config, which is discovered from the app — so **import the workflow's `@StudioApp` module** in the test (`imports: [MyAppModule]`). Without it the widget can't be found and the view falls back to the bare-wait shape (transitions only, no `widget`). Display-only documents (messages, markdown, the transcript) are never reported as the prompt — only the interactive widget the user acts on.
+
 ## Record and replay tool responses
 
 Replay makes non-deterministic tools — above all LLM calls — deterministic: the recorded response envelope is returned instead of executing the tool. Your code, transitions, and assertions all run for real; only the tool boundary is replayed. A failing replay test means _your code_ changed behavior, not the model.

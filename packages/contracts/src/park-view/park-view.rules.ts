@@ -10,6 +10,24 @@ import type {
 } from './park-view.types.js';
 
 /**
+ * Widget types that only present content — they never submit an answer. A document rendered
+ * with one of these is transcript content, not a prompt, even when the run has exactly one
+ * available transition (the lone-transition leniency must not turn a message into a prompt).
+ *
+ * @public
+ */
+export const DISPLAY_WIDGETS: ReadonlySet<string> = new Set([
+  'message',
+  'llm-message',
+  'ai-message',
+  'markdown',
+  'plain',
+  'error',
+  'link',
+  'debug',
+]);
+
+/**
  * The transitions a widget config declares — `options.transition` plus every
  * `options.actions[].transition`. The single source of truth for widget-declared
  * transitions across all surfaces.
@@ -148,6 +166,7 @@ export function evaluateWorkflowPrompts(
   for (const document of documents) {
     const config = docConfigs.get(document.documentName);
     if (!config) continue;
+    if (DISPLAY_WIDGETS.has(config.widget)) continue; // transcript content, never a prompt
     if (!isDocumentVisible(document, config, workflow.place)) continue;
     if (!isDocumentActive(document, config, workflow.place)) continue;
     if (isAnswered(document.content)) continue;

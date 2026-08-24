@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { HitlModule } from '@loopstack/hitl';
 import { LlmProviderModule } from '@loopstack/llm-provider-module';
-import { runWorkflow } from '@loopstack/testing';
+import { type TestRun, coverage, runWorkflow } from '@loopstack/testing';
 import { HitlExamplesModule } from '../../../hitl-examples.module';
 import { AskUserTextExampleWorkflow } from '../ask-user-text-example.workflow';
 
 describe('AskUserTextExampleWorkflow', () => {
+  const runs: TestRun[] = [];
+
   it('answers the inline AskUserWorkflow child and completes', async () => {
     const run = await runWorkflow(AskUserTextExampleWorkflow, undefined, {
       imports: [LlmProviderModule, HitlModule, HitlExamplesModule],
       answers: { userAnswered: { answer: 'Ada' } },
     });
+    runs.push(run);
 
     expect(run.error).toBeUndefined();
     expect(run.status).toBe('completed');
@@ -32,6 +35,7 @@ describe('AskUserTextExampleWorkflow', () => {
     const run = await runWorkflow(AskUserTextExampleWorkflow, undefined, {
       imports: [LlmProviderModule, HitlModule, HitlExamplesModule],
     });
+    runs.push(run);
 
     expect(run.status).toBe('waiting');
     expect(run.children[0].status).toBe('waiting');
@@ -48,5 +52,11 @@ describe('AskUserTextExampleWorkflow', () => {
       transitions: ['userAnswered'],
       defaultTransition: 'userAnswered',
     });
+  });
+
+  it('covers every transition and park (coverage gate)', () => {
+    const cov = coverage(runs, AskUserTextExampleWorkflow);
+    expect(cov.missingTransitions).toEqual([]);
+    expect(cov.missingParks).toEqual([]);
   });
 });

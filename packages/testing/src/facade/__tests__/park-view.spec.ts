@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { BaseWorkflow, Document, StudioApp, Transition, Workflow } from '@loopstack/common';
 import type { TransitionInput } from '@loopstack/common';
-import { failure, runWorkflow } from '@loopstack/testing';
+import { failure, runWorkflow } from '../index.js';
 
 // --- Probes ---------------------------------------------------------------------------------
 

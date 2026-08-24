@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
+import { ApprovalPromptDocument } from './approval-prompt.document';
 import { ClassificationResult, ClassifyTicketTool } from './classify-ticket.tool';
 
 const TriageTicketSchema = z.object({
@@ -14,13 +15,13 @@ interface TriageTicketState {
   reason?: string;
 }
 
-const ApprovalSchema = z.object({ approved: z.boolean() });
+const ApprovalSchema = z.object({ answer: z.enum(['yes', 'no']) });
 
 @Workflow({
   name: 'triage_ticket',
   title: 'Testing - Ticket Triage Example',
   description:
-    'Classifies a support ticket with a tool, reports the severity as a document, and waits for a human approval — the example workflow behind the testing guide.',
+    'Classifies a support ticket with a tool, presents the severity as a yes/no approval prompt, and waits for the human decision — the example workflow behind the testing guide.',
   schema: TriageTicketSchema,
 })
 export class TriageTicketWorkflow extends BaseWorkflow<TriageTicketArgs> {
@@ -38,14 +39,20 @@ export class TriageTicketWorkflow extends BaseWorkflow<TriageTicketArgs> {
   @Transition({ from: 'classified', to: 'awaiting_approval' })
   async report(state: TriageTicketState) {
     await this.documentStore.save(
-      MessageDocument,
-      { role: 'assistant', text: `Ticket severity: ${state.severity} (${state.reason})` },
-      { key: 'triage_report' },
+      ApprovalPromptDocument,
+      {
+        severity: state.severity!,
+        question: `Ticket severity: ${state.severity} (${state.reason}). Approve this classification?`,
+      },
+      { key: 'approval_prompt' },
     );
   }
 
   @Transition({ from: 'awaiting_approval', to: 'end', wait: true, schema: ApprovalSchema })
-  approve(state: TriageTicketState, input: TransitionInput<{ approved: boolean }>) {
-    this.setResult({ severity: state.severity, approved: input.data.approved } as unknown as Record<string, unknown>);
+  approve(state: TriageTicketState, input: TransitionInput<{ answer: 'yes' | 'no' }>) {
+    this.setResult({ severity: state.severity, approved: input.data.answer === 'yes' } as unknown as Record<
+      string,
+      unknown
+    >);
   }
 }
