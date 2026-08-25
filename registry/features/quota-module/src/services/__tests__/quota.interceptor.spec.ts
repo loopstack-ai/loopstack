@@ -19,6 +19,7 @@ function createContext(toolName: string, overrides?: Partial<ToolExecutionContex
       workspaceId: 'ws-1',
       workflowId: '',
       args: undefined,
+      signal: new AbortController().signal,
     },
     metadata: {},
     ...overrides,

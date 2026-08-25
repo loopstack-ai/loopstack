@@ -20,7 +20,7 @@ export class AuthModule implements NestModule {
     consumer.apply(cookieParser()).forRoutes('*');
   }
 
-  static forRoot(connection?: string): DynamicModule {
+  static forRoot(): DynamicModule {
     return {
       module: AuthModule,
       imports: [
@@ -34,7 +34,7 @@ export class AuthModule implements NestModule {
           }),
           inject: [ConfigService],
         }),
-        TypeOrmModule.forFeature([User, Role, ApiTokenEntity], connection),
+        TypeOrmModule.forFeature([User, Role, ApiTokenEntity]),
       ],
       controllers: [ApiTokenController, AuthController],
       providers: [

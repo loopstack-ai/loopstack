@@ -378,3 +378,167 @@ import { SandboxWriteFileArgs } from '@loopstack/sandbox-filesystem';
 ```ts
 export type SandboxWriteFileArgs = z.infer<typeof inputSchema>;
 ```
+
+## Variables
+
+### SandboxCreateDirectoryResultSchema
+
+Zod schema for `SandboxCreateDirectoryResult` — the `resultSchema` of `sandbox_create_directory`.
+
+```ts
+import { SandboxCreateDirectoryResultSchema } from '@loopstack/sandbox-filesystem';
+```
+
+```ts
+SandboxCreateDirectoryResultSchema: z.ZodObject<
+  {
+    path: z.ZodString;
+    created: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### SandboxDeleteResultSchema
+
+Zod schema for `SandboxDeleteResult` — the `resultSchema` of `sandbox_delete`.
+
+```ts
+import { SandboxDeleteResultSchema } from '@loopstack/sandbox-filesystem';
+```
+
+```ts
+SandboxDeleteResultSchema: z.ZodObject<
+  {
+    path: z.ZodString;
+    deleted: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### SandboxExistsResultSchema
+
+Zod schema for `SandboxExistsResult` — the `resultSchema` of `sandbox_exists`.
+
+```ts
+import { SandboxExistsResultSchema } from '@loopstack/sandbox-filesystem';
+```
+
+```ts
+SandboxExistsResultSchema: z.ZodObject<
+  {
+    path: z.ZodString;
+    exists: z.ZodBoolean;
+    type: z.ZodNullable<
+      z.ZodEnum<{
+        file: 'file';
+        directory: 'directory';
+        symlink: 'symlink';
+        other: 'other';
+      }>
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### SandboxFileInfoResultSchema
+
+Zod schema for `SandboxFileInfoResult` — the `resultSchema` of `sandbox_file_info`.
+
+```ts
+import { SandboxFileInfoResultSchema } from '@loopstack/sandbox-filesystem';
+```
+
+```ts
+SandboxFileInfoResultSchema: z.ZodObject<
+  {
+    path: z.ZodString;
+    name: z.ZodString;
+    type: z.ZodEnum<{
+      file: 'file';
+      directory: 'directory';
+      symlink: 'symlink';
+      other: 'other';
+    }>;
+    size: z.ZodNumber;
+    permissions: z.ZodString;
+    owner: z.ZodString;
+    group: z.ZodString;
+    modifiedAt: z.ZodString;
+    accessedAt: z.ZodString;
+    createdAt: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
+### SandboxListDirectoryResultSchema
+
+Zod schema for `SandboxListDirectoryResult` — the `resultSchema` of `sandbox_list_directory`.
+
+```ts
+import { SandboxListDirectoryResultSchema } from '@loopstack/sandbox-filesystem';
+```
+
+```ts
+SandboxListDirectoryResultSchema: z.ZodObject<
+  {
+    path: z.ZodString;
+    entries: z.ZodArray<
+      z.ZodObject<
+        {
+          name: z.ZodString;
+          type: z.ZodEnum<{
+            file: 'file';
+            directory: 'directory';
+            symlink: 'symlink';
+            other: 'other';
+          }>;
+          size: z.ZodNumber;
+          path: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### SandboxReadFileResultSchema
+
+Zod schema for `SandboxReadFileResult` — the `resultSchema` of `sandbox_read_file`.
+
+```ts
+import { SandboxReadFileResultSchema } from '@loopstack/sandbox-filesystem';
+```
+
+```ts
+SandboxReadFileResultSchema: z.ZodObject<
+  {
+    content: z.ZodString;
+    encoding: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
+### SandboxWriteFileResultSchema
+
+Zod schema for `SandboxWriteFileResult` — the `resultSchema` of `sandbox_write_file`.
+
+```ts
+import { SandboxWriteFileResultSchema } from '@loopstack/sandbox-filesystem';
+```
+
+```ts
+SandboxWriteFileResultSchema: z.ZodObject<
+  {
+    path: z.ZodString;
+    bytesWritten: z.ZodNumber;
+  },
+  z.core.$strict
+>;
+```

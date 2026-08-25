@@ -47,6 +47,28 @@ export type GitHubSearchIssuesResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubSearchIssuesResult}.
+ *
+ * @public
+ */
+export const GitHubSearchIssuesResultSchema = z.strictObject({
+  totalCount: z.number(),
+  results: z.array(
+    z.strictObject({
+      id: z.number(),
+      number: z.number(),
+      title: z.string(),
+      state: z.string(),
+      user: z.string(),
+      htmlUrl: z.string(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      isPullRequest: z.boolean(),
+    }),
+  ),
+});
+
+/**
  * Tool that searches for issues and pull requests across GitHub using the GitHub search syntax.
  *
  * @providedBy GitHubModule
@@ -57,6 +79,8 @@ export type GitHubSearchIssuesResult =
   description:
     'Searches for issues and pull requests across GitHub using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubSearchIssuesResultSchema,
+  effects: 'none',
 })
 export class GitHubSearchIssuesTool extends BaseTool<GitHubSearchIssuesArgs, object, GitHubSearchIssuesResult> {
   private readonly logger = new Logger(GitHubSearchIssuesTool.name);

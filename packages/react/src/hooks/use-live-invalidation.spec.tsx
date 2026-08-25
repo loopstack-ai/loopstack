@@ -35,9 +35,10 @@ describe('useLiveInvalidation', () => {
     expect(invalidate).not.toHaveBeenCalled();
     vi.advanceTimersByTime(300);
 
-    expect(invalidate).toHaveBeenCalledTimes(2);
+    expect(invalidate).toHaveBeenCalledTimes(3);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workflow', TEST_ENV_KEY, 'wf-1'] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workflowStatus', TEST_ENV_KEY, 'wf-1'] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workflows', TEST_ENV_KEY] });
   });
 
   it('resets the debounce window on every event (trailing edge)', () => {
@@ -53,7 +54,7 @@ describe('useLiveInvalidation', () => {
 
     expect(invalidate).not.toHaveBeenCalled();
     vi.advanceTimersByTime(100);
-    expect(invalidate).toHaveBeenCalledTimes(2);
+    expect(invalidate).toHaveBeenCalledTimes(3);
   });
 
   it('debounces distinct keys independently', () => {

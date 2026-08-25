@@ -40,6 +40,10 @@ export interface BlockOptions {
   schema?: z.ZodType;
   /** Zod schema for config validation (provided via options.config) */
   configSchema?: z.ZodType;
+  /** Zod schema for result validation — parses `envelope.data` on success envelopes. */
+  resultSchema?: z.ZodType;
+  /** Effect classification: 'none' = reads/computes only, safe to repeat; 'external' = writes outside the run. */
+  effects?: 'none' | 'external';
   /** Default tags assigned to every instance of this document. */
   tags?: string[];
   /** Static document meta — served via config endpoint, not persisted per instance. */
@@ -64,6 +68,16 @@ export interface ToolOptions {
   schema?: z.ZodType;
   /** Zod schema for tool config validation (provided via options.config) */
   configSchema?: z.ZodType;
+  /** Optional Zod schema for the tool's result — validates `envelope.data` on success envelopes. */
+  resultSchema?: z.ZodType;
+  /**
+   * Effect classification of this tool.
+   * - `'none'` — reads or computes only; repeating the call causes no outside change (searches, lookups, LLM generation).
+   * - `'external'` — writes to systems outside the run (sends mail, pushes commits, mutates repos or files).
+   *
+   * Unset means unclassified — cautious consumers treat it as `'external'`.
+   */
+  effects?: 'none' | 'external';
 }
 
 /**

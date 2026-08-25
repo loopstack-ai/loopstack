@@ -23,6 +23,15 @@ export type GlobResult = {
 };
 
 /**
+ * Zod schema for {@link GlobResult}.
+ *
+ * @public
+ */
+export const GlobResultSchema = z.strictObject({
+  files: z.array(z.string()),
+});
+
+/**
  * Tool that finds files on the remote instance by glob pattern.
  *
  * @providedBy RemoteClientModule
@@ -38,6 +47,8 @@ export type GlobResult = {
       path: z.string().optional().describe('Directory to search in, relative to workspace root'),
     })
     .strict(),
+  resultSchema: GlobResultSchema,
+  effects: 'none',
 })
 export class GlobTool extends BaseTool<GlobArgs, object, GlobResult> {
   constructor(

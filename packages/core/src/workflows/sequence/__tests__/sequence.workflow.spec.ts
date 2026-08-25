@@ -41,6 +41,7 @@ function ctx(args: SequenceArgs): RunContext {
     workspaceId: 'ws1',
     workflowId: 'parent-1',
     args: args as unknown as Record<string, unknown>,
+    signal: new AbortController().signal,
     execution: { place: 'start', retryCount: 0 },
   };
 }

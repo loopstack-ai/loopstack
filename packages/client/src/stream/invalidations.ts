@@ -14,10 +14,20 @@ export type QueryKey = readonly unknown[];
  */
 export function resolveInvalidations(message: ClientMessage, envKey: string): QueryKey[] {
   switch (message.type) {
-    case 'workflow.created':
-      return message.parentId ? [queryKeys.childWorkflows(envKey, message.parentId)] : [];
+    case 'workflow.created': {
+      // The plural prefix stales every workflow list (Runs page, landing page, any useWorkflowList),
+      // so runs started by cron/webhook/CLI/another client appear without a manual refresh.
+      const keys: QueryKey[] = [queryKeys.workflows(envKey)];
+      if (message.parentId) keys.push(queryKeys.childWorkflows(envKey, message.parentId));
+      return keys;
+    }
     case 'workflow.updated': {
-      const keys: QueryKey[] = [queryKeys.workflow(envKey, message.id), queryKeys.workflowStatus(envKey, message.id)];
+      const keys: QueryKey[] = [
+        queryKeys.workflow(envKey, message.id),
+        queryKeys.workflowStatus(envKey, message.id),
+        // Keep list views' status columns current. The per-key debounce collapses update bursts.
+        queryKeys.workflows(envKey),
+      ];
       if (message.parentId) keys.push(queryKeys.childWorkflows(envKey, message.parentId));
       return keys;
     }

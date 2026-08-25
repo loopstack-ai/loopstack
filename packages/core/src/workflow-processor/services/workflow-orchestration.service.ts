@@ -5,17 +5,22 @@ import {
   QueueResult,
   ResumeOptions,
   RunOptions,
+  StatelessChildRecord,
   SubWorkflowShow,
   WorkflowEntity,
   WorkflowOrchestrator,
   WorkflowState,
+  statelessChildCallback,
+  statelessChildResultFields,
 } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
+import { TransitionAbortedError } from '../../common/index.js';
 import { WorkflowService } from '../../persistence/services/workflow.service.js';
 import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
-import { ExecutionScope } from '../utils/index.js';
+import { ExecutionScope, ExecutionScopeData } from '../utils/index.js';
 import { CreateWorkflowService } from './create-workflow.service.js';
 import { DocumentStore } from './document-store.service.js';
+import { StatelessChildRunner } from './stateless-child-runner.service.js';
 import { WorkflowRegistryService } from './workflow-registry.service.js';
 
 /**
@@ -37,13 +42,19 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     private readonly workflowService: WorkflowService,
     private readonly workflowRegistryService: WorkflowRegistryService,
     private readonly documentStore: DocumentStore,
+    private readonly statelessChildRunner: StatelessChildRunner,
   ) {}
 
   async queue(workflowClass: Type, args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
     const scope = this.executionScope.get();
 
+    // Refuse to spawn a sub-workflow from an abandoned (timed-out) transition.
+    if (scope.abortController.signal.aborted) {
+      throw new TransitionAbortedError();
+    }
+
     if (scope.options?.stateless) {
-      throw new Error('Sub-workflow launching requires stateful workflow execution.');
+      return this.queueInline(scope, workflowClass, args, options);
     }
 
     const { instance: workflow, workflowName } = this.workflowRegistryService.resolve(workflowClass);
@@ -57,6 +68,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
         args: { ...args },
         callbackTransition: options?.callback?.transition ?? null,
         callbackMetadata: options?.callback?.metadata ?? null,
+        ...(scope.tracePersist ? { trace: true } : {}),
       },
       scope.userId,
       scope.workflowId,
@@ -79,9 +91,70 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
 
     await this.persistSubWorkflowLink(workflowEntity.id, workflowName, options);
 
+    scope.trace.emit({
+      type: 'child.queued',
+      transitionId: scope.transition?.id,
+      childWorkflowId: workflowEntity.id,
+      workflowName,
+      ...(options?.show ? { show: options.show } : {}),
+    });
+
     return {
       workflowId: workflowEntity.id,
     };
+  }
+
+  /**
+   * Stateless mode: execute the child synchronously in-process. A terminal child queues its
+   * callback envelope (same shape as `complete()`) on the scope for the processor's drain loop;
+   * a parked child is recorded with its resume carrier so the caller can answer it.
+   */
+  private async queueInline(
+    scope: ExecutionScopeData,
+    workflowClass: Type,
+    args?: Record<string, unknown>,
+    options?: RunOptions,
+  ): Promise<QueueResult> {
+    const { instance, workflowName } = this.workflowRegistryService.resolve(workflowClass);
+    const childId = `stateless-${randomUUID()}`;
+
+    const childMeta = await this.statelessChildRunner.run(instance, {
+      workflowName,
+      userId: scope.userId,
+      workspaceId: scope.workspaceId,
+      args,
+    });
+
+    const callbackTransition = options?.callback?.transition ?? null;
+    const callbackMetadata = options?.callback?.metadata ?? null;
+
+    const record: StatelessChildRecord = {
+      workflowId: childId,
+      workflowName,
+      args,
+      callbackTransition,
+      callbackMetadata,
+      ...statelessChildResultFields(childMeta),
+    };
+    (scope.statelessChildren ??= []).push(record);
+
+    scope.trace.emit({
+      type: 'child.queued',
+      transitionId: scope.transition?.id,
+      childWorkflowId: childId,
+      workflowName,
+      ...(options?.show ? { show: options.show } : {}),
+    });
+    if (record.status !== WorkflowState.Waiting) {
+      scope.trace.emit({ type: 'child.settled', childWorkflowId: childId, status: record.status });
+    }
+
+    const callback = statelessChildCallback(record, scope.workflowId);
+    if (callback) {
+      (scope.statelessCallbacks ??= []).push(callback);
+    }
+
+    return { workflowId: childId };
   }
 
   private async persistSubWorkflowLink(

@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export interface FetchedContent {
   content: string;
   bytes: number;
@@ -35,3 +37,27 @@ export interface WebFetchResult {
     statusCode: number;
   };
 }
+
+/**
+ * Zod schema for {@link WebFetchResult}.
+ *
+ * @public
+ */
+export const WebFetchResultSchema = z.strictObject({
+  url: z.string(),
+  bytes: z.number(),
+  code: z.number(),
+  codeText: z.string(),
+  contentType: z.string(),
+  result: z.string(),
+  truncated: z.boolean(),
+  cached: z.boolean(),
+  durationMs: z.number(),
+  redirect: z
+    .strictObject({
+      originalUrl: z.string(),
+      redirectUrl: z.string(),
+      statusCode: z.number(),
+    })
+    .optional(),
+});

@@ -34,6 +34,22 @@ export type GitHubListUserOrgsResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubListUserOrgsResult}.
+ *
+ * @public
+ */
+export const GitHubListUserOrgsResultSchema = z.strictObject({
+  orgs: z.array(
+    z.strictObject({
+      id: z.number(),
+      login: z.string(),
+      description: z.string().nullable(),
+      avatarUrl: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists the organizations the authenticated GitHub user belongs to.
  *
  * @providedBy GitHubModule
@@ -44,6 +60,8 @@ export type GitHubListUserOrgsResult = {
   description:
     'Lists organizations for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubListUserOrgsResultSchema,
+  effects: 'none',
 })
 export class GitHubListUserOrgsTool extends BaseTool<GitHubListUserOrgsArgs, object, GitHubListUserOrgsResult> {
   private readonly logger = new Logger(GitHubListUserOrgsTool.name);

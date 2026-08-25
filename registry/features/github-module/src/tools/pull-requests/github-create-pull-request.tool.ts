@@ -43,6 +43,22 @@ export type GitHubCreatePullRequestResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubCreatePullRequestResult}.
+ *
+ * @public
+ */
+export const GitHubCreatePullRequestResultSchema = z.strictObject({
+  pullRequest: z.strictObject({
+    id: z.number(),
+    number: z.number(),
+    title: z.string(),
+    htmlUrl: z.string(),
+    state: z.string(),
+    draft: z.boolean(),
+  }),
+});
+
+/**
  * Tool that opens a new pull request in a GitHub repository from a head branch into a base branch.
  *
  * @providedBy GitHubModule
@@ -53,6 +69,8 @@ export type GitHubCreatePullRequestResult =
   description:
     'Creates a new pull request in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubCreatePullRequestResultSchema,
+  effects: 'external',
 })
 export class GitHubCreatePullRequestTool extends BaseTool<
   GitHubCreatePullRequestArgs,

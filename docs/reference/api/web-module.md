@@ -92,6 +92,41 @@ export type WebFetchArgs = z.infer<typeof WebFetchSchema>;
 
 ## Variables
 
+### WebFetchResultSchema
+
+Zod schema for `WebFetchResult`.
+
+```ts
+import { WebFetchResultSchema } from '@loopstack/web-module';
+```
+
+```ts
+WebFetchResultSchema: z.ZodObject<
+  {
+    url: z.ZodString;
+    bytes: z.ZodNumber;
+    code: z.ZodNumber;
+    codeText: z.ZodString;
+    contentType: z.ZodString;
+    result: z.ZodString;
+    truncated: z.ZodBoolean;
+    cached: z.ZodBoolean;
+    durationMs: z.ZodNumber;
+    redirect: z.ZodOptional<
+      z.ZodObject<
+        {
+          originalUrl: z.ZodString;
+          redirectUrl: z.ZodString;
+          statusCode: z.ZodNumber;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
 ### WebFetchSchema
 
 Zod schema for `WebFetchTool` arguments.

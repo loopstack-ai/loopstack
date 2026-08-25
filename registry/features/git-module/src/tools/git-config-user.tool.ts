@@ -20,6 +20,13 @@ export type GitConfigUserArgs = {
 export type GitConfigUserResult = { success: boolean };
 
 /**
+ * Zod schema for `GitConfigUserResult`.
+ *
+ * @public
+ */
+export const GitConfigUserResultSchema = z.strictObject({ success: z.boolean() });
+
+/**
  * Tool that configures git `user.name` and `user.email` for the workspace repository.
  *
  * @providedBy GitModule
@@ -34,6 +41,8 @@ export type GitConfigUserResult = { success: boolean };
       email: z.string().describe('Git user email (user.email)'),
     })
     .strict(),
+  resultSchema: GitConfigUserResultSchema,
+  effects: 'external',
 })
 export class GitConfigUserTool extends BaseTool<GitConfigUserArgs, object, GitConfigUserResult> {
   constructor(

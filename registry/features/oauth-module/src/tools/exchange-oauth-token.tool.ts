@@ -39,6 +39,18 @@ export type ExchangeOAuthTokenResult = {
 };
 
 /**
+ * Zod schema for {@link ExchangeOAuthTokenResult} — the `resultSchema` of `exchange_oauth_token`.
+ *
+ * @public
+ */
+export const ExchangeOAuthTokenResultSchema = z.strictObject({
+  accessToken: z.string(),
+  refreshToken: z.string().optional(),
+  expiresIn: z.number().optional(),
+  scope: z.string().optional(),
+});
+
+/**
  * Tool that exchanges an OAuth 2.0 authorization code for access and refresh tokens and stores them for the user.
  *
  * @providedBy OAuthModule
@@ -49,6 +61,8 @@ export type ExchangeOAuthTokenResult = {
   description:
     'Exchanges an OAuth 2.0 authorization code for access and refresh tokens, and stores them globally for the user.',
   schema: ExchangeOAuthTokenSchema,
+  resultSchema: ExchangeOAuthTokenResultSchema,
+  effects: 'external',
 })
 export class ExchangeOAuthTokenTool extends BaseTool<ExchangeOAuthTokenArgs, object, ExchangeOAuthTokenResult> {
   private readonly logger = new Logger(ExchangeOAuthTokenTool.name);

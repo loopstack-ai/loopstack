@@ -42,6 +42,23 @@ export type GitHubGetFileContentResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubGetFileContentResult}.
+ *
+ * @public
+ */
+export const GitHubGetFileContentResultSchema = z.strictObject({
+  file: z.strictObject({
+    name: z.string(),
+    path: z.string(),
+    sha: z.string(),
+    size: z.number(),
+    type: z.string(),
+    content: z.string().nullable(),
+    htmlUrl: z.string(),
+  }),
+});
+
+/**
  * Tool that reads the content of a file from a GitHub repository, decoding the
  * base64 payload returned by the API into plain text.
  *
@@ -53,6 +70,8 @@ export type GitHubGetFileContentResult =
   description:
     'Gets the content of a file from a GitHub repository. Decodes base64-encoded content from the API. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubGetFileContentResultSchema,
+  effects: 'none',
 })
 export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs, object, GitHubGetFileContentResult> {
   private readonly logger = new Logger(GitHubGetFileContentTool.name);

@@ -49,6 +49,33 @@ export type GitHubGetRepoResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubGetRepoResult}.
+ *
+ * @public
+ */
+export const GitHubGetRepoResultSchema = z.strictObject({
+  repo: z.strictObject({
+    id: z.number(),
+    fullName: z.string(),
+    name: z.string(),
+    owner: z.string(),
+    ownerAvatar: z.string(),
+    private: z.boolean(),
+    htmlUrl: z.string(),
+    description: z.string().nullable(),
+    language: z.string().nullable(),
+    defaultBranch: z.string(),
+    stars: z.number(),
+    forks: z.number(),
+    openIssues: z.number(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    topics: z.array(z.string()),
+    license: z.string().nullable(),
+  }),
+});
+
+/**
  * Tool that fetches detailed information about a single GitHub repository.
  * Takes an `owner` and `repo` and returns full repository metadata.
  *
@@ -60,6 +87,8 @@ export type GitHubGetRepoResult = {
   description:
     'Gets detailed information about a specific GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubGetRepoResultSchema,
+  effects: 'none',
 })
 export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, object, GitHubGetRepoResult> {
   private readonly logger = new Logger(GitHubGetRepoTool.name);

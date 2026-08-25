@@ -47,6 +47,30 @@ export type GitHubGetIssueResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubGetIssueResult}.
+ *
+ * @public
+ */
+export const GitHubGetIssueResultSchema = z.strictObject({
+  issue: z.strictObject({
+    id: z.number(),
+    number: z.number(),
+    title: z.string(),
+    body: z.string().nullable(),
+    state: z.string(),
+    user: z.string(),
+    labels: z.array(z.string()),
+    assignees: z.array(z.string()),
+    milestone: z.string().nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    closedAt: z.string().nullable(),
+    htmlUrl: z.string(),
+    comments: z.number(),
+  }),
+});
+
+/**
  * Tool that fetches detailed information about a single GitHub issue.
  *
  * @providedBy GitHubModule
@@ -57,6 +81,8 @@ export type GitHubGetIssueResult =
   description:
     'Gets detailed information about a specific GitHub issue. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubGetIssueResultSchema,
+  effects: 'none',
 })
 export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, GitHubGetIssueResult> {
   private readonly logger = new Logger(GitHubGetIssueTool.name);

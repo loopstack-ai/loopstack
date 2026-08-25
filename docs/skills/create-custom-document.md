@@ -181,11 +181,24 @@ Used in `options.properties.<field>.widget`:
 | `widget`      | `string`  | Widget type (see above)            |
 | `placeholder` | `string`  | Placeholder text                   |
 | `rows`        | `number`  | Visible rows (textarea)            |
-| `readonly`    | `boolean` | Read-only field                    |
+| `readonly`    | `boolean` | Read-only field (server-enforced)  |
 | `hidden`      | `boolean` | Hide the field                     |
 | `disabled`    | `boolean` | Disable interaction                |
 | `collapsed`   | `boolean` | Collapse arrays/objects by default |
 | `items`       | `object`  | UI config for array items          |
+
+#### Read-only fields
+
+`readonly: true` is enforced, not just rendered: Studio shows the field as non-editable, the CLI discards `$EDITOR` changes to it, and the **backend rejects** any transition submission that changes the field's value relative to the active document's content (`400 — Field "subject" of document "feedback_form" is read-only.`). Use it for workflow-provided values the user must see but not alter:
+
+```yaml
+properties:
+  subject:
+    title: Subject
+    readonly: true
+```
+
+Enforcement applies to user submissions of transitions the widget declares (`actions[].transition` / `options.transition`); the workflow itself can always update its own documents. See `inline_form_example` in `@loopstack/hitl-examples` for a working example.
 
 ### Actions
 

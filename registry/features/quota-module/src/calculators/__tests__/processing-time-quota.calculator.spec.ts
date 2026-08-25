@@ -23,6 +23,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
         workspaceId: 'ws-1',
         workflowId: '',
         args: undefined,
+        signal: new AbortController().signal,
       },
       metadata: { durationMs: 1500 },
     };
@@ -42,6 +43,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
         workspaceId: 'ws-1',
         workflowId: '',
         args: undefined,
+        signal: new AbortController().signal,
       },
       metadata: {},
     };
@@ -58,6 +60,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
         workspaceId: 'ws-1',
         workflowId: '',
         args: undefined,
+        signal: new AbortController().signal,
       },
       metadata: { durationMs: 0 },
     };

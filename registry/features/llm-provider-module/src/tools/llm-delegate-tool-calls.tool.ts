@@ -2,9 +2,10 @@ import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
+import { resolveDocumentName } from '@loopstack/core';
 import { LlmMessageDocument } from '../documents/index.js';
 import { LlmDelegateService } from '../services/llm-delegate.service.js';
-import { LlmNormalizedMessageSchema } from '../types/index.js';
+import { LlmDelegateResultSchema, LlmNormalizedMessageSchema } from '../types/index.js';
 import type { LlmContentBlock, LlmDelegateResult, LlmNormalizedMessage } from '../types/index.js';
 
 /**
@@ -50,6 +51,8 @@ type LlmDelegateToolCallsConfig = z.infer<typeof LlmDelegateToolCallsConfigSchem
   description: 'Delegates tool calls from an LLM response. Resolves tools via ToolRegistry.',
   schema: LlmDelegateToolCallsToolSchema,
   configSchema: LlmDelegateToolCallsConfigSchema,
+  resultSchema: LlmDelegateResultSchema,
+  effects: 'none',
 })
 export class LlmDelegateToolCallsTool extends BaseTool<
   LlmDelegateToolCallsToolArgs,
@@ -68,23 +71,28 @@ export class LlmDelegateToolCallsTool extends BaseTool<
     const result = await this.delegateService.delegateToolCalls(toolCalls, args.callback);
 
     const config = options?.config;
-    if (config?.save !== false && result.allCompleted && result.toolResults.length > 0) {
-      await this.documentStore.save(
-        LlmMessageDocument,
-        {
-          role: 'user',
-          blocks: result.toolResults.map((tr) => ({
-            type: 'tool_result' as const,
-            toolCallId: tr.toolCallId,
-            content: tr.content ?? '',
-            isError: tr.isError ?? false,
-          })),
-        },
-        { meta: { ...(config?.meta ?? {}) } },
-      );
-    }
+    const saveResults = config?.save !== false && result.allCompleted && result.toolResults.length > 0;
 
-    return { data: result };
+    return {
+      data: result,
+      ...(saveResults && {
+        documents: [
+          {
+            documentName: resolveDocumentName(LlmMessageDocument),
+            content: {
+              role: 'user',
+              blocks: result.toolResults.map((tr) => ({
+                type: 'tool_result' as const,
+                toolCallId: tr.toolCallId,
+                content: tr.content ?? '',
+                isError: tr.isError ?? false,
+              })),
+            },
+            options: { meta: { ...(config?.meta ?? {}) } },
+          },
+        ],
+      }),
+    };
   }
 
   private extractToolCalls(message: LlmNormalizedMessage) {

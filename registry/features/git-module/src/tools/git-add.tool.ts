@@ -19,6 +19,13 @@ export type GitAddArgs = {
 export type GitAddResult = { success: boolean };
 
 /**
+ * Zod schema for `GitAddResult`.
+ *
+ * @public
+ */
+export const GitAddResultSchema = z.strictObject({ success: z.boolean() });
+
+/**
  * Tool that stages files for the next git commit.
  *
  * @providedBy GitModule
@@ -32,6 +39,8 @@ export type GitAddResult = { success: boolean };
       files: z.array(z.string()).describe('File paths to stage. Use ["."] to stage all changes.'),
     })
     .strict(),
+  resultSchema: GitAddResultSchema,
+  effects: 'external',
 })
 export class GitAddTool extends BaseTool<GitAddArgs, object, GitAddResult> {
   constructor(

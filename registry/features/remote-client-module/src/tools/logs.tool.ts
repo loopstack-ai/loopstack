@@ -24,6 +24,16 @@ export type LogsResult = {
 };
 
 /**
+ * Zod schema for {@link LogsResult}.
+ *
+ * @public
+ */
+export const LogsResultSchema = z.strictObject({
+  stdout: z.string(),
+  stderr: z.string(),
+});
+
+/**
  * Tool that retrieves application logs from the remote instance.
  *
  * @providedBy RemoteClientModule
@@ -42,6 +52,8 @@ export type LogsResult = {
         .describe('Which logs to retrieve: "out" for stdout, "error" for stderr, "all" for both (default "all")'),
     })
     .strict(),
+  resultSchema: LogsResultSchema,
+  effects: 'none',
 })
 export class LogsTool extends BaseTool<LogsArgs, object, LogsResult> {
   constructor(

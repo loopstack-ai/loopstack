@@ -35,6 +35,16 @@ export interface SandboxInitResult {
 }
 
 /**
+ * Zod schema for {@link SandboxInitResult} — the `resultSchema` of `sandbox_init`.
+ *
+ * @public
+ */
+export const SandboxInitResultSchema = z.strictObject({
+  containerId: z.string(),
+  dockerId: z.string(),
+});
+
+/**
  * Tool that initializes a new Docker sandbox container from an image and mounts a host directory into it.
  *
  * @providedBy SandboxToolModule
@@ -44,6 +54,8 @@ export interface SandboxInitResult {
   name: 'sandbox_init',
   description: 'Initialize a new sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxInitResultSchema,
+  effects: 'external',
 })
 export class SandboxInit extends BaseTool<SandboxInitArgs, object, SandboxInitResult> {
   private readonly logger = new Logger(SandboxInit.name);

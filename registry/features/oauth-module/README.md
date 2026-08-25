@@ -113,11 +113,23 @@ oauth-module (generic)              provider module (e.g. google)
                                     └──────────────────────────────┘
 ```
 
-The module is split into three layers:
+The module is split into four layers:
 
 1. **Provider registry** — provider modules implement `OAuthProviderInterface` and self-register via `OnModuleInit`
 2. **OAuth workflow** — a generic workflow that builds the auth URL, shows a sign-in prompt, waits for the callback, then exchanges the code for tokens
 3. **Token store** — persists tokens per user per provider in Redis (falls back to in-memory if Redis is unavailable)
+4. **Public callback endpoints** — complete the flow from `code` + `state` alone; the single-use state token (10 minute TTL, registered via `OAuthSessionService` when the auth URL is built) resolves the pending workflow server-side
+
+### Callback / Redirect URI Modes
+
+The provider's `*_OAUTH_REDIRECT_URI` can point at either of two supported targets (register the one you use in the provider console):
+
+| Redirect URI                  | How the flow completes                                                                                                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<api>/api/v1/oauth/callback` | **Backend callback.** The API completes the exchange server-side and renders a minimal confirmation page. Works without the Studio frontend — CLI-printed auth URLs and headless deployments.             |
+| `<studio>/oauth/callback`     | **Studio callback page.** Opened as a popup from Studio it posts `code`/`state` back to the opener (classic flow); opened directly (e.g. from a CLI link) it falls back to `POST /api/v1/oauth/complete`. |
+
+Both paths fire the waiting workflow's `exchangeToken` transition as the user who started the flow; the state parameter stays the CSRF anchor and is additionally single-use server-side.
 
 ### OAuthWorkflow State Machine
 

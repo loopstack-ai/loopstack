@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { TOOL_PIPELINE, TOOL_REGISTRY, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
+import { TOOL_PIPELINE, TOOL_REGISTRY, ToolCallOptions, ToolEnvelope, parseToolResult } from '@loopstack/common';
 import type { ToolPipeline, ToolRegistry } from '@loopstack/common';
 import type { LlmDelegateResult, LlmToolCall, LlmToolErrorEntry, LlmToolResultEntry } from '../types/index.js';
 
@@ -136,32 +136,22 @@ export class LlmDelegateService {
     toolName: string,
     completedToolRecord: Record<string, unknown>,
   ): Promise<ToolEnvelope> {
-    const tool = this.toolRegistry.get(toolName);
-
     const callbackStatus = completedToolRecord.status as string | undefined;
-    const subWorkflowFailed = callbackStatus === 'failed' || callbackStatus === 'canceled';
+    if (callbackStatus === 'failed' || callbackStatus === 'canceled') {
+      // A failed sub-workflow has no result to shape — complete() is never called. The error
+      // envelope becomes the tool_result content with isError: true, so the LLM sees the failure.
+      const errorMessage = `Sub-workflow "${toolName}" ${callbackStatus}.`;
+      this.logger.error(errorMessage);
+      return { data: errorMessage, error: errorMessage };
+    }
 
-    let toolResult: ToolEnvelope;
+    const tool = this.toolRegistry.get(toolName);
     try {
-      toolResult = await tool.complete(completedToolRecord);
+      return parseToolResult(tool, await tool.complete(completedToolRecord));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Tool "${toolName}" complete() failed: ${errorMessage}`);
-      toolResult = { data: errorMessage, error: errorMessage };
+      return { data: errorMessage, error: errorMessage };
     }
-
-    if (subWorkflowFailed && !toolResult.error) {
-      // Tool's complete() didn't recognize the failure. Overwrite both `data` and `error` —
-      // otherwise the tool's (now misleading) success payload would be sent to the LLM as the
-      // tool_result content alongside isError: true, and the model would proceed as if it succeeded.
-      const errorMessage = `Sub-workflow "${toolName}" ${callbackStatus}.`;
-      this.logger.error(errorMessage);
-      toolResult = {
-        data: errorMessage,
-        error: errorMessage,
-      };
-    }
-
-    return toolResult;
   }
 }

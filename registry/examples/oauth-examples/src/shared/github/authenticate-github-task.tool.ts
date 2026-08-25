@@ -20,6 +20,8 @@ type AuthenticateGitHubTaskInput = z.infer<typeof AuthenticateGitHubTaskInputSch
 
 export type AuthenticateGitHubTaskResult = { workflowId: string; mode: string; [key: string]: unknown } | string;
 
+export const AuthenticateGitHubTaskResultSchema = z.string();
+
 @Tool({
   name: 'authenticate_github',
   description:
@@ -28,6 +30,8 @@ export type AuthenticateGitHubTaskResult = { workflowId: string; mode: string; [
     'Pass the required OAuth scopes for the GitHub APIs you need access to. ' +
     'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: AuthenticateGitHubTaskInputSchema,
+  resultSchema: AuthenticateGitHubTaskResultSchema,
+  effects: 'external',
 })
 export class AuthenticateGitHubTask extends BaseTool<
   AuthenticateGitHubTaskInput,

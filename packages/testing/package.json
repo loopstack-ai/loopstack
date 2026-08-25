@@ -22,11 +22,12 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
     "@loopstack/common": "^0.37.0",
+    "@loopstack/contracts": "^0.37.0",
     "@loopstack/core": "^0.37.0",
     "lodash": "^4.18.1",
     "vitest": "^4.1.6"

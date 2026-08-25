@@ -40,6 +40,23 @@ export interface SandboxListDirectoryResult {
 }
 
 /**
+ * Zod schema for {@link SandboxListDirectoryResult} — the `resultSchema` of `sandbox_list_directory`.
+ *
+ * @public
+ */
+export const SandboxListDirectoryResultSchema = z.strictObject({
+  path: z.string(),
+  entries: z.array(
+    z.strictObject({
+      name: z.string(),
+      type: z.enum(['file', 'directory', 'symlink', 'other']),
+      size: z.number(),
+      path: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists files and directories in a sandbox container, optionally recursively, with type and size.
  *
  * @providedBy SandboxFilesystemModule
@@ -49,6 +66,8 @@ export interface SandboxListDirectoryResult {
   name: 'sandbox_list_directory',
   description: 'List files and directories in a sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxListDirectoryResultSchema,
+  effects: 'none',
 })
 export class SandboxListDirectory extends BaseTool<SandboxListDirectoryArgs, object, SandboxListDirectoryResult> {
   private readonly logger = new Logger(SandboxListDirectory.name);

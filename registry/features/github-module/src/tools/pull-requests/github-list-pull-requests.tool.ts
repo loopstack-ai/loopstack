@@ -48,6 +48,30 @@ export type GitHubListPullRequestsResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubListPullRequestsResult}.
+ *
+ * @public
+ */
+export const GitHubListPullRequestsResultSchema = z.strictObject({
+  pullRequests: z.array(
+    z.strictObject({
+      id: z.number(),
+      number: z.number(),
+      title: z.string(),
+      state: z.string(),
+      user: z.string(),
+      head: z.string(),
+      headSha: z.string(),
+      base: z.string(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      htmlUrl: z.string(),
+      draft: z.boolean(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists pull requests for a GitHub repository, with state and base-branch filters.
  *
  * @providedBy GitHubModule
@@ -58,6 +82,8 @@ export type GitHubListPullRequestsResult = {
   description:
     'Lists pull requests for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubListPullRequestsResultSchema,
+  effects: 'none',
 })
 export class GitHubListPullRequestsTool extends BaseTool<
   GitHubListPullRequestsArgs,

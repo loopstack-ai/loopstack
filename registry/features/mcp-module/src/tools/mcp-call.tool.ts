@@ -3,6 +3,7 @@ import { Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { McpToolConfigSchema } from '../config/mcp-tool-config.schema.js';
 import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
+import { McpCallToolResultSchema } from '../services/mcp-client.service.js';
 import { McpConnectionArgsSchema } from './mcp-connection-args.schema.js';
 import { McpToolBase } from './mcp-tool-base.js';
 
@@ -35,6 +36,8 @@ export type McpCallToolArgs = z.infer<typeof McpCallToolArgsSchema>;
     'Calls a tool on a remote MCP server over HTTPS (Streamable HTTP or legacy SSE). Requires `allowedHosts` and optional `headerEnv`/`hostHeaderEnv` via tool config.',
   schema: McpCallToolArgsSchema,
   configSchema: McpToolConfigSchema,
+  resultSchema: McpCallToolResultSchema,
+  effects: 'external',
 })
 export class McpCallTool extends McpToolBase<McpCallToolArgs> {
   protected async handle(

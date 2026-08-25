@@ -95,6 +95,6 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
   }
 
-  @Transition({ from: 'prompt_executed', to: 'end' })
+  @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
   respond() {}
 }

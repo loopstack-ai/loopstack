@@ -176,6 +176,26 @@ Combines custom documents, LLM-driven structured output, and two HITL review ste
 - `documents/optimized-notes-document.{ts,yaml}` — structured output document
 - `templates/extract-notes.md` — LLM prompt template
 
+## Testing
+
+Every workflow ships with an inner-loop spec in its `__tests__/` folder — run them with `npm run test` (in-process, no backend, no API key). The specs double as the reference for **how to test each HITL flavor**, extending the decision matrix above:
+
+| HITL flavor                                                       | How its tests work                                                                                                                                                | Spec                                                |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Custom document + own `wait: true` transition                     | Script the submission with `answers`, keyed by the wait-transition method name                                                                                    | `inline-form`                                       |
+| Sub-workflow shortcut (`AskUserWorkflow` / `ConfirmUserWorkflow`) | Script the _child's_ wait transition (`userAnswered`, `userConfirmed` / `userDenied`) — `answers` reaches inline sub-workflows at any depth                       | `ask-user-*`, `confirm-content`                     |
+| Chat loop (same wait transition parks repeatedly)                 | `queue('first', 'second')` submits one message per park, then the run parks again; scripted LLM replies via `replay`                                              | `prompt-input-chat`                                 |
+| LLM step inside a predefined workflow                             | `replay` scripts the LLM response; `answers` drives the surrounding HITL steps                                                                                    | `meeting-notes`                                     |
+| Agent HITL (`ask_clarification` / `ask_for_approval`)             | `replayTools: [LlmGenerateTextTool]` scripts only the LLM turns; the agent loop, delegation, and the real HITL child run live; `answers` resumes the nested child | `agent-ask-clarification`, `agent-ask-for-approval` |
+
+**The record/refresh loop.** The replay specs here use hand-written LLM turns for readability; for your own workflows, record fixtures from a real run instead: run the test once with `fixture: '<path>'` and live providers (records on the first run, replays afterwards — delete the file to re-record), or derive one from a backend run started with `loopstack run --trace` via `loopstack runs <run-id> --record <file> --tools llm_generate_text`. When a replayed test fails with a drift error after a prompt change, that is the signal: run the live check-ups, and re-record when green.
+
+**Live check-ups** (`*.live.spec.ts`) run the same flows against the real model with structural assertions — `npm run test:live`, needs `ANTHROPIC_API_KEY`, on demand after prompt or model changes, never in the PR gate.
+
+**Outer loop.** Before relying on a flow, run the real thing once from the terminal and watch it: `loopstack run <workflow_name>` follows the run live and prompts you at every HITL step; `loopstack runs` shows the inbox of runs waiting for input.
+
+See the [testing guide](https://loopstack.ai/docs/build/testing) for the full story.
+
 ## About
 
 Author: [Jakob Klippel](https://www.linkedin.com/in/jakob-klippel/)

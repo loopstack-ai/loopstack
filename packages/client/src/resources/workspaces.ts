@@ -12,6 +12,7 @@ import type { HttpClient, QueryParams } from '../http.js';
 export interface WorkspaceListParams {
   filter?: WorkspaceFilterInterface;
   sortBy?: WorkspaceSortByInterface[];
+  /** 0-indexed page number (first page is 0). */
   page?: number;
   limit?: number;
   search?: string;

@@ -16,6 +16,7 @@ import EmbedWorkbenchPage from './pages/EmbedWorkbenchPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
 import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
 import RouteErrorPage from './pages/RouteErrorPage.tsx';
+import RunPage from './pages/RunPage.tsx';
 import RunsListPage from './pages/RunsListPage.tsx';
 import RunsPage from './pages/RunsPage.tsx';
 import WorkflowDebugPage from './pages/WorkflowDebugPage.tsx';
@@ -119,6 +120,10 @@ const router: DataRouter = createBrowserRouter([
       {
         path: 'runs/action-required',
         element: <RunsPage />,
+      },
+      {
+        path: 'runs/:workflowId',
+        element: <RunPage />,
       },
       {
         path: 'workspaces',

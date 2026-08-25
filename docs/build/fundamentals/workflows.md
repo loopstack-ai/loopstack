@@ -1,6 +1,6 @@
 ---
 title: Creating Workflows
-description: How to define workflow state machines using BaseWorkflow, @Workflow() decorator, @Transition() decorator, state typing, wait transitions, and guards. Includes full chat workflow example.
+description: How to define workflow state machines using BaseWorkflow, @Workflow() decorator, @Transition() decorator, state typing, wait transitions, and guards. Covers the run trace — the per-run event journal (transitions, tool calls, documents, run.settled) with opt-in persistence via --trace. Includes full chat workflow example.
 ---
 
 # Creating Workflows
@@ -279,6 +279,8 @@ async process(state: MyState) {
 }
 ```
 
+Any provider can be injected the same way. For time-dependent logic, inject the framework clock (`@Inject(CLOCK) private readonly clock: Clock`) instead of calling `Date.now()` or `setTimeout` directly — under a test clock the workflow stays deterministic.
+
 ## Documents
 
 Use `this.documentStore.save()` to create or update documents. Reference document classes directly — no injection needed.
@@ -319,6 +321,26 @@ Places are implicit — defined by `from`/`to` values in your decorators. Two sp
 - **`end`** — When reached, the workflow completes
 
 All other place names are arbitrary strings you choose.
+
+## The Run Trace
+
+Every run produces a **trace**: an ordered, append-only journal of everything the run did. The engine never reads it — it exists for you: debugging a failed run, asserting on behavior in tests, deriving replay fixtures, and auditing what an automation actually executed.
+
+| Event                                            | Emitted when                               | Carries                                                                        |
+| ------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| `transition.started`                             | A transition begins                        | transition id, `from`/`to`, the wait payload                                   |
+| `transition.completed`                           | It succeeds                                | duration, a per-key **state diff**, whether the result was touched             |
+| `transition.failed`                              | It throws or a sub-workflow callback fails | error, retry count, whether a retry is scheduled                               |
+| `tool.called` / `tool.completed` / `tool.failed` | Each tool call                             | tool name, per-transition order, validated args, the result envelope, duration |
+| `document.emitted`                               | A document is saved                        | document name/key, the invalidated predecessor key                             |
+| `child.queued` / `child.settled`                 | A sub-workflow launches / finishes         | child workflow id, name, status                                                |
+| `run.settled`                                    | Every park and terminal settle             | status, place — parks include the transitions the run is waiting on            |
+
+Events are ordered by a per-run monotonic `seq` (continuous across pause/resume) and carry a wall-clock `ts`. Failing tool calls and failing transitions are first-class events — a trace always shows _where_ a run died, with the exact call and error.
+
+**In memory, the trace is always on.** A run's processing result carries it (`meta.trace`), stateless runs carry it across park/resume, and workflow tests assert on it via [`run.trace` and `run.toolCalls`](/docs/build/testing).
+
+**Persistence is opt-in per run.** Start a run with `loopstack run <workflow> --trace` (or `trace: true` on the start payload) and its whole run tree — sub-workflows inherit the flag — persists its events as queryable rows. Read them back with `loopstack runs <id> --record <file>` (derives a [replay fixture](/docs/build/testing)), `GET /workflows/:id/tool-calls`, or `client.workflows.toolCalls(id)`. To record every run, e.g. on a dev backend, enable it globally with the [`trace` option / `LOOPSTACK_TRACE=true`](/docs/reference/configuration#trace).
 
 ## YAML Configuration
 

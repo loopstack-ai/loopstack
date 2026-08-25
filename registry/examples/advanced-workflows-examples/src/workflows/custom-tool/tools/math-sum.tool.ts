@@ -13,10 +13,14 @@ type MathSumArgs = z.infer<typeof MathSumSchema>;
 
 export type MathSumToolResult = number;
 
+export const MathSumToolResultSchema = z.number();
+
 @Tool({
   name: 'math_sum',
   description: 'Math tool calculating the sum of two arguments by using an injected service.',
   schema: MathSumSchema,
+  resultSchema: MathSumToolResultSchema,
+  effects: 'none',
 })
 export class MathSumTool extends BaseTool<MathSumArgs, object, MathSumToolResult> {
   constructor(private readonly mathService: MathService) {

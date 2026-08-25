@@ -23,3 +23,5 @@ export const STUDIO_APP_EXTENSION_KEY = 'loopstack:studio-app-extension';
 export const FEATURE_REGISTRY = Symbol('FeatureRegistry');
 /** Inject ToolRegistryService without depending on @loopstack/core. */
 export const TOOL_REGISTRY = Symbol('ToolRegistry');
+/** Inject the framework Clock — deterministic time under a test clock. */
+export const CLOCK = Symbol('Clock');

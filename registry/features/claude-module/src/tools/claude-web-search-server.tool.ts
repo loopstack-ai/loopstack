@@ -32,6 +32,7 @@ export type ClaudeWebSearchServerToolConfig = z.infer<typeof ClaudeWebSearchServ
     'Provides real-time information retrieval during agent conversations. ' +
     'Configure via options.config ({ maxUses, allowedDomains, blockedDomains }).',
   configSchema: ClaudeWebSearchServerToolConfigSchema,
+  effects: 'none',
 })
 export class ClaudeWebSearchServerTool extends ServerTool<ClaudeWebSearchServerToolConfig> {
   toServerToolConfig(config?: ClaudeWebSearchServerToolConfig): unknown {

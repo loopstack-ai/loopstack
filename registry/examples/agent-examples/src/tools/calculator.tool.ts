@@ -4,6 +4,8 @@ import type { RunContext } from '@loopstack/common';
 
 export type CalculatorResult = string;
 
+export const CalculatorResultSchema = z.string();
+
 @Tool({
   name: 'calculator',
   description: 'Perform a basic arithmetic calculation. Supports add, subtract, multiply, divide.',
@@ -12,6 +14,8 @@ export type CalculatorResult = string;
     a: z.number().describe('First operand.'),
     b: z.number().describe('Second operand.'),
   }),
+  resultSchema: CalculatorResultSchema,
+  effects: 'none',
 })
 export class CalculatorTool extends BaseTool<{ operation: string; a: number; b: number }, object, CalculatorResult> {
   protected async handle(

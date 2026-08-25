@@ -38,6 +38,27 @@ export type GitHubGetAuthenticatedUserResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubGetAuthenticatedUserResult}.
+ *
+ * @public
+ */
+export const GitHubGetAuthenticatedUserResultSchema = z.strictObject({
+  user: z.strictObject({
+    id: z.number(),
+    login: z.string(),
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    avatarUrl: z.string(),
+    htmlUrl: z.string(),
+    bio: z.string().nullable(),
+    publicRepos: z.number(),
+    followers: z.number(),
+    following: z.number(),
+    createdAt: z.string(),
+  }),
+});
+
+/**
  * Tool that fetches the profile of the currently authenticated GitHub user.
  *
  * @providedBy GitHubModule
@@ -48,6 +69,8 @@ export type GitHubGetAuthenticatedUserResult = {
   description:
     'Gets the profile of the currently authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubGetAuthenticatedUserResultSchema,
+  effects: 'none',
 })
 export class GitHubGetAuthenticatedUserTool extends BaseTool<
   GitHubGetAuthenticatedUserArgs,

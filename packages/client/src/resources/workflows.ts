@@ -1,6 +1,7 @@
 import type {
   BatchDeleteResultInterface,
   PaginatedInterface,
+  ToolCallRecordInterface,
   WorkflowCheckpointInterface,
   WorkflowCreateInterface,
   WorkflowFilterInterface,
@@ -15,6 +16,7 @@ import type { HttpClient, QueryParams } from '../http.js';
 export interface WorkflowListParams {
   filter?: WorkflowFilterInterface;
   sortBy?: WorkflowSortByInterface[];
+  /** 0-indexed page number (first page is 0). */
   page?: number;
   limit?: number;
   search?: string;
@@ -42,6 +44,9 @@ export function createWorkflowsResource(http: HttpClient) {
 
     checkpoints: (id: string): Promise<WorkflowCheckpointInterface[]> =>
       http.get(`/api/v1/workflows/${id}/checkpoints`),
+
+    /** Recorded tool calls of a run (persisted when the run was started with trace enabled). */
+    toolCalls: (id: string): Promise<ToolCallRecordInterface[]> => http.get(`/api/v1/workflows/${id}/tool-calls`),
   };
 }
 

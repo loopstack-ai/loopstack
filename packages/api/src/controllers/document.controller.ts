@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, ParseUUIDPipe, Query } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface, ZodJsonQueryPipe } from '@loopstack/common';
 import {
   DocumentFilterInterface,
@@ -39,7 +39,7 @@ export class DocumentController {
    */
   @Get(':id')
   async getDocumentById(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<DocumentItemInterface> {
     const document = await this.documentService.findOneById(id, user.userId);

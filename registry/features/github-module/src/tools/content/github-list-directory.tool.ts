@@ -40,6 +40,24 @@ export type GitHubListDirectoryResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubListDirectoryResult}.
+ *
+ * @public
+ */
+export const GitHubListDirectoryResultSchema = z.strictObject({
+  entries: z.array(
+    z.strictObject({
+      name: z.string(),
+      path: z.string(),
+      sha: z.string(),
+      size: z.number(),
+      type: z.string(),
+      htmlUrl: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists the contents of a directory in a GitHub repository.
  *
  * @providedBy GitHubModule
@@ -50,6 +68,8 @@ export type GitHubListDirectoryResult = {
   description:
     'Lists the contents of a directory in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubListDirectoryResultSchema,
+  effects: 'none',
 })
 export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, object, GitHubListDirectoryResult> {
   private readonly logger = new Logger(GitHubListDirectoryTool.name);

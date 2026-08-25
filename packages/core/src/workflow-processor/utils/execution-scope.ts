@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { QueryRunner } from 'typeorm';
-import type { DocumentEntity } from '@loopstack/common';
-import type { HistoryTransition } from '@loopstack/contracts/types';
+import type { ActiveTransition, DocumentEntity, StatelessChildRecord } from '@loopstack/common';
+import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
+import type { RunTraceCollector } from './run-trace-collector.js';
 
 /**
  * Data held in async-local-storage during a workflow transition.
@@ -16,6 +17,8 @@ export interface ExecutionScopeData {
   userId: string;
   workspaceId: string;
   workflowId: string;
+  /** Registered name of the workflow being processed. */
+  workflowName: string;
   labels: string[];
   args: Readonly<Record<string, unknown> | undefined>;
   options: { stateless: boolean };
@@ -27,7 +30,23 @@ export interface ExecutionScopeData {
   queryRunner: QueryRunner | null;
   documents: DocumentEntity[];
   persistenceState: { documentsUpdated: boolean };
-  transition?: HistoryTransition;
+  transition?: ActiveTransition;
+
+  /** The run's trace collector — emission sites (pipeline, documents, orchestration) write here. */
+  trace: RunTraceCollector;
+
+  /** Whether this run persists its trace rows — inherited by sub-workflows queued from it. */
+  tracePersist: boolean;
+
+  // Stateless sub-workflow orchestration (in-memory): callback envelopes of inline-executed
+  // children awaiting application to the parent, and the records of all inline children.
+  statelessCallbacks?: TransitionPayloadInterface[];
+  statelessChildren?: StatelessChildRecord[];
+
+  // Aborted when the transition is torn down (e.g. on timeout). Framework I/O reads
+  // `abortController.signal` and refuses to run once aborted, so an abandoned transition
+  // method cannot write outside its rolled-back transaction. Replaced before each transition.
+  abortController: AbortController;
 
   // Per-transition state/result drafts mutated by BaseWorkflow setters
   // (assignState / setState / assignResult / setResult). The processor seeds

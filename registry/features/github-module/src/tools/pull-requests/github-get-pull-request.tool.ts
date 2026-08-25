@@ -54,6 +54,37 @@ export type GitHubGetPullRequestResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubGetPullRequestResult}.
+ *
+ * @public
+ */
+export const GitHubGetPullRequestResultSchema = z.strictObject({
+  pullRequest: z.strictObject({
+    id: z.number(),
+    number: z.number(),
+    title: z.string(),
+    body: z.string().nullable(),
+    state: z.string(),
+    user: z.string(),
+    head: z.string(),
+    headSha: z.string(),
+    base: z.string(),
+    merged: z.boolean(),
+    mergeable: z.boolean().nullable(),
+    draft: z.boolean(),
+    additions: z.number(),
+    deletions: z.number(),
+    changedFiles: z.number(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    mergedAt: z.string().nullable(),
+    htmlUrl: z.string(),
+    comments: z.number(),
+    reviewComments: z.number(),
+  }),
+});
+
+/**
  * Tool that fetches detailed information about a single GitHub pull request.
  *
  * @providedBy GitHubModule
@@ -64,6 +95,8 @@ export type GitHubGetPullRequestResult =
   description:
     'Gets detailed information about a specific GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubGetPullRequestResultSchema,
+  effects: 'none',
 })
 export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs, object, GitHubGetPullRequestResult> {
   private readonly logger = new Logger(GitHubGetPullRequestTool.name);

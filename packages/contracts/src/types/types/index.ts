@@ -12,4 +12,5 @@ export * from './workflow.type.js';
 export * from './workflow-transition.type.js';
 export * from './json-schema-config.type.js';
 export * from './main.type.js';
+export * from './run-trace.type.js';
 export * from './workflow-state.type.js';

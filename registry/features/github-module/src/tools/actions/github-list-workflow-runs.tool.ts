@@ -65,6 +65,29 @@ export type GitHubListWorkflowRunsResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubListWorkflowRunsResult}.
+ *
+ * @public
+ */
+export const GitHubListWorkflowRunsResultSchema = z.strictObject({
+  totalCount: z.number(),
+  runs: z.array(
+    z.strictObject({
+      id: z.number(),
+      name: z.string(),
+      status: z.string(),
+      conclusion: z.string().nullable(),
+      headBranch: z.string(),
+      headSha: z.string(),
+      event: z.string(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      htmlUrl: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists GitHub Actions workflow runs for a repository, with branch and status filters.
  *
  * @providedBy GitHubModule
@@ -75,6 +98,8 @@ export type GitHubListWorkflowRunsResult = {
   description:
     'Lists workflow runs for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubListWorkflowRunsResultSchema,
+  effects: 'none',
 })
 export class GitHubListWorkflowRunsTool extends BaseTool<
   GitHubListWorkflowRunsArgs,

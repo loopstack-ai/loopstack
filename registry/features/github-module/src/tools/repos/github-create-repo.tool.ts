@@ -40,6 +40,22 @@ export type GitHubCreateRepoResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubCreateRepoResult}.
+ *
+ * @public
+ */
+export const GitHubCreateRepoResultSchema = z.strictObject({
+  repo: z.strictObject({
+    id: z.number(),
+    fullName: z.string(),
+    name: z.string(),
+    htmlUrl: z.string(),
+    private: z.boolean(),
+    defaultBranch: z.string(),
+  }),
+});
+
+/**
  * Tool that creates a new GitHub repository for the authenticated user.
  *
  * @providedBy GitHubModule
@@ -50,6 +66,8 @@ export type GitHubCreateRepoResult = {
   description:
     'Creates a new GitHub repository for the authenticated user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubCreateRepoResultSchema,
+  effects: 'external',
 })
 export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object, GitHubCreateRepoResult> {
   private readonly logger = new Logger(GitHubCreateRepoTool.name);

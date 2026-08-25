@@ -42,6 +42,26 @@ export type GoogleCalendarFetchEventsResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GoogleCalendarFetchEventsResult} — the fetched events.
+ *
+ * @public
+ */
+export const GoogleCalendarFetchEventsResultSchema = z.strictObject({
+  events: z.array(
+    z.strictObject({
+      id: z.string(),
+      summary: z.string().optional(),
+      description: z.string().optional(),
+      start: z.string().optional(),
+      end: z.string().optional(),
+      location: z.string().optional(),
+      attendees: z.array(z.strictObject({ email: z.string(), responseStatus: z.string().optional() })).optional(),
+      htmlLink: z.string().optional(),
+    }),
+  ),
+});
+
+/**
  * Tool that fetches events from a Google Calendar within a time range. Takes a `timeMin`/`timeMax`
  * window (and optional `calendarId`, `query`, `maxResults`) and returns matching events with
  * start/end, attendees, and links, or `{ error: 'unauthorized' }` when no valid Google token is available.
@@ -54,6 +74,8 @@ export type GoogleCalendarFetchEventsResult = {
   description:
     'Fetches events from a Google Calendar within a time range. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GoogleCalendarFetchEventsResultSchema,
+  effects: 'none',
 })
 export class GoogleCalendarFetchEventsTool extends BaseTool<
   GoogleCalendarFetchEventsArgs,

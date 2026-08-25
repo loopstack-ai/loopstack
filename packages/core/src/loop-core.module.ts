@@ -4,10 +4,12 @@ import { DiscoveryModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
+  CLOCK,
   DOCUMENT_STORE,
   DocumentEntity,
   EXECUTION_SCOPE,
   FEATURE_REGISTRY,
+  RunTraceEventEntity,
   TEMPLATE_RENDERER,
   TOOL_PIPELINE,
   TOOL_REGISTRY,
@@ -17,6 +19,7 @@ import {
   WorkspaceEntity,
 } from '@loopstack/common';
 import { ClientMessageService } from './common/services/client-message.service.js';
+import { SystemClock } from './common/services/system-clock.js';
 import { WorkflowCheckpointService, WorkflowService, WorkspaceService } from './persistence/services/index.js';
 import type { RedisOptions } from './scheduler/interfaces/redis-options.interface.js';
 import { TaskSchedulerService } from './scheduler/services/task-scheduler.service.js';
@@ -29,8 +32,9 @@ import {
   FeatureRegistryService,
   ProcessorFactory,
   RootProcessorService,
+  RunTraceService,
+  StatelessChildRunner,
   StudioDiscoveryService,
-  ToolLoggingInterceptor,
   ToolPipelineService,
   ToolRegistryService,
   TransitionResolverService,
@@ -44,15 +48,15 @@ import { ExecutionScope, TemplateRenderer } from './workflow-processor/utils/ind
 import { FanOutWorkflow, SequenceWorkflow } from './workflows/index.js';
 
 export interface LoopCoreModuleOptions {
-  connection?: string;
   redis?: RedisOptions;
 }
 
-const ENTITIES = [WorkflowEntity, DocumentEntity, WorkspaceEntity, WorkflowCheckpointEntity];
+const ENTITIES = [WorkflowEntity, DocumentEntity, WorkspaceEntity, WorkflowCheckpointEntity, RunTraceEventEntity];
 
 const PROVIDERS = [
   // Common
   ClientMessageService,
+  { provide: CLOCK, useClass: SystemClock },
 
   // Persistence
   WorkflowService,
@@ -71,8 +75,9 @@ const PROVIDERS = [
   DocumentPersistenceService,
   DocumentStore,
   WorkflowOrchestrationService,
+  StatelessChildRunner,
   TransitionResolverService,
-  ToolLoggingInterceptor,
+  RunTraceService,
   ToolPipelineService,
   TemplateRenderer,
   WorkflowRegistryService,
@@ -119,6 +124,7 @@ const PROVIDERS = [
 const EXPORTS = [
   // Common
   ClientMessageService,
+  CLOCK,
 
   // Persistence
   WorkflowService,
@@ -139,6 +145,7 @@ const EXPORTS = [
   DocumentStore,
   WorkflowOrchestrationService,
   TransitionResolverService,
+  RunTraceService,
   ToolPipelineService,
   TemplateRenderer,
   WorkflowRegistryService,
@@ -179,7 +186,7 @@ export class LoopCoreModule {
       module: LoopCoreModule,
       global: true,
       imports: [
-        TypeOrmModule.forFeature(ENTITIES, options.connection),
+        TypeOrmModule.forFeature(ENTITIES),
         ConfigModule,
         EventEmitterModule.forRoot(),
         DiscoveryModule,

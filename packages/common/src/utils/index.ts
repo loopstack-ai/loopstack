@@ -6,5 +6,7 @@ export * from './feature-registration.js';
 export * from './identifier.utils.js';
 export * from './normalize-object.js';
 export * from './stable-json-transformer.js';
+export * from './stateless-child.util.js';
 export * from './studio-app-extension.js';
+export * from './tool-result.utils.js';
 export * from './workflow-transitions.builder.js';

@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface, ZodJsonQueryPipe, ZodValidationPipe } from '@loopstack/common';
 import {
   BatchDeleteInterface,
   BatchDeleteResultInterface,
   BatchDeleteSchema,
   PaginatedInterface,
+  ToolCallRecordInterface,
   WorkflowCheckpointInterface,
   WorkflowCreateInterface,
   WorkflowCreateSchema,
@@ -18,7 +19,13 @@ import {
   WorkflowUpdateSchema,
 } from '@loopstack/contracts/api';
 import { toPaginated } from '../mappers/paginated.util.js';
-import { toWorkflowCheckpoint, toWorkflowFull, toWorkflowItem, toWorkflowStatus } from '../mappers/workflow.mapper.js';
+import {
+  toToolCallRecord,
+  toWorkflowCheckpoint,
+  toWorkflowFull,
+  toWorkflowItem,
+  toWorkflowStatus,
+} from '../mappers/workflow.mapper.js';
 import { WorkflowSortByQuerySchema } from '../schemas/sort-by.schemas.js';
 import { WorkflowApiService } from '../services/workflow-api.service.js';
 
@@ -56,7 +63,7 @@ export class WorkflowController {
    */
   @Get(':id')
   async getWorkflowById(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkflowFullInterface> {
     const workflow = await this.workflowService.findOneById(id, user.userId);
@@ -69,7 +76,7 @@ export class WorkflowController {
    */
   @Get(':id/status')
   async getWorkflowStatus(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkflowStatusInterface> {
     const workflow = await this.workflowService.findStatusById(id, user.userId);
@@ -93,7 +100,7 @@ export class WorkflowController {
    */
   @Put(':id')
   async updateWorkflow(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodValidationPipe(WorkflowUpdateSchema)) payload: WorkflowUpdateInterface,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkflowFullInterface> {
@@ -105,7 +112,10 @@ export class WorkflowController {
    * Deletes a workflow by its ID.
    */
   @Delete('id/:id')
-  async deleteWorkflow(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<void> {
+  async deleteWorkflow(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<void> {
     await this.workflowService.delete(id, user.userId);
   }
 
@@ -125,10 +135,22 @@ export class WorkflowController {
    */
   @Get(':id/checkpoints')
   async getCheckpointHistory(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkflowCheckpointInterface[]> {
     const checkpoints = await this.workflowService.getCheckpointHistory(id, user.userId);
     return checkpoints.map(toWorkflowCheckpoint);
+  }
+
+  /**
+   * Retrieves the tool-call audit records for a workflow (recorded in debug mode).
+   */
+  @Get(':id/tool-calls')
+  async getToolCalls(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<ToolCallRecordInterface[]> {
+    const records = await this.workflowService.getToolCalls(id, user.userId);
+    return records.map(toToolCallRecord);
   }
 }

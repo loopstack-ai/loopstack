@@ -25,6 +25,14 @@ type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
 export type RequestSecretsTaskResult = { workflowId: string } | string;
 
 /**
+ * Zod schema for {@link RequestSecretsTaskResult} — the confirmation string returned once the
+ * user has stored the secrets.
+ *
+ * @public
+ */
+export const RequestSecretsTaskResultSchema = z.string();
+
+/**
  * Tool that requests secrets from the user by launching `SecretsRequestWorkflow` as a callback-driven
  * sub-workflow; the agent-friendly variant of `request_secrets` for use inside agent loops.
  *
@@ -39,6 +47,8 @@ export type RequestSecretsTaskResult = { workflowId: string } | string;
     'Returns only the key names after the user has provided the values. ' +
     'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: RequestSecretsTaskInputSchema,
+  resultSchema: RequestSecretsTaskResultSchema,
+  effects: 'none',
 })
 export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object, RequestSecretsTaskResult> {
   private readonly logger = new Logger(RequestSecretsTask.name);

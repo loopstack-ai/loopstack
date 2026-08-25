@@ -28,6 +28,7 @@ export type DocumentInterface = DocumentItemInterface;
 export const DocumentFilterSchema = z.object({
   workflowId: z.uuid().optional(),
   isInvalidated: z.boolean().optional(),
+  place: z.string().optional(),
 });
 export type DocumentFilterInterface = z.infer<typeof DocumentFilterSchema>;
 

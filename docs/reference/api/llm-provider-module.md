@@ -368,18 +368,6 @@ import { LlmContentBlock } from '@loopstack/llm-provider-module';
 export type LlmContentBlock = UIContentBlock;
 ```
 
-### LlmNormalizedMessage
-
-A provider-normalized LLM message, inferred from `LlmNormalizedMessageSchema`.
-
-```ts
-import { LlmNormalizedMessage } from '@loopstack/llm-provider-module';
-```
-
-```ts
-export type LlmNormalizedMessage = z.infer<typeof LlmNormalizedMessageSchema>;
-```
-
 ### LlmResultMeta
 
 Metadata returned by the LLM tools (`LlmResultMeta` carries the resolved
@@ -491,6 +479,48 @@ LlmContentBlockSchema: z.ZodDiscriminatedUnion<
     >,
   ],
   'type'
+>;
+```
+
+### LlmDelegateResultSchema
+
+Zod schema for `LlmDelegateResult` — the `resultSchema` of
+`llm_delegate_tool_calls` and `llm_update_tool_result`.
+
+```ts
+import { LlmDelegateResultSchema } from '@loopstack/llm-provider-module';
+```
+
+```ts
+LlmDelegateResultSchema: z.ZodObject<
+  {
+    allCompleted: z.ZodBoolean;
+    toolResults: z.ZodArray<
+      z.ZodObject<
+        {
+          type: z.ZodLiteral<'tool_result'>;
+          toolCallId: z.ZodString;
+          content: z.ZodOptional<z.ZodString>;
+          isError: z.ZodOptional<z.ZodBoolean>;
+        },
+        z.core.$strict
+      >
+    >;
+    pendingCount: z.ZodNumber;
+    errorCount: z.ZodNumber;
+    hasErrors: z.ZodBoolean;
+    errors: z.ZodArray<
+      z.ZodObject<
+        {
+          toolName: z.ZodString;
+          toolCallId: z.ZodString;
+          message: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
 >;
 ```
 
@@ -670,6 +700,26 @@ LlmGenerateObjectConfigSchema: z.ZodObject<
 >;
 ```
 
+### LlmGenerateObjectResultSchema
+
+Zod schema for `LlmGenerateObjectResult` — the `resultSchema` of `llm_generate_object`.
+`data` is validated against the caller's `outputSchema` inside the tool; here it is
+intentionally uncontracted, as is the provider-raw `response`.
+
+```ts
+import { LlmGenerateObjectResultSchema } from '@loopstack/llm-provider-module';
+```
+
+```ts
+LlmGenerateObjectResultSchema: z.ZodObject<
+  {
+    data: z.ZodUnknown;
+    response: z.ZodUnknown;
+  },
+  z.core.$strict
+>;
+```
+
 ### LlmGenerateTextArgsSchema
 
 Zod schema for `llm_generate_text` tool args (`prompt` and/or `messages`).
@@ -726,92 +776,137 @@ LlmGenerateTextConfigSchema: z.ZodObject<
 >;
 ```
 
-### LlmNormalizedMessageSchema
+### LlmGenerateTextResultSchema
 
-Zod schema for a normalized LLM message, with optional `id`, `text`, structured
-blocks, and `stopReason`.
+Zod schema for `LlmGenerateTextResult` — the `resultSchema` of `llm_generate_text`.
+The native `response` is provider-raw and intentionally uncontracted.
 
 ```ts
-import { LlmNormalizedMessageSchema } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextResultSchema } from '@loopstack/llm-provider-module';
 ```
 
 ```ts
-LlmNormalizedMessageSchema: z.ZodObject<
+LlmGenerateTextResultSchema: z.ZodObject<
   {
-    role: z.ZodEnum<{
-      user: 'user';
-      assistant: 'assistant';
-    }>;
-    blocks: z.ZodOptional<
-      z.ZodArray<
-        z.ZodDiscriminatedUnion<
-          [
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'text'>;
-                text: z.ZodString;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'thinking'>;
-                text: z.ZodString;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'tool_call'>;
-                id: z.ZodString;
-                name: z.ZodString;
-                args: z.ZodRecord<z.ZodString, z.ZodUnknown>;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'server_tool_use'>;
-                id: z.ZodString;
-                name: z.ZodString;
-                input: z.ZodRecord<z.ZodString, z.ZodUnknown>;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'server_tool_result'>;
-                toolUseId: z.ZodString;
-                content: z.ZodUnknown;
-              },
-              z.core.$strip
-            >,
-            z.ZodObject<
-              {
-                type: z.ZodLiteral<'tool_result'>;
-                toolCallId: z.ZodString;
-                content: z.ZodString;
-                isError: z.ZodBoolean;
-              },
-              z.core.$strip
-            >,
-          ],
-          'type'
-        >
-      >
+    message: z.ZodObject<
+      {
+        role: z.ZodEnum<{
+          user: 'user';
+          assistant: 'assistant';
+        }>;
+        blocks: z.ZodOptional<
+          z.ZodArray<
+            z.ZodDiscriminatedUnion<
+              [
+                z.ZodObject<
+                  {
+                    type: z.ZodLiteral<'text'>;
+                    text: z.ZodString;
+                  },
+                  z.core.$strip
+                >,
+                z.ZodObject<
+                  {
+                    type: z.ZodLiteral<'thinking'>;
+                    text: z.ZodString;
+                  },
+                  z.core.$strip
+                >,
+                z.ZodObject<
+                  {
+                    type: z.ZodLiteral<'tool_call'>;
+                    id: z.ZodString;
+                    name: z.ZodString;
+                    args: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+                  },
+                  z.core.$strip
+                >,
+                z.ZodObject<
+                  {
+                    type: z.ZodLiteral<'server_tool_use'>;
+                    id: z.ZodString;
+                    name: z.ZodString;
+                    input: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+                  },
+                  z.core.$strip
+                >,
+                z.ZodObject<
+                  {
+                    type: z.ZodLiteral<'server_tool_result'>;
+                    toolUseId: z.ZodString;
+                    content: z.ZodUnknown;
+                  },
+                  z.core.$strip
+                >,
+                z.ZodObject<
+                  {
+                    type: z.ZodLiteral<'tool_result'>;
+                    toolCallId: z.ZodString;
+                    content: z.ZodString;
+                    isError: z.ZodBoolean;
+                  },
+                  z.core.$strip
+                >,
+              ],
+              'type'
+            >
+          >
+        >;
+        id: z.ZodOptional<z.ZodString>;
+        text: z.ZodString;
+        stopReason: z.ZodOptional<
+          z.ZodEnum<{
+            end_turn: 'end_turn';
+            tool_use: 'tool_use';
+            max_tokens: 'max_tokens';
+            stop_sequence: 'stop_sequence';
+          }>
+        >;
+      },
+      z.core.$strip
     >;
-    id: z.ZodOptional<z.ZodString>;
-    text: z.ZodString;
-    stopReason: z.ZodOptional<
-      z.ZodEnum<{
-        end_turn: 'end_turn';
-        tool_use: 'tool_use';
-        max_tokens: 'max_tokens';
-        stop_sequence: 'stop_sequence';
-      }>
-    >;
+    response: z.ZodUnknown;
   },
-  z.core.$strip
+  z.core.$strict
+>;
+```
+
+### LlmToolErrorEntrySchema
+
+Zod schema for `LlmToolErrorEntry`.
+
+```ts
+import { LlmToolErrorEntrySchema } from '@loopstack/llm-provider-module';
+```
+
+```ts
+LlmToolErrorEntrySchema: z.ZodObject<
+  {
+    toolName: z.ZodString;
+    toolCallId: z.ZodString;
+    message: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
+### LlmToolResultEntrySchema
+
+Zod schema for `LlmToolResultEntry`.
+
+```ts
+import { LlmToolResultEntrySchema } from '@loopstack/llm-provider-module';
+```
+
+```ts
+LlmToolResultEntrySchema: z.ZodObject<
+  {
+    type: z.ZodLiteral<'tool_result'>;
+    toolCallId: z.ZodString;
+    content: z.ZodOptional<z.ZodString>;
+    isError: z.ZodOptional<z.ZodBoolean>;
+  },
+  z.core.$strict
 >;
 ```
 

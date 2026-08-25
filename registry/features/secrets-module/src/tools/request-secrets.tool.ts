@@ -21,6 +21,15 @@ type RequestSecretsInput = z.infer<typeof RequestSecretsInputSchema>;
 export type RequestSecretsResult = { variables: { key: string }[] };
 
 /**
+ * Zod schema for {@link RequestSecretsResult} — the `resultSchema` of `request_secrets`.
+ *
+ * @public
+ */
+export const RequestSecretsResultSchema = z.strictObject({
+  variables: z.array(z.strictObject({ key: z.string() })),
+});
+
+/**
  * Tool that asks the user for secret values through a secure Studio form; values are stored server-side
  * and only the key names are returned, never the secrets themselves.
  *
@@ -35,6 +44,8 @@ export type RequestSecretsResult = { variables: { key: string }[] };
     'Returns only the key names after the user has provided the values. ' +
     'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: RequestSecretsInputSchema,
+  resultSchema: RequestSecretsResultSchema,
+  effects: 'none',
 })
 export class RequestSecretsTool extends BaseTool<RequestSecretsInput, object, RequestSecretsResult> {
   protected async handle(args: RequestSecretsInput): Promise<ToolEnvelope<RequestSecretsResult>> {

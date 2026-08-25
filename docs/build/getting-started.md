@@ -53,6 +53,16 @@ import { LoopstackModule } from '@loopstack/loopstack-module';
 export class AppModule {}
 ```
 
+Enable shutdown hooks in `src/main.ts` so the workflow engine shuts down gracefully — on SIGTERM (a deploy, `docker stop`) in-flight transitions finish before the process exits:
+
+```typescript
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
+  await app.listen(process.env.PORT ?? 3000);
+}
+```
+
 Add YAML asset bundling to `nest-cli.json` so workflow UI configs are included in the build:
 
 ```json

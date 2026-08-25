@@ -19,6 +19,13 @@ export type GitCommitArgs = {
 export type GitCommitResult = { hash: string; message: string };
 
 /**
+ * Zod schema for `GitCommitResult`.
+ *
+ * @public
+ */
+export const GitCommitResultSchema = z.strictObject({ hash: z.string(), message: z.string() });
+
+/**
  * Tool that creates a git commit from the currently staged changes.
  *
  * @providedBy GitModule
@@ -32,6 +39,8 @@ export type GitCommitResult = { hash: string; message: string };
       message: z.string().describe('The commit message'),
     })
     .strict(),
+  resultSchema: GitCommitResultSchema,
+  effects: 'external',
 })
 export class GitCommitTool extends BaseTool<GitCommitArgs, object, GitCommitResult> {
   constructor(

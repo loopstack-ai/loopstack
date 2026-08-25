@@ -14,5 +14,7 @@ export interface RunContext<TArgs = unknown> {
   workspaceId: string;
   workflowId: string;
   args: TArgs;
+  /** Aborted when the run is torn down (e.g. the transition times out). */
+  signal: AbortSignal;
   execution?: { place: string; retryCount: number };
 }

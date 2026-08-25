@@ -20,6 +20,13 @@ export type GitCheckoutArgs = {
 export type GitCheckoutResult = { branch: string };
 
 /**
+ * Zod schema for `GitCheckoutResult`.
+ *
+ * @public
+ */
+export const GitCheckoutResultSchema = z.strictObject({ branch: z.string() });
+
+/**
  * Tool that switches to a different git branch, optionally creating it.
  *
  * @providedBy GitModule
@@ -34,6 +41,8 @@ export type GitCheckoutResult = { branch: string };
       create: z.boolean().optional().describe('Create the branch if it does not exist'),
     })
     .strict(),
+  resultSchema: GitCheckoutResultSchema,
+  effects: 'external',
 })
 export class GitCheckoutTool extends BaseTool<GitCheckoutArgs, object, GitCheckoutResult> {
   constructor(

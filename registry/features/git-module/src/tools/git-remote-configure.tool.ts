@@ -19,6 +19,13 @@ export type GitRemoteConfigureArgs = {
 export type GitRemoteConfigureResult = { success: boolean };
 
 /**
+ * Zod schema for `GitRemoteConfigureResult`.
+ *
+ * @public
+ */
+export const GitRemoteConfigureResultSchema = z.strictObject({ success: z.boolean() });
+
+/**
  * Tool that configures a git remote, adding it if absent or updating its URL.
  *
  * @providedBy GitModule
@@ -32,6 +39,8 @@ export type GitRemoteConfigureResult = { success: boolean };
       url: z.string().describe('Remote repository URL (HTTPS)'),
     })
     .strict(),
+  resultSchema: GitRemoteConfigureResultSchema,
+  effects: 'external',
 })
 export class GitRemoteConfigureTool extends BaseTool<GitRemoteConfigureArgs, object, GitRemoteConfigureResult> {
   constructor(

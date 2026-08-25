@@ -1518,3 +1518,795 @@ export type GitHubTriggerWorkflowResult =
       message: string;
     };
 ```
+
+## Variables
+
+### GitHubCreateIssueCommentResultSchema
+
+Zod schema for the success shape of `GitHubCreateIssueCommentResult`.
+
+```ts
+import { GitHubCreateIssueCommentResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubCreateIssueCommentResultSchema: z.ZodObject<
+  {
+    comment: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        htmlUrl: z.ZodString;
+        createdAt: z.ZodString;
+        user: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubCreateIssueResultSchema
+
+Zod schema for the success shape of `GitHubCreateIssueResult`.
+
+```ts
+import { GitHubCreateIssueResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubCreateIssueResultSchema: z.ZodObject<
+  {
+    issue: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        number: z.ZodNumber;
+        title: z.ZodString;
+        htmlUrl: z.ZodString;
+        state: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubCreateOrUpdateFileResultSchema
+
+Zod schema for the success shape of `GitHubCreateOrUpdateFileResult`.
+
+```ts
+import { GitHubCreateOrUpdateFileResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubCreateOrUpdateFileResultSchema: z.ZodObject<
+  {
+    file: z.ZodObject<
+      {
+        name: z.ZodString;
+        path: z.ZodString;
+        sha: z.ZodString;
+        htmlUrl: z.ZodString;
+      },
+      z.core.$strict
+    >;
+    commit: z.ZodObject<
+      {
+        sha: z.ZodString;
+        message: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubCreatePullRequestResultSchema
+
+Zod schema for the success shape of `GitHubCreatePullRequestResult`.
+
+```ts
+import { GitHubCreatePullRequestResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubCreatePullRequestResultSchema: z.ZodObject<
+  {
+    pullRequest: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        number: z.ZodNumber;
+        title: z.ZodString;
+        htmlUrl: z.ZodString;
+        state: z.ZodString;
+        draft: z.ZodBoolean;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubCreateRepoResultSchema
+
+Zod schema for the success shape of `GitHubCreateRepoResult`.
+
+```ts
+import { GitHubCreateRepoResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubCreateRepoResultSchema: z.ZodObject<
+  {
+    repo: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        fullName: z.ZodString;
+        name: z.ZodString;
+        htmlUrl: z.ZodString;
+        private: z.ZodBoolean;
+        defaultBranch: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubGetAuthenticatedUserResultSchema
+
+Zod schema for the success shape of `GitHubGetAuthenticatedUserResult`.
+
+```ts
+import { GitHubGetAuthenticatedUserResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubGetAuthenticatedUserResultSchema: z.ZodObject<
+  {
+    user: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        login: z.ZodString;
+        name: z.ZodNullable<z.ZodString>;
+        email: z.ZodNullable<z.ZodString>;
+        avatarUrl: z.ZodString;
+        htmlUrl: z.ZodString;
+        bio: z.ZodNullable<z.ZodString>;
+        publicRepos: z.ZodNumber;
+        followers: z.ZodNumber;
+        following: z.ZodNumber;
+        createdAt: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubGetCommitResultSchema
+
+Zod schema for the success shape of `GitHubGetCommitResult`.
+
+```ts
+import { GitHubGetCommitResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubGetCommitResultSchema: z.ZodObject<
+  {
+    commit: z.ZodObject<
+      {
+        sha: z.ZodString;
+        message: z.ZodString;
+        author: z.ZodObject<
+          {
+            name: z.ZodString;
+            email: z.ZodString;
+            date: z.ZodString;
+            login: z.ZodNullable<z.ZodString>;
+          },
+          z.core.$strict
+        >;
+        committer: z.ZodObject<
+          {
+            name: z.ZodString;
+            date: z.ZodString;
+          },
+          z.core.$strict
+        >;
+        htmlUrl: z.ZodString;
+        stats: z.ZodObject<
+          {
+            additions: z.ZodNumber;
+            deletions: z.ZodNumber;
+            total: z.ZodNumber;
+          },
+          z.core.$strict
+        >;
+        files: z.ZodArray<
+          z.ZodObject<
+            {
+              filename: z.ZodString;
+              status: z.ZodString;
+              additions: z.ZodNumber;
+              deletions: z.ZodNumber;
+              changes: z.ZodNumber;
+            },
+            z.core.$strict
+          >
+        >;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubGetFileContentResultSchema
+
+Zod schema for the success shape of `GitHubGetFileContentResult`.
+
+```ts
+import { GitHubGetFileContentResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubGetFileContentResultSchema: z.ZodObject<
+  {
+    file: z.ZodObject<
+      {
+        name: z.ZodString;
+        path: z.ZodString;
+        sha: z.ZodString;
+        size: z.ZodNumber;
+        type: z.ZodString;
+        content: z.ZodNullable<z.ZodString>;
+        htmlUrl: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubGetIssueResultSchema
+
+Zod schema for the success shape of `GitHubGetIssueResult`.
+
+```ts
+import { GitHubGetIssueResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubGetIssueResultSchema: z.ZodObject<
+  {
+    issue: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        number: z.ZodNumber;
+        title: z.ZodString;
+        body: z.ZodNullable<z.ZodString>;
+        state: z.ZodString;
+        user: z.ZodString;
+        labels: z.ZodArray<z.ZodString>;
+        assignees: z.ZodArray<z.ZodString>;
+        milestone: z.ZodNullable<z.ZodString>;
+        createdAt: z.ZodString;
+        updatedAt: z.ZodString;
+        closedAt: z.ZodNullable<z.ZodString>;
+        htmlUrl: z.ZodString;
+        comments: z.ZodNumber;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubGetPullRequestResultSchema
+
+Zod schema for the success shape of `GitHubGetPullRequestResult`.
+
+```ts
+import { GitHubGetPullRequestResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubGetPullRequestResultSchema: z.ZodObject<
+  {
+    pullRequest: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        number: z.ZodNumber;
+        title: z.ZodString;
+        body: z.ZodNullable<z.ZodString>;
+        state: z.ZodString;
+        user: z.ZodString;
+        head: z.ZodString;
+        headSha: z.ZodString;
+        base: z.ZodString;
+        merged: z.ZodBoolean;
+        mergeable: z.ZodNullable<z.ZodBoolean>;
+        draft: z.ZodBoolean;
+        additions: z.ZodNumber;
+        deletions: z.ZodNumber;
+        changedFiles: z.ZodNumber;
+        createdAt: z.ZodString;
+        updatedAt: z.ZodString;
+        mergedAt: z.ZodNullable<z.ZodString>;
+        htmlUrl: z.ZodString;
+        comments: z.ZodNumber;
+        reviewComments: z.ZodNumber;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubGetRepoResultSchema
+
+Zod schema for the success shape of `GitHubGetRepoResult`.
+
+```ts
+import { GitHubGetRepoResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubGetRepoResultSchema: z.ZodObject<
+  {
+    repo: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        fullName: z.ZodString;
+        name: z.ZodString;
+        owner: z.ZodString;
+        ownerAvatar: z.ZodString;
+        private: z.ZodBoolean;
+        htmlUrl: z.ZodString;
+        description: z.ZodNullable<z.ZodString>;
+        language: z.ZodNullable<z.ZodString>;
+        defaultBranch: z.ZodString;
+        stars: z.ZodNumber;
+        forks: z.ZodNumber;
+        openIssues: z.ZodNumber;
+        createdAt: z.ZodString;
+        updatedAt: z.ZodString;
+        topics: z.ZodArray<z.ZodString>;
+        license: z.ZodNullable<z.ZodString>;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubGetWorkflowRunResultSchema
+
+Zod schema for the success shape of `GitHubGetWorkflowRunResult`.
+
+```ts
+import { GitHubGetWorkflowRunResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubGetWorkflowRunResultSchema: z.ZodObject<
+  {
+    run: z.ZodObject<
+      {
+        id: z.ZodNumber;
+        name: z.ZodString;
+        status: z.ZodString;
+        conclusion: z.ZodNullable<z.ZodString>;
+        headBranch: z.ZodString;
+        headSha: z.ZodString;
+        event: z.ZodString;
+        workflowId: z.ZodNumber;
+        runNumber: z.ZodNumber;
+        runAttempt: z.ZodNumber;
+        createdAt: z.ZodString;
+        updatedAt: z.ZodString;
+        runStartedAt: z.ZodString;
+        htmlUrl: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListBranchesResultSchema
+
+Zod schema for the success shape of `GitHubListBranchesResult`.
+
+```ts
+import { GitHubListBranchesResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubListBranchesResultSchema: z.ZodObject<
+  {
+    branches: z.ZodArray<
+      z.ZodObject<
+        {
+          name: z.ZodString;
+          commitSha: z.ZodString;
+          protected: z.ZodBoolean;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListDirectoryResultSchema
+
+Zod schema for the success shape of `GitHubListDirectoryResult`.
+
+```ts
+import { GitHubListDirectoryResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubListDirectoryResultSchema: z.ZodObject<
+  {
+    entries: z.ZodArray<
+      z.ZodObject<
+        {
+          name: z.ZodString;
+          path: z.ZodString;
+          sha: z.ZodString;
+          size: z.ZodNumber;
+          type: z.ZodString;
+          htmlUrl: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListIssuesResultSchema
+
+Zod schema for the success shape of `GitHubListIssuesResult`.
+
+```ts
+import { GitHubListIssuesResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubListIssuesResultSchema: z.ZodObject<
+  {
+    issues: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          number: z.ZodNumber;
+          title: z.ZodString;
+          state: z.ZodString;
+          user: z.ZodString;
+          labels: z.ZodArray<z.ZodString>;
+          assignees: z.ZodArray<z.ZodString>;
+          createdAt: z.ZodString;
+          updatedAt: z.ZodString;
+          htmlUrl: z.ZodString;
+          isPullRequest: z.ZodBoolean;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListPrReviewsResultSchema
+
+Zod schema for the success shape of `GitHubListPrReviewsResult`.
+
+```ts
+import { GitHubListPrReviewsResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubListPrReviewsResultSchema: z.ZodObject<
+  {
+    reviews: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          user: z.ZodString;
+          body: z.ZodString;
+          state: z.ZodString;
+          submittedAt: z.ZodString;
+          htmlUrl: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListPullRequestsResultSchema
+
+Zod schema for the success shape of `GitHubListPullRequestsResult`.
+
+```ts
+import { GitHubListPullRequestsResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubListPullRequestsResultSchema: z.ZodObject<
+  {
+    pullRequests: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          number: z.ZodNumber;
+          title: z.ZodString;
+          state: z.ZodString;
+          user: z.ZodString;
+          head: z.ZodString;
+          headSha: z.ZodString;
+          base: z.ZodString;
+          createdAt: z.ZodString;
+          updatedAt: z.ZodString;
+          htmlUrl: z.ZodString;
+          draft: z.ZodBoolean;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListReposResultSchema
+
+Zod schema for the success shape of `GitHubListReposResult`.
+
+```ts
+import { GitHubListReposResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubListReposResultSchema: z.ZodObject<
+  {
+    repos: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          fullName: z.ZodString;
+          name: z.ZodString;
+          owner: z.ZodString;
+          private: z.ZodBoolean;
+          htmlUrl: z.ZodString;
+          description: z.ZodNullable<z.ZodString>;
+          language: z.ZodNullable<z.ZodString>;
+          defaultBranch: z.ZodString;
+          updatedAt: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListUserOrgsResultSchema
+
+Zod schema for the success shape of `GitHubListUserOrgsResult`.
+
+```ts
+import { GitHubListUserOrgsResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubListUserOrgsResultSchema: z.ZodObject<
+  {
+    orgs: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          login: z.ZodString;
+          description: z.ZodNullable<z.ZodString>;
+          avatarUrl: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListWorkflowRunsResultSchema
+
+Zod schema for the success shape of `GitHubListWorkflowRunsResult`.
+
+```ts
+import { GitHubListWorkflowRunsResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubListWorkflowRunsResultSchema: z.ZodObject<
+  {
+    totalCount: z.ZodNumber;
+    runs: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          name: z.ZodString;
+          status: z.ZodString;
+          conclusion: z.ZodNullable<z.ZodString>;
+          headBranch: z.ZodString;
+          headSha: z.ZodString;
+          event: z.ZodString;
+          createdAt: z.ZodString;
+          updatedAt: z.ZodString;
+          htmlUrl: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubMergePullRequestResultSchema
+
+Zod schema for the success shape of `GitHubMergePullRequestResult`.
+
+```ts
+import { GitHubMergePullRequestResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubMergePullRequestResultSchema: z.ZodObject<
+  {
+    merge: z.ZodObject<
+      {
+        sha: z.ZodString;
+        merged: z.ZodBoolean;
+        message: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubSearchCodeResultSchema
+
+Zod schema for the success shape of `GitHubSearchCodeResult`.
+
+```ts
+import { GitHubSearchCodeResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubSearchCodeResultSchema: z.ZodObject<
+  {
+    totalCount: z.ZodNumber;
+    results: z.ZodArray<
+      z.ZodObject<
+        {
+          name: z.ZodString;
+          path: z.ZodString;
+          sha: z.ZodString;
+          htmlUrl: z.ZodString;
+          repository: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubSearchIssuesResultSchema
+
+Zod schema for the success shape of `GitHubSearchIssuesResult`.
+
+```ts
+import { GitHubSearchIssuesResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubSearchIssuesResultSchema: z.ZodObject<
+  {
+    totalCount: z.ZodNumber;
+    results: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          number: z.ZodNumber;
+          title: z.ZodString;
+          state: z.ZodString;
+          user: z.ZodString;
+          htmlUrl: z.ZodString;
+          createdAt: z.ZodString;
+          updatedAt: z.ZodString;
+          isPullRequest: z.ZodBoolean;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubSearchReposResultSchema
+
+Zod schema for the success shape of `GitHubSearchReposResult`.
+
+```ts
+import { GitHubSearchReposResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubSearchReposResultSchema: z.ZodObject<
+  {
+    totalCount: z.ZodNumber;
+    results: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          fullName: z.ZodString;
+          description: z.ZodNullable<z.ZodString>;
+          htmlUrl: z.ZodString;
+          language: z.ZodNullable<z.ZodString>;
+          stars: z.ZodNumber;
+          forks: z.ZodNumber;
+          updatedAt: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubTriggerWorkflowResultSchema
+
+Zod schema for the success shape of `GitHubTriggerWorkflowResult`.
+
+```ts
+import { GitHubTriggerWorkflowResultSchema } from '@loopstack/github-module';
+```
+
+```ts
+GitHubTriggerWorkflowResultSchema: z.ZodObject<
+  {
+    triggered: z.ZodBoolean;
+    message: z.ZodString;
+  },
+  z.core.$strict
+>;
+```

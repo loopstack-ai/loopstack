@@ -31,6 +31,15 @@ export type GitDiffResult = {
 };
 
 /**
+ * Zod schema for `GitDiffResult`.
+ *
+ * @public
+ */
+export const GitDiffResultSchema = z.strictObject({
+  files: z.array(z.strictObject({ path: z.string(), status: z.string() })),
+});
+
+/**
  * Tool that lists changed files in the workspace with their change status.
  *
  * @providedBy GitModule
@@ -44,6 +53,8 @@ export type GitDiffResult = {
       staged: z.boolean().optional().describe('Show staged changes instead of unstaged'),
     })
     .strict(),
+  resultSchema: GitDiffResultSchema,
+  effects: 'none',
 })
 export class GitDiffTool extends BaseTool<GitDiffArgs, object, GitDiffResult> {
   constructor(

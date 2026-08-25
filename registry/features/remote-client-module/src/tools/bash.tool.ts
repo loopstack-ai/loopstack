@@ -25,6 +25,17 @@ export type BashResult = {
 };
 
 /**
+ * Zod schema for {@link BashResult}.
+ *
+ * @public
+ */
+export const BashResultSchema = z.strictObject({
+  stdout: z.string(),
+  stderr: z.string(),
+  exitCode: z.number(),
+});
+
+/**
  * Tool that executes a shell command on the remote instance and returns its output and exit code.
  *
  * @providedBy RemoteClientModule
@@ -39,6 +50,8 @@ export type BashResult = {
       timeout: z.number().optional().describe('Timeout in milliseconds'),
     })
     .strict(),
+  resultSchema: BashResultSchema,
+  effects: 'external',
 })
 export class BashTool extends BaseTool<BashArgs, object, BashResult> {
   constructor(

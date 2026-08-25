@@ -19,9 +19,12 @@ function pm2(command: string): string {
   return execSync(`pm2 ${command}`, { encoding: 'utf-8', timeout: 60_000 });
 }
 
+/** PM2 recipe baked into the docker image — its presence is what says "there is a custom app to manage". */
+export const ECOSYSTEM_CONFIG = '/app/ecosystem.config.cjs';
+
 export function startApp(): void {
   console.log('Starting custom-app via PM2...');
-  pm2('start /app/ecosystem.config.cjs');
+  pm2(`start ${ECOSYSTEM_CONFIG}`);
   console.log('PM2 started custom-app');
 }
 

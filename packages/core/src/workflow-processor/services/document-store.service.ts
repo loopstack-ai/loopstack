@@ -8,6 +8,7 @@ import {
   getBlockName,
   getBlockTypeFromMetadata,
   getDocumentSchema,
+  getRegisteredDocuments,
 } from '@loopstack/common';
 import { ExecutionScope } from '../utils/index.js';
 import { DocumentPersistenceService } from './document-persistence.service.js';
@@ -115,4 +116,29 @@ export function resolveDocumentName(documentClass: object): string {
     return deriveDocumentIdentifier(className);
   }
   return explicitName;
+}
+
+let documentClassByName: Map<string, DocumentClass> | undefined;
+
+/**
+ * Resolves a registered document class from its document name (the inverse of
+ * `resolveDocumentName`). Used by the tool pipeline to apply envelope-declared documents.
+ * The lookup map is built lazily from `getRegisteredDocuments()` and rebuilt on a miss,
+ * so documents registered after the first call are still found.
+ */
+export function resolveDocumentClass(documentName: string, declaringTool?: string): DocumentClass {
+  let found = documentClassByName?.get(documentName);
+  if (!found) {
+    documentClassByName = new Map(
+      [...getRegisteredDocuments()].map((cls) => [resolveDocumentName(cls), cls as DocumentClass]),
+    );
+    found = documentClassByName.get(documentName);
+  }
+  if (!found) {
+    const source = declaringTool ? ` declared by tool '${declaringTool}'` : '';
+    throw new Error(
+      `Unknown document '${documentName}'${source}. No registered @Document class resolves to this name.`,
+    );
+  }
+  return found;
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { LlmNormalizedMessageSchema } from '@loopstack/contracts/events';
 import type { LlmNormalizedMessage } from '@loopstack/contracts/events';
 import { UIContentBlockSchema } from '@loopstack/contracts/types';
 import type { UIContentBlock } from '@loopstack/contracts/types';
@@ -150,6 +151,17 @@ export interface LlmGenerateTextResult {
   response: unknown;
 }
 
+/**
+ * Zod schema for {@link LlmGenerateTextResult} — the `resultSchema` of `llm_generate_text`.
+ * The native `response` is provider-raw and intentionally uncontracted.
+ *
+ * @public
+ */
+export const LlmGenerateTextResultSchema = z.strictObject({
+  message: LlmNormalizedMessageSchema,
+  response: z.unknown(),
+});
+
 export type LlmStreamEvent =
   | { type: 'start'; messageId: string }
   | { type: 'text_delta'; messageId: string; delta: string }
@@ -187,6 +199,18 @@ export interface LlmGenerateObjectResult {
   /** Unmodified native API response. */
   response: unknown;
 }
+
+/**
+ * Zod schema for {@link LlmGenerateObjectResult} — the `resultSchema` of `llm_generate_object`.
+ * `data` is validated against the caller's `outputSchema` inside the tool; here it is
+ * intentionally uncontracted, as is the provider-raw `response`.
+ *
+ * @public
+ */
+export const LlmGenerateObjectResultSchema = z.strictObject({
+  data: z.unknown(),
+  response: z.unknown(),
+});
 
 // ---------------------------------------------------------------------------
 // Delegate tool calls
@@ -233,6 +257,44 @@ export interface LlmDelegateResult {
   hasErrors: boolean;
   errors: LlmToolErrorEntry[];
 }
+
+/**
+ * Zod schema for {@link LlmToolResultEntry}.
+ *
+ * @public
+ */
+export const LlmToolResultEntrySchema = z.strictObject({
+  type: z.literal('tool_result'),
+  toolCallId: z.string(),
+  content: z.string().optional(),
+  isError: z.boolean().optional(),
+});
+
+/**
+ * Zod schema for {@link LlmToolErrorEntry}.
+ *
+ * @public
+ */
+export const LlmToolErrorEntrySchema = z.strictObject({
+  toolName: z.string(),
+  toolCallId: z.string(),
+  message: z.string(),
+});
+
+/**
+ * Zod schema for {@link LlmDelegateResult} — the `resultSchema` of
+ * `llm_delegate_tool_calls` and `llm_update_tool_result`.
+ *
+ * @public
+ */
+export const LlmDelegateResultSchema = z.strictObject({
+  allCompleted: z.boolean(),
+  toolResults: z.array(LlmToolResultEntrySchema),
+  pendingCount: z.number(),
+  errorCount: z.number(),
+  hasErrors: z.boolean(),
+  errors: z.array(LlmToolErrorEntrySchema),
+});
 
 // ---------------------------------------------------------------------------
 // Tool definitions (provider-agnostic, shared helper output)

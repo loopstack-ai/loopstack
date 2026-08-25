@@ -1,0 +1,17 @@
+{
+  "version": 3,
+  "recordings": [
+    {
+      "tool": "classify_ticket",
+      "workflow": "triage_ticket",
+      "transition": "classify",
+      "args": { "text": "Production is down!" },
+      "envelope": {
+        "data": {
+          "severity": "high",
+          "reason": "replayed from recording"
+        }
+      }
+    }
+  ]
+}

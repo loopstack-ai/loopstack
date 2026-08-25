@@ -27,6 +27,25 @@ export type GitWorktreeListResult = {
 };
 
 /**
+ * Zod schema for `GitWorktreeListResult`.
+ *
+ * @public
+ */
+export const GitWorktreeListResultSchema = z.strictObject({
+  worktrees: z.array(
+    z.strictObject({
+      path: z.string(),
+      head: z.string().optional(),
+      branch: z.string().optional(),
+      bare: z.boolean(),
+      detached: z.boolean(),
+      locked: z.string().optional(),
+      prunable: z.string().optional(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists all git worktrees attached to the repository, including path, HEAD, branch, and flags.
  *
  * @providedBy GitModule
@@ -37,6 +56,8 @@ export type GitWorktreeListResult = {
   description:
     'Lists all git worktrees attached to the repository. Each entry includes path, HEAD commit, branch, and flags (bare, detached, locked, prunable).',
   schema: z.object({}).strict(),
+  resultSchema: GitWorktreeListResultSchema,
+  effects: 'none',
 })
 export class GitWorktreeListTool extends BaseTool<object, object, GitWorktreeListResult> {
   constructor(

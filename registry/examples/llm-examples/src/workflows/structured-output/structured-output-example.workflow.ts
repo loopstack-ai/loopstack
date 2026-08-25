@@ -58,5 +58,8 @@ export class StructuredOutputExampleWorkflow extends BaseWorkflow<StructuredOutp
       { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
       { key: 'status' },
     );
+    if (state.llmResult?.content) {
+      this.setResult(state.llmResult.content);
+    }
   }
 }

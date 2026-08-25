@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
-import { WebSearchHit, WebSearchResult, WebSearchResultBlock } from '../types/index.js';
+import { WebSearchHit, WebSearchResult, WebSearchResultBlock, WebSearchResultSchema } from '../types/index.js';
 
 const MAX_RESULT_SIZE_CHARS = 20_000;
 
@@ -62,6 +62,8 @@ export type ClaudeWebSearchConfig = z.infer<typeof ClaudeWebSearchConfigSchema>;
     "Use this to retrieve current information beyond the model's knowledge cutoff.",
   schema: ClaudeWebSearchArgsSchema,
   configSchema: ClaudeWebSearchConfigSchema,
+  resultSchema: WebSearchResultSchema,
+  effects: 'none',
 })
 export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSearchConfig, WebSearchResult> {
   private readonly logger = new Logger(ClaudeWebSearch.name);

@@ -34,6 +34,23 @@ export type GitLogResult = {
 };
 
 /**
+ * Zod schema for `GitLogResult`.
+ *
+ * @public
+ */
+export const GitLogResultSchema = z.strictObject({
+  commits: z.array(
+    z.strictObject({
+      hash: z.string(),
+      shortHash: z.string(),
+      message: z.string(),
+      author: z.string(),
+      date: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that returns the git commit log for the workspace repository.
  *
  * @providedBy GitModule
@@ -47,6 +64,8 @@ export type GitLogResult = {
       limit: z.number().optional().default(20).describe('Maximum number of log entries to return'),
     })
     .strict(),
+  resultSchema: GitLogResultSchema,
+  effects: 'none',
 })
 export class GitLogTool extends BaseTool<GitLogArgs, object, GitLogResult> {
   constructor(

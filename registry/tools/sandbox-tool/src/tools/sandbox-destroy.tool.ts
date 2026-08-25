@@ -35,6 +35,16 @@ export interface SandboxDestroyResult {
 }
 
 /**
+ * Zod schema for {@link SandboxDestroyResult} — the `resultSchema` of `sandbox_destroy`.
+ *
+ * @public
+ */
+export const SandboxDestroyResultSchema = z.strictObject({
+  containerId: z.string(),
+  removed: z.boolean(),
+});
+
+/**
  * Tool that stops a sandbox container and optionally removes it, then unregisters its config.
  *
  * @providedBy SandboxToolModule
@@ -44,6 +54,8 @@ export interface SandboxDestroyResult {
   name: 'sandbox_destroy',
   description: 'Stop and destroy a sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxDestroyResultSchema,
+  effects: 'external',
 })
 export class SandboxDestroy extends BaseTool<SandboxDestroyArgs, object, SandboxDestroyResult> {
   private readonly logger = new Logger(SandboxDestroy.name);

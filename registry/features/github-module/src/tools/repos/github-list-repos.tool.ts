@@ -43,6 +43,28 @@ export type GitHubListReposResult = {
 };
 
 /**
+ * Zod schema for the success shape of {@link GitHubListReposResult}.
+ *
+ * @public
+ */
+export const GitHubListReposResultSchema = z.strictObject({
+  repos: z.array(
+    z.strictObject({
+      id: z.number(),
+      fullName: z.string(),
+      name: z.string(),
+      owner: z.string(),
+      private: z.boolean(),
+      htmlUrl: z.string(),
+      description: z.string().nullable(),
+      language: z.string().nullable(),
+      defaultBranch: z.string(),
+      updatedAt: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists repositories for the authenticated GitHub user, with visibility,
  * sort and paging options.
  *
@@ -54,6 +76,8 @@ export type GitHubListReposResult = {
   description:
     'Lists repositories for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubListReposResultSchema,
+  effects: 'none',
 })
 export class GitHubListReposTool extends BaseTool<GitHubListReposArgs, object, GitHubListReposResult> {
   private readonly logger = new Logger(GitHubListReposTool.name);

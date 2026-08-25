@@ -34,6 +34,16 @@ export interface SandboxDeleteResult {
 }
 
 /**
+ * Zod schema for {@link SandboxDeleteResult} — the `resultSchema` of `sandbox_delete`.
+ *
+ * @public
+ */
+export const SandboxDeleteResultSchema = z.strictObject({
+  path: z.string(),
+  deleted: z.boolean(),
+});
+
+/**
  * Tool that deletes a file or directory in a sandbox container, with optional recursive and force flags.
  *
  * @providedBy SandboxFilesystemModule
@@ -43,6 +53,8 @@ export interface SandboxDeleteResult {
   name: 'sandbox_delete',
   description: 'Delete a file or directory in a sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxDeleteResultSchema,
+  effects: 'external',
 })
 export class SandboxDelete extends BaseTool<SandboxDeleteArgs, object, SandboxDeleteResult> {
   private readonly logger = new Logger(SandboxDelete.name);

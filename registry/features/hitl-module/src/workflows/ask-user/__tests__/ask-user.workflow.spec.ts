@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { executedTransitions } from '@loopstack/contracts/types';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { AskUserWorkflow } from '../ask-user.workflow.js';
@@ -39,6 +40,45 @@ describe('AskUserWorkflow', () => {
           expect.objectContaining({
             documentName: 'ask_user',
             content: expect.objectContaining({ question: 'What is your name?' }),
+          }),
+        ]),
+      );
+    });
+  });
+
+  describe('stateless resume', () => {
+    it('resumes a parked run with the answer, carries state, and completes', async () => {
+      const parked = await processor.process(workflow, { question: 'Proceed?' }, createStatelessContext());
+
+      expect(parked.status).toBe('waiting');
+      expect(parked.place).toBe('waiting_for_user');
+      expect(parked.statelessState).toBeDefined();
+
+      const resumed = await processor.process(
+        workflow,
+        { question: 'Proceed?' },
+        createStatelessContext({
+          payload: { transition: { id: 'userAnswered', workflowId: '', payload: { data: { answer: 'yes' } } } },
+          statelessState: parked.statelessState,
+        }),
+      );
+
+      expect(resumed.hasError).toBe(false);
+      expect(resumed.status).toBe('completed');
+      expect(resumed.place).toBe('end');
+      expect(resumed.result).toEqual({ answer: 'yes' });
+      // The trace rides the resume carrier, so it holds the full run — ending in the answer.
+      expect(
+        executedTransitions(resumed.trace)
+          .map((e) => e.transitionId)
+          .at(-1),
+      ).toBe('userAnswered');
+      // The answered document re-renders the question from carried state — proving state survived
+      expect(resumed.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            documentName: 'ask_user',
+            content: expect.objectContaining({ question: 'Proceed?', answer: 'yes' }),
           }),
         ]),
       );

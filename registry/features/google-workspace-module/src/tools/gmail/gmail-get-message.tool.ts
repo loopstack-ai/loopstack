@@ -40,6 +40,33 @@ export type GmailGetMessageResult =
   | { error: 'unauthorized'; message: string }
   | { error: 'api_error'; message: string };
 
+/**
+ * Zod schema for the success shape of {@link GmailGetMessageResult} — the message content and
+ * attachment metadata.
+ *
+ * @public
+ */
+export const GmailGetMessageResultSchema = z.strictObject({
+  id: z.string(),
+  threadId: z.string(),
+  from: z.string(),
+  to: z.string(),
+  cc: z.string(),
+  subject: z.string(),
+  date: z.string(),
+  body: z.string(),
+  snippet: z.string(),
+  labelIds: z.array(z.string()),
+  attachments: z.array(
+    z.strictObject({
+      attachmentId: z.string(),
+      filename: z.string(),
+      mimeType: z.string(),
+      size: z.number(),
+    }),
+  ),
+});
+
 interface GmailMessagePart {
   mimeType: string;
   filename?: string;
@@ -61,6 +88,8 @@ interface GmailMessagePart {
   description:
     'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GmailGetMessageResultSchema,
+  effects: 'none',
 })
 export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, GmailGetMessageResult> {
   private readonly logger = new Logger(GmailGetMessageTool.name);

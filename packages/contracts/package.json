@@ -31,6 +31,10 @@
     "./events": {
       "types": "./dist/events/index.d.ts",
       "default": "./dist/events/index.js"
+    },
+    "./park-view": {
+      "types": "./dist/park-view/index.d.ts",
+      "default": "./dist/park-view/index.js"
     }
   },
   "scripts": {

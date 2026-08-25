@@ -15,14 +15,26 @@ export function renderTable(headers: string[], rows: string[][], minWidths: numb
 }
 
 /**
- * The run's published result in human mode — compact on one line when it
- * fits, pretty-printed otherwise. Empty results print nothing.
+ * The run's published result in human mode. Object results render as one
+ * `key: value` line per field — strings raw, everything else compact JSON.
+ * String results render raw on a `result:` line; JSON stays in `--json`
+ * mode. Empty results print nothing. Returns whether anything was written.
  */
-export function renderResult(out: NodeJS.WritableStream, result: unknown): void {
-  if (result == null) return;
-  const compact = JSON.stringify(result);
-  if (!compact || compact === '{}' || compact === '[]') return;
-  out.write(`${pc.dim('result:')} ${compact.length <= 100 ? compact : JSON.stringify(result, null, 2)}\n`);
+export function renderResult(out: NodeJS.WritableStream, result: unknown): boolean {
+  if (result == null) return false;
+  if (typeof result === 'object' && !Array.isArray(result)) {
+    let wrote = false;
+    for (const [key, value] of Object.entries(result)) {
+      if (value == null) continue;
+      out.write(`${pc.dim(`${key}:`)}\n${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
+      wrote = true;
+    }
+    return wrote;
+  }
+  const text = typeof result === 'string' ? result : JSON.stringify(result);
+  if (!text) return false;
+  out.write(`${pc.dim('result:')}\n${text}\n`);
+  return true;
 }
 
 export function colorStatus(status: string): string {

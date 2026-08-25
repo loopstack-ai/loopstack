@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Repository } from 'typeorm';
 import { DocumentEntity } from '@loopstack/common';
 import type { DocumentFilterInterface, DocumentSortByInterface } from '@loopstack/contracts/api';
+import { resolvePagination } from '../utils/pagination.util.js';
 
 @Injectable()
 export class DocumentApiService {
@@ -32,6 +33,7 @@ export class DocumentApiService {
   }> {
     const defaultLimit = this.configService.get<number>('DOCUMENT_DEFAULT_LIMIT', 100);
     const defaultSortBy = this.configService.get<DocumentSortByInterface[]>('DOCUMENT_DEFAULT_SORT_BY', []);
+    const { skip, take, page, limit } = resolvePagination(pagination, defaultLimit);
 
     const transformedFilter = Object.fromEntries(
       Object.entries(filter ?? {}).map(([key, value]) => [key, value === null ? IsNull() : value]),
@@ -50,18 +52,13 @@ export class DocumentApiService {
         },
         {} as Record<string, 'ASC' | 'DESC'>,
       ),
-      take: pagination.limit ?? defaultLimit,
-      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
+      take,
+      skip,
     };
 
     const [data, total] = await this.documentRepository.findAndCount(findOptions);
 
-    return {
-      data,
-      total,
-      page: pagination.page ?? 1,
-      limit: pagination.limit ?? defaultLimit,
-    };
+    return { data, total, page, limit };
   }
 
   /**

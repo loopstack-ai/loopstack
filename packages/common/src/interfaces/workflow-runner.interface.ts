@@ -1,5 +1,7 @@
 import type { WorkflowState } from '@loopstack/contracts/enums';
+import type { RunTraceEvent, WorkflowTransitionType } from '@loopstack/contracts/types';
 import type { BaseWorkflow } from '../base/base-workflow.js';
+import type { DocumentEntity } from '../entities/index.js';
 
 /**
  * Extracts the `TArgs` type from a `BaseWorkflow` subclass — the args shape you
@@ -59,11 +61,19 @@ export interface SyncRunResult extends RunResult {
 }
 
 /**
- * Result of a stateless `WorkflowRunner.runSync` (no persistence) — `status` and published `result`.
+ * Result of a stateless `WorkflowRunner.runSync` (no persistence) — the final `status` and
+ * published `result`, plus the in-memory run record: `place`, the run `trace`,
+ * produced `documents`, currently `availableTransitions`, and error info.
  *
  * @public
  */
 export interface StatelessRunResult {
   status: WorkflowState;
   result: unknown;
+  place: string;
+  trace: RunTraceEvent[];
+  documents: DocumentEntity[];
+  availableTransitions: WorkflowTransitionType[];
+  hasError: boolean;
+  errorMessage?: string;
 }

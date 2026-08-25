@@ -38,8 +38,11 @@ export class WorkflowService {
       createdBy: user,
       workspace,
       parent: parent || null,
+      parentId: parent?.id ?? null,
     });
-    return await this.workflowRepository.save(workflow);
+    const entity = await this.workflowRepository.save(workflow);
+    this.clientMessageService.dispatchWorkflowCreated(entity);
+    return entity;
   }
 
   async setWorkflowStatus(workflow: WorkflowEntity, status: WorkflowState) {

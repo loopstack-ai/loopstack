@@ -33,6 +33,17 @@ export interface SandboxExistsResult {
 }
 
 /**
+ * Zod schema for {@link SandboxExistsResult} — the `resultSchema` of `sandbox_exists`.
+ *
+ * @public
+ */
+export const SandboxExistsResultSchema = z.strictObject({
+  path: z.string(),
+  exists: z.boolean(),
+  type: z.enum(['file', 'directory', 'symlink', 'other']).nullable(),
+});
+
+/**
  * Tool that checks whether a path exists in a sandbox container and reports its type.
  *
  * @providedBy SandboxFilesystemModule
@@ -42,6 +53,8 @@ export interface SandboxExistsResult {
   name: 'sandbox_exists',
   description: 'Check if a file or directory exists in a sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxExistsResultSchema,
+  effects: 'none',
 })
 export class SandboxExists extends BaseTool<SandboxExistsArgs, object, SandboxExistsResult> {
   private readonly logger = new Logger(SandboxExists.name);

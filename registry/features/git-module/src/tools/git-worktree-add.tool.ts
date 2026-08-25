@@ -38,6 +38,17 @@ export type GitWorktreeAddResult = {
 };
 
 /**
+ * Zod schema for `GitWorktreeAddResult`.
+ *
+ * @public
+ */
+export const GitWorktreeAddResultSchema = z.strictObject({
+  success: z.boolean(),
+  path: z.string(),
+  output: z.string().optional(),
+});
+
+/**
  * Tool that creates a new git worktree at the given path, optionally checking out or creating a branch.
  *
  * @providedBy GitModule
@@ -48,6 +59,8 @@ export type GitWorktreeAddResult = {
   description:
     'Creates a new git worktree at the given path. Optionally checks out an existing branch or creates a new one with "newBranch: true".',
   schema: GitWorktreeAddSchema,
+  resultSchema: GitWorktreeAddResultSchema,
+  effects: 'external',
 })
 export class GitWorktreeAddTool extends BaseTool<GitWorktreeAddArgs, object, GitWorktreeAddResult> {
   constructor(

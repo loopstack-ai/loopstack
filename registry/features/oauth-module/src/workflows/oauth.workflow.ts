@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents/index.js';
+import { OAuthSessionService } from '../services/index.js';
 import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
 
 interface OAuthArgs {
@@ -40,6 +41,7 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
   constructor(
     private readonly buildOAuthUrl: BuildOAuthUrlTool,
     private readonly exchangeOAuthToken: ExchangeOAuthTokenTool,
+    private readonly sessions: OAuthSessionService,
   ) {
     super();
   }
@@ -53,6 +55,15 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
 
     const oauthState = result.data.state;
     const authUrl = result.data.authUrl;
+
+    // Registers the pending flow so the public callback can complete the
+    // exchange from code + state alone — the browser redirect then works no
+    // matter who opened the URL (Studio popup, CLI link, plain browser).
+    await this.sessions.register(oauthState, {
+      workflowId: ctx.workflowId,
+      userId: ctx.userId,
+      provider: ctx.args.provider,
+    });
 
     await this.documentStore.save(
       OAuthPromptDocument,

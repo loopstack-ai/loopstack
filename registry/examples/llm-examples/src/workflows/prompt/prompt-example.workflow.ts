@@ -22,11 +22,12 @@ export class PromptExampleWorkflow extends BaseWorkflow<PromptExampleArgs> {
 
   @Transition({ to: 'end' })
   async prompt(state: Record<string, unknown>, ctx: RunContext<PromptExampleArgs>) {
-    await this.llmGenerateText.call(
+    const result = await this.llmGenerateText.call(
       {
         prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { subject: ctx.args.subject }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
+    this.setResult({ text: result.data.message.text });
   }
 }

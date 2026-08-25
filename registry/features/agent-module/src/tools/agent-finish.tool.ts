@@ -18,6 +18,16 @@ type AgentFinishInput = z.infer<typeof AgentFinishInputSchema>;
 export type AgentFinishResult = { __agentFinish: true; result: unknown };
 
 /**
+ * Zod schema for {@link AgentFinishResult}.
+ *
+ * @public
+ */
+export const AgentFinishResultSchema = z.strictObject({
+  __agentFinish: z.literal(true),
+  result: z.unknown(),
+});
+
+/**
  * Tool that signals the agent has completed its task and returns the final result.
  *
  * The LLM calls this to end the loop, passing the final `result` as a structured object
@@ -33,6 +43,8 @@ export type AgentFinishResult = { __agentFinish: true; result: unknown };
     'Pass the result as a structured object or string. ' +
     'IMPORTANT: This must be the only tool call in your response.',
   schema: AgentFinishInputSchema,
+  resultSchema: AgentFinishResultSchema,
+  effects: 'none',
 })
 export class AgentFinishTool extends BaseTool<AgentFinishInput, object, AgentFinishResult> {
   protected async handle(args: AgentFinishInput): Promise<ToolEnvelope<AgentFinishResult>> {

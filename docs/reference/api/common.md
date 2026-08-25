@@ -35,7 +35,7 @@ export abstract class BaseTool<
     ctx: RunContext,
     options?: ToolCallOptions<TConfig>,
   ): Promise<ToolEnvelope<TResult, TMeta>>;
-  complete(result: Record<string, unknown>): Promise<ToolEnvelope>;
+  complete(_result: Record<string, unknown>): Promise<ToolEnvelope>;
 }
 ```
 
@@ -175,6 +175,22 @@ export abstract class ServerTool<TConfig extends object = object> {
 
 ## Interfaces
 
+### Clock
+
+The framework's time source — inject via the `CLOCK` token instead of calling `Date.now()`
+or `setTimeout` directly, so time-dependent logic stays deterministic under a test clock.
+
+```ts
+import { Clock } from '@loopstack/common';
+```
+
+```ts
+export interface Clock {
+  now(): number;
+  schedule(fn: () => void, ms: number): () => void;
+}
+```
+
 ### DocumentOptions
 
 Options for the `@Document()` decorator.
@@ -242,6 +258,7 @@ export interface RunContext<TArgs = unknown> {
   workspaceId: string;
   workflowId: string;
   args: TArgs;
+  signal: AbortSignal;
   execution?: {
     place: string;
     retryCount: number;
@@ -267,7 +284,9 @@ export interface RunResult {
 
 ### StatelessRunResult
 
-Result of a stateless `WorkflowRunner.runSync` (no persistence) — `status` and published `result`.
+Result of a stateless `WorkflowRunner.runSync` (no persistence) — the final `status` and
+published `result`, plus the in-memory run record: `place`, the run `trace`,
+produced `documents`, currently `availableTransitions`, and error info.
 
 ```ts
 import { StatelessRunResult } from '@loopstack/common';
@@ -277,6 +296,12 @@ import { StatelessRunResult } from '@loopstack/common';
 export interface StatelessRunResult {
   status: WorkflowState;
   result: unknown;
+  place: string;
+  trace: RunTraceEvent[];
+  documents: DocumentEntity[];
+  availableTransitions: WorkflowTransitionType[];
+  hasError: boolean;
+  errorMessage?: string;
 }
 ```
 
@@ -332,6 +357,32 @@ export interface ToolCallOptions<TConfig = object> {
 }
 ```
 
+### ToolDocumentDeclaration
+
+A document a tool declares as part of its result envelope instead of writing it
+inside `handle()`. The tool pipeline applies declarations through the document
+store after the interceptor chain, so declared documents appear identically for
+live and replayed tool calls.
+
+`documentName` is the document's registered name (the `@Document({ name })` option,
+or the kebab-case derivation of the class name). `options` mirror `DocumentSaveOptions`.
+
+```ts
+import { ToolDocumentDeclaration } from '@loopstack/common';
+```
+
+```ts
+export interface ToolDocumentDeclaration {
+  documentName: string;
+  content: Record<string, unknown>;
+  options?: {
+    key?: string;
+    meta?: Record<string, unknown>;
+    validate?: 'strict' | 'safe' | 'skip';
+  };
+}
+```
+
 ### ToolOptions
 
 Options for the `@Tool()` decorator.
@@ -347,6 +398,8 @@ export interface ToolOptions {
   widget?: WidgetRef | WidgetRef[];
   schema?: z.ZodType;
   configSchema?: z.ZodType;
+  resultSchema?: z.ZodType;
+  effects?: 'none' | 'external';
 }
 ```
 
@@ -477,23 +530,6 @@ export interface WorkflowRunnerSyncOptions extends WorkflowRunnerOptions {
 }
 ```
 
-### WorkflowRunResult
-
-Result of `WorkflowRunner.execute` — the controller-facing entry point that
-starts, resumes, or retries a workflow based on the payload shape.
-
-```ts
-import { WorkflowRunResult } from '@loopstack/common';
-```
-
-```ts
-export interface WorkflowRunResult {
-  workflowId: string;
-  workspaceId: string;
-  status: WorkflowState;
-}
-```
-
 ## Type Aliases
 
 ### ToolEnvelope
@@ -522,6 +558,7 @@ export type ToolEnvelope<TData = unknown, TMeta = Record<string, unknown>> = {
   pending?: {
     workflowId: string;
   };
+  documents?: ToolDocumentDeclaration[];
 };
 ```
 

@@ -34,6 +34,16 @@ export interface BuildOAuthUrlResult {
 }
 
 /**
+ * Zod schema for {@link BuildOAuthUrlResult} — the `resultSchema` of `build_oauth_url`.
+ *
+ * @public
+ */
+export const BuildOAuthUrlResultSchema = z.strictObject({
+  authUrl: z.string(),
+  state: z.string(),
+});
+
+/**
  * Tool that builds an OAuth 2.0 authorization URL for a provider, including a CSRF state parameter.
  *
  * @providedBy OAuthModule
@@ -43,6 +53,8 @@ export interface BuildOAuthUrlResult {
   name: 'build_oauth_url',
   description: 'Builds an OAuth 2.0 authorization URL for the given provider with CSRF state parameter.',
   schema: BuildOAuthUrlSchema,
+  resultSchema: BuildOAuthUrlResultSchema,
+  effects: 'none',
 })
 export class BuildOAuthUrlTool extends BaseTool<BuildOAuthUrlArgs, object, BuildOAuthUrlResult> {
   @Inject()

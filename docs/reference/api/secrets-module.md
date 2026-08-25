@@ -218,6 +218,63 @@ export type RequestSecretsTaskResult =
 
 ## Variables
 
+### GetSecretKeysResultSchema
+
+Zod schema for `GetSecretKeysResult` — the `resultSchema` of `get_secret_keys`.
+
+```ts
+import { GetSecretKeysResultSchema } from '@loopstack/secrets-module';
+```
+
+```ts
+GetSecretKeysResultSchema: z.ZodArray<
+  z.ZodObject<
+    {
+      key: z.ZodString;
+      hasValue: z.ZodBoolean;
+    },
+    z.core.$strict
+  >
+>;
+```
+
+### RequestSecretsResultSchema
+
+Zod schema for `RequestSecretsResult` — the `resultSchema` of `request_secrets`.
+
+```ts
+import { RequestSecretsResultSchema } from '@loopstack/secrets-module';
+```
+
+```ts
+RequestSecretsResultSchema: z.ZodObject<
+  {
+    variables: z.ZodArray<
+      z.ZodObject<
+        {
+          key: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### RequestSecretsTaskResultSchema
+
+Zod schema for `RequestSecretsTaskResult` — the confirmation string returned once the
+user has stored the secrets.
+
+```ts
+import { RequestSecretsTaskResultSchema } from '@loopstack/secrets-module';
+```
+
+```ts
+RequestSecretsTaskResultSchema: z.ZodString;
+```
+
 ### SecretRequestDocumentSchema
 
 Zod schema for the secrets request form document — a list of variables, each with a `key` and an

@@ -3,6 +3,8 @@ import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 
 export type StrictSchemaToolResult = string;
 
+export const StrictSchemaToolResultSchema = z.string();
+
 @Tool({
   name: 'strict_schema',
   description: 'Greet a person by name. Requires a name argument. ' + 'Returns a greeting message.',
@@ -11,6 +13,8 @@ export type StrictSchemaToolResult = string;
       name: z.string().describe('The name of the person to greet.'),
     })
     .strict(),
+  resultSchema: StrictSchemaToolResultSchema,
+  effects: 'none',
 })
 export class StrictSchemaTool extends BaseTool<{ name: string }, object, StrictSchemaToolResult> {
   protected async handle(args: { name: string }): Promise<ToolEnvelope<StrictSchemaToolResult>> {

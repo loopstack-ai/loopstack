@@ -48,6 +48,21 @@ export type GoogleCalendarCreateEventResult =
   | { error: 'api_error'; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GoogleCalendarCreateEventResult} — the created event.
+ *
+ * @public
+ */
+export const GoogleCalendarCreateEventResultSchema = z.strictObject({
+  event: z.strictObject({
+    id: z.string(),
+    summary: z.string(),
+    start: z.string().optional(),
+    end: z.string().optional(),
+    htmlLink: z.string(),
+  }),
+});
+
+/**
  * Tool that creates a new event on a Google Calendar. Takes a summary, start/end times, and optional
  * description, location, attendees, and reminders, and returns the created event's id and link, or
  * `{ error: 'unauthorized' }` when no valid Google token is available.
@@ -60,6 +75,8 @@ export type GoogleCalendarCreateEventResult =
   description:
     'Creates a new event on Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GoogleCalendarCreateEventResultSchema,
+  effects: 'external',
 })
 export class GoogleCalendarCreateEventTool extends BaseTool<
   GoogleCalendarCreateEventArgs,

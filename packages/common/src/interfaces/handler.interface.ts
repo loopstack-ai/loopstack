@@ -1,3 +1,38 @@
+import { z } from 'zod';
+
+/**
+ * A document a tool declares as part of its result envelope instead of writing it
+ * inside `handle()`. The tool pipeline applies declarations through the document
+ * store after the interceptor chain, so declared documents appear identically for
+ * live and replayed tool calls.
+ *
+ * `documentName` is the document's registered name (the `@Document({ name })` option,
+ * or the kebab-case derivation of the class name). `options` mirror `DocumentSaveOptions`.
+ *
+ * @public
+ */
+export interface ToolDocumentDeclaration {
+  documentName: string;
+  content: Record<string, unknown>;
+  options?: {
+    key?: string;
+    meta?: Record<string, unknown>;
+    validate?: 'strict' | 'safe' | 'skip';
+  };
+}
+
+export const ToolDocumentDeclarationSchema = z.object({
+  documentName: z.string().min(1),
+  content: z.record(z.string(), z.unknown()),
+  options: z
+    .object({
+      key: z.string().optional(),
+      meta: z.record(z.string(), z.unknown()).optional(),
+      validate: z.enum(['strict', 'safe', 'skip']).optional(),
+    })
+    .optional(),
+});
+
 /**
  * Raw envelope returned by `BaseTool.handle()` and `ToolPipeline.execute()`.
  *
@@ -20,6 +55,12 @@ export type ToolEnvelope<TData = unknown, TMeta = Record<string, unknown>> = {
   pending?: {
     workflowId: string;
   };
+  /**
+   * Documents this tool produces. Applied by the tool pipeline via the document store
+   * after the interceptor chain (success envelopes only) — under replay, declarations
+   * from recorded envelopes are applied the same way. Not visible on `ToolResult`.
+   */
+  documents?: ToolDocumentDeclaration[];
 };
 
 /**

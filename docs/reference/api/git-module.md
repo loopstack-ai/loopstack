@@ -773,6 +773,265 @@ export type GitWorktreeRemoveResult = {
 
 ## Variables
 
+### GitAddResultSchema
+
+Zod schema for `GitAddResult`.
+
+```ts
+import { GitAddResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitAddResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### GitBranchResultSchema
+
+Zod schema for `GitBranchResult`.
+
+```ts
+import { GitBranchResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitBranchResultSchema: z.ZodObject<
+  {
+    current: z.ZodString;
+    branches: z.ZodArray<
+      z.ZodObject<
+        {
+          name: z.ZodString;
+          isCurrent: z.ZodBoolean;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitCheckoutResultSchema
+
+Zod schema for `GitCheckoutResult`.
+
+```ts
+import { GitCheckoutResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitCheckoutResultSchema: z.ZodObject<
+  {
+    branch: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
+### GitCommitResultSchema
+
+Zod schema for `GitCommitResult`.
+
+```ts
+import { GitCommitResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitCommitResultSchema: z.ZodObject<
+  {
+    hash: z.ZodString;
+    message: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
+### GitConfigUserResultSchema
+
+Zod schema for `GitConfigUserResult`.
+
+```ts
+import { GitConfigUserResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitConfigUserResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### GitDiffResultSchema
+
+Zod schema for `GitDiffResult`.
+
+```ts
+import { GitDiffResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitDiffResultSchema: z.ZodObject<
+  {
+    files: z.ZodArray<
+      z.ZodObject<
+        {
+          path: z.ZodString;
+          status: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitFetchResultSchema
+
+Zod schema for `GitFetchResult`.
+
+```ts
+import { GitFetchResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitFetchResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
+    output: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitLogResultSchema
+
+Zod schema for `GitLogResult`.
+
+```ts
+import { GitLogResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitLogResultSchema: z.ZodObject<
+  {
+    commits: z.ZodArray<
+      z.ZodObject<
+        {
+          hash: z.ZodString;
+          shortHash: z.ZodString;
+          message: z.ZodString;
+          author: z.ZodString;
+          date: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitPullResultSchema
+
+Zod schema for `GitPullResult`.
+
+```ts
+import { GitPullResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitPullResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
+    output: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitPushResultSchema
+
+Zod schema for `GitPushResult`.
+
+```ts
+import { GitPushResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitPushResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
+    output: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitRemoteConfigureResultSchema
+
+Zod schema for `GitRemoteConfigureResult`.
+
+```ts
+import { GitRemoteConfigureResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitRemoteConfigureResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### GitStatusResultSchema
+
+Zod schema for `GitStatusResult`.
+
+```ts
+import { GitStatusResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitStatusResultSchema: z.ZodObject<
+  {
+    branch: z.ZodString;
+    staged: z.ZodArray<z.ZodString>;
+    modified: z.ZodArray<z.ZodString>;
+    untracked: z.ZodArray<z.ZodString>;
+    deleted: z.ZodArray<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitWorktreeAddResultSchema
+
+Zod schema for `GitWorktreeAddResult`.
+
+```ts
+import { GitWorktreeAddResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitWorktreeAddResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
+    path: z.ZodString;
+    output: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
 ### GitWorktreeAddSchema
 
 Zod schema for `GitWorktreeAddTool` arguments.
@@ -788,6 +1047,71 @@ GitWorktreeAddSchema: z.ZodObject<
     branch: z.ZodOptional<z.ZodString>;
     newBranch: z.ZodOptional<z.ZodBoolean>;
     force: z.ZodOptional<z.ZodBoolean>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitWorktreeListResultSchema
+
+Zod schema for `GitWorktreeListResult`.
+
+```ts
+import { GitWorktreeListResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitWorktreeListResultSchema: z.ZodObject<
+  {
+    worktrees: z.ZodArray<
+      z.ZodObject<
+        {
+          path: z.ZodString;
+          head: z.ZodOptional<z.ZodString>;
+          branch: z.ZodOptional<z.ZodString>;
+          bare: z.ZodBoolean;
+          detached: z.ZodBoolean;
+          locked: z.ZodOptional<z.ZodString>;
+          prunable: z.ZodOptional<z.ZodString>;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitWorktreePruneResultSchema
+
+Zod schema for `GitWorktreePruneResult`.
+
+```ts
+import { GitWorktreePruneResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitWorktreePruneResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
+    output: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitWorktreeRemoveResultSchema
+
+Zod schema for `GitWorktreeRemoveResult`.
+
+```ts
+import { GitWorktreeRemoveResultSchema } from '@loopstack/git-module';
+```
+
+```ts
+GitWorktreeRemoveResultSchema: z.ZodObject<
+  {
+    success: z.ZodBoolean;
   },
   z.core.$strict
 >;

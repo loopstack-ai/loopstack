@@ -92,6 +92,26 @@ A `wait` transition pauses the workflow until something outside it happens: a us
 
 Never use waiting to poll or to "give something time." If you find yourself waiting and re-checking, the work should be a callback instead. Waiting is for handing control out and getting it back — not for busy-looping.
 
+### Commit user input before slow work
+
+A transition's documents become visible when the transition **commits** — at the end of its body. If one transition stores the user's input _and_ does slow work (an LLM call, an external request), the input stays invisible until the whole turn finishes; in a chat, the assistant's streamed reply appears before the user's own message.
+
+Split them: the wait transition stores the input and completes (a fast commit — the message renders immediately), and the next automatic transition does the slow work.
+
+```typescript
+@Transition({ from: 'waiting_for_user', to: 'generating_reply', wait: true, schema: z.string() })
+async userMessage(state: ChatState, input: TransitionInput<string>) {
+  await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
+}
+
+@Transition({ from: 'generating_reply', to: 'waiting_for_user' })
+async generateReply() {
+  await this.llmGenerateText.call({}, { config: { ... } });
+}
+```
+
+This is granularity working for you: every transition boundary is a UI update, so slicing transitions by "what should the user see, and when" gives responsive runs without any frontend tricks.
+
 ### Keep guards pure
 
 Guards decide routing when several transitions share a `from` place. Treat them as **pure predicates over state**: they read, they return a boolean, they do nothing else.

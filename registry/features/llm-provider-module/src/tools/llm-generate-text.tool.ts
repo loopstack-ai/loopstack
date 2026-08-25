@@ -4,13 +4,14 @@ import { z } from 'zod';
 import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import type { ToolRegistry } from '@loopstack/common';
-import { ClientMessageService } from '@loopstack/core';
+import { ClientMessageService, resolveDocumentName } from '@loopstack/core';
 import type { LlmContext } from '../contracts/index.js';
 import { LlmMessageDocument } from '../documents/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
 import { LlmToolsHelperService } from '../services/llm-tools-helper.service.js';
+import { LlmGenerateTextResultSchema } from '../types/index.js';
 import type {
   LlmGenerateTextResult,
   LlmMessage,
@@ -77,6 +78,8 @@ export const LlmGenerateTextToolSchema = LlmGenerateTextArgsSchema;
     'Configure provider, model, system prompt, and tools via options.config.',
   schema: LlmGenerateTextArgsSchema,
   configSchema: LlmGenerateTextConfigSchema,
+  resultSchema: LlmGenerateTextResultSchema,
+  effects: 'none',
 })
 export class LlmGenerateTextTool extends BaseTool<
   LlmGenerateTextArgs,
@@ -99,7 +102,7 @@ export class LlmGenerateTextTool extends BaseTool<
     const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
 
     // Documents from DocumentStore (replaces this.ctx.runtime.documents)
-    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments() };
+    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments(), signal: ctx.signal };
 
     // Resolve tool names (string[]) to BaseTool[] instances via ToolRegistry
     const toolNames = config?.tools;
@@ -146,12 +149,6 @@ export class LlmGenerateTextTool extends BaseTool<
       this.dispatchStreamEvent(ctx, { type: 'done', messageId: streamMessageId, message: result.message });
     }
 
-    if (config?.save !== false) {
-      await this.documentStore.save(LlmMessageDocument, result.message, {
-        meta: { response: result.response, provider: provider.providerId, ...(config?.meta ?? {}) },
-      });
-    }
-
     return {
       data: result,
       metadata: {
@@ -159,6 +156,17 @@ export class LlmGenerateTextTool extends BaseTool<
         model: config?.model ?? this.moduleConfig.model ?? 'default',
         ...(usage && { usage }),
       },
+      ...(config?.save !== false && {
+        documents: [
+          {
+            documentName: resolveDocumentName(LlmMessageDocument),
+            content: result.message as unknown as Record<string, unknown>,
+            options: {
+              meta: { response: result.response, provider: provider.providerId, ...(config?.meta ?? {}) },
+            },
+          },
+        ],
+      }),
     };
   }
 

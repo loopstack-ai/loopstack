@@ -25,6 +25,13 @@ export type GitPushResult = {
 };
 
 /**
+ * Zod schema for `GitPushResult`.
+ *
+ * @public
+ */
+export const GitPushResultSchema = z.strictObject({ success: z.boolean(), output: z.string().optional() });
+
+/**
  * Tool that pushes commits to a remote repository.
  *
  * @providedBy GitModule
@@ -41,6 +48,8 @@ export type GitPushResult = {
       token: z.string().optional().describe('Access token for authentication'),
     })
     .strict(),
+  resultSchema: GitPushResultSchema,
+  effects: 'external',
 })
 export class GitPushTool extends BaseTool<GitPushArgs, object, GitPushResult> {
   constructor(

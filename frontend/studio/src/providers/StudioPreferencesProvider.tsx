@@ -7,12 +7,15 @@ interface StudioPreferences {
   leftSidebarOpen: boolean;
   activePanel: PanelId | null;
   panelSizes: Partial<Record<PanelId, PanelSize>>;
+  /** Workbench workflow area: legacy document tree or the canonical run view. */
+  workbenchView: 'classic' | 'run';
 }
 
 const DEFAULTS: StudioPreferences = {
   leftSidebarOpen: false,
   activePanel: null,
   panelSizes: {},
+  workbenchView: 'classic',
 };
 
 interface StudioPreferencesContextType {

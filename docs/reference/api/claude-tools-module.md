@@ -162,3 +162,88 @@ ClaudeWebSearchConfigSchema: z.ZodObject<
   z.core.$strip
 >;
 ```
+
+### WebSearchHitSchema
+
+Zod schema for `WebSearchHit`.
+
+```ts
+import { WebSearchHitSchema } from '@loopstack/claude-tools-module';
+```
+
+```ts
+WebSearchHitSchema: z.ZodObject<
+  {
+    title: z.ZodString;
+    url: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
+### WebSearchResultBlockSchema
+
+Zod schema for `WebSearchResultBlock`.
+
+```ts
+import { WebSearchResultBlockSchema } from '@loopstack/claude-tools-module';
+```
+
+```ts
+WebSearchResultBlockSchema: z.ZodObject<
+  {
+    tool_use_id: z.ZodString;
+    content: z.ZodArray<
+      z.ZodObject<
+        {
+          title: z.ZodString;
+          url: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### WebSearchResultSchema
+
+Zod schema for `WebSearchResult` — the `resultSchema` of `claude_web_search`.
+
+```ts
+import { WebSearchResultSchema } from '@loopstack/claude-tools-module';
+```
+
+```ts
+WebSearchResultSchema: z.ZodObject<
+  {
+    query: z.ZodString;
+    results: z.ZodArray<
+      z.ZodUnion<
+        readonly [
+          z.ZodObject<
+            {
+              tool_use_id: z.ZodString;
+              content: z.ZodArray<
+                z.ZodObject<
+                  {
+                    title: z.ZodString;
+                    url: z.ZodString;
+                  },
+                  z.core.$strict
+                >
+              >;
+            },
+            z.core.$strict
+          >,
+          z.ZodString,
+        ]
+      >
+    >;
+    sourcesReminder: z.ZodString;
+    durationSeconds: z.ZodNumber;
+  },
+  z.core.$strict
+>;
+```

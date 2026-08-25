@@ -55,5 +55,6 @@ export class WebFetchExampleWorkflow extends BaseWorkflow<WebFetchArgs> {
       role: 'assistant',
       text: state.summary ?? '(no content)',
     });
+    this.setResult({ url: state.url, summary: state.summary ?? '' });
   }
 }

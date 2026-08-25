@@ -22,6 +22,8 @@ type AuthenticateGoogleTaskInput = z.infer<typeof AuthenticateGoogleTaskInputSch
 
 export type AuthenticateGoogleTaskResult = { workflowId: string; mode: string; [key: string]: unknown } | string;
 
+export const AuthenticateGoogleTaskResultSchema = z.string();
+
 @Tool({
   name: 'authenticate_google',
   description:
@@ -30,6 +32,8 @@ export type AuthenticateGoogleTaskResult = { workflowId: string; mode: string; [
     'Pass the required OAuth scopes for the Google APIs you need access to. ' +
     'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: AuthenticateGoogleTaskInputSchema,
+  resultSchema: AuthenticateGoogleTaskResultSchema,
+  effects: 'external',
 })
 export class AuthenticateGoogleTask extends BaseTool<
   AuthenticateGoogleTaskInput,

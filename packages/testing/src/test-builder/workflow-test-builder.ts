@@ -144,7 +144,7 @@ export class WorkflowTestBuilder<TWorkflow = unknown> {
    * Adds to local providers - use withToolOverride for tools from imported modules
    */
   withToolMock<T>(toolClass: Type<T>): this {
-    const mock = createToolMock();
+    const mock = createToolMock(toolClass.name);
     this.providers.push({
       provide: toolClass,
       useValue: mock,
@@ -157,7 +157,7 @@ export class WorkflowTestBuilder<TWorkflow = unknown> {
    * Use for tools that come from imported modules
    */
   withToolOverride<T>(toolClass: Type<T>): this {
-    const mock = createToolMock();
+    const mock = createToolMock(toolClass.name);
     this.overrides.set(toolClass, mock);
     return this;
   }

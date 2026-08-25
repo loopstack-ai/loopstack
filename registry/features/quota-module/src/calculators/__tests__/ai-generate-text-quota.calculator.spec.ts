@@ -12,6 +12,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
       workspaceId: 'ws-1',
       workflowId: '',
       args: undefined,
+      signal: new AbortController().signal,
     },
     metadata: {},
   };

@@ -87,6 +87,10 @@ export class WorkflowEntity {
   @Column('varchar', { name: 'labels', array: true, default: [] })
   labels!: string[];
 
+  /** Whether this run persists its trace events (opt-in per run; inherited by sub-workflows). */
+  @Column({ name: 'trace_enabled', default: false })
+  trace!: boolean;
+
   @OneToMany(() => DocumentEntity, (document: DocumentEntity) => document.workflow, {
     onDelete: 'CASCADE',
   })

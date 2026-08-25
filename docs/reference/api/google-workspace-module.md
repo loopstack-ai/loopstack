@@ -739,3 +739,328 @@ export type GoogleDriveUploadFileResult =
       message: string;
     };
 ```
+
+## Variables
+
+### GmailGetMessageResultSchema
+
+Zod schema for the success shape of `GmailGetMessageResult` — the message content and
+attachment metadata.
+
+```ts
+import { GmailGetMessageResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GmailGetMessageResultSchema: z.ZodObject<
+  {
+    id: z.ZodString;
+    threadId: z.ZodString;
+    from: z.ZodString;
+    to: z.ZodString;
+    cc: z.ZodString;
+    subject: z.ZodString;
+    date: z.ZodString;
+    body: z.ZodString;
+    snippet: z.ZodString;
+    labelIds: z.ZodArray<z.ZodString>;
+    attachments: z.ZodArray<
+      z.ZodObject<
+        {
+          attachmentId: z.ZodString;
+          filename: z.ZodString;
+          mimeType: z.ZodString;
+          size: z.ZodNumber;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GmailReplyToMessageResultSchema
+
+Zod schema for the success shape of `GmailReplyToMessageResult` — the sent reply.
+
+```ts
+import { GmailReplyToMessageResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GmailReplyToMessageResultSchema: z.ZodObject<
+  {
+    id: z.ZodString;
+    threadId: z.ZodString;
+    labelIds: z.ZodArray<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GmailSearchMessagesResultSchema
+
+Zod schema for the success shape of `GmailSearchMessagesResult` — the message summaries
+and pagination token.
+
+```ts
+import { GmailSearchMessagesResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GmailSearchMessagesResultSchema: z.ZodObject<
+  {
+    messages: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodString;
+          threadId: z.ZodString;
+          snippet: z.ZodString;
+          from: z.ZodString;
+          to: z.ZodString;
+          subject: z.ZodString;
+          date: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+    nextPageToken: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GmailSendMessageResultSchema
+
+Zod schema for the success shape of `GmailSendMessageResult` — the sent message.
+
+```ts
+import { GmailSendMessageResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GmailSendMessageResultSchema: z.ZodObject<
+  {
+    id: z.ZodString;
+    threadId: z.ZodString;
+    labelIds: z.ZodArray<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GoogleCalendarCreateEventResultSchema
+
+Zod schema for the success shape of `GoogleCalendarCreateEventResult` — the created event.
+
+```ts
+import { GoogleCalendarCreateEventResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GoogleCalendarCreateEventResultSchema: z.ZodObject<
+  {
+    event: z.ZodObject<
+      {
+        id: z.ZodString;
+        summary: z.ZodString;
+        start: z.ZodOptional<z.ZodString>;
+        end: z.ZodOptional<z.ZodString>;
+        htmlLink: z.ZodString;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GoogleCalendarFetchEventsResultSchema
+
+Zod schema for the success shape of `GoogleCalendarFetchEventsResult` — the fetched events.
+
+```ts
+import { GoogleCalendarFetchEventsResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GoogleCalendarFetchEventsResultSchema: z.ZodObject<
+  {
+    events: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodString;
+          summary: z.ZodOptional<z.ZodString>;
+          description: z.ZodOptional<z.ZodString>;
+          start: z.ZodOptional<z.ZodString>;
+          end: z.ZodOptional<z.ZodString>;
+          location: z.ZodOptional<z.ZodString>;
+          attendees: z.ZodOptional<
+            z.ZodArray<
+              z.ZodObject<
+                {
+                  email: z.ZodString;
+                  responseStatus: z.ZodOptional<z.ZodString>;
+                },
+                z.core.$strict
+              >
+            >
+          >;
+          htmlLink: z.ZodOptional<z.ZodString>;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GoogleCalendarListCalendarsResultSchema
+
+Zod schema for the success shape of `GoogleCalendarListCalendarsResult` — the calendar list.
+
+```ts
+import { GoogleCalendarListCalendarsResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GoogleCalendarListCalendarsResultSchema: z.ZodObject<
+  {
+    calendars: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodString;
+          summary: z.ZodString;
+          description: z.ZodOptional<z.ZodString>;
+          primary: z.ZodBoolean;
+          timeZone: z.ZodOptional<z.ZodString>;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GoogleDriveDownloadFileResultSchema
+
+Zod schema for the success shape of `GoogleDriveDownloadFileResult` — the file content,
+base64-encoded when binary.
+
+```ts
+import { GoogleDriveDownloadFileResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GoogleDriveDownloadFileResultSchema: z.ZodObject<
+  {
+    content: z.ZodString;
+    mimeType: z.ZodString;
+    encoding: z.ZodOptional<z.ZodLiteral<'base64'>>;
+  },
+  z.core.$strict
+>;
+```
+
+### GoogleDriveGetFileMetadataResultSchema
+
+Zod schema for the success shape of `GoogleDriveGetFileMetadataResult` — the file metadata.
+
+```ts
+import { GoogleDriveGetFileMetadataResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GoogleDriveGetFileMetadataResultSchema: z.ZodObject<
+  {
+    id: z.ZodString;
+    name: z.ZodString;
+    mimeType: z.ZodString;
+    size: z.ZodOptional<z.ZodString>;
+    modifiedTime: z.ZodString;
+    createdTime: z.ZodString;
+    owners: z.ZodOptional<
+      z.ZodArray<
+        z.ZodObject<
+          {
+            displayName: z.ZodString;
+            email: z.ZodString;
+          },
+          z.core.$strict
+        >
+      >
+    >;
+    webViewLink: z.ZodOptional<z.ZodString>;
+    parents: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    description: z.ZodOptional<z.ZodString>;
+    shared: z.ZodOptional<z.ZodBoolean>;
+  },
+  z.core.$strict
+>;
+```
+
+### GoogleDriveListFilesResultSchema
+
+Zod schema for the success shape of `GoogleDriveListFilesResult` — the file list and
+pagination token.
+
+```ts
+import { GoogleDriveListFilesResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GoogleDriveListFilesResultSchema: z.ZodObject<
+  {
+    files: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodString;
+          name: z.ZodString;
+          mimeType: z.ZodString;
+          size: z.ZodOptional<z.ZodString>;
+          modifiedTime: z.ZodString;
+          createdTime: z.ZodString;
+          owners: z.ZodOptional<
+            z.ZodArray<
+              z.ZodObject<
+                {
+                  displayName: z.ZodString;
+                  email: z.ZodString;
+                },
+                z.core.$strict
+              >
+            >
+          >;
+          webViewLink: z.ZodOptional<z.ZodString>;
+        },
+        z.core.$strict
+      >
+    >;
+    nextPageToken: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GoogleDriveUploadFileResultSchema
+
+Zod schema for the success shape of `GoogleDriveUploadFileResult` — the created file.
+
+```ts
+import { GoogleDriveUploadFileResultSchema } from '@loopstack/google-workspace-module';
+```
+
+```ts
+GoogleDriveUploadFileResultSchema: z.ZodObject<
+  {
+    id: z.ZodString;
+    name: z.ZodString;
+    mimeType: z.ZodString;
+    webViewLink: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```

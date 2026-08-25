@@ -33,6 +33,17 @@ export type GmailSendMessageResult =
   | { error: 'api_error'; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GmailSendMessageResult} — the sent message.
+ *
+ * @public
+ */
+export const GmailSendMessageResultSchema = z.strictObject({
+  id: z.string(),
+  threadId: z.string(),
+  labelIds: z.array(z.string()),
+});
+
+/**
  * Tool that sends a new email via Gmail. Takes `to`/`cc`/`bcc` recipients, a subject, and plain-text
  * (and optional HTML) body, and returns the sent message's id, thread id, and label ids, or
  * `{ error: 'unauthorized' }` when no valid Google token is available.
@@ -44,6 +55,8 @@ export type GmailSendMessageResult =
   name: 'gmail_send_message',
   description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GmailSendMessageResultSchema,
+  effects: 'external',
 })
 export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object, GmailSendMessageResult> {
   private readonly logger = new Logger(GmailSendMessageTool.name);

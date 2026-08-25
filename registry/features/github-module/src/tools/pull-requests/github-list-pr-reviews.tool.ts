@@ -39,6 +39,24 @@ export type GitHubListPrReviewsResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubListPrReviewsResult}.
+ *
+ * @public
+ */
+export const GitHubListPrReviewsResultSchema = z.strictObject({
+  reviews: z.array(
+    z.strictObject({
+      id: z.number(),
+      user: z.string(),
+      body: z.string(),
+      state: z.string(),
+      submittedAt: z.string(),
+      htmlUrl: z.string(),
+    }),
+  ),
+});
+
+/**
  * Tool that lists reviews submitted on a GitHub pull request.
  *
  * @providedBy GitHubModule
@@ -49,6 +67,8 @@ export type GitHubListPrReviewsResult =
   description:
     'Lists reviews on a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubListPrReviewsResultSchema,
+  effects: 'none',
 })
 export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, object, GitHubListPrReviewsResult> {
   private readonly logger = new Logger(GitHubListPrReviewsTool.name);

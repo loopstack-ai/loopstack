@@ -40,6 +40,25 @@ export type GoogleDriveGetFileMetadataResult =
   | { error: 'api_error'; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GoogleDriveGetFileMetadataResult} — the file metadata.
+ *
+ * @public
+ */
+export const GoogleDriveGetFileMetadataResultSchema = z.strictObject({
+  id: z.string(),
+  name: z.string(),
+  mimeType: z.string(),
+  size: z.string().optional(),
+  modifiedTime: z.string(),
+  createdTime: z.string(),
+  owners: z.array(z.strictObject({ displayName: z.string(), email: z.string() })).optional(),
+  webViewLink: z.string().optional(),
+  parents: z.array(z.string()).optional(),
+  description: z.string().optional(),
+  shared: z.boolean().optional(),
+});
+
+/**
  * Tool that gets detailed metadata for a single Google Drive file. Takes a `fileId` and returns
  * name, mime type, size, timestamps, owners, parents, and sharing state, or
  * `{ error: 'unauthorized' }` when no valid Google token is available.
@@ -52,6 +71,8 @@ export type GoogleDriveGetFileMetadataResult =
   description:
     'Gets detailed metadata for a single Google Drive file. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GoogleDriveGetFileMetadataResultSchema,
+  effects: 'none',
 })
 export class GoogleDriveGetFileMetadataTool extends BaseTool<
   GoogleDriveGetFileMetadataArgs,

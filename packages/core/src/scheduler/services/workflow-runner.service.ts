@@ -78,7 +78,7 @@ export class WorkflowRunner {
     const workflowEntity = await this.createWorkflowService.create(
       instance,
       { id: workspace.id },
-      { workflowName, args: payload.args as unknown, labels },
+      { workflowName, args: payload.args as unknown, labels, ...(payload.trace ? { trace: true } : {}) },
       options.userId,
     );
 
@@ -170,6 +170,12 @@ export class WorkflowRunner {
       return {
         status: meta.status as WorkflowState,
         result: meta.result ?? null,
+        place: meta.place,
+        trace: meta.trace,
+        documents: meta.documents,
+        availableTransitions: meta.availableTransitions,
+        hasError: meta.hasError,
+        errorMessage: meta.errorMessage,
       };
     }
 

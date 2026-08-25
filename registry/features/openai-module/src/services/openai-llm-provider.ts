@@ -79,8 +79,8 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
 
     const response =
       args.onStream && args.streamMessageId
-        ? await this.streamChatCompletion(client, request, args.streamMessageId, args.onStream)
-        : await client.chat.completions.create(request);
+        ? await this.streamChatCompletion(client, request, args.streamMessageId, args.onStream, ctx.signal)
+        : await client.chat.completions.create(request, { signal: ctx.signal });
 
     const choice = response.choices[0];
     if (!choice) {
@@ -112,20 +112,23 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
     }
     messages.push(...this.resolveMessages(args, ctx.documents));
 
-    const response = await client.chat.completions.create({
-      model,
-      messages,
-      max_tokens: pc?.maxTokens ?? 4096,
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'structured_output',
-          schema: args.outputSchema,
-          strict: true,
+    const response = await client.chat.completions.create(
+      {
+        model,
+        messages,
+        max_tokens: pc?.maxTokens ?? 4096,
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'structured_output',
+            schema: args.outputSchema,
+            strict: true,
+          },
         },
+        ...(pc?.temperature != null ? { temperature: pc.temperature } : {}),
       },
-      ...(pc?.temperature != null ? { temperature: pc.temperature } : {}),
-    });
+      { signal: ctx.signal },
+    );
 
     const choice = response.choices[0];
     if (!choice?.message.content) {
@@ -274,12 +277,16 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
     request: OpenAI.ChatCompletionCreateParamsNonStreaming,
     messageId: string,
     onStream: NonNullable<LlmGenerateTextArgs<OpenAiProviderConfig>['onStream']>,
+    signal?: AbortSignal,
   ): Promise<OpenAI.ChatCompletion> {
-    const stream = await client.chat.completions.create({
-      ...request,
-      stream: true,
-      stream_options: { include_usage: true },
-    });
+    const stream = await client.chat.completions.create(
+      {
+        ...request,
+        stream: true,
+        stream_options: { include_usage: true },
+      },
+      { signal },
+    );
 
     let id = '';
     let created = Math.floor(Date.now() / 1000);

@@ -350,6 +350,40 @@ McpCallToolArgsSchema: z.ZodObject<
 >;
 ```
 
+### McpCallToolResultSchema
+
+Zod schema for `McpCallToolResult` — the `resultSchema` of `mcp_call`. The proxied
+tool payloads (`toolResult`, `content`, `structuredContent`, `meta`) are intentionally uncontracted.
+
+```ts
+import { McpCallToolResultSchema } from '@loopstack/mcp-module';
+```
+
+```ts
+McpCallToolResultSchema: z.ZodUnion<
+  readonly [
+    z.ZodObject<
+      {
+        kind: z.ZodLiteral<'legacyToolResult'>;
+        toolResult: z.ZodUnknown;
+        meta: z.ZodOptional<z.ZodUnknown>;
+      },
+      z.core.$strict
+    >,
+    z.ZodObject<
+      {
+        kind: z.ZodLiteral<'callToolResult'>;
+        content: z.ZodUnknown;
+        structuredContent: z.ZodOptional<z.ZodUnknown>;
+        isError: z.ZodOptional<z.ZodUnknown>;
+        meta: z.ZodOptional<z.ZodUnknown>;
+      },
+      z.core.$strict
+    >,
+  ]
+>;
+```
+
 ### McpConnectionArgsSchema
 
 Zod schema for the connection arguments shared by the MCP tools (`serverUrl`, `timeoutMs`, `transport`).
@@ -397,6 +431,24 @@ McpListToolsArgsSchema: z.ZodObject<
         }>
       >
     >;
+  },
+  z.core.$strict
+>;
+```
+
+### McpListToolsResultSchema
+
+Zod schema for the `mcp_list_tools` result — the remote server's tool definitions are
+passed through verbatim and intentionally uncontracted.
+
+```ts
+import { McpListToolsResultSchema } from '@loopstack/mcp-module';
+```
+
+```ts
+McpListToolsResultSchema: z.ZodObject<
+  {
+    tools: z.ZodUnknown;
   },
   z.core.$strict
 >;

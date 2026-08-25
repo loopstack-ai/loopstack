@@ -47,6 +47,30 @@ export type GitHubGetWorkflowRunResult =
   | { error: string; message: string };
 
 /**
+ * Zod schema for the success shape of {@link GitHubGetWorkflowRunResult}.
+ *
+ * @public
+ */
+export const GitHubGetWorkflowRunResultSchema = z.strictObject({
+  run: z.strictObject({
+    id: z.number(),
+    name: z.string(),
+    status: z.string(),
+    conclusion: z.string().nullable(),
+    headBranch: z.string(),
+    headSha: z.string(),
+    event: z.string(),
+    workflowId: z.number(),
+    runNumber: z.number(),
+    runAttempt: z.number(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    runStartedAt: z.string(),
+    htmlUrl: z.string(),
+  }),
+});
+
+/**
  * Tool that fetches detailed information about a single GitHub Actions workflow run.
  *
  * @providedBy GitHubModule
@@ -57,6 +81,8 @@ export type GitHubGetWorkflowRunResult =
   description:
     'Gets detailed information about a specific GitHub Actions workflow run. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  resultSchema: GitHubGetWorkflowRunResultSchema,
+  effects: 'none',
 })
 export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs, object, GitHubGetWorkflowRunResult> {
   private readonly logger = new Logger(GitHubGetWorkflowRunTool.name);

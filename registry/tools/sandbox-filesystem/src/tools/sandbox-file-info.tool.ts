@@ -40,6 +40,24 @@ export interface SandboxFileInfoResult {
 }
 
 /**
+ * Zod schema for {@link SandboxFileInfoResult} — the `resultSchema` of `sandbox_file_info`.
+ *
+ * @public
+ */
+export const SandboxFileInfoResultSchema = z.strictObject({
+  path: z.string(),
+  name: z.string(),
+  type: z.enum(['file', 'directory', 'symlink', 'other']),
+  size: z.number(),
+  permissions: z.string(),
+  owner: z.string(),
+  group: z.string(),
+  modifiedAt: z.string(),
+  accessedAt: z.string(),
+  createdAt: z.string(),
+});
+
+/**
  * Tool that returns detailed metadata for a file or directory in a sandbox container — type, size,
  * permissions, owner/group, and timestamps.
  *
@@ -50,6 +68,8 @@ export interface SandboxFileInfoResult {
   name: 'sandbox_file_info',
   description: 'Get detailed information about a file or directory in a sandbox container',
   schema: inputSchema,
+  resultSchema: SandboxFileInfoResultSchema,
+  effects: 'none',
 })
 export class SandboxFileInfo extends BaseTool<SandboxFileInfoArgs, object, SandboxFileInfoResult> {
   private readonly logger = new Logger(SandboxFileInfo.name);

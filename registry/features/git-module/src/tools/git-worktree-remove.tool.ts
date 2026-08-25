@@ -32,6 +32,13 @@ export type GitWorktreeRemoveArgs = z.infer<typeof GitWorktreeRemoveSchema>;
 export type GitWorktreeRemoveResult = { success: boolean };
 
 /**
+ * Zod schema for `GitWorktreeRemoveResult`.
+ *
+ * @public
+ */
+export const GitWorktreeRemoveResultSchema = z.strictObject({ success: z.boolean() });
+
+/**
  * Tool that removes a git worktree at the given path, optionally forcing removal of dirty or locked worktrees.
  *
  * @providedBy GitModule
@@ -41,6 +48,8 @@ export type GitWorktreeRemoveResult = { success: boolean };
   name: 'git_worktree_remove',
   description: 'Removes a git worktree at the given path. Use force=true to remove dirty or locked worktrees.',
   schema: GitWorktreeRemoveSchema,
+  resultSchema: GitWorktreeRemoveResultSchema,
+  effects: 'external',
 })
 export class GitWorktreeRemoveTool extends BaseTool<GitWorktreeRemoveArgs, object, GitWorktreeRemoveResult> {
   constructor(

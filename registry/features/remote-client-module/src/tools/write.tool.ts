@@ -24,6 +24,16 @@ export type WriteResult = {
 };
 
 /**
+ * Zod schema for {@link WriteResult}.
+ *
+ * @public
+ */
+export const WriteResultSchema = z.strictObject({
+  success: z.boolean(),
+  path: z.string(),
+});
+
+/**
  * Tool that writes a file on the remote instance, creating parent directories and overwriting existing files.
  *
  * @providedBy RemoteClientModule
@@ -38,6 +48,8 @@ export type WriteResult = {
       content: z.string().describe('The content to write to the file'),
     })
     .strict(),
+  resultSchema: WriteResultSchema,
+  effects: 'external',
 })
 export class WriteTool extends BaseTool<WriteArgs, object, WriteResult> {
   constructor(

@@ -5,14 +5,19 @@ import {
   type RunContext,
   TOOL_INTERCEPTOR_METADATA_KEY,
   ToolCallOptions,
+  ToolDocumentDeclarationSchema,
   ToolEnvelope,
   ToolExecutionContext,
   ToolInterceptor,
   ToolPipeline,
   getBlockArgsSchema,
   getBlockConfigSchema,
+  getBlockName,
+  parseToolResult,
 } from '@loopstack/common';
+import { TransitionAbortedError } from '../../common/index.js';
 import { ExecutionScope } from '../utils/index.js';
+import { DocumentStore, resolveDocumentClass } from './document-store.service.js';
 
 /**
  * Internal pipeline service injected into BaseTool via property injection.
@@ -34,6 +39,7 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
   constructor(
     private readonly executionScope: ExecutionScope,
     private readonly discoveryService: DiscoveryService,
+    private readonly documentStore: DocumentStore,
   ) {}
 
   onModuleInit(): void {
@@ -84,18 +90,26 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
 
     // 3. Build execution context for interceptors (from ExecutionScope)
     const scope = this.executionScope.getOptional();
-    const runContext = scope
+
+    // Refuse to run a tool invoked from an abandoned (timed-out) transition.
+    if (scope?.abortController.signal.aborted) {
+      throw new TransitionAbortedError();
+    }
+
+    const runContext: RunContext = scope
       ? {
           userId: scope.userId,
           workspaceId: scope.workspaceId,
           workflowId: scope.workflowId,
           args: scope.args,
+          signal: scope.abortController.signal,
         }
-      : { userId: '', workspaceId: '', workflowId: '', args: undefined };
+      : { userId: '', workspaceId: '', workflowId: '', args: undefined, signal: new AbortController().signal };
 
     const execContext: ToolExecutionContext = {
       tool,
       args: validArgs as Record<string, unknown> | undefined,
+      ...(validConfig !== undefined ? { config: validConfig as Record<string, unknown> } : {}),
       runContext,
       metadata: {},
     };
@@ -116,6 +130,64 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
       toolCall,
     );
 
-    return chain();
+    // 5. Run the chain with trace emission: tool.called before, tool.completed after result
+    // validation, tool.failed on a throw (error propagates unchanged). The final envelope's
+    // data is validated against the tool's resultSchema — covering live results,
+    // interceptor-transformed envelopes, and replayed fixtures identically.
+    const trace = scope?.trace;
+    const toolName = getBlockName(tool);
+    const transitionId = scope?.transition?.id;
+    const toolSeq = trace?.nextToolSeq(transitionId) ?? 0;
+    const traceConfig = validConfig !== undefined ? { config: validConfig } : {};
+    trace?.emit({ type: 'tool.called', transitionId, toolName, toolSeq, args: validArgs, ...traceConfig });
+    this.logger.debug(`${toolName} — executing`);
+
+    const startedAt = performance.now();
+    try {
+      const envelope = parseToolResult(tool, await chain());
+      await this.applyDocumentDeclarations(toolName, envelope);
+      const durationMs = Math.round(performance.now() - startedAt);
+      trace?.emit({
+        type: 'tool.completed',
+        transitionId,
+        toolName,
+        toolSeq,
+        args: validArgs,
+        ...traceConfig,
+        envelope,
+        durationMs,
+      });
+      this.logger.debug(`${toolName} — completed in ${durationMs}ms`);
+      return envelope;
+    } catch (error) {
+      const durationMs = Math.round(performance.now() - startedAt);
+      const message = error instanceof Error ? error.message : String(error);
+      trace?.emit({
+        type: 'tool.failed',
+        transitionId,
+        toolName,
+        toolSeq,
+        args: validArgs,
+        ...traceConfig,
+        error: message,
+        durationMs,
+      });
+      this.logger.warn(`${toolName} — failed after ${durationMs}ms: ${message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Apply envelope-declared documents through the document store. Runs post-chain, so
+   * declarations on replayed envelopes are applied exactly like live ones. Success
+   * envelopes only — error/pending envelopes are exempt, mirroring result validation.
+   * A failing save fails the tool call.
+   */
+  private async applyDocumentDeclarations(toolName: string, envelope: ToolEnvelope<unknown, unknown>): Promise<void> {
+    if (!envelope.documents?.length || envelope.error !== undefined || envelope.pending) return;
+    const declarations = ToolDocumentDeclarationSchema.array().parse(envelope.documents);
+    for (const decl of declarations) {
+      await this.documentStore.save(resolveDocumentClass(decl.documentName, toolName), decl.content, decl.options);
+    }
   }
 }
