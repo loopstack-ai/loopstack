@@ -1,5 +1,24 @@
 # @loopstack/hitl-examples
 
+## 0.2.0
+
+### Minor Changes
+
+- [#243](https://github.com/loopstack-ai/loopstack/pull/243) [`fa6bcbb`](https://github.com/loopstack-ai/loopstack/commit/fa6bcbb56696a20e79ecc587e53461a4ea409f7f) Thanks [@jakobklippel](https://github.com/jakobklippel)! - - **`ask_for_approval` has an explicit result contract** (`@loopstack/hitl`): the completed tool returns `{ approved: boolean, message: string, concept?: string }` — a clear positive/negative signal for the calling LLM ("Concept was approved by the user.") plus the final, possibly user-edited concept, instead of only echoing the concept back.
+  - **`inline_form_example` demonstrates enforced read-only fields** (`@loopstack/hitl-examples`): the form gains a workflow-provided `subject` marked `readonly: true` in the widget config — non-editable in Studio, discarded in the CLI's `$EDITOR`, rejected by the backend.
+  - **`agentic_example`'s follow-up chat works** (`@loopstack/secrets-examples`): `respond` now parks at `waiting_for_user` instead of ending the run, making the declared chat input reachable — matching the example's description and the other chat agents.
+
+### Patch Changes
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`702a77a`](https://github.com/loopstack-ai/loopstack/commit/702a77a8b483140cc7c3107dde106fe8c0aadc71) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The prompt-input chat example stores the user's message and generates the reply in separate transitions (`userMessage` → `generateReply`): each transition commits its own transaction, so the message renders immediately and the LLM turn streams after it — the pattern documented in Best Practices under "Commit user input before slow work". The greeting is an `LlmMessageDocument` like every other chat turn, so it renders uniformly and joins the conversation history the provider builds.
+
+- Updated dependencies [[`fdfa5b0`](https://github.com/loopstack-ai/loopstack/commit/fdfa5b0b0f9e6617679d4889393876c2b5342d98), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`2cb5ce1`](https://github.com/loopstack-ai/loopstack/commit/2cb5ce1b791d25f36b4b2ee028aab99fb9e26f2f), [`fa6bcbb`](https://github.com/loopstack-ai/loopstack/commit/fa6bcbb56696a20e79ecc587e53461a4ea409f7f), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd), [`3aacf9e`](https://github.com/loopstack-ai/loopstack/commit/3aacf9ecc319cd400b9ff43534e880fab979f8a4), [`e633ce1`](https://github.com/loopstack-ai/loopstack/commit/e633ce1ba1ecf7f7523add8290628dc6de7e42bd), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd)]:
+  - @loopstack/claude-module@0.26.0
+  - @loopstack/common@0.38.0
+  - @loopstack/hitl@0.5.0
+  - @loopstack/llm-provider-module@0.8.0
+  - @loopstack/agent@0.5.7
+
 ## 0.1.1
 
 ### Patch Changes

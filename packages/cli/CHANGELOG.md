@@ -1,5 +1,34 @@
 # @loopstack/cli
 
+## 0.18.0
+
+### Minor Changes
+
+- [#243](https://github.com/loopstack-ai/loopstack/pull/243) [`af03db8`](https://github.com/loopstack-ai/loopstack/commit/af03db801a1f72f24da03e956e14ac80e4b5f3a0) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The terminal is a first-class client for human-in-the-loop runs:
+  - **Unified widget registry** — one registry drives both rendering and interaction (`render`/`collect` per widget); what the CLI can answer is exactly what has a collect implementation. Message, markdown, error, link, form, and JSON-fallback rendering; text/confirm/choices prompts, chat inputs, buttons, and forms as interactive widgets.
+  - **Forms are picker-first** — content renders, actions submit it directly (Studio-equivalent), `e` opens the complete content JSON in `$EDITOR`. Field order and labels follow Studio (widget config over schema); `readonly: true` fields have local edits discarded with a warning.
+  - **`loopstack attach <run-id>`** — rejoin a run like `docker attach`: full transcript, then live streaming and prompts. `runs <run-id>` prints the complete transcript (documents of the whole run tree, chronological, railed by nesting).
+  - **Secret entry** (`secret-input`) — values collected without echo (already-stored keys keep on enter), stored via the workspace secrets API, never in the transcript or transition payload.
+  - **Honest waits, never hangs** — a wait on input the CLI can't collect is named explicitly (e.g. `waiting for browser sign-in (google) — open the sign-in link above`) with a Studio link; interactive sessions stay attached so browser round-trips (OAuth) resume automatically; non-interactive shells exit 3. Parked sub-workflows no longer read as "still processing".
+  - **Interactive retry** — failed runs offer `r. retry` (Studio's Retry equivalent) and surface error-place recovery buttons in the same prompt.
+  - **Live tool calls** — `⚒ name {args}` streams during the turn (deduped against the persisted message), railed by sub-workflow depth; `show: 'hidden'` children render nothing, like Studio.
+  - Prompt matching follows Studio's rules: documents active at the workflow's current place (or `meta.enableAtPlaces`), interactive when a declared transition is available.
+  - **Multi-prompt sequences work end to end** — when sub-workflows ask one question after another while the root stays parked on its callback (e.g. `connect_github`), the idle hook re-arms after each answer, so every follow-up prompt is discovered without needing a root status change.
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`3aacf9e`](https://github.com/loopstack-ai/loopstack/commit/3aacf9ecc319cd400b9ff43534e880fab979f8a4) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Non-interactive HITL answering for agents and scripts: new `loopstack answer <run-id>` command (`--arg` / `--payload` / `--transition`), a machine-readable `pendingPrompt` (description, schema, transition) in `runs <run-id> --json`, and `runs <run-id> --record <file>` to derive replay fixtures from a run's recorded tool calls. The scaffolded CLAUDE.md teaches the run → exit 3 → read prompt → answer loop.
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`d281a50`](https://github.com/loopstack-ai/loopstack/commit/d281a5006432194632f3c417e958740fd29108e7) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Prompt discovery now runs on the canonical park-view rules from `@loopstack/contracts/park-view` — the same rules `TestRun.parkView()` asserts against; the CLI keeps only its tree fetching and collect-widget answerability. Two behavior refinements come with the shared rules: documents hidden via `meta.hideAtPlaces` or internal tagging are no longer offered as prompts, and a widget declaring no transition is only answerable when exactly one transition is available.
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`e633ce1`](https://github.com/loopstack-ai/loopstack/commit/e633ce1ba1ecf7f7523add8290628dc6de7e42bd) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Structured run trace: every workflow run produces a canonical, append-only event journal — `transition.started/completed/failed` (with duration and per-key state diff), `tool.called/completed/failed` (with args and envelope; failing tool calls are now recorded), `document.emitted`, `child.queued/settled`, and `run.settled` on every park and terminal settle. The trace rides `WorkflowMetadataInterface.trace` and, for stateless runs, the resume carrier — a resumed run's trace is complete across park/resume with continuous ordering. `TestRun` gains `trace` and `toolCalls`; `path` derives from the trace's terminal transition events. Trace persistence is opt-in per run: `loopstack run --trace` (or `trace: true` on the start payload) persists the run tree's events as `core_run_trace_event` rows with full payloads, the `trace` module option / `LOOPSTACK_TRACE=true` enables it globally — absorbing the tool-call audit table. `GET /workflows/:id/tool-calls` and `loopstack runs --record` are backed by trace events with an unchanged response contract; `seq` is monotonic per run in both stateless and DB mode. `WorkflowRunner.runSync` stateless results carry `trace` instead of `history`.
+
+### Patch Changes
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`2cb5ce1`](https://github.com/loopstack-ai/loopstack/commit/2cb5ce1b791d25f36b4b2ee028aab99fb9e26f2f) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Replay fixture format v3 — config drift detection: fixture entries capture the call's validated `config` as assertion metadata alongside `args`, so a changed system prompt, model, or tool list fails the replayed test instead of silently passing against a stale fixture. Config is captured at both capture points (`ToolExecutionContext.config` for in-process recording — visible to all tool interceptors — and the `config` field on tool trace events for `loopstack runs --record`). Version 2 fixtures are rejected with a re-record message; hand-written entries that omit `config` don't assert it.
+
+- Updated dependencies [[`32e24b7`](https://github.com/loopstack-ai/loopstack/commit/32e24b7f626a29745fd8caba67d179c198200992), [`2cb5ce1`](https://github.com/loopstack-ai/loopstack/commit/2cb5ce1b791d25f36b4b2ee028aab99fb9e26f2f), [`2fa0496`](https://github.com/loopstack-ai/loopstack/commit/2fa0496105884671d07b449536ff84f4f482e1e2), [`d281a50`](https://github.com/loopstack-ai/loopstack/commit/d281a5006432194632f3c417e958740fd29108e7), [`3aacf9e`](https://github.com/loopstack-ai/loopstack/commit/3aacf9ecc319cd400b9ff43534e880fab979f8a4), [`e633ce1`](https://github.com/loopstack-ai/loopstack/commit/e633ce1ba1ecf7f7523add8290628dc6de7e42bd)]:
+  - @loopstack/contracts@0.38.0
+  - @loopstack/client@0.38.0
+
 ## 0.17.0
 
 ### Minor Changes

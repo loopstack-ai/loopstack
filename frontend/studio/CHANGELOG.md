@@ -1,5 +1,26 @@
 # @loopstack/loopstack-studio
 
+## 0.36.0
+
+### Minor Changes
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`702a77a`](https://github.com/loopstack-ai/loopstack/commit/702a77a8b483140cc7c3107dde106fe8c0aadc71) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Run View gap closures: `secret-input` and `oauth-prompt` join the prompt registry as run-view-native components (secrets upsert via the workspace API before the transition fires with the saved keys; OAuth popup flow submitting `{ code, state }` with status short-circuits and retry). The transcript now renders feature-registered document renderers as inert history instead of the JSON fallback, and in-flight LLM messages stream token-by-token via tree-wide `llm.response.*` accumulation — the persisted message replaces the stream when it lands.
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`9d9fcaf`](https://github.com/loopstack-ai/loopstack/commit/9d9fcafcfe0e37b5db6f0bcc5ec11767a7f69b29) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Run View reaches feature parity with the classic workbench view: failed workflows without an answerable recovery prompt offer inline retry (the CLI's recovery-first, plain-re-run-fallback semantics); workbench settings apply (show-full-message-history gates internal documents, debug mode adds per-entry metadata); and the chat input stays visible-but-disabled while the run is generating instead of disappearing between turns.
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`86b1d92`](https://github.com/loopstack-ai/loopstack/commit/86b1d921eec557893f26264b973cee35348491db) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Run View — a run rendered the way the CLI follows it, entirely on the canonical `@loopstack/contracts/park-view` rules: a chronological, depth-indented transcript over the whole run tree (link-document visibility, re-saves shown as honest output) with the one canonical prompt pinned at the bottom, no iframes. A view toggle in the workbench header switches the workflow area between the legacy document tree and the run view (persisted studio preference, default classic); `/runs/:workflowId` hosts the same view standalone. Interactive prompts (`text-prompt`, `confirm-prompt`, `choices`, `form`, `prompt-input`, `button`) are run-view-native components in the view's own widget registry; unregistered input widgets (`secret-input`, `oauth-prompt`) show an inert not-supported card and are answered in the classic view for now.
+
+### Patch Changes
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`4dfe061`](https://github.com/loopstack-ai/loopstack/commit/4dfe0617357b53b0e20a1e4195a520bd03b46db2) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Run View prompt buttons use the full width of the prompt box: the confirm Yes/No buttons split the row evenly, and choice options stack full-width instead of wrapping — easier to hit and more consistent across prompt widths.
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`ec5440b`](https://github.com/loopstack-ai/loopstack/commit/ec5440b2507c1b2b0ddb3cd7e95f4b0046ac992e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Run View widget set completed: `button-full-w` registered as the full-width button variant; `sandbox-run` renders as an auxiliary open-preview-environment control beside the prompt (it declares no transition, so it is deliberately not a prompt; workbench-hosted only). Past `form` submissions render as the read-only field-by-field form, and the active prompt's document no longer renders twice — once interactively at the bottom, filtered from the transcript history.
+
+- Updated dependencies [[`32e24b7`](https://github.com/loopstack-ai/loopstack/commit/32e24b7f626a29745fd8caba67d179c198200992), [`2cb5ce1`](https://github.com/loopstack-ai/loopstack/commit/2cb5ce1b791d25f36b4b2ee028aab99fb9e26f2f), [`2fa0496`](https://github.com/loopstack-ai/loopstack/commit/2fa0496105884671d07b449536ff84f4f482e1e2), [`d281a50`](https://github.com/loopstack-ai/loopstack/commit/d281a5006432194632f3c417e958740fd29108e7), [`3aacf9e`](https://github.com/loopstack-ai/loopstack/commit/3aacf9ecc319cd400b9ff43534e880fab979f8a4), [`e633ce1`](https://github.com/loopstack-ai/loopstack/commit/e633ce1ba1ecf7f7523add8290628dc6de7e42bd)]:
+  - @loopstack/contracts@0.38.0
+  - @loopstack/client@0.38.0
+  - @loopstack/react@2.0.0
+
 ## 0.35.1
 
 ### Patch Changes

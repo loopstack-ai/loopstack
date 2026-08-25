@@ -1,5 +1,19 @@
 # @loopstack/claude-module
 
+## 0.26.0
+
+### Minor Changes
+
+- [#243](https://github.com/loopstack-ai/loopstack/pull/243) [`fdfa5b0`](https://github.com/loopstack-ai/loopstack/commit/fdfa5b0b0f9e6617679d4889393876c2b5342d98) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The Claude provider emits `tool_call` stream events when a `tool_use` content block completes, so clients (Studio, CLI) can render tool calls live during the turn instead of waiting for the persisted message document.
+
+### Patch Changes
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every registry tool declares its effect classification via `@Tool({ effects })`: `'none'` for reads, searches, computations, and LLM generation; `'external'` for calls that write outside the run (GitHub/Google mutations, git repository writes, remote command execution and file writes, sandbox mutations, OAuth token exchange, MCP tool invocation).
+
+- Updated dependencies [[`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`2cb5ce1`](https://github.com/loopstack-ai/loopstack/commit/2cb5ce1b791d25f36b4b2ee028aab99fb9e26f2f), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd), [`3aacf9e`](https://github.com/loopstack-ai/loopstack/commit/3aacf9ecc319cd400b9ff43534e880fab979f8a4), [`e633ce1`](https://github.com/loopstack-ai/loopstack/commit/e633ce1ba1ecf7f7523add8290628dc6de7e42bd), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd)]:
+  - @loopstack/common@0.38.0
+  - @loopstack/llm-provider-module@0.8.0
+
 ## 0.25.6
 
 ### Patch Changes

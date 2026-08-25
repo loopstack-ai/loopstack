@@ -1,5 +1,11 @@
 # @loopstack/remote-agent
 
+## 0.26.1
+
+### Patch Changes
+
+- [#243](https://github.com/loopstack-ai/loopstack/pull/243) [`b321133`](https://github.com/loopstack-ai/loopstack/commit/b32113367ff0da172c2dec94a2879576c6e0b38c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Bare local startup (`node dist/index.js` outside the docker image) no longer exits when PM2 is missing: the custom-app start is skipped when `/app/ecosystem.config.cjs` doesn't exist ("local mode" — the file/exec/git API serves normally). Fly machines and local docker-compose are unchanged, including the fail-fast exit when PM2 genuinely fails.
+
 ## 0.26.0
 
 ### Minor Changes
