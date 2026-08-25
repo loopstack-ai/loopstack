@@ -1,5 +1,23 @@
 # @loopstack/hitl
 
+## 0.5.0
+
+### Minor Changes
+
+- [#243](https://github.com/loopstack-ai/loopstack/pull/243) [`fa6bcbb`](https://github.com/loopstack-ai/loopstack/commit/fa6bcbb56696a20e79ecc587e53461a4ea409f7f) Thanks [@jakobklippel](https://github.com/jakobklippel)! - - **`ask_for_approval` has an explicit result contract** (`@loopstack/hitl`): the completed tool returns `{ approved: boolean, message: string, concept?: string }` — a clear positive/negative signal for the calling LLM ("Concept was approved by the user.") plus the final, possibly user-edited concept, instead of only echoing the concept back.
+  - **`inline_form_example` demonstrates enforced read-only fields** (`@loopstack/hitl-examples`): the form gains a workflow-provided `subject` marked `readonly: true` in the widget config — non-editable in Studio, discarded in the CLI's `$EDITOR`, rejected by the backend.
+  - **`agentic_example`'s follow-up chat works** (`@loopstack/secrets-examples`): `respond` now parks at `waiting_for_user` instead of ending the run, making the declared chat input reachable — matching the example's description and the other chat agents.
+
+### Patch Changes
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd) Thanks [@jakobklippel](https://github.com/jakobklippel)! - All tools declare `resultSchema` result contracts: every `@Tool` class ships a strict Zod schema describing its success result, exported alongside the result type. Results are validated by the tool pipeline; replayed test fixtures are held to the same contract as live results.
+
+- [#247](https://github.com/loopstack-ai/loopstack/pull/247) [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every registry tool declares its effect classification via `@Tool({ effects })`: `'none'` for reads, searches, computations, and LLM generation; `'external'` for calls that write outside the run (GitHub/Google mutations, git repository writes, remote command execution and file writes, sandbox mutations, OAuth token exchange, MCP tool invocation).
+
+- Updated dependencies [[`32e24b7`](https://github.com/loopstack-ai/loopstack/commit/32e24b7f626a29745fd8caba67d179c198200992), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`2cb5ce1`](https://github.com/loopstack-ai/loopstack/commit/2cb5ce1b791d25f36b4b2ee028aab99fb9e26f2f), [`3aacf9e`](https://github.com/loopstack-ai/loopstack/commit/3aacf9ecc319cd400b9ff43534e880fab979f8a4), [`e633ce1`](https://github.com/loopstack-ai/loopstack/commit/e633ce1ba1ecf7f7523add8290628dc6de7e42bd), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd), [`084975e`](https://github.com/loopstack-ai/loopstack/commit/084975e2a43ebcc55d4f29621fa548cf1a6f48da)]:
+  - @loopstack/core@0.38.0
+  - @loopstack/common@0.38.0
+
 ## 0.4.6
 
 ### Patch Changes

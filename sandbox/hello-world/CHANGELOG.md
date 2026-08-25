@@ -1,5 +1,18 @@
 # hello-world
 
+## 0.2.6
+
+### Patch Changes
+
+- Updated dependencies [[`702a77a`](https://github.com/loopstack-ai/loopstack/commit/702a77a8b483140cc7c3107dde106fe8c0aadc71), [`fdfa5b0`](https://github.com/loopstack-ai/loopstack/commit/fdfa5b0b0f9e6617679d4889393876c2b5342d98), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`2cb5ce1`](https://github.com/loopstack-ai/loopstack/commit/2cb5ce1b791d25f36b4b2ee028aab99fb9e26f2f), [`fa6bcbb`](https://github.com/loopstack-ai/loopstack/commit/fa6bcbb56696a20e79ecc587e53461a4ea409f7f), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd), [`3aacf9e`](https://github.com/loopstack-ai/loopstack/commit/3aacf9ecc319cd400b9ff43534e880fab979f8a4), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd), [`3aacf9e`](https://github.com/loopstack-ai/loopstack/commit/3aacf9ecc319cd400b9ff43534e880fab979f8a4), [`e633ce1`](https://github.com/loopstack-ai/loopstack/commit/e633ce1ba1ecf7f7523add8290628dc6de7e42bd), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`5d326be`](https://github.com/loopstack-ai/loopstack/commit/5d326be5640e75a827a8dd0ac6a0f39a3599ea72), [`26a1c2b`](https://github.com/loopstack-ai/loopstack/commit/26a1c2bf40022d051ba016058c0ac17ece1f2edd)]:
+  - @loopstack/hitl-examples@0.2.0
+  - @loopstack/claude-module@0.26.0
+  - @loopstack/common@0.38.0
+  - @loopstack/llm-provider-module@0.8.0
+  - @loopstack/loopstack-module@0.32.0
+  - @loopstack/secrets-module@0.26.1
+  - @loopstack/observability-examples@0.1.1
+
 ## 0.2.5
 
 ### Patch Changes

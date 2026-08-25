@@ -9,7 +9,7 @@
     "integration",
     "workflow"
   ],
-  "version": "0.4.6",
+  "version": "0.4.7",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,13 +32,13 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.37.0",
-    "@loopstack/core": "^0.37.0",
-    "@loopstack/git-module": "^0.3.6",
-    "@loopstack/github-module": "^0.4.6",
-    "@loopstack/hitl": "^0.4.6",
-    "@loopstack/oauth-module": "^0.4.6",
-    "@loopstack/remote-client": "^0.26.1"
+    "@loopstack/common": "^0.38.0",
+    "@loopstack/core": "^0.38.0",
+    "@loopstack/git-module": "^0.3.7",
+    "@loopstack/github-module": "^0.4.7",
+    "@loopstack/hitl": "^0.5.0",
+    "@loopstack/oauth-module": "^0.5.0",
+    "@loopstack/remote-client": "^0.26.2"
   },
   "devDependencies": {
     "@nestjs/common": "^11.1.19",
