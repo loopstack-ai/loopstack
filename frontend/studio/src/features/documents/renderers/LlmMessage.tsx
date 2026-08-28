@@ -1,7 +1,7 @@
 import { CopyIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
-import type { UIContentBlock, UIMessage } from '@loopstack/contracts/types';
+import type { UIContentBlock, UIMessage, UIMessageMeta } from '@loopstack/contracts/types';
 import {
   Message,
   MessageAction,
@@ -25,6 +25,27 @@ const CopyActions = ({ text }: { text: string }) => (
   </FadeInBlock>
 );
 
+function formatTokens(n: number | undefined): string | null {
+  if (n == null) return null;
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
+
+/** Dim footer of completion stats (cost, turns, tokens, duration) shown when a message carries `meta`. */
+const CompletionMeta = ({ meta }: { meta: UIMessageMeta }) => {
+  const parts: string[] = [];
+  if (meta.numTurns != null) parts.push(`${meta.numTurns} turn${meta.numTurns === 1 ? '' : 's'}`);
+  if (meta.costUsd != null) parts.push(`$${meta.costUsd.toFixed(4)}`);
+  const inTok = formatTokens(meta.usage?.inputTokens);
+  const outTok = formatTokens(meta.usage?.outputTokens);
+  if (inTok && outTok) parts.push(`${inTok} in / ${outTok} out`);
+  const cache = (meta.usage?.cacheReadInputTokens ?? 0) + (meta.usage?.cacheCreationInputTokens ?? 0);
+  if (cache) parts.push(`${formatTokens(cache)} cache`);
+  if (meta.durationMs != null) parts.push(`${(meta.durationMs / 1000).toFixed(1)}s`);
+  if (meta.model) parts.push(meta.model);
+  if (!parts.length) return null;
+  return <div className="text-muted-foreground mt-1 px-1 font-mono text-xs">{parts.join(' · ')}</div>;
+};
+
 function hasStructuredBlocks(blocks: UIContentBlock[] | undefined): boolean {
   return !!blocks?.some((b) => b.type !== 'text');
 }
@@ -45,12 +66,15 @@ const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem:
   if (!hasStructuredBlocks(message.blocks)) {
     const text = message.text ?? textFromBlocks(message.blocks);
     return (
-      <Message from={message.role}>
-        <MessageContent>
-          {isStreaming ? <StreamingText text={text} /> : <MessageResponse>{text}</MessageResponse>}
-        </MessageContent>
-        {message.role === 'assistant' && !isStreaming && <CopyActions text={text} />}
-      </Message>
+      <Fragment>
+        <Message from={message.role}>
+          <MessageContent>
+            {isStreaming ? <StreamingText text={text} /> : <MessageResponse>{text}</MessageResponse>}
+          </MessageContent>
+          {message.role === 'assistant' && !isStreaming && <CopyActions text={text} />}
+        </Message>
+        {message.meta && <CompletionMeta meta={message.meta} />}
+      </Fragment>
     );
   }
 
@@ -143,6 +167,7 @@ const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem:
             return null;
         }
       })}
+      {message.meta && <CompletionMeta meta={message.meta} />}
     </Fragment>
   );
 };

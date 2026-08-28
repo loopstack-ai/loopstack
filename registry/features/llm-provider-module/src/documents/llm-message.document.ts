@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { Document, MessageDocument, MessageDocumentSchema } from '@loopstack/common';
-import { UIContentBlockSchema } from '@loopstack/contracts/types';
+import { UIContentBlockSchema, UIMessageMetaSchema } from '@loopstack/contracts/types';
+import type { UIMessageMeta } from '@loopstack/contracts/types';
 import type { LlmContentBlock, LlmStopReason } from '../types/index.js';
 
 // ---------------------------------------------------------------------------
@@ -14,6 +15,7 @@ export const LlmMessageDocumentContentSchema = z.object({
   id: z.string().optional(),
   blocks: z.array(UIContentBlockSchema).optional(),
   stopReason: z.enum(['end_turn', 'tool_use', 'max_tokens', 'stop_sequence']).optional(),
+  meta: UIMessageMetaSchema.optional(),
 });
 
 export type LlmMessageDocumentContentType = z.infer<typeof LlmMessageDocumentContentSchema>;
@@ -42,6 +44,7 @@ export class LlmMessageDocument extends MessageDocument {
   id?: string;
   blocks?: LlmContentBlock[];
   stopReason?: LlmStopReason;
+  meta?: UIMessageMeta;
 }
 
 // ---------------------------------------------------------------------------
