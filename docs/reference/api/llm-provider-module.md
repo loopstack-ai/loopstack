@@ -136,6 +136,7 @@ export class LlmMessageDocument extends MessageDocument {
   id?: string;
   blocks?: LlmContentBlock[];
   stopReason?: LlmStopReason;
+  meta?: UIMessageMeta;
 }
 ```
 
@@ -618,6 +619,29 @@ LlmDelegateToolCallsToolSchema: z.ZodObject<
             >
           >
         >;
+        meta: z.ZodOptional<
+          z.ZodObject<
+            {
+              model: z.ZodOptional<z.ZodString>;
+              usage: z.ZodOptional<
+                z.ZodObject<
+                  {
+                    inputTokens: z.ZodNumber;
+                    outputTokens: z.ZodNumber;
+                    cacheCreationInputTokens: z.ZodOptional<z.ZodNumber>;
+                    cacheReadInputTokens: z.ZodOptional<z.ZodNumber>;
+                    reasoningTokens: z.ZodOptional<z.ZodNumber>;
+                  },
+                  z.core.$strip
+                >
+              >;
+              costUsd: z.ZodOptional<z.ZodNumber>;
+              numTurns: z.ZodOptional<z.ZodNumber>;
+              durationMs: z.ZodOptional<z.ZodNumber>;
+            },
+            z.core.$strip
+          >
+        >;
         id: z.ZodOptional<z.ZodString>;
         text: z.ZodString;
         stopReason: z.ZodOptional<
@@ -850,6 +874,29 @@ LlmGenerateTextResultSchema: z.ZodObject<
               ],
               'type'
             >
+          >
+        >;
+        meta: z.ZodOptional<
+          z.ZodObject<
+            {
+              model: z.ZodOptional<z.ZodString>;
+              usage: z.ZodOptional<
+                z.ZodObject<
+                  {
+                    inputTokens: z.ZodNumber;
+                    outputTokens: z.ZodNumber;
+                    cacheCreationInputTokens: z.ZodOptional<z.ZodNumber>;
+                    cacheReadInputTokens: z.ZodOptional<z.ZodNumber>;
+                    reasoningTokens: z.ZodOptional<z.ZodNumber>;
+                  },
+                  z.core.$strip
+                >
+              >;
+              costUsd: z.ZodOptional<z.ZodNumber>;
+              numTurns: z.ZodOptional<z.ZodNumber>;
+              durationMs: z.ZodOptional<z.ZodNumber>;
+            },
+            z.core.$strip
           >
         >;
         id: z.ZodOptional<z.ZodString>;

@@ -68,6 +68,18 @@ export class EnvironmentService {
     environments: Partial<WorkspaceEnvironmentEntity>[],
   ): Promise<WorkspaceEnvironmentEntity[]>;
   deleteByWorkspace(workspaceId: string): Promise<void>;
+  markRunning(
+    workspaceId: string,
+    slotId: string,
+    data: {
+      agentUrl: string;
+      remoteEnvironmentId: string;
+      type?: string;
+      connectionUrl?: string;
+      local?: boolean;
+    },
+  ): Promise<void>;
+  markStopped(workspaceId: string, slotId: string): Promise<void>;
 }
 ```
 
@@ -251,6 +263,14 @@ export class RemoteClient {
       token?: string;
     },
   ): Promise<GitCommandResult>;
+  gitClone(
+    connectionUrl: string,
+    url: string,
+    options?: {
+      branch?: string;
+      token?: string;
+    },
+  ): Promise<GitCommandResult>;
   gitCheckout(
     connectionUrl: string,
     branch: string,
@@ -391,6 +411,7 @@ export class WorkspaceEnvironmentContextDto {
   envName?: string;
   connectionUrl?: string;
   agentUrl?: string;
+  status?: 'running' | 'stopped';
   workerId?: string;
   workerUrl?: string;
   static fromEntities(entities: WorkspaceEnvironmentEntity[]): WorkspaceEnvironmentContextDto[];
