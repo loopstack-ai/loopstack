@@ -312,6 +312,20 @@ export class RemoteClient {
     });
   }
 
+  async gitClone(
+    connectionUrl: string,
+    url: string,
+    options?: { branch?: string; token?: string },
+  ): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(
+      connectionUrl,
+      'POST',
+      '/git/clone',
+      { url, branch: options?.branch, token: options?.token },
+      { redactBody: !!options?.token },
+    );
+  }
+
   async gitCheckout(connectionUrl: string, branch: string, create?: boolean): Promise<{ branch: string }> {
     return this.doRequest<{ branch: string }>(connectionUrl, 'POST', '/git/checkout', { branch, create });
   }

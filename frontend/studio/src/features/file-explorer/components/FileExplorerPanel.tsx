@@ -2,6 +2,7 @@ import { Files } from 'lucide-react';
 import { FileContentViewer } from '@/features/code-explorer';
 import { useFeatureConfig } from '@/features/feature-registry';
 import { useWorkbenchLayout } from '@/features/workbench';
+import { EnvironmentSelector } from '@/features/workbench/components/EnvironmentSelector';
 import { SidebarPanel } from '@/features/workbench/components/SidebarPanel';
 import type { FileExplorerVariant } from '../hooks/useFileExplorer';
 import { FileExplorerProvider, useOptionalFileExplorer } from '../providers/FileExplorerProvider';
@@ -48,29 +49,15 @@ interface FileExplorerPanelProps {
 }
 
 function FileExplorerPanel({ variant, featureId, title, description, workspaceId }: FileExplorerPanelProps) {
-  const { closePanel, panelSize, setPanelSize, environments } = useWorkbenchLayout();
+  const { closePanel, panelSize, setPanelSize, environments, selectedSlotId } = useWorkbenchLayout();
   const featureConfig = useFeatureConfig(featureId);
 
   const allowedEnvironments = (featureConfig?.config?.environments as string[] | undefined) ?? [];
-  const currentSlotId = environments?.[0]?.slotId ?? '';
-  const fileExplorerEnabled = allowedEnvironments.length === 0 || allowedEnvironments.includes(currentSlotId);
-
-  if (!fileExplorerEnabled) {
-    return (
-      <SidebarPanel
-        icon={<Files className="h-4 w-4" />}
-        title={title}
-        description={description}
-        size={panelSize}
-        onSizeChange={setPanelSize}
-        onClose={closePanel}
-      >
-        <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-muted-foreground text-sm">File explorer is not available for this environment.</p>
-        </div>
-      </SidebarPanel>
-    );
-  }
+  const selectedEnv = environments?.find((e) => e.slotId === selectedSlotId);
+  const allowed = allowedEnvironments.length === 0 || allowedEnvironments.includes(selectedSlotId);
+  // No env record (e.g. the local variant) → nothing to gate on; otherwise require the slot to be running.
+  const running = !selectedEnv || selectedEnv.status === 'running';
+  const enabled = allowed && running;
 
   return (
     <SidebarPanel
@@ -81,9 +68,25 @@ function FileExplorerPanel({ variant, featureId, title, description, workspaceId
       onSizeChange={setPanelSize}
       onClose={closePanel}
     >
-      <FileExplorerProvider variant={variant} workspaceId={workspaceId} enabled={fileExplorerEnabled}>
-        <FileExplorerContent />
-      </FileExplorerProvider>
+      <EnvironmentSelector />
+      {!allowed ? (
+        <div className="flex flex-1 items-center justify-center p-4">
+          <p className="text-muted-foreground text-sm">File explorer is not available for this environment.</p>
+        </div>
+      ) : !running ? (
+        <div className="flex flex-1 items-center justify-center p-4">
+          <p className="text-muted-foreground text-sm">This environment is not available (stopped).</p>
+        </div>
+      ) : (
+        <FileExplorerProvider
+          variant={variant}
+          workspaceId={workspaceId}
+          slotId={selectedSlotId || undefined}
+          enabled={enabled}
+        >
+          <FileExplorerContent />
+        </FileExplorerProvider>
+      )}
     </SidebarPanel>
   );
 }

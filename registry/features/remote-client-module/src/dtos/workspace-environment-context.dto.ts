@@ -24,6 +24,9 @@ export class WorkspaceEnvironmentContextDto {
   agentUrl?: string;
 
   @Expose()
+  status?: 'running' | 'stopped';
+
+  @Expose()
   workerId?: string;
 
   @Expose()

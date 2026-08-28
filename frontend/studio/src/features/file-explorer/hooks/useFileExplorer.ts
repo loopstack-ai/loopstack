@@ -19,13 +19,18 @@ export function fileTreeKey(envKey: string, variant?: FileExplorerVariant, works
 export function useFileTree(
   variant: FileExplorerVariant,
   workspaceId: string | undefined,
+  slotId: string | undefined,
   enabled = true,
 ): UseQueryResult<FileExplorerNode[], Error> {
   const client = useLoopstackClient();
 
   return useQuery<FileExplorerNode[], Error>({
-    queryKey: fileTreeKey(client.envKey, variant, workspaceId),
-    queryFn: () => client.http.get<FileExplorerNode[]>(`${explorerPath(variant, workspaceId!)}/tree`),
+    queryKey: [...fileTreeKey(client.envKey, variant, workspaceId), slotId ?? ''],
+    queryFn: () =>
+      client.http.get<FileExplorerNode[]>(
+        `${explorerPath(variant, workspaceId!)}/tree`,
+        slotId ? { slotId } : undefined,
+      ),
     enabled: !!workspaceId && enabled,
     staleTime: 30_000,
     retry: false,
@@ -36,13 +41,18 @@ export function useFileContent(
   variant: FileExplorerVariant,
   workspaceId: string | undefined,
   filePath: string | undefined,
+  slotId: string | undefined,
   enabled = true,
 ): UseQueryResult<FileContent, Error> {
   const client = useLoopstackClient();
 
   return useQuery<FileContent, Error>({
-    queryKey: ['file-explorer-content', client.envKey, variant, workspaceId, filePath],
-    queryFn: () => client.http.get<FileContent>(`${explorerPath(variant, workspaceId!)}/read`, { path: filePath! }),
+    queryKey: ['file-explorer-content', client.envKey, variant, workspaceId, filePath, slotId ?? ''],
+    queryFn: () =>
+      client.http.get<FileContent>(`${explorerPath(variant, workspaceId!)}/read`, {
+        path: filePath!,
+        ...(slotId ? { slotId } : {}),
+      }),
     enabled: !!workspaceId && !!filePath && enabled,
     staleTime: 15_000,
     retry: false,
