@@ -1,0 +1,35 @@
+{
+  "name": "@loopstack/claude-code-remote-session-server",
+  "displayName": "Claude Code Remote Session Server",
+  "description": "In-container agent server that supervises headless Claude Code sessions and exposes them over HTTP",
+  "version": "0.1.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "compile": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "start:dev": "tsx src/index.ts",
+    "test": "jest --passWithNoTests",
+    "docker:build:base": "docker build -f Dockerfile.base -t loopstack-engineer-base:latest .",
+    "docker:build": "docker build -t loopstack-engineer-agent:latest .",
+    "docker:build:interactive": "docker build -f Dockerfile.interactive -t loopstack-engineer-agent-interactive:latest .",
+    "docker:build:apprunner": "docker build -f Dockerfile.apprunner -t loopstack-engineer-apprunner:latest .",
+    "docker:build:all": "npm run docker:build:base && npm run docker:build && npm run docker:build:interactive && npm run docker:build:apprunner"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "glob": "^13.0.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "files": [
+    "dist"
+  ]
+}

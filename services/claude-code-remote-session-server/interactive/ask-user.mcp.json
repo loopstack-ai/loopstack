@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "loopstack": {
+      "command": "node",
+      "args": ["/opt/loopstack/ask-user-mcp.mjs"]
+    }
+  }
+}
