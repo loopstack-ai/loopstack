@@ -11,7 +11,7 @@ describe('BashTool', () => {
   let tool: BashTool;
 
   const mockRemoteClient = {
-    executeCommand: vi.fn(),
+    streamCommand: vi.fn(),
   };
   const mockEnv = {
     getAgentUrl: vi.fn().mockResolvedValue('https://agent.example'),
@@ -51,26 +51,27 @@ describe('BashTool', () => {
   });
 
   describe('execution', () => {
-    it('runs the command on the remote agent and returns stdout/stderr/exitCode', async () => {
-      mockRemoteClient.executeCommand.mockResolvedValue({ stdout: 'hi\n', stderr: '', exitCode: 0 });
+    it('streams the command on the remote agent and returns merged output/exitCode', async () => {
+      mockRemoteClient.streamCommand.mockResolvedValue({ output: 'hi\n', exitCode: 0 });
 
       const result = await tool.call({ command: 'echo hi' });
 
-      expect(mockRemoteClient.executeCommand).toHaveBeenCalledWith(
+      expect(mockRemoteClient.streamCommand).toHaveBeenCalledWith(
         'https://agent.example',
-        'echo hi',
-        undefined,
-        undefined,
+        expect.objectContaining({ command: 'echo hi', timeout: undefined }),
       );
-      expect(result.data).toEqual({ stdout: 'hi\n', stderr: '', exitCode: 0 });
+      expect(result.data).toEqual({ output: 'hi\n', exitCode: 0 });
     });
 
     it('passes the timeout through to RemoteClient', async () => {
-      mockRemoteClient.executeCommand.mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 });
+      mockRemoteClient.streamCommand.mockResolvedValue({ output: '', exitCode: 0 });
 
       await tool.call({ command: 'sleep 1', timeout: 500 });
 
-      expect(mockRemoteClient.executeCommand).toHaveBeenCalledWith('https://agent.example', 'sleep 1', undefined, 500);
+      expect(mockRemoteClient.streamCommand).toHaveBeenCalledWith(
+        'https://agent.example',
+        expect.objectContaining({ command: 'sleep 1', timeout: 500 }),
+      );
     });
   });
 });

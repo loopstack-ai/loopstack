@@ -1,5 +1,7 @@
 import express from 'express';
 import { AGENT_PORT, WORKSPACE_ROOT } from './config.js';
+import { execStreamRouter } from './exec/exec-stream.router.js';
+import { ExecSupervisor } from './exec/exec.supervisor.js';
 import execRouter from './routes/exec.js';
 import filesRouter from './routes/files.js';
 import gitRouter from './routes/git.js';
@@ -10,6 +12,7 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 
 const supervisor = new SessionSupervisor();
+const execSupervisor = new ExecSupervisor();
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -19,6 +22,8 @@ app.use('/sessions', sessionsRouter(supervisor));
 
 // Workspace operations (exec / git / files) — used by the Engineer to initialize the workspace and by
 // remote-client-based features (file explorer, git panels) to inspect the running container.
+// `/exec/stream/*` (streamed, offset-polled) is mounted before the blocking `POST /exec`.
+app.use('/exec/stream', execStreamRouter(execSupervisor));
 app.use('/exec', execRouter);
 app.use('/git', gitRouter);
 app.use('/files', filesRouter);

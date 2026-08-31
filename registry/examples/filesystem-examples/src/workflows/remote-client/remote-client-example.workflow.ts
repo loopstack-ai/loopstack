@@ -38,10 +38,10 @@ export class RemoteClientExampleWorkflow extends BaseWorkflow {
     const result = await this.bash.call({
       command: `wc -l ${state.filePath} && date`,
     });
-    const stdout = (result.data as { stdout?: string })?.stdout ?? '';
+    const output = (result.data as { output?: string })?.output ?? '';
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      text: `Command output:\n\`\`\`\n${stdout}\n\`\`\``,
+      text: `Command output:\n\`\`\`\n${output}\n\`\`\``,
     });
   }
 
