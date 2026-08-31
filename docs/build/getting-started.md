@@ -1,197 +1,98 @@
 ---
 title: Getting Started
-description: Step-by-step setup guide — install prerequisites, scaffold a NestJS app, add LoopstackModule, configure Docker Compose for PostgreSQL and Redis, and run your first workflow.
+description: Scaffold a new Loopstack app with `loopstack create` — it generates a NestJS backend, a zero-config hello workflow, a Docker Compose file for PostgreSQL and Redis (plus an optional one for Studio), a ready-to-edit .env, and a CLAUDE.md. Then run your first workflow from the terminal with `loopstack run`, or point DATABASE_URL / REDIS_URL at your own instances.
 ---
 
 # Getting Started
 
-Get Loopstack running locally in a few minutes.
+The fastest way to start is `loopstack create` — it scaffolds a complete, runnable app so you can run your first AI workflow in a couple of minutes. Already have a NestJS project? See [Add to an Existing App](./add-to-existing-app.md) instead.
 
 ## Prerequisites
 
 - Node.js 18.0+
-- Docker
-- NestJS CLI (`npm install -g @nestjs/cli`)
+- Docker — optional, only for the one-command local Postgres + Redis (you can [bring your own](#2-provide-postgres--redis) instead)
 
-## 1. Create Your App
-
-Scaffold a standard NestJS project and install the Loopstack module:
+## 1. Create your app
 
 ```shell
-nest new my-app
+npx @loopstack/cli create my-app
 cd my-app
-npm install @loopstack/loopstack-module
 ```
+
+`create` scaffolds a fresh NestJS backend with `LoopstackModule.forRoot()` wired in and a zero-config `hello` workflow under `src/hello/`. It also drops in:
+
+- `docker-compose.yml` — Postgres + Redis
+- `docker-compose.studio.yml` — the optional [Studio](../learn/studio.md) UI
+- `.env` — configuration; the defaults match the Docker services out of the box
+- `CLAUDE.md` — conventions and the CLI feedback loop for coding agents
+- an initialized git repository
 
 ## 2. Provide Postgres & Redis
 
 Loopstack needs a PostgreSQL and a Redis instance. There are two equally good ways to provide them — pick whichever fits your setup:
 
-**Option A — Docker (quickest locally).** Start Postgres and Redis:
+**Option A — Docker (quickest locally).** From the project root:
 
 ```shell
-docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.yml up -d
+docker compose up -d
 ```
 
-Want the visual [Studio](../learn/studio.md) UI too? Start it alongside — it's a separate, optional compose file:
+This starts Postgres and Redis with settings that match the scaffolded `.env`. Want the visual Studio UI too? Start it alongside — it's the separate, optional compose file:
 
 ```shell
-docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.studio.yml up -d
+docker compose -f docker-compose.studio.yml up -d      # Studio on http://localhost:5173
 ```
 
-Studio will be available at [http://localhost:5173](http://localhost:5173).
-
-**Option B — Bring your own.** Point the app at any existing Postgres and Redis (managed, hosted, or already running) via `.env`:
+**Option B — Bring your own.** Point the app at any existing Postgres and Redis (managed, hosted, or already running) in `.env`:
 
 ```dotenv
 DATABASE_URL=postgres://user:password@host:5432/dbname
 REDIS_URL=redis://host:6379
 ```
 
-> Automated environments — CI and coding agents — should use Option B (point the URLs at an available instance) and drive workflows from the [CLI](../reference/cli.md), not the browser-based Studio.
+> CI and coding agents should use Option B (point the URLs at an available instance) and drive workflows from the [CLI](../reference/cli.md), not the browser-based Studio.
 
-## 3. Configure
+## 3. Run
 
-Add `LoopstackModule` to the imports in `src/app.module.ts`:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { LoopstackModule } from '@loopstack/loopstack-module';
-
-@Module({
-  imports: [LoopstackModule.forRoot()],
-})
-export class AppModule {}
-```
-
-Enable shutdown hooks in `src/main.ts` so the workflow engine shuts down gracefully — on SIGTERM (a deploy, `docker stop`) in-flight transitions finish before the process exits:
-
-```typescript
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableShutdownHooks();
-  await app.listen(process.env.PORT ?? 3000);
-}
-```
-
-Add YAML asset bundling to `nest-cli.json` so workflow UI configs are included in the build:
-
-```json
-{
-  "compilerOptions": {
-    "assets": ["**/*.yaml"]
-  }
-}
-```
-
-## 4. Run
+Start the backend:
 
 ```shell
-npm run start:dev
+npm run start:dev        # http://localhost:3000
 ```
 
-Your backend is now running at [http://localhost:3000](http://localhost:3000). You can drive workflows two ways: from the terminal with the [CLI](../reference/cli.md) — the fastest loop, and what CI and coding agents should use — or visually in [Studio](../learn/studio.md) if you started it in step 2. We'll use both in the next step.
-
-## 5. Hello World
-
-Create a simple workflow that calls an LLM to greet you by name. First install the Claude and LLM provider modules:
+Then run the scaffolded workflow from the terminal — the CLI talks to the local backend with no login:
 
 ```shell
-npm install @loopstack/claude-module @loopstack/llm-provider-module
+loopstack run hello --arg name=You
 ```
 
-Create `src/hello/hello.workflow.ts`:
+It streams each transition and the final result live, and returns CI-friendly exit codes — the fastest loop for iterating, scripting, and coding agents. Prefer a visual UI? Start Studio (step 2) and open [http://localhost:5173](http://localhost:5173).
+
+## What you got
+
+The `hello` workflow lives in `src/hello/hello.workflow.ts` — one class with a single transition:
 
 ```typescript
-import { z } from 'zod';
-import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
-
-const InputSchema = z.object({
-  name: z.string().default('World'),
-});
-
-type InputArgs = z.infer<typeof InputSchema>;
-
 @Workflow({
   title: 'Hello World',
-  description: 'A simple workflow that greets you by name using an LLM.',
-  schema: InputSchema,
+  description: 'Greets you by name — replace this with your first real workflow.',
+  schema: z.object({ name: z.string().default('World') }),
 })
 export class HelloWorkflow extends BaseWorkflow<InputArgs> {
-  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
-    super();
-  }
-
-  @Transition({ to: 'end' })
+  @Transition({ from: 'start', to: 'end' })
   async greet(_state: unknown, ctx: RunContext<InputArgs>) {
-    await this.llmGenerateText.call({
-      prompt: `Say hello to ${ctx.args.name} in a fun way in one sentence.`,
-    });
+    const greeting = `Hello, ${ctx.args.name}! 👋`;
+    await this.documentStore.save(MessageDocument, { role: 'assistant', text: greeting });
+    this.assignResult({ greeting });
   }
 }
 ```
 
-Create `src/hello/hello.module.ts`:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
-import { StudioApp } from '@loopstack/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
-import { HelloWorkflow } from './hello.workflow';
-
-@StudioApp({
-  title: 'Hello World App',
-  workflows: [HelloWorkflow],
-})
-@Module({
-  imports: [ClaudeModule, LlmProviderModule.forFeature({ model: 'claude-sonnet-4-5' })],
-  providers: [HelloWorkflow],
-})
-export class HelloModule {}
-```
-
-Register it in `src/app.module.ts`:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { LoopstackModule } from '@loopstack/loopstack-module';
-import { HelloModule } from './hello/hello.module';
-
-@Module({
-  imports: [LoopstackModule.forRoot(), HelloModule],
-})
-export class AppModule {}
-```
-
-Set your Anthropic API key in `.env`:
-
-```
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-Restart the dev server, then run the workflow either way:
-
-**From the terminal (CLI):**
-
-```shell
-npx @loopstack/cli run hello --arg name=You
-```
-
-The CLI streams each transition, the LLM tokens, and the final result live — no login needed against the local backend — and returns CI-friendly exit codes.
-
-**In the browser (Studio):** open [http://localhost:5173](http://localhost:5173), find the **Hello World App**, start a new run, and enter your name.
-
-Either way, the LLM greets you by name.
+It's zero-config — no API keys needed for this first run. Edit it, add your own workflows beside it, and rerun with the CLI to see them live. To make a workflow call an LLM, see [AI Text Generation](./ai/text-generation.md).
 
 ## Next steps
 
-- [Core Concepts](../learn/core-concepts.md) — understand workflows, tools, documents, and providers
+- [Core Concepts](../learn/core-concepts.md) — workflows, tools, documents, and providers
 - [Creating Workflows](./fundamentals/workflows.md) — transitions, guards, state, and wait patterns
 - [AI Text Generation](./ai/text-generation.md) — add LLM calls to your workflows
-
-## zod version (reference)
-
-Loopstack requires **zod v4** — it uses the v4-only `z.toJSONSchema()` API to turn workflow input schemas into JSON Schema. npm 7+ installs it automatically as a peer dependency when you run `npm install @loopstack/loopstack-module`, so you don't normally need to install it yourself. Older tutorials may show `zod@^3`; that won't resolve against Loopstack's peer constraint and `npm install` will fail with `ERESOLVE`.
+- [Add to an Existing App](./add-to-existing-app.md) — wire Loopstack into a NestJS project you already have
