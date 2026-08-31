@@ -31,14 +31,21 @@ export class LoopstackModule {
     // TypeORM — register the default connection unless the host already provides one.
     if (!reuseExistingConnection) {
       const db = options.database ?? {};
+      // A single DATABASE_URL is honored (managed/hosted environments, PaaS) when no programmatic
+      // database options are given; otherwise fall back to the discrete DATABASE_* vars + defaults.
+      const databaseUrl = !options.database ? process.env.DATABASE_URL : undefined;
       imports.push(
         TypeOrmModule.forRoot({
           type: 'postgres',
-          host: db.host ?? process.env.DATABASE_HOST ?? 'localhost',
-          port: db.port ?? (Number(process.env.DATABASE_PORT) || 5432),
-          username: db.username ?? process.env.DATABASE_USERNAME ?? 'postgres',
-          database: db.database ?? process.env.DATABASE_NAME ?? 'postgres',
-          password: db.password ?? process.env.DATABASE_PASSWORD ?? 'admin',
+          ...(databaseUrl
+            ? { url: databaseUrl }
+            : {
+                host: db.host ?? process.env.DATABASE_HOST ?? 'localhost',
+                port: db.port ?? (Number(process.env.DATABASE_PORT) || 5432),
+                username: db.username ?? process.env.DATABASE_USERNAME ?? 'postgres',
+                database: db.database ?? process.env.DATABASE_NAME ?? 'postgres',
+                password: db.password ?? process.env.DATABASE_PASSWORD ?? 'admin',
+              }),
           autoLoadEntities: true,
           synchronize: true,
           migrationsRun: false,

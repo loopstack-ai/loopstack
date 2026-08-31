@@ -23,21 +23,32 @@ cd my-app
 npm install @loopstack/loopstack-module
 ```
 
-## 2. Start Infrastructure
+## 2. Provide Postgres & Redis
 
-Start the Docker environment including PostgreSQL, Redis, and Loopstack Studio:
+Loopstack needs a PostgreSQL and a Redis instance. There are two equally good ways to provide them — pick whichever fits your setup:
+
+**Option A — Docker (quickest locally).** Start Postgres and Redis:
 
 ```shell
 docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.yml up -d
 ```
 
-Studio will be available at [http://localhost:5173](http://localhost:5173).
-
-If you don't need Studio or want to run it from source:
+Want the visual [Studio](../learn/studio.md) UI too? Start it alongside — it's a separate, optional compose file:
 
 ```shell
-docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.infra.yml up -d
+docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.studio.yml up -d
 ```
+
+Studio will be available at [http://localhost:5173](http://localhost:5173).
+
+**Option B — Bring your own.** Point the app at any existing Postgres and Redis (managed, hosted, or already running) via `.env`:
+
+```dotenv
+DATABASE_URL=postgres://user:password@host:5432/dbname
+REDIS_URL=redis://host:6379
+```
+
+> Automated environments — CI and coding agents — should use Option B (point the URLs at an available instance) and drive workflows from the [CLI](../reference/cli.md), not the browser-based Studio.
 
 ## 3. Configure
 
@@ -79,7 +90,7 @@ Add YAML asset bundling to `nest-cli.json` so workflow UI configs are included i
 npm run start:dev
 ```
 
-Your backend is now running at [http://localhost:3000](http://localhost:3000) and Studio is available at [http://localhost:5173](http://localhost:5173).
+Your backend is now running at [http://localhost:3000](http://localhost:3000). You can drive workflows two ways: from the terminal with the [CLI](../reference/cli.md) — the fastest loop, and what CI and coding agents should use — or visually in [Studio](../learn/studio.md) if you started it in step 2. We'll use both in the next step.
 
 ## 5. Hello World
 
@@ -161,7 +172,19 @@ Set your Anthropic API key in `.env`:
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-Restart the dev server. Open Studio at [http://localhost:5173](http://localhost:5173) — you'll see the **Hello World App**. Start a new run, enter your name, and the LLM will greet you.
+Restart the dev server, then run the workflow either way:
+
+**From the terminal (CLI):**
+
+```shell
+npx @loopstack/cli run hello --arg name=You
+```
+
+The CLI streams each transition, the LLM tokens, and the final result live — no login needed against the local backend — and returns CI-friendly exit codes.
+
+**In the browser (Studio):** open [http://localhost:5173](http://localhost:5173), find the **Hello World App**, start a new run, and enter your name.
+
+Either way, the LLM greets you by name.
 
 ## Next steps
 

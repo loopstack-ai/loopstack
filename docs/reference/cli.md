@@ -16,11 +16,11 @@ npm install -g @loopstack/cli
 ```bash
 loopstack create my-app
 cd my-app
-docker compose up -d      # Postgres, Redis, and Studio
+docker compose up -d      # Postgres + Redis
 npm run start:dev         # backend on http://localhost:3000
 ```
 
-`create` scaffolds a fresh NestJS app via the official Nest CLI, wires in `LoopstackModule.forRoot()`, and adds a zero-config hello workflow — no API keys needed for the first run. The scaffold includes a docker-compose file for Postgres, Redis, and Studio (on [http://localhost:5173](http://localhost:5173)), a ready-to-edit `.env`, and an initialized git repository.
+`create` scaffolds a fresh NestJS app via the official Nest CLI, wires in `LoopstackModule.forRoot()`, and adds a zero-config hello workflow — no API keys needed for the first run. The scaffold includes a `docker-compose.yml` for Postgres and Redis (plus a separate, optional `docker-compose.studio.yml` for Studio on [http://localhost:5173](http://localhost:5173)), a ready-to-edit `.env`, and an initialized git repository.
 
 ```bash
 loopstack run hello --arg name=You    # your first run, from the terminal

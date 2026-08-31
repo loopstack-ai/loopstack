@@ -58,6 +58,11 @@ const ASK_USER_SYSTEM_PROMPT =
   'the user you MUST call ask_user with one clear question and then stop. Never ask the user anything in ' +
   'a normal assistant message.';
 
+// Optional environment briefing, appended to the system prompt when set (e.g. to describe pre-provisioned
+// services or steer the agent to the CLI). Intentionally unused by default — we rely on the docs and the
+// environment itself — and only populated if an environment finds the agent needs the nudge.
+const ENV_BRIEFING = process.env.AGENT_ENV_BRIEFING?.trim();
+
 /**
  * Owns the lifecycle of every headless Claude Code process on this host. Because the supervisor holds
  * the actual {@link ChildProcess} handle, exit codes are authoritative and liveness is intrinsic — an
@@ -205,15 +210,13 @@ export class SessionSupervisor {
     if (req.allowedTools?.length) args.push('--allowedTools', req.allowedTools.join(','));
     else args.push('--permission-mode', 'bypassPermissions');
 
+    const appendedPrompts: string[] = [];
     if (ASK_USER_MCP_AVAILABLE) {
-      args.push(
-        '--mcp-config',
-        ASK_USER_MCP_CONFIG,
-        '--strict-mcp-config',
-        '--append-system-prompt',
-        ASK_USER_SYSTEM_PROMPT,
-      );
+      args.push('--mcp-config', ASK_USER_MCP_CONFIG, '--strict-mcp-config');
+      appendedPrompts.push(ASK_USER_SYSTEM_PROMPT);
     }
+    if (ENV_BRIEFING) appendedPrompts.push(ENV_BRIEFING);
+    if (appendedPrompts.length) args.push('--append-system-prompt', appendedPrompts.join('\n\n'));
 
     return args;
   }
