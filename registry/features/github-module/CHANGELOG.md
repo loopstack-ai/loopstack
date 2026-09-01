@@ -1,5 +1,13 @@
 # @loopstack/github-module
 
+## 0.4.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/oauth-module@0.5.1
+  - @loopstack/common@0.39.0
+
 ## 0.4.7
 
 ### Patch Changes

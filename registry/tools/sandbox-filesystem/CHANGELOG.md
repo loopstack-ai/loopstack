@@ -1,5 +1,13 @@
 # @loopstack/sandbox-filesystem
 
+## 0.7.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.39.0
+  - @loopstack/sandbox-tool@0.7.8
+
 ## 0.7.7
 
 ### Patch Changes

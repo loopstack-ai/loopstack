@@ -1,5 +1,28 @@
 # @loopstack/loopstack-module
 
+## 0.33.0
+
+### Minor Changes
+
+- [#249](https://github.com/loopstack-ai/loopstack/pull/249) [`806244a`](https://github.com/loopstack-ai/loopstack/commit/806244ae2e12aa5b8ab364bd1b6e71fdb9c13972) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Connection URLs and a Postgres/Redis-only default compose file
+  - `LoopstackModule.forRoot()` now honors a single `DATABASE_URL` (passed to TypeORM as `url`) when set and
+    no programmatic `database` options are given; the discrete `DATABASE_*` vars remain as fallback. The core
+    task queue likewise honors `REDIS_URL`, falling back to `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD`. This
+    makes managed/hosted environments (and any "bring your own instance" setup) a first-class configuration
+    path.
+  - The shipped `docker-compose.yml` now starts **Postgres + Redis only**; Studio moved to a separate,
+    optional `docker-compose.studio.yml`. The combined `docker-compose.infra.yml` is removed (the default is
+    now infra-only).
+
+### Patch Changes
+
+- Updated dependencies [[`806244a`](https://github.com/loopstack-ai/loopstack/commit/806244ae2e12aa5b8ab364bd1b6e71fdb9c13972), [`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686), [`a2160e4`](https://github.com/loopstack-ai/loopstack/commit/a2160e4048d8d2d8bf48c35bd64b3033bf343ac8)]:
+  - @loopstack/core@0.39.0
+  - @loopstack/contracts@0.39.0
+  - @loopstack/api@0.39.0
+  - @loopstack/auth@0.39.0
+  - @loopstack/common@0.39.0
+
 ## 0.32.0
 
 ### Minor Changes

@@ -1,5 +1,28 @@
 # @loopstack/contracts
 
+## 0.39.0
+
+### Minor Changes
+
+- [#249](https://github.com/loopstack-ai/loopstack/pull/249) [`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Environment-specific Studio features with a slot selector
+
+  Workspace environments now carry a `status` (`running` / `stopped`) and can be targeted per slot:
+  - `EnvironmentService` gains `markRunning` / `markStopped` (upsert + toggle a slot instead of delete),
+    and `resolveAgentUrl` prefers a running slot so a stopped one no longer shadows a live one.
+  - The file-explorer and git REST endpoints accept an optional `slotId` to target a specific environment.
+  - Studio adds an environment selector: file-explorer and git panels follow the chosen (running)
+    environment — defaulting to and tracking the live one — instead of always the first.
+
+- [#249](https://github.com/loopstack-ai/loopstack/pull/249) [`a2160e4`](https://github.com/loopstack-ai/loopstack/commit/a2160e4048d8d2d8bf48c35bd64b3033bf343ac8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Message completion metadata and quieter system messages
+
+  Assistant messages can carry optional completion `meta` — model, token usage, cost, turns, and duration:
+  - `@loopstack/contracts` adds `UIUsage` / `UIMessageMeta` and a `meta` field on `UIMessage`.
+  - `@loopstack/llm-provider-module`'s `LlmMessageDocument` carries the `meta`.
+  - The CLI (`llm-message` widget) and Studio (`LlmMessage`) render a dim completion-stats footer when a
+    message has `meta`.
+  - System messages now render as compact status lines (a single info icon, no card or per-message emoji)
+    instead of full message cards.
+
 ## 0.38.0
 
 ### Minor Changes

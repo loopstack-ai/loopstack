@@ -1,5 +1,13 @@
 # @loopstack/web-module
 
+## 0.4.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.39.0
+  - @loopstack/claude-module@0.26.1
+
 ## 0.4.7
 
 ### Patch Changes
