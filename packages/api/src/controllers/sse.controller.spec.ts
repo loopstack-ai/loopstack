@@ -75,7 +75,13 @@ describe('SseController (wire)', () => {
 
   it('emits frames with sequence ids', async () => {
     const bodyPromise = readStream(port, '/api/v1/sse/stream', { until: (b) => b.includes('"wf-2"') });
-    await new Promise((r) => setTimeout(r, 50));
+    // Emit only once the connection is actually registered — a fixed delay races the subscription setup
+    // on slow/loaded CI, so the events get sequenced but never pushed to this (not-yet-live) connection.
+    const deadline = Date.now() + 2_000;
+    while (service.getConnectionCount() === 0) {
+      if (Date.now() > deadline) throw new Error('SSE connection was not registered in time');
+      await new Promise((r) => setTimeout(r, 5));
+    }
     service.handleClientMessage(documentCreated('wf-1'));
     service.handleClientMessage(documentCreated('wf-2'));
 
