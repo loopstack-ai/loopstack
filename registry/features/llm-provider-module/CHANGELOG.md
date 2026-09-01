@@ -1,5 +1,26 @@
 # @loopstack/llm-provider-module
 
+## 0.9.0
+
+### Minor Changes
+
+- [#249](https://github.com/loopstack-ai/loopstack/pull/249) [`a2160e4`](https://github.com/loopstack-ai/loopstack/commit/a2160e4048d8d2d8bf48c35bd64b3033bf343ac8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Message completion metadata and quieter system messages
+
+  Assistant messages can carry optional completion `meta` — model, token usage, cost, turns, and duration:
+  - `@loopstack/contracts` adds `UIUsage` / `UIMessageMeta` and a `meta` field on `UIMessage`.
+  - `@loopstack/llm-provider-module`'s `LlmMessageDocument` carries the `meta`.
+  - The CLI (`llm-message` widget) and Studio (`LlmMessage`) render a dim completion-stats footer when a
+    message has `meta`.
+  - System messages now render as compact status lines (a single info icon, no card or per-message emoji)
+    instead of full message cards.
+
+### Patch Changes
+
+- Updated dependencies [[`806244a`](https://github.com/loopstack-ai/loopstack/commit/806244ae2e12aa5b8ab364bd1b6e71fdb9c13972), [`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686), [`a2160e4`](https://github.com/loopstack-ai/loopstack/commit/a2160e4048d8d2d8bf48c35bd64b3033bf343ac8)]:
+  - @loopstack/core@0.39.0
+  - @loopstack/contracts@0.39.0
+  - @loopstack/common@0.39.0
+
 ## 0.8.0
 
 ### Minor Changes

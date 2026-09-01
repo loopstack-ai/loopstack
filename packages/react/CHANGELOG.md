@@ -1,5 +1,13 @@
 # @loopstack/react
 
+## 3.0.0
+
+### Patch Changes
+
+- Updated dependencies [[`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686), [`a2160e4`](https://github.com/loopstack-ai/loopstack/commit/a2160e4048d8d2d8bf48c35bd64b3033bf343ac8)]:
+  - @loopstack/contracts@0.39.0
+  - @loopstack/client@0.39.0
+
 ## 2.0.0
 
 ### Patch Changes

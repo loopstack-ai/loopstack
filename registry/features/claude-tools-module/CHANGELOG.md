@@ -1,5 +1,13 @@
 # @loopstack/claude-tools-module
 
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`a2160e4`](https://github.com/loopstack-ai/loopstack/commit/a2160e4048d8d2d8bf48c35bd64b3033bf343ac8)]:
+  - @loopstack/llm-provider-module@0.9.0
+  - @loopstack/common@0.39.0
+
 ## 0.2.7
 
 ### Patch Changes

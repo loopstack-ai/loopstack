@@ -1,5 +1,24 @@
 # @loopstack/remote-file-explorer-module
 
+## 0.26.0
+
+### Minor Changes
+
+- [#249](https://github.com/loopstack-ai/loopstack/pull/249) [`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Environment-specific Studio features with a slot selector
+
+  Workspace environments now carry a `status` (`running` / `stopped`) and can be targeted per slot:
+  - `EnvironmentService` gains `markRunning` / `markStopped` (upsert + toggle a slot instead of delete),
+    and `resolveAgentUrl` prefers a running slot so a stopped one no longer shadows a live one.
+  - The file-explorer and git REST endpoints accept an optional `slotId` to target a specific environment.
+  - Studio adds an environment selector: file-explorer and git panels follow the chosen (running)
+    environment — defaulting to and tracking the live one — instead of always the first.
+
+### Patch Changes
+
+- Updated dependencies [[`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686), [`a454c6b`](https://github.com/loopstack-ai/loopstack/commit/a454c6bd897af6be781206df98a6ef32f0e1015c)]:
+  - @loopstack/remote-client@0.27.0
+  - @loopstack/common@0.39.0
+
 ## 0.25.2
 
 ### Patch Changes

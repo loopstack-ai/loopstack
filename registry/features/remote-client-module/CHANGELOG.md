@@ -1,5 +1,39 @@
 # @loopstack/remote-client
 
+## 0.27.0
+
+### Minor Changes
+
+- [#249](https://github.com/loopstack-ai/loopstack/pull/249) [`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Environment-specific Studio features with a slot selector
+
+  Workspace environments now carry a `status` (`running` / `stopped`) and can be targeted per slot:
+  - `EnvironmentService` gains `markRunning` / `markStopped` (upsert + toggle a slot instead of delete),
+    and `resolveAgentUrl` prefers a running slot so a stopped one no longer shadows a live one.
+  - The file-explorer and git REST endpoints accept an optional `slotId` to target a specific environment.
+  - Studio adds an environment selector: file-explorer and git panels follow the chosen (running)
+    environment — defaulting to and tracking the live one — instead of always the first.
+
+- [#249](https://github.com/loopstack-ai/loopstack/pull/249) [`a454c6b`](https://github.com/loopstack-ai/loopstack/commit/a454c6bd897af6be781206df98a6ef32f0e1015c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Streamed command execution over `RemoteClient`
+
+  Long-running remote commands (clone / install / build / app start) can now stream their output live
+  instead of blocking until they finish:
+  - `RemoteClient.startExec` / `execStatus` / `readExecLog` / `killExec` are low-level primitives over the
+    remote's append-only, offset-polled command log.
+  - `RemoteClient.streamCommand(url, { command, onChunk, signal, timeout, pollMs })` drives the poll loop:
+    it hands each new slice of merged stdout+stderr to `onChunk` as it arrives and resolves with the exit
+    code and full output. Aborting `signal` kills the remote command; a timed-out command resolves with
+    exit code `124`.
+
+  The `bash` tool now streams its output live into a document as the command runs. Its result shape is
+  merged accordingly: `{ output, exitCode }` (previously `{ stdout, stderr, exitCode }`) — a single
+  chronological stream, which is how a terminal reads.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/secrets-module@0.26.2
+  - @loopstack/common@0.39.0
+
 ## 0.26.2
 
 ### Patch Changes

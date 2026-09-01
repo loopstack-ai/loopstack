@@ -1,5 +1,23 @@
 # @loopstack/filesystem-examples
 
+## 0.1.2
+
+### Patch Changes
+
+- [#249](https://github.com/loopstack-ai/loopstack/pull/249) [`b8056fa`](https://github.com/loopstack-ai/loopstack/commit/b8056fa05f03264cc324670d07de81cfe82452a1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Track the bash tool's merged `{ output, exitCode }` result
+
+  The `@loopstack/remote-client` bash tool now returns merged `output` instead of separate
+  `stdout`/`stderr`. The remote-client example workflow and the connect-github workflow are updated to
+  read `result.data.output`, so they keep working against the new tool result shape.
+
+- Updated dependencies [[`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686), [`a454c6b`](https://github.com/loopstack-ai/loopstack/commit/a454c6bd897af6be781206df98a6ef32f0e1015c)]:
+  - @loopstack/remote-client@0.27.0
+  - @loopstack/remote-file-explorer-module@0.26.0
+  - @loopstack/local-file-explorer-module@0.25.3
+  - @loopstack/common@0.39.0
+  - @loopstack/sandbox-filesystem@0.7.8
+  - @loopstack/sandbox-tool@0.7.8
+
 ## 0.1.1
 
 ### Patch Changes

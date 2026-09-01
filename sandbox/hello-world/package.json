@@ -1,6 +1,6 @@
 {
   "name": "hello-world",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "",
   "author": "",
   "private": true,
@@ -20,13 +20,13 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/claude-module": "^0.26.0",
-    "@loopstack/common": "^0.38.0",
+    "@loopstack/claude-module": "^0.26.1",
+    "@loopstack/common": "^0.39.0",
     "@loopstack/hitl-examples": "^0.2.0",
-    "@loopstack/llm-provider-module": "^0.8.0",
-    "@loopstack/loopstack-module": "^0.32.0",
+    "@loopstack/llm-provider-module": "^0.9.0",
+    "@loopstack/loopstack-module": "^0.33.0",
     "@loopstack/observability-examples": "*",
-    "@loopstack/secrets-module": "^0.26.1",
+    "@loopstack/secrets-module": "^0.26.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
@@ -63,7 +63,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0",
-    "@loopstack/client": "^0.38.0"
+    "@loopstack/client": "^0.39.0"
   },
   "jest": {
     "moduleFileExtensions": [

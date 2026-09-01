@@ -1,5 +1,13 @@
 # @loopstack/secrets-module
 
+## 0.26.2
+
+### Patch Changes
+
+- Updated dependencies [[`806244a`](https://github.com/loopstack-ai/loopstack/commit/806244ae2e12aa5b8ab364bd1b6e71fdb9c13972)]:
+  - @loopstack/core@0.39.0
+  - @loopstack/common@0.39.0
+
 ## 0.26.1
 
 ### Patch Changes

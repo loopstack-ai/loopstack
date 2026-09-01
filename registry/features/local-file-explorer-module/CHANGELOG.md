@@ -1,5 +1,14 @@
 # @loopstack/local-file-explorer-module
 
+## 0.25.3
+
+### Patch Changes
+
+- Updated dependencies [[`806244a`](https://github.com/loopstack-ai/loopstack/commit/806244ae2e12aa5b8ab364bd1b6e71fdb9c13972), [`6db1211`](https://github.com/loopstack-ai/loopstack/commit/6db1211737605e14bfd7bd9a0f5a64a978052686), [`a2160e4`](https://github.com/loopstack-ai/loopstack/commit/a2160e4048d8d2d8bf48c35bd64b3033bf343ac8)]:
+  - @loopstack/core@0.39.0
+  - @loopstack/contracts@0.39.0
+  - @loopstack/common@0.39.0
+
 ## 0.25.2
 
 ### Patch Changes
