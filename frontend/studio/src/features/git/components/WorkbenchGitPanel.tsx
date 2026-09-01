@@ -1,5 +1,6 @@
 import { GitBranch, Loader2 } from 'lucide-react';
 import { useWorkbenchLayout } from '@/features/workbench';
+import { EnvironmentSelector } from '@/features/workbench/components/EnvironmentSelector';
 import { SidebarPanel } from '@/features/workbench/components/SidebarPanel';
 import { useRunWorkflow } from '@/hooks/useProcessor';
 import { useCreateWorkflow } from '@/hooks/useWorkflows';
@@ -14,11 +15,11 @@ interface WorkbenchGitPanelProps {
 }
 
 export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
-  const { panelSize, setPanelSize, closePanel } = useWorkbenchLayout();
+  const { panelSize, setPanelSize, closePanel, selectedSlotId } = useWorkbenchLayout();
   const { router } = useStudio();
-  const { data: status, isLoading: statusLoading } = useGitStatus(workspaceId);
-  const { data: logData, isLoading: logLoading } = useGitLog(workspaceId);
-  const { data: remote } = useGitRemote(workspaceId);
+  const { data: status, isLoading: statusLoading } = useGitStatus(workspaceId, selectedSlotId);
+  const { data: logData, isLoading: logLoading } = useGitLog(workspaceId, 50, selectedSlotId);
+  const { data: remote } = useGitRemote(workspaceId, selectedSlotId);
   useGitInvalidation(workspaceId);
 
   const createWorkflow = useCreateWorkflow();
@@ -64,6 +65,7 @@ export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
       onClose={closePanel}
     >
       <div className="flex h-full flex-col">
+        <EnvironmentSelector />
         <div className="flex-1 overflow-y-auto px-4 py-3">
           {isLoading ? (
             <div className="flex items-center gap-2 py-4">

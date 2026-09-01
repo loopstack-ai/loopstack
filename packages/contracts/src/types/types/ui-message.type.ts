@@ -56,6 +56,34 @@ export const UIContentBlockSchema = z.discriminatedUnion('type', [
 export type UIContentBlock = z.infer<typeof UIContentBlockSchema>;
 
 // ---------------------------------------------------------------------------
+// Completion metadata — optional per-message run info (model, usage, cost, …)
+// ---------------------------------------------------------------------------
+
+/** Normalized token usage — field names mirror `LlmUsage` in @loopstack/llm-provider-module. */
+export const UIUsageSchema = z.object({
+  inputTokens: z.number(),
+  outputTokens: z.number(),
+  cacheCreationInputTokens: z.number().optional(),
+  cacheReadInputTokens: z.number().optional(),
+  reasoningTokens: z.number().optional(),
+});
+export type UIUsage = z.infer<typeof UIUsageSchema>;
+
+/**
+ * Optional metadata for a finished assistant message (e.g. a run/completion summary). Shaped like
+ * `LlmResultMeta` — a `meta` bag that nests normalized `usage`, plus run-level extras (cost, turns,
+ * duration) that live above a single LLM call.
+ */
+export const UIMessageMetaSchema = z.object({
+  model: z.string().optional(),
+  usage: UIUsageSchema.optional(),
+  costUsd: z.number().optional(),
+  numTurns: z.number().optional(),
+  durationMs: z.number().optional(),
+});
+export type UIMessageMeta = z.infer<typeof UIMessageMetaSchema>;
+
+// ---------------------------------------------------------------------------
 // Message
 // ---------------------------------------------------------------------------
 
@@ -63,5 +91,6 @@ export const UIMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   text: z.string().optional(),
   blocks: z.array(UIContentBlockSchema).optional(),
+  meta: UIMessageMetaSchema.optional(),
 });
 export type UIMessage = z.infer<typeof UIMessageSchema>;

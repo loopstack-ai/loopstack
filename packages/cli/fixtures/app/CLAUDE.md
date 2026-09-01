@@ -6,7 +6,7 @@ This is a [Loopstack](https://loopstack.ai) app — a NestJS backend where AI wo
 
 - `src/app.module.ts` — mounts `LoopstackModule.forRoot()` plus your app modules
 - `src/hello/` — a complete example: `hello.module.ts` (`@StudioApp` groups workflows into an app) and `hello.workflow.ts` (a minimal workflow)
-- `docker-compose.yml` — Postgres, Redis, and Studio (http://localhost:5173)
+- `docker-compose.yml` — Postgres + Redis (Studio is a separate, optional `docker-compose.studio.yml` on http://localhost:5173; you don't need it — use the CLI below)
 - `.env` — configuration; add API keys here when a module needs them
 
 ## The feedback loop — use the CLI, not guesswork

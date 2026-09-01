@@ -90,6 +90,7 @@
     "services/*",
     "sandbox/hello-world",
     "sandbox/smoke-tests",
-    "sandbox/acceptance-harness"
+    "sandbox/acceptance-harness",
+    "sandbox/loopstack-engineer"
   ]
 }

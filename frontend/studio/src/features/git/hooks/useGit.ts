@@ -6,33 +6,36 @@ import type { GitLogResponse, GitRemoteResponse, GitStatusResponse } from '../ty
 
 const gitPath = (workspaceId: string) => `/api/v1/workspaces/${workspaceId}/git`;
 
-export function useGitStatus(workspaceId: string | undefined) {
+export function useGitStatus(workspaceId: string | undefined, slotId?: string) {
   const client = useLoopstackClient();
   return useQuery({
-    queryKey: queryKeys.gitStatus(client.envKey, workspaceId!),
-    queryFn: () => client.http.get<GitStatusResponse>(`${gitPath(workspaceId!)}/status`),
+    queryKey: [...queryKeys.gitStatus(client.envKey, workspaceId!), slotId ?? ''],
+    queryFn: () =>
+      client.http.get<GitStatusResponse>(`${gitPath(workspaceId!)}/status`, slotId ? { slotId } : undefined),
     enabled: !!workspaceId,
     staleTime: 30_000,
     retry: false,
   });
 }
 
-export function useGitLog(workspaceId: string | undefined, limit = 50) {
+export function useGitLog(workspaceId: string | undefined, limit = 50, slotId?: string) {
   const client = useLoopstackClient();
   return useQuery({
-    queryKey: queryKeys.gitLog(client.envKey, workspaceId!),
-    queryFn: () => client.http.get<GitLogResponse>(`${gitPath(workspaceId!)}/log`, { limit }),
+    queryKey: [...queryKeys.gitLog(client.envKey, workspaceId!), slotId ?? ''],
+    queryFn: () =>
+      client.http.get<GitLogResponse>(`${gitPath(workspaceId!)}/log`, { limit, ...(slotId ? { slotId } : {}) }),
     enabled: !!workspaceId,
     staleTime: 30_000,
     retry: false,
   });
 }
 
-export function useGitRemote(workspaceId: string | undefined) {
+export function useGitRemote(workspaceId: string | undefined, slotId?: string) {
   const client = useLoopstackClient();
   return useQuery({
-    queryKey: queryKeys.gitRemote(client.envKey, workspaceId!),
-    queryFn: () => client.http.get<GitRemoteResponse | null>(`${gitPath(workspaceId!)}/remote`),
+    queryKey: [...queryKeys.gitRemote(client.envKey, workspaceId!), slotId ?? ''],
+    queryFn: () =>
+      client.http.get<GitRemoteResponse | null>(`${gitPath(workspaceId!)}/remote`, slotId ? { slotId } : undefined),
     enabled: !!workspaceId,
     staleTime: 60_000,
     retry: false,

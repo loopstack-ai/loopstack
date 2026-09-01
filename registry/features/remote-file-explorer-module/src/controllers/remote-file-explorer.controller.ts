@@ -14,9 +14,10 @@ export class RemoteFileExplorerController {
   async getFileTree(
     @Param('workspaceId') workspaceId: string,
     @Query('path') basePath: string | undefined,
+    @Query('slotId') slotId: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
     return this.remote.getFileTree(agentUrl, basePath);
   }
 
@@ -24,9 +25,10 @@ export class RemoteFileExplorerController {
   async readFile(
     @Param('workspaceId') workspaceId: string,
     @Query('path') filePath: string,
+    @Query('slotId') slotId: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ) {
-    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
     return this.remote.readFile(agentUrl, filePath);
   }
 }

@@ -52,7 +52,45 @@ export const llmMessageWidget: DocumentWidget = (content, ctx, out) => {
       out.line(pc.dim(`  ${mark} ${truncateToolResult(formatToolResult(block.content))}`));
     }
   }
+
+  const footer = formatCompletionMeta(content.meta);
+  if (footer) out.line(pc.dim(footer));
 };
+
+interface CompletionMeta {
+  model?: string;
+  costUsd?: number;
+  numTurns?: number;
+  durationMs?: number;
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    cacheCreationInputTokens?: number;
+    cacheReadInputTokens?: number;
+  };
+}
+
+/** Dim one-line completion stats (turns, cost, tokens, duration) for a message that carries `meta`. */
+function formatCompletionMeta(raw: unknown): string | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const meta = raw as CompletionMeta;
+  const parts: string[] = [];
+  if (typeof meta.numTurns === 'number') parts.push(`${meta.numTurns} turn${meta.numTurns === 1 ? '' : 's'}`);
+  if (typeof meta.costUsd === 'number') parts.push(`$${meta.costUsd.toFixed(4)}`);
+  const inTok = fmtTokens(meta.usage?.inputTokens);
+  const outTok = fmtTokens(meta.usage?.outputTokens);
+  if (inTok && outTok) parts.push(`${inTok} in / ${outTok} out`);
+  const cache = (meta.usage?.cacheReadInputTokens ?? 0) + (meta.usage?.cacheCreationInputTokens ?? 0);
+  if (cache) parts.push(`${fmtTokens(cache)} cache`);
+  if (typeof meta.durationMs === 'number') parts.push(`${(meta.durationMs / 1000).toFixed(1)}s`);
+  if (meta.model) parts.push(meta.model);
+  return parts.length ? parts.join(' · ') : undefined;
+}
+
+function fmtTokens(n: number | undefined): string | null {
+  if (n == null) return null;
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
 
 /**
  * Large tool results render as a preview; the full content goes to a temp

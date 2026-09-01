@@ -1,0 +1,10 @@
+name: loopstack
+
+services:
+  studio:
+    image: ghcr.io/loopstack-ai/loopstack-studio:latest
+    pull_policy: always
+    ports:
+      - '5173:3000'
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}

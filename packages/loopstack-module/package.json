@@ -53,7 +53,7 @@
   "files": [
     "dist",
     "docker-compose.yml",
-    "docker-compose.infra.yml"
+    "docker-compose.studio.yml"
   ],
   "jest": {
     "moduleFileExtensions": [

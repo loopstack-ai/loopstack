@@ -1,0 +1,20 @@
+# Shared infra base for the Loopstack Engineer container images (agent, interactive, app-runner).
+# Holds only what every role needs: git for workspace version control, curl + CA certs for health/TLS,
+# and Postgres + Redis so an application can be booted inside the container for a manual test. The
+# services stay dormant unless ENABLE_SERVICES=1 (see boot-services.sh).
+FROM node:20-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git curl ca-certificates postgresql redis-server && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN git config --global user.name "loopstack" && \
+    git config --global user.email "noreply@loopstack.ai" && \
+    git config --global init.defaultBranch main
+
+# Conditional service bootstrap, reused by every image's start.sh.
+COPY boot-services.sh /usr/local/bin/boot-services.sh
+RUN chmod +x /usr/local/bin/boot-services.sh
+
+RUN mkdir -p /workspace
+ENV WORKSPACE_ROOT=/workspace

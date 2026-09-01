@@ -9,6 +9,9 @@ export interface EnvironmentConfigInterface {
   optional?: boolean;
 }
 
+/** Availability of a workspace environment slot — `running` when a container/agent is connected. */
+export type EnvironmentStatus = 'running' | 'stopped';
+
 export const WorkspaceSchema = z.object({
   id: z.string(),
   appName: z.string(),
@@ -74,4 +77,5 @@ export interface WorkspaceEnvironmentInterface {
   workerId?: string;
   workerUrl?: string;
   local?: boolean;
+  status?: EnvironmentStatus;
 }

@@ -34,17 +34,25 @@ const PROVIDERS = [
 @Module({})
 export class TaskQueueModule {
   static forRoot(redis?: RedisOptions): DynamicModule {
+    // A single REDIS_URL is honored (managed/hosted environments, PaaS); explicit options and the
+    // discrete REDIS_HOST/PORT/PASSWORD vars remain as fallbacks.
+    const redisUrl = process.env.REDIS_URL ? new URL(process.env.REDIS_URL) : undefined;
+    const host = redis?.host ?? redisUrl?.hostname ?? process.env.REDIS_HOST ?? 'localhost';
+    const port =
+      redis?.port ??
+      (redisUrl?.port ? Number(redisUrl.port) : undefined) ??
+      (process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379);
+    const password = redis?.password ?? (redisUrl?.password || undefined) ?? process.env.REDIS_PASSWORD;
+
     return {
       module: TaskQueueModule,
       imports: [
         BullModule.forRoot({
           connection: {
-            host: redis?.host ?? process.env.REDIS_HOST ?? 'localhost',
-            port: redis?.port ?? (process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379),
+            host,
+            port,
             family: 0,
-            ...((redis?.password ?? process.env.REDIS_PASSWORD)
-              ? { password: redis?.password ?? process.env.REDIS_PASSWORD }
-              : {}),
+            ...(password ? { password } : {}),
           },
         }),
         BullModule.registerQueue({

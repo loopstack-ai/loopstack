@@ -32,6 +32,69 @@ export interface ExecResponse {
 }
 
 /**
+ * Response from `RemoteClient.startExec` — the id of the started streamed command.
+ *
+ * @public
+ */
+export interface ExecStartResponse {
+  id: string;
+}
+
+/**
+ * Status of a streamed command from `RemoteClient.execStatus`.
+ *
+ * @public
+ */
+export interface ExecStatusResponse {
+  id: string;
+  status: 'running' | 'exited' | 'killed';
+  exitCode: number | null;
+  killedBySignal: string | null;
+  timedOut: boolean;
+  bytesWritten: number;
+  startedAt: string;
+  endedAt: string | null;
+}
+
+/**
+ * One incremental slice of a streamed command's merged output from `RemoteClient.readExecLog`.
+ *
+ * @public
+ */
+export interface ExecLogChunk {
+  chunk: string;
+  nextOffset: number;
+}
+
+/**
+ * Options for `RemoteClient.streamCommand` — how to run the command and where to deliver live output.
+ *
+ * @public
+ */
+export interface StreamCommandOptions {
+  command: string;
+  cwd?: string;
+  /** Hard ceiling in ms enforced by the remote (0 / omitted = no limit). */
+  timeout?: number;
+  /** How often to poll the remote for new output (default 750 ms). */
+  pollMs?: number;
+  /** Abort to kill the remote command and stop polling. */
+  signal?: AbortSignal;
+  /** Called with each new slice of merged stdout+stderr as it arrives. */
+  onChunk?: (chunk: string) => void | Promise<void>;
+}
+
+/**
+ * Terminal outcome of `RemoteClient.streamCommand` — the exit code and the full captured output.
+ *
+ * @public
+ */
+export interface StreamCommandResult {
+  exitCode: number;
+  output: string;
+}
+
+/**
  * Response from `RemoteClient.glob` — the matched file paths.
  *
  * @public
@@ -184,6 +247,81 @@ export class RemoteClient {
     return this.doRequest<ExecResponse>(connectionUrl, 'POST', '/exec', { command, cwd, timeout });
   }
 
+  // --- Streamed command execution ---
+  //
+  // Long-running commands (clone / install / build / app start) stream their merged stdout+stderr to an
+  // append-only log on the remote; the host reads it incrementally by byte offset. Use the low-level
+  // start/status/readLog/kill primitives to drive your own loop (e.g. a workflow that checkpoints the
+  // offset in state), or {@link streamCommand} for the common poll-until-exit case.
+
+  async startExec(
+    connectionUrl: string,
+    options: { command: string; cwd?: string; timeout?: number },
+  ): Promise<ExecStartResponse> {
+    return this.doRequest<ExecStartResponse>(connectionUrl, 'POST', '/exec/stream', options);
+  }
+
+  async execStatus(connectionUrl: string, id: string): Promise<ExecStatusResponse> {
+    return this.doRequest<ExecStatusResponse>(connectionUrl, 'GET', `/exec/stream/${id}`);
+  }
+
+  async readExecLog(connectionUrl: string, id: string, offset: number): Promise<ExecLogChunk> {
+    return this.doRequest<ExecLogChunk>(connectionUrl, 'GET', `/exec/stream/${id}/log?offset=${offset}`);
+  }
+
+  async killExec(connectionUrl: string, id: string): Promise<{ ok: boolean }> {
+    return this.doRequest<{ ok: boolean }>(connectionUrl, 'DELETE', `/exec/stream/${id}`);
+  }
+
+  /**
+   * Run a command on the remote and stream its merged output live: start it, poll the log by offset,
+   * hand each new slice to `onChunk`, and resolve with the exit code and full output once it exits.
+   * Aborting `signal` kills the remote command. A timed-out command resolves with exit code `124`.
+   */
+  async streamCommand(connectionUrl: string, options: StreamCommandOptions): Promise<StreamCommandResult> {
+    const pollMs = options.pollMs ?? 750;
+    const { id } = await this.startExec(connectionUrl, {
+      command: options.command,
+      cwd: options.cwd,
+      timeout: options.timeout,
+    });
+
+    let offset = 0;
+    let output = '';
+    const drain = async (): Promise<void> => {
+      const log = await this.readExecLog(connectionUrl, id, offset);
+      if (log.chunk) {
+        output += log.chunk;
+        offset = log.nextOffset;
+        if (options.onChunk) await options.onChunk(log.chunk);
+      }
+    };
+
+    const onAbort = (): void => {
+      void this.killExec(connectionUrl, id).catch(() => undefined);
+    };
+    options.signal?.addEventListener('abort', onAbort, { once: true });
+
+    try {
+      for (;;) {
+        await drain();
+        const status = await this.execStatus(connectionUrl, id);
+        if (status.status !== 'running') {
+          await drain(); // catch anything written between the last drain and exit
+          const exitCode = status.timedOut ? 124 : (status.exitCode ?? (status.killedBySignal ? 1 : 0));
+          return { exitCode, output };
+        }
+        await this.sleep(pollMs);
+      }
+    } finally {
+      options.signal?.removeEventListener('abort', onAbort);
+    }
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async glob(connectionUrl: string, pattern: string, path?: string): Promise<GlobResponse> {
     return this.doRequest<GlobResponse>(connectionUrl, 'POST', '/files/glob', { pattern, path });
   }
@@ -310,6 +448,20 @@ export class RemoteClient {
     return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/pull', options ?? {}, {
       redactBody: !!options?.token,
     });
+  }
+
+  async gitClone(
+    connectionUrl: string,
+    url: string,
+    options?: { branch?: string; token?: string },
+  ): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(
+      connectionUrl,
+      'POST',
+      '/git/clone',
+      { url, branch: options?.branch, token: options?.token },
+      { redactBody: !!options?.token },
+    );
   }
 
   async gitCheckout(connectionUrl: string, branch: string, create?: boolean): Promise<{ branch: string }> {

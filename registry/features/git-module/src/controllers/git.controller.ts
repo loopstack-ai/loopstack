@@ -13,9 +13,10 @@ export class GitController {
   @Get('status')
   async getStatus(
     @Param('workspaceId') workspaceId: string,
+    @Query('slotId') slotId: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
     return this.remote.gitStatus(agentUrl);
   }
 
@@ -23,9 +24,10 @@ export class GitController {
   async getLog(
     @Param('workspaceId') workspaceId: string,
     @Query('limit') limit: string | undefined,
+    @Query('slotId') slotId: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
     return this.remote.gitLog(agentUrl, parsedLimit);
   }
@@ -33,24 +35,30 @@ export class GitController {
   @Get('remote')
   async getRemote(
     @Param('workspaceId') workspaceId: string,
+    @Query('slotId') slotId: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
     return this.remote.gitRemote(agentUrl);
   }
 
   @Get('branches')
   async getBranches(
     @Param('workspaceId') workspaceId: string,
+    @Query('slotId') slotId: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
-    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
     return this.remote.gitBranches(agentUrl);
   }
 
   @Delete('remote')
-  async removeRemote(@Param('workspaceId') workspaceId: string, @CurrentUser() _user: CurrentUserInterface) {
-    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId);
+  async removeRemote(
+    @Param('workspaceId') workspaceId: string,
+    @Query('slotId') slotId: string | undefined,
+    @CurrentUser() _user: CurrentUserInterface,
+  ) {
+    const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
     return this.remote.gitRemoveRemote(agentUrl);
   }
 }

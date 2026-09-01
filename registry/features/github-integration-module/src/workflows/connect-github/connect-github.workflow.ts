@@ -267,7 +267,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
           'echo "diverged"',
         ].join(' && '),
       });
-      const divergeState = checkResult.data.stdout.trim().split('\n').pop()!.trim();
+      const divergeState = checkResult.data.output.trim().split('\n').pop()!.trim();
       if (divergeState === 'same' || divergeState === 'no_remote') {
         this.assignState({ divergenceState: 'none' });
       } else {

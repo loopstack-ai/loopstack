@@ -30,22 +30,30 @@ const FileExplorerContext = createContext<FileExplorerContextValue | null>(null)
 interface FileExplorerProviderProps {
   variant: FileExplorerVariant;
   workspaceId?: string;
+  slotId?: string;
   enabled?: boolean;
   children: ReactNode;
 }
 
-export function FileExplorerProvider({ variant, workspaceId, enabled = true, children }: FileExplorerProviderProps) {
+export function FileExplorerProvider({
+  variant,
+  workspaceId,
+  slotId,
+  enabled = true,
+  children,
+}: FileExplorerProviderProps) {
   const client = useLoopstackClient();
   const queryClient = useQueryClient();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [openFiles, setOpenFiles] = useState<FileExplorerNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileExplorerNode | null>(null);
 
-  const treeQuery = useFileTree(variant, workspaceId, enabled);
+  const treeQuery = useFileTree(variant, workspaceId, slotId, enabled);
   const contentQuery = useFileContent(
     variant,
     workspaceId,
     selectedFile?.type === 'file' ? selectedFile.path : undefined,
+    slotId,
     enabled,
   );
 

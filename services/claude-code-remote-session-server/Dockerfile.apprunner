@@ -1,0 +1,28 @@
+# App-runner image: runs the author's application (for a human manual test) alongside the session server
+# (health + workspace routes), on the shared infra base. No Claude Code — this image never runs the agent.
+ARG BASE_IMAGE=loopstack-engineer-base:latest
+
+FROM node:20-slim AS build
+
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install
+COPY tsconfig.json ./
+COPY src/ ./src/
+RUN npm run build
+
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev && npm cache clean --force
+COPY --from=build /app/dist ./dist
+
+COPY start-apprunner.sh ./start.sh
+RUN chmod +x ./start.sh
+
+ENV AGENT_PORT=3001
+ENV WORKSPACE_ROOT=/workspace
+EXPOSE 3001
+
+CMD ["./start.sh"]

@@ -22,7 +22,11 @@ export class WorkspaceEnvironmentEntity {
   connectionUrl?: string;
 
   @Column({ type: 'varchar', name: 'agent_url', nullable: true })
-  agentUrl?: string;
+  agentUrl?: string | null;
+
+  /** Availability of this slot — `running` when a container/agent is connected, else `stopped`. */
+  @Column({ type: 'varchar', default: 'stopped' })
+  status!: 'running' | 'stopped';
 
   @Column({ type: 'varchar', name: 'worker_id', nullable: true })
   workerId?: string;

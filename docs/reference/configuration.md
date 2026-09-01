@@ -58,6 +58,8 @@ PostgreSQL connection settings. All fields are optional — defaults connect to 
 | `database.database`                | `DATABASE_NAME`     | `postgres`  |
 | `database.reuseExistingConnection` | —                   | `false`     |
 
+Alternatively, set a single **`DATABASE_URL`** (e.g. `postgres://user:password@host:5432/dbname`) — common in managed and hosted environments. When present (and no programmatic `database` options are passed), it takes precedence over the discrete `DATABASE_*` vars.
+
 Set `database.reuseExistingConnection: true` to reuse the host application's **default** TypeORM connection. When enabled, Loopstack skips its own `TypeOrmModule.forRoot()` registration and its repositories resolve against the default connection you registered — which must point at PostgreSQL and load Loopstack's entities (e.g. `autoLoadEntities: true`).
 
 ### `redis`
@@ -69,6 +71,8 @@ Redis connection settings for BullMQ job queues.
 | `redis.host`     | `REDIS_HOST`     | `localhost` |
 | `redis.port`     | `REDIS_PORT`     | `6379`      |
 | `redis.password` | `REDIS_PASSWORD` | —           |
+
+Alternatively, set a single **`REDIS_URL`** (e.g. `redis://host:6379`) — common in managed and hosted environments. When present, it takes precedence over the discrete `REDIS_*` vars.
 
 ### `auth`
 
@@ -135,10 +139,11 @@ Set these when using OAuth modules for third-party integrations.
 
 ## Docker Compose
 
-The `@loopstack/loopstack-module` package ships with Docker Compose files that start PostgreSQL, Redis, and Studio with settings that match the defaults above — no `.env` file needed for local development.
+The `@loopstack/loopstack-module` package ships with a Docker Compose file that starts PostgreSQL and Redis with settings that match the defaults above — no `.env` file needed for local development. Studio is a separate, optional compose file.
 
 ```shell
-docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.yml up -d
+docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.yml up -d          # Postgres + Redis
+docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.studio.yml up -d   # Studio (optional)
 ```
 
 To customize, create a `.env` file in your project root:

@@ -116,8 +116,43 @@ export class EnvironmentService {
     await this.repo.delete({ workspaceId });
   }
 
+  /**
+   * Mark a slot as running: upsert its row for the workspace with the live agent URL and
+   * `status: 'running'`. Creates the row if the slot was never connected. Used by local provisioners
+   * (e.g. a disposable sandbox) that toggle a slot up and down rather than assigning a remote machine.
+   */
+  async markRunning(
+    workspaceId: string,
+    slotId: string,
+    data: { agentUrl: string; remoteEnvironmentId: string; type?: string; connectionUrl?: string; local?: boolean },
+  ): Promise<void> {
+    const existing = await this.repo.findOne({ where: { workspaceId, slotId } });
+    const entity = this.repo.create({
+      ...existing,
+      workspaceId,
+      slotId,
+      type: data.type ?? existing?.type ?? 'local',
+      remoteEnvironmentId: data.remoteEnvironmentId,
+      agentUrl: data.agentUrl,
+      connectionUrl: data.connectionUrl ?? data.agentUrl,
+      local: data.local ?? existing?.local ?? true,
+      status: 'running',
+    });
+    await this.repo.save(entity);
+  }
+
+  /** Mark a slot as stopped: keep the row (so the UI can show it) but clear its agent URL. */
+  async markStopped(workspaceId: string, slotId: string): Promise<void> {
+    await this.repo.update({ workspaceId, slotId }, { agentUrl: null, status: 'stopped' });
+  }
+
   private resolveAgentUrl(envs: WorkspaceEnvironmentContextDto[], slotId?: string): string {
-    const env = slotId ? envs.find((e) => e.slotId === slotId) : (envs.find((e) => e.slotId === 'sandbox') ?? envs[0]);
+    // Explicit slot → that exact slot (fails if it's stopped). Otherwise prefer a *running* env (one with
+    // an agent URL), favouring the conventional `sandbox` slot, so a stopped slot doesn't shadow a live one.
+    const running = envs.filter((e) => e.agentUrl);
+    const env = slotId
+      ? envs.find((e) => e.slotId === slotId)
+      : (running.find((e) => e.slotId === 'sandbox') ?? running[0]);
     if (!env?.agentUrl) {
       const target = slotId ? `slot "${slotId}"` : 'any slot';
       throw new Error(
