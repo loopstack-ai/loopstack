@@ -8,7 +8,7 @@
     "loopstack",
     "tool"
   ],
-  "version": "0.3.8",
+  "version": "0.3.9",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.39.0",
-    "@loopstack/core": "^0.39.0",
+    "@loopstack/core": "^0.40.0",
     "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
