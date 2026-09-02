@@ -72,7 +72,7 @@ export default tseslint.config(
 
   // Node scripts (plain ESM, no TypeScript)
   {
-    files: ['packages/*/scripts/**/*.mjs', 'sandbox/*/scripts/**/*.mjs', 'services/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'packages/*/scripts/**/*.mjs', 'sandbox/*/scripts/**/*.mjs', 'services/**/*.mjs'],
     languageOptions: {
       globals: {
         ...globals.node,

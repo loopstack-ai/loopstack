@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LoopstackModule } from '@loopstack/loopstack-module';
-import { HelloModule } from './hello/hello.module';
+import { HelloModule } from './hello/hello.module.js';
 
 @Module({
   imports: [LoopstackModule.forRoot(), HelloModule],

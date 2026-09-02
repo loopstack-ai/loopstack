@@ -30,25 +30,20 @@
     "@loopstack/auth": "^0.39.0",
     "@loopstack/common": "^0.39.0",
     "@loopstack/contracts": "^0.39.0",
-    "@loopstack/core": "^0.39.0"
-  },
-  "devDependencies": {
-    "@nestjs/common": "^11.1.19",
+    "@loopstack/core": "^0.39.0",
     "@nestjs/config": "^4.0.4",
-    "@nestjs/core": "^11.1.19",
     "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/typeorm": "^11.0.1",
     "pg": "^8.20.0",
     "typeorm": "^0.3.28"
   },
+  "devDependencies": {
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/core": "^11.1.19"
+  },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
-    "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.0",
-    "@nestjs/event-emitter": "^3.0.0",
-    "@nestjs/typeorm": "^11.0.0",
-    "pg": "^8.0.0",
-    "typeorm": "^0.3.0"
+    "@nestjs/core": "^11.0.0"
   },
   "files": [
     "dist",

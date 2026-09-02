@@ -9,7 +9,7 @@ The fastest way to start is `loopstack create` — it scaffolds a complete, runn
 
 ## Prerequisites
 
-- Node.js 18.0+
+- Node.js 20.19+ (or 22 LTS) — Loopstack ships as native ESM, which needs the `require(esm)` support added in Node 20.19 / 22
 - Docker — optional, only for the one-command local Postgres + Redis (you can [bring your own](#2-provide-postgres--redis) instead)
 
 ## 1. Create your app

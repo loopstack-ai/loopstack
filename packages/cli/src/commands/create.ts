@@ -10,8 +10,6 @@ import { printData, printStatus } from '../output/format.js';
 /** Ships at the package root, next to dist/ — see package.json "files". */
 const FIXTURES_DIR = fileURLToPath(new URL('../../fixtures/app', import.meta.url));
 
-const LOOPSTACK_DEPENDENCIES = ['@loopstack/loopstack-module', '@loopstack/common', 'zod'];
-
 function run(label: string, command: string, args: string[], cwd: string): void {
   printStatus(pc.dim(`▸ ${label}`));
   // Child output goes to stderr — stdout stays reserved for data.
@@ -20,7 +18,7 @@ function run(label: string, command: string, args: string[], cwd: string): void 
   if (result.status !== 0) throw new CliError(`${label} failed (exit ${result.status ?? 'unknown'})`);
 }
 
-function overlayFixtures(targetDir: string): void {
+function copyTemplate(targetDir: string): void {
   fs.cpSync(FIXTURES_DIR, targetDir, { recursive: true });
   // Shipped without the dot so npm packs it; the scaffold gets both the
   // example and a ready-to-edit copy.
@@ -29,14 +27,23 @@ function overlayFixtures(targetDir: string): void {
   fs.renameSync(example, path.join(targetDir, '.env.example'));
 }
 
-function addDependencies(targetDir: string): void {
+function applyProjectName(targetDir: string, name: string): void {
   const pkgPath = path.join(targetDir, 'package.json');
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as {
+    name?: string;
     dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
   };
-  pkg.dependencies ??= {};
-  for (const name of LOOPSTACK_DEPENDENCIES) {
-    pkg.dependencies[name] = 'latest';
+  pkg.name = name;
+  // Track the freshest published framework; the pinned NestJS/runtime
+  // singletons in the template stay as-is.
+  for (const deps of [pkg.dependencies, pkg.devDependencies]) {
+    if (!deps) continue;
+    for (const dep of Object.keys(deps)) {
+      if (dep.startsWith('@loopstack/')) {
+        deps[dep] = 'latest';
+      }
+    }
   }
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 }
@@ -61,16 +68,9 @@ export function registerCreateCommand(program: Command): void {
       }
       fs.mkdirSync(parentDir, { recursive: true });
 
-      run(
-        'Scaffolding NestJS app',
-        'npx',
-        ['--yes', '@nestjs/cli@latest', 'new', name, '--skip-git', '--skip-install', '--package-manager', 'npm'],
-        parentDir,
-      );
-
-      printStatus(pc.dim('▸ Applying Loopstack fixtures'));
-      overlayFixtures(targetDir);
-      addDependencies(targetDir);
+      printStatus(pc.dim('▸ Scaffolding Loopstack app'));
+      copyTemplate(targetDir);
+      applyProjectName(targetDir, name);
 
       if (!options.skipInstall) {
         run('Installing dependencies', 'npm', ['install'], targetDir);
