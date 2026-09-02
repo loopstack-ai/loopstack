@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { StudioApp } from '@loopstack/common';
-import { HelloWorkflow } from './hello.workflow';
+import { HelloWorkflow } from './hello.workflow.js';
 
 @StudioApp({
   title: 'My First App',

@@ -29,30 +29,20 @@
     "@loopstack/common": "^0.39.0",
     "@loopstack/contracts": "^0.39.0",
     "@loopstack/core": "^0.39.0",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/typeorm": "^11.0.1",
     "lodash": "^4.18.1",
     "vitest": "^4.1.6"
   },
   "devDependencies": {
     "@nestjs/common": "^11.1.19",
-    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",
-    "@nestjs/testing": "^11.1.19",
-    "@nestjs/typeorm": "^11.0.1"
+    "@nestjs/testing": "^11.1.19"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
-    "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
-    "@nestjs/testing": "^11.0.0",
-    "@nestjs/typeorm": "^11.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@nestjs/config": {
-      "optional": true
-    },
-    "@nestjs/typeorm": {
-      "optional": true
-    }
+    "@nestjs/testing": "^11.0.0"
   },
   "files": [
     "dist"

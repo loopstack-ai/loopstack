@@ -1,11 +1,16 @@
 ---
 title: Add to an Existing App
-description: Add Loopstack to an existing NestJS project by hand — install @loopstack/loopstack-module, register LoopstackModule.forRoot(), enable shutdown hooks, bundle YAML assets in nest-cli.json, provide PostgreSQL and Redis (Docker Compose or DATABASE_URL/REDIS_URL), and write your first workflow. Covers the zod v4 peer-dependency requirement.
+description: Add Loopstack to an existing NestJS project by hand — install @loopstack/loopstack-module, register LoopstackModule.forRoot(), enable shutdown hooks, bundle YAML assets in nest-cli.json, provide PostgreSQL and Redis (Docker Compose or DATABASE_URL/REDIS_URL), and write your first workflow. Covers the Node.js 20.19+/22 baseline, the ESM-only requirement (type module, nodenext, .js extensions), and the zod v4 peer-dependency requirement.
 ---
 
 # Add to an Existing App
 
 Already have a NestJS backend? Wire Loopstack into it directly. Starting fresh instead? [`loopstack create`](./getting-started.md) scaffolds all of this — module, config, a hello workflow, Docker Compose, and a `.env` — in one command.
+
+## Requirements
+
+- **Node.js 20.19+ (or 22 LTS).** Loopstack ships as native ESM, which needs the `require(esm)` support added in Node 20.19 / 22.
+- **An ESM app.** Loopstack is ESM-only (no CommonJS build), so your project must be ESM too — `"type": "module"` in `package.json`, `module`/`moduleResolution` set to `nodenext` in `tsconfig.json`, and `.js` extensions on relative imports. A CommonJS project has to migrate to ESM first.
 
 ## 1. Install the module
 

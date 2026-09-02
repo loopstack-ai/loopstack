@@ -65,6 +65,71 @@ jobs:
           fail_ci_if_error: false
 
   # ──────────────────────────────────────────────────────────────────────────
+  # Scaffold smoke test - the documented "getting started" path, end-to-end,
+  # against the working tree: create → install → build → boot → run hello
+  # ──────────────────────────────────────────────────────────────────────────
+  scaffold-smoke:
+    name: Scaffold smoke (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.19', '22']
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            turbo-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Run scaffold smoke test
+        env:
+          DATABASE_URL: postgres://postgres:admin@localhost:5432/postgres
+          REDIS_URL: redis://localhost:6379
+        run: node scripts/scaffold-smoke.mjs
+
+  # ──────────────────────────────────────────────────────────────────────────
   # Pre-release Hook - Only on PRs to main (excludes develop → main merges)
   # ──────────────────────────────────────────────────────────────────────────
   pre-release-hook:
