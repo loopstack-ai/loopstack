@@ -1,5 +1,13 @@
 # @loopstack/code-agent
 
+## 0.4.9
+
+### Patch Changes
+
+- Updated dependencies [[`937337c`](https://github.com/loopstack-ai/loopstack/commit/937337c8afcd5b60248c537e45403ea216ca2f8e)]:
+  - @loopstack/core@0.40.0
+  - @loopstack/agent@0.5.9
+
 ## 0.4.8
 
 ### Patch Changes

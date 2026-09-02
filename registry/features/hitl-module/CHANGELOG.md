@@ -1,5 +1,12 @@
 # @loopstack/hitl
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`937337c`](https://github.com/loopstack-ai/loopstack/commit/937337c8afcd5b60248c537e45403ea216ca2f8e)]:
+  - @loopstack/core@0.40.0
+
 ## 0.5.1
 
 ### Patch Changes

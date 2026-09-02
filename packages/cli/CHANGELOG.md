@@ -1,5 +1,20 @@
 # @loopstack/cli
 
+## 0.20.0
+
+### Minor Changes
+
+- [#251](https://github.com/loopstack-ai/loopstack/pull/251) [`937337c`](https://github.com/loopstack-ai/loopstack/commit/937337c8afcd5b60248c537e45403ea216ca2f8e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `loopstack create` now scaffolds a real ESM app from a vetted template.
+
+  The generator copies a complete, hand-verified template (`type: module`,
+  `nodenext` module resolution, `.js` import extensions) instead of running
+  `nest new` and patching the CommonJS output to ESM afterwards. The template
+  ships pinned NestJS/runtime singletons and pulls the framework's runtime stack
+  transitively, so a fresh `create → npm install → npm run build → run` succeeds
+  with no `--legacy-peer-deps` and no manual ESM fixes. Dev runs use `tsx`
+  (`npm run start:dev`); production builds with `nest build`. Node baseline is
+  20.19+ / 22+.
+
 ## 0.19.0
 
 ### Minor Changes

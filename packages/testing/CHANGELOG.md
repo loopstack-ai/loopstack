@@ -1,5 +1,29 @@
 # @loopstack/testing
 
+## 0.40.0
+
+### Minor Changes
+
+- [#251](https://github.com/loopstack-ai/loopstack/pull/251) [`937337c`](https://github.com/loopstack-ai/loopstack/commit/937337c8afcd5b60248c537e45403ea216ca2f8e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Ship the framework's runtime stack as `dependencies` instead of `peerDependencies`.
+
+  The NestJS integration modules and libraries that each package imports and
+  configures internally — `@nestjs/config`, `@nestjs/event-emitter`,
+  `@nestjs/bullmq`, `@nestjs/schedule`, `bullmq` (core); `@nestjs/jwt`,
+  `@nestjs/microservices`, `@nestjs/passport` (auth); `@nestjs/typeorm`, `pg`,
+  `typeorm` (loopstack-module); `@nestjs/config`, `@nestjs/typeorm` (testing) — are
+  now regular pinned `dependencies`. Only host-owned singletons that must be a
+  single shared instance (`@nestjs/common`, `@nestjs/core`,
+  `@nestjs/platform-express`, `reflect-metadata`, `rxjs`, `zod`,
+  `class-transformer`, `class-validator`) remain `peerDependencies`.
+
+  This makes a fresh install resolve the complete runtime without
+  `--legacy-peer-deps` and pins `typeorm` to the compatible `^0.3` range.
+
+### Patch Changes
+
+- Updated dependencies [[`937337c`](https://github.com/loopstack-ai/loopstack/commit/937337c8afcd5b60248c537e45403ea216ca2f8e)]:
+  - @loopstack/core@0.40.0
+
 ## 0.39.0
 
 ### Patch Changes

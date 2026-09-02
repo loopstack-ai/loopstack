@@ -9,7 +9,7 @@
     "integration",
     "workflow"
   ],
-  "version": "0.4.8",
+  "version": "0.4.9",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,11 +33,11 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.39.0",
-    "@loopstack/core": "^0.39.0",
+    "@loopstack/core": "^0.40.0",
     "@loopstack/git-module": "^0.4.0",
     "@loopstack/github-module": "^0.4.8",
-    "@loopstack/hitl": "^0.5.1",
-    "@loopstack/oauth-module": "^0.5.1",
+    "@loopstack/hitl": "^0.5.2",
+    "@loopstack/oauth-module": "^0.5.2",
     "@loopstack/remote-client": "^0.27.0"
   },
   "devDependencies": {
