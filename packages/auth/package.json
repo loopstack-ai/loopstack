@@ -43,6 +43,7 @@
     "jose": "^6.2.2",
     "lodash": "^4.18.1",
     "nest-commander": "^3.20.1",
+    "passport": "^0.7.0",
     "passport-custom": "^1.1.1",
     "passport-jwt": "^4.0.1"
   },
