@@ -1,5 +1,14 @@
 # hello-world
 
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`937337c`](https://github.com/loopstack-ai/loopstack/commit/937337c8afcd5b60248c537e45403ea216ca2f8e)]:
+  - @loopstack/loopstack-module@0.34.0
+  - @loopstack/llm-provider-module@0.9.1
+  - @loopstack/secrets-module@0.26.3
+
 ## 0.2.7
 
 ### Patch Changes

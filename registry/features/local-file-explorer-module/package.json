@@ -8,7 +8,7 @@
     "filesystem",
     "workflow"
   ],
-  "version": "0.25.3",
+  "version": "0.25.4",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,7 +33,7 @@
   "dependencies": {
     "@loopstack/common": "^0.39.0",
     "@loopstack/contracts": "^0.39.0",
-    "@loopstack/core": "^0.39.0",
+    "@loopstack/core": "^0.40.0",
     "yaml": "^2.8.3"
   },
   "devDependencies": {
