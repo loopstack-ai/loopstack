@@ -5,7 +5,7 @@ import { Transcript } from './Transcript.tsx';
 import { SandboxRunButton } from './prompts/SandboxRunButton.tsx';
 import { BareWaitCard, FailedRunCard, NotSupportedCard } from './prompts/cards.tsx';
 import { promptRegistry } from './prompts/registry.tsx';
-import { composeTranscript } from './transcript.ts';
+import { composeTranscript } from './transcript-model.ts';
 import { useRunPrompts } from './useRunPrompts.ts';
 import { useRunTree } from './useRunTree.ts';
 import { useStreamingNodes } from './useTreeLlmStreams.ts';
