@@ -27,6 +27,24 @@ function copyTemplate(targetDir: string): void {
   fs.renameSync(example, path.join(targetDir, '.env.example'));
 }
 
+/**
+ * Force readable modes on every scaffolded file. `fs.cpSync` onto a Docker Desktop (macOS) virtiofs
+ * bind mount lands files as write-only (`--w-------`) inside the container, which breaks readers/editors
+ * (EACCES) while leaving writers working — an inconsistency the sandboxed coding agent trips over. An
+ * explicit chmod sets a deterministic mode that survives the mount translation.
+ */
+function normalizeModes(dir: string): void {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      fs.chmodSync(full, 0o755);
+      normalizeModes(full);
+    } else if (entry.isFile()) {
+      fs.chmodSync(full, 0o644);
+    }
+  }
+}
+
 function applyProjectName(targetDir: string, name: string): void {
   const pkgPath = path.join(targetDir, 'package.json');
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as {
@@ -71,6 +89,8 @@ export function registerCreateCommand(program: Command): void {
       printStatus(pc.dim('▸ Scaffolding Loopstack app'));
       copyTemplate(targetDir);
       applyProjectName(targetDir, name);
+      // After all template files are written/rewritten, before `npm install` populates node_modules.
+      normalizeModes(targetDir);
 
       if (!options.skipInstall) {
         run('Installing dependencies', 'npm', ['install'], targetDir);

@@ -19,7 +19,7 @@ export function WorkbenchPreviewPanel() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const connectableEnvironments = useMemo(
-    () => (environments ?? []).filter((e) => !!e.connectionUrl && (!!e.workerId || e.local)),
+    () => (environments ?? []).filter((e) => !!e.connectionUrl && (!!e.workerId || e.local) && e.status === 'running'),
     [environments],
   );
 

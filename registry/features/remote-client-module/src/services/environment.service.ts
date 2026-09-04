@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EXECUTION_SCOPE } from '@loopstack/common';
+import { ClientMessageService } from '@loopstack/core';
 import { WorkspaceEnvironmentContextDto } from '../dtos/index.js';
 import { WorkspaceEnvironmentEntity } from '../entities/index.js';
 import { RemoteClient } from './remote-client.service.js';
@@ -9,7 +10,7 @@ import { RemoteClient } from './remote-client.service.js';
 const ENV_CACHE_KEY = Symbol('EnvironmentService');
 
 interface ScopeAccessor {
-  get(): { workspaceId: string } & Record<string, unknown>;
+  get(): { workspaceId: string; userId: string } & Record<string, unknown>;
   getOrLoad<T>(key: symbol, loader: () => Promise<T>): Promise<T>;
 }
 
@@ -27,6 +28,7 @@ export class EnvironmentService {
     @Inject(EXECUTION_SCOPE) private readonly scope: ScopeAccessor,
     @InjectRepository(WorkspaceEnvironmentEntity) private readonly repo: Repository<WorkspaceEnvironmentEntity>,
     private readonly remote: RemoteClient,
+    private readonly clientMessages: ClientMessageService,
   ) {}
 
   /**
@@ -105,7 +107,16 @@ export class EnvironmentService {
     environments: Partial<WorkspaceEnvironmentEntity>[],
   ): Promise<WorkspaceEnvironmentEntity[]> {
     await this.repo.delete({ workspaceId });
-    const entities = environments.map((env) => this.repo.create({ ...env, workspaceId }));
+    const entities = environments.map((env) =>
+      // An assignment that carries a live URL is running (the provisioner only persists it once the machine
+      // is up); without one it's a placeholder. Keeps `status` meaningful for the assignment path too, so the
+      // preview panel's running-only filter applies uniformly to hub-managed and local environments.
+      this.repo.create({
+        ...env,
+        workspaceId,
+        status: env.status ?? (env.connectionUrl || env.agentUrl ? 'running' : 'stopped'),
+      }),
+    );
     return this.repo.save(entities);
   }
 
@@ -134,16 +145,30 @@ export class EnvironmentService {
       type: data.type ?? existing?.type ?? 'local',
       remoteEnvironmentId: data.remoteEnvironmentId,
       agentUrl: data.agentUrl,
-      connectionUrl: data.connectionUrl ?? data.agentUrl,
+      // `connectionUrl` is the previewable app URL, never the control-plane agent URL: pass it through when
+      // given, keep any prior value on a re-mark, else leave it unset (an agent-only slot stays non-previewable).
+      connectionUrl: data.connectionUrl ?? existing?.connectionUrl ?? null,
       local: data.local ?? existing?.local ?? true,
       status: 'running',
     });
     await this.repo.save(entity);
+    this.announceChange(workspaceId);
   }
 
-  /** Mark a slot as stopped: keep the row (so the UI can show it) but clear its agent URL. */
+  /** Mark a slot as stopped: keep the row (so the UI can show it) but clear its agent and connection URLs. */
   async markStopped(workspaceId: string, slotId: string): Promise<void> {
-    await this.repo.update({ workspaceId, slotId }, { agentUrl: null, status: 'stopped' });
+    await this.repo.update({ workspaceId, slotId }, { agentUrl: null, connectionUrl: null, status: 'stopped' });
+    this.announceChange(workspaceId);
+  }
+
+  /**
+   * Notify connected clients that this workspace's environments changed, so the Studio environment list and
+   * preview panel refetch and pick up the new connection URL/status live (no page reload). Best-effort: the
+   * `userId` comes from the current execution scope, so callers outside a run must announce it themselves.
+   */
+  private announceChange(workspaceId: string): void {
+    const { userId } = this.scope.get();
+    this.clientMessages.dispatchWorkspaceEvent('environment.updated', workspaceId, userId);
   }
 
   private resolveAgentUrl(envs: WorkspaceEnvironmentContextDto[], slotId?: string): string {

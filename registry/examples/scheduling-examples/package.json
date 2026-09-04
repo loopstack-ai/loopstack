@@ -32,10 +32,10 @@
   "dependencies": {
     "@loopstack/common": "*",
     "@loopstack/core": "*",
-    "@nestjs/common": "^11.1.19",
-    "@nestjs/config": "^4.0.4",
-    "@nestjs/schedule": "^6.1.1",
-    "@nestjs/typeorm": "^11.0.1",
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/config": "^12.0.0",
+    "@nestjs/schedule": "^12.0.1",
+    "@nestjs/typeorm": "^12.0.1",
     "typeorm": "^0.3.28",
     "zod": "^4.3.6"
   },

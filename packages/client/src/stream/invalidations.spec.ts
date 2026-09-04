@@ -55,6 +55,12 @@ describe('resolveInvalidations', () => {
     }
   });
 
+  it('environment.updated invalidates the workspace environments', () => {
+    expect(resolveInvalidations({ ...base, type: 'environment.updated', workspaceId: 'ws' }, ENV)).toEqual([
+      ['workspace-environments', ENV, 'ws'],
+    ]);
+  });
+
   it('git.updated invalidates all git keys', () => {
     expect(resolveInvalidations({ ...base, type: 'git.updated', workspaceId: 'ws' }, ENV)).toEqual([
       ['gitStatus', ENV, 'ws'],

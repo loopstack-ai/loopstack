@@ -36,6 +36,8 @@ export function resolveInvalidations(message: ClientMessage, envKey: string): Qu
     case 'secret.upserted':
     case 'secret.deleted':
       return [queryKeys.secrets(envKey, message.workspaceId)];
+    case 'environment.updated':
+      return [queryKeys.environments(envKey, message.workspaceId)];
     case 'git.updated':
       return [
         queryKeys.gitStatus(envKey, message.workspaceId),

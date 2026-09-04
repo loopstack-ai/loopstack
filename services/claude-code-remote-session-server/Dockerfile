@@ -1,7 +1,7 @@
 # Agent image: the session server + Claude Code, layered onto the shared infra base.
 ARG BASE_IMAGE=loopstack-engineer-base:latest
 
-FROM node:20-slim AS build
+FROM node:22-slim AS build
 
 WORKDIR /app
 COPY package.json package-lock.json* ./
@@ -14,6 +14,15 @@ FROM ${BASE_IMAGE}
 
 # The coding agent itself.
 RUN npm i -g @anthropic-ai/claude-code
+
+# The Loopstack CLI is the agent's default surface for running and testing workflows (against the app on
+# localhost:3000, no login) — the terminal-native alternative to the browser-based Studio.
+#
+# The image always bakes the latest published CLI. Pulling the `latest` dist-tag metadata first ties this
+# layer's build cache to the current version+tarball hash: when a new CLI is published the content changes
+# and the install re-runs, but an unchanged `latest` reuses the cache (no --no-cache needed).
+ADD https://registry.npmjs.org/@loopstack/cli/latest /tmp/loopstack-cli-latest.json
+RUN npm i -g @loopstack/cli
 
 WORKDIR /app
 COPY package.json package-lock.json* ./

@@ -3,3 +3,4 @@ export * from './link-document.js';
 export * from './markdown-document.js';
 export * from './message-document.js';
 export * from './plain-document.js';
+export * from './terminal-document.js';

@@ -36,8 +36,8 @@
     "@loopstack/core": "^0.40.0"
   },
   "devDependencies": {
-    "@nestjs/common": "^11.1.19",
-    "@nestjs/testing": "^11.1.19",
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/testing": "^12.0.1",
     "@swc/core": "^1.15.33",
     "unplugin-swc": "^1.5.9",
     "vitest": "^4.1.6",
