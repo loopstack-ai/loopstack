@@ -29,3 +29,13 @@ export const GitUpdatedEventSchema = WorkspaceEventBaseSchema.extend({
   type: z.literal('git.updated'),
 });
 export type GitUpdatedEvent = z.infer<typeof GitUpdatedEventSchema>;
+
+/**
+ * Emitted when a workspace's environments change (e.g. a slot was provisioned,
+ * torn down, or reassigned), so clients refresh their environment list and the
+ * preview panel picks up the live connection URL without a reload.
+ */
+export const EnvironmentUpdatedEventSchema = WorkspaceEventBaseSchema.extend({
+  type: z.literal('environment.updated'),
+});
+export type EnvironmentUpdatedEvent = z.infer<typeof EnvironmentUpdatedEventSchema>;

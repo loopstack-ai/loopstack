@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@loopstack/client';
 import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import { useLoopstackClient } from '@loopstack/react';
 
@@ -8,7 +9,7 @@ export function useWorkspaceEnvironments(workspaceId?: string) {
   const client = useLoopstackClient();
 
   return useQuery({
-    queryKey: ['workspace-environments', client.envKey, workspaceId],
+    queryKey: queryKeys.environments(client.envKey, workspaceId!),
     queryFn: () => client.http.get<WorkspaceEnvironmentInterface[]>(environmentsPath(workspaceId!)),
     enabled: !!workspaceId,
   });
@@ -23,7 +24,7 @@ export function useReplaceEnvironments() {
       client.http.put<WorkspaceEnvironmentInterface[]>(environmentsPath(params.workspaceId), params.environments),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['workspace-environments', client.envKey, variables.workspaceId],
+        queryKey: queryKeys.environments(client.envKey, variables.workspaceId),
       });
     },
   });

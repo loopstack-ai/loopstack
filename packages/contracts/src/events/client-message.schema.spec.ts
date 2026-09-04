@@ -102,6 +102,7 @@ describe('ClientMessageSchema', () => {
       'secret.upserted',
       'secret.deleted',
       'git.updated',
+      'environment.updated',
       'llm.response.start',
       'llm.response.text_delta',
       'llm.response.thinking_delta',

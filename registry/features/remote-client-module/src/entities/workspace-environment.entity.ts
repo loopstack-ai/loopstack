@@ -19,7 +19,7 @@ export class WorkspaceEnvironmentEntity {
   envName?: string;
 
   @Column({ type: 'varchar', name: 'connection_url', nullable: true })
-  connectionUrl?: string;
+  connectionUrl?: string | null;
 
   @Column({ type: 'varchar', name: 'agent_url', nullable: true })
   agentUrl?: string | null;

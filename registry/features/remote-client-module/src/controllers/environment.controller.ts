@@ -13,6 +13,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
+import { ClientMessageService } from '@loopstack/core';
 import { WorkspaceEnvironmentDto } from '../dtos/index.js';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
@@ -25,6 +26,7 @@ export class EnvironmentController {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
+    private readonly clientMessages: ClientMessageService,
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
   ) {}
@@ -47,6 +49,7 @@ export class EnvironmentController {
   ): Promise<WorkspaceEnvironmentDto[]> {
     await this.assertWorkspaceOwnership(workspaceId, user.userId);
     const entities = await this.env.replaceAll(workspaceId, environments);
+    this.clientMessages.dispatchWorkspaceEvent('environment.updated', workspaceId, user.userId);
     return entities.map(WorkspaceEnvironmentDto.create);
   }
 
