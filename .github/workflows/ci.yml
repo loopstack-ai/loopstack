@@ -123,6 +123,12 @@ jobs:
       - name: Build packages
         run: npm run build
 
+      # The scaffold install resolves peers strictly (no --legacy-peer-deps). npm 10's arborist crashes
+      # with "Cannot read properties of null (reading 'edgesOut')" while loading peer sets for the pinned
+      # file: tarballs — a bug fixed in npm ≥ 11. Node 20.19/22 still ship npm 10, so upgrade first.
+      - name: Upgrade npm (scaffold install needs npm ≥ 11)
+        run: npm install -g npm@12
+
       - name: Run scaffold smoke test
         env:
           DATABASE_URL: postgres://postgres:admin@localhost:5432/postgres
