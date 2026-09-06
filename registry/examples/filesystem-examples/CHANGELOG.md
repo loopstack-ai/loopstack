@@ -1,5 +1,19 @@
 # @loopstack/filesystem-examples
 
+## 0.1.3
+
+### Patch Changes
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Bump `@nestjs/*` dependencies to v12.
+
+- Updated dependencies [[`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5), [`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5), [`bb3d871`](https://github.com/loopstack-ai/loopstack/commit/bb3d8714c808d414f1401356934c6887199eec32), [`300165b`](https://github.com/loopstack-ai/loopstack/commit/300165b5f158c916d07da9ada867cdeb69111aab)]:
+  - @loopstack/remote-client@0.28.0
+  - @loopstack/local-file-explorer-module@0.26.0
+  - @loopstack/remote-file-explorer-module@0.27.0
+  - @loopstack/sandbox-filesystem@0.8.0
+  - @loopstack/sandbox-tool@0.8.0
+  - @loopstack/common@0.41.0
+
 ## 0.1.2
 
 ### Patch Changes

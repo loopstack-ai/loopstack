@@ -1,5 +1,26 @@
 # @loopstack/auth
 
+## 0.41.0
+
+### Minor Changes
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add NestJS 12 support. `@nestjs/common` / `@nestjs/core` / `@nestjs/platform-express` peer ranges are widened to `^11.0.0 || ^12.0.0`, and the first-party `@nestjs/*` dependencies (config, event-emitter, bullmq, schedule, typeorm, jwt, passport, microservices, testing) are bumped to their 12.x lines; `nest-commander` is bumped to `^3.21.0` for Nest 12 compatibility. Existing NestJS 11 applications continue to work unchanged.
+
+### Patch Changes
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`1978f83`](https://github.com/loopstack-ai/loopstack/commit/1978f8340b2b735d9e28cf498bb1287aa9008da5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Declare `passport` as a direct dependency of `@loopstack/auth`.
+
+  `@loopstack/auth` configures Passport strategies internally but previously only
+  depended on `passport-jwt`/`passport-custom`/`@nestjs/passport`, leaving
+  `passport` itself to arrive via peer auto-install. Hosts that install with
+  `--legacy-peer-deps` (which skips peer auto-install) ended up without `passport`
+  at runtime. Pinning it as a real dependency guarantees it is always present.
+
+- Updated dependencies [[`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5), [`300165b`](https://github.com/loopstack-ai/loopstack/commit/300165b5f158c916d07da9ada867cdeb69111aab)]:
+  - @loopstack/contracts@0.41.0
+  - @loopstack/core@0.41.0
+  - @loopstack/common@0.41.0
+
 ## 0.40.0
 
 ### Minor Changes

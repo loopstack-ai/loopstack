@@ -1,5 +1,17 @@
 # @loopstack/cli
 
+## 0.21.0
+
+### Minor Changes
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `loopstack create` now scaffolds a NestJS 12 ESM app based on the official `ts-esm` starter: it runs via `nest start` / `nest build` (TypeScript 6) instead of `tsx`. This fixes silent dependency-injection failures where the `tsx`/esbuild dev runner dropped `emitDecoratorMetadata`, leaving constructor-injected providers `undefined` at runtime with no boot error. Scaffolded files are now written with readable modes (fixes `EACCES` on reads/edits under Docker Desktop bind mounts, where copies landed write-only). The scaffold's `CLAUDE.md` also documents that wait-transition payloads always arrive as objects (`z.object({ … })`, not a bare scalar) and that secrets configured in Loopstack are injected as environment variables at runtime.
+
+### Patch Changes
+
+- Updated dependencies [[`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5)]:
+  - @loopstack/contracts@0.41.0
+  - @loopstack/client@0.41.0
+
 ## 0.20.0
 
 ### Minor Changes

@@ -2,7 +2,7 @@
   "name": "@loopstack/loopstack-module",
   "displayName": "Loopstack Module",
   "description": "All-in-one NestJS module for bootstrapping a Loopstack application",
-  "version": "0.34.0",
+  "version": "0.35.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -26,11 +26,11 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/api": "^0.40.0",
-    "@loopstack/auth": "^0.40.0",
-    "@loopstack/common": "^0.39.0",
-    "@loopstack/contracts": "^0.39.0",
-    "@loopstack/core": "^0.40.0",
+    "@loopstack/api": "^0.41.0",
+    "@loopstack/auth": "^0.41.0",
+    "@loopstack/common": "^0.41.0",
+    "@loopstack/contracts": "^0.41.0",
+    "@loopstack/core": "^0.41.0",
     "@nestjs/config": "^12.0.0",
     "@nestjs/event-emitter": "^12.0.0",
     "@nestjs/typeorm": "^12.0.1",

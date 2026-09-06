@@ -1,5 +1,24 @@
 # @loopstack/remote-client
 
+## 0.28.0
+
+### Minor Changes
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Live workflow preview in Studio. The preview panel now follows a running app's dynamic connection URL and only lists environments that are actually running: `WorkspaceEnvironmentDto` exposes `status`, `EnvironmentService.markRunning` records the app URL as `connectionUrl` (and no longer defaults it to the agent URL) while `markStopped` clears it. A new `environment.updated` workspace event — dispatched by `EnvironmentService` and the environment controller — invalidates the workspace-environments query via the live event stream, so the panel updates to the new URL (and drops torn-down slots) without a page reload.
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`bb3d871`](https://github.com/loopstack-ai/loopstack/commit/bb3d8714c808d414f1401356934c6887199eec32) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add `RemoteClient.purgeWorkspace(connectionUrl, workspaceRoot?)`.
+
+  Deletes everything under the workspace root from inside the container (via the exec endpoint, as the
+  container user), keeping the mount point. Use it to reclaim a workspace's data without a host-side `rm` —
+  it removes container-created files a non-root host process couldn't and can't touch the host filesystem.
+
+### Patch Changes
+
+- Updated dependencies [[`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5), [`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5), [`300165b`](https://github.com/loopstack-ai/loopstack/commit/300165b5f158c916d07da9ada867cdeb69111aab)]:
+  - @loopstack/core@0.41.0
+  - @loopstack/secrets-module@0.27.0
+  - @loopstack/common@0.41.0
+
 ## 0.27.0
 
 ### Minor Changes
