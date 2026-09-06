@@ -40,6 +40,22 @@ function fail(msg) {
   process.exit(1);
 }
 
+// The pinned `file:` tarballs are installed with strict peer resolution (no --legacy-peer-deps).
+// npm 10's arborist crashes on that graph with "Cannot read properties of null (reading 'edgesOut')";
+// the bug is fixed in npm >= 11. Fail fast with a clear message instead of that cryptic stack.
+function assertNpmVersion(min = 11) {
+  const result = spawnSync('npm', ['--version'], { encoding: 'utf8' });
+  const version = (result.stdout ?? '').trim();
+  const major = Number.parseInt(version, 10);
+  if (!Number.isFinite(major) || major < min) {
+    fail(
+      `npm ${version || '(unknown)'} is too old for this smoke test — it pins the framework as file: ` +
+        `tarballs and installs with strict peers, which crashes npm 10's resolver. ` +
+        `Use npm >= ${min} (e.g. \`npm install -g npm@${min}\`).`,
+    );
+  }
+}
+
 function runStep(label, command, args, opts = {}) {
   log(label);
   const result = spawnSync(command, args, { stdio: 'inherit', ...opts });
@@ -98,6 +114,7 @@ async function waitForBackend(url, attempts = 90) {
 
 async function main() {
   if (!fs.existsSync(CLI_BIN)) fail(`CLI not built at ${CLI_BIN} — run "npm run build" first.`);
+  assertNpmVersion();
   log(`workdir: ${WORKDIR}`);
 
   const tarballs = packFramework(path.join(WORKDIR, 'tarballs'));
