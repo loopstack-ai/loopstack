@@ -32,6 +32,7 @@ export const queryKeys = {
   document: (envKey: string, id: string) => ['document', envKey, id] as const,
   documents: (envKey: string, workflowId: string) => ['documents', envKey, workflowId] as const,
   secrets: (envKey: string, workspaceId: string) => ['secrets', envKey, workspaceId] as const,
+  environments: (envKey: string, workspaceId: string) => ['workspace-environments', envKey, workspaceId] as const,
   gitStatus: (envKey: string, workspaceId: string) => ['gitStatus', envKey, workspaceId] as const,
   gitLog: (envKey: string, workspaceId: string) => ['gitLog', envKey, workspaceId] as const,
   gitRemote: (envKey: string, workspaceId: string) => ['gitRemote', envKey, workspaceId] as const,

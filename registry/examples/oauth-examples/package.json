@@ -37,7 +37,7 @@
     "@loopstack/google-workspace-module": "*",
     "@loopstack/llm-provider-module": "*",
     "@loopstack/oauth-module": "*",
-    "@nestjs/common": "^11.1.19",
+    "@nestjs/common": "^12.0.1",
     "zod": "^4.3.6"
   },
   "files": [

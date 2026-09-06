@@ -56,7 +56,7 @@ export class ClientMessageService {
   }
 
   dispatchWorkspaceEvent(
-    type: 'secret.upserted' | 'secret.deleted' | 'git.updated',
+    type: 'secret.upserted' | 'secret.deleted' | 'git.updated' | 'environment.updated',
     workspaceId: string,
     userId: string,
   ) {

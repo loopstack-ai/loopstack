@@ -2,7 +2,7 @@
 # (health + workspace routes), on the shared infra base. No Claude Code — this image never runs the agent.
 ARG BASE_IMAGE=loopstack-engineer-base:latest
 
-FROM node:20-slim AS build
+FROM node:22-slim AS build
 
 WORKDIR /app
 COPY package.json package-lock.json* ./

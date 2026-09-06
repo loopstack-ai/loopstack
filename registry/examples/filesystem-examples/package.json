@@ -37,7 +37,7 @@
     "@loopstack/remote-file-explorer-module": "*",
     "@loopstack/sandbox-filesystem": "*",
     "@loopstack/sandbox-tool": "*",
-    "@nestjs/common": "^11.1.19",
+    "@nestjs/common": "^12.0.1",
     "zod": "^4.3.6"
   },
   "files": [

@@ -17,6 +17,7 @@ import LinkMessageRenderer from './renderers/LinkMessageRenderer.tsx';
 import LlmMessage from './renderers/LlmMessage.tsx';
 import MarkdownMessageRenderer from './renderers/MarkdownMessageRenderer.tsx';
 import PlainMessageRenderer from './renderers/PlainMessageRenderer.tsx';
+import TerminalMessageRenderer from './renderers/TerminalMessageRenderer.tsx';
 import TextPromptRenderer from './renderers/TextPromptRenderer.tsx';
 
 export interface DocumentRendererProps {
@@ -63,6 +64,7 @@ const coreRendererRegistry = new Map<string, WidgetRenderer>([
   ['error', ({ document }) => <ErrorMessageRenderer document={document} />],
   ['plain', ({ document }) => <PlainMessageRenderer document={document} />],
   ['markdown', ({ document }) => <MarkdownMessageRenderer document={document} />],
+  ['terminal', ({ document }) => <TerminalMessageRenderer document={document} />],
   ['link', ({ workflow, document }) => <LinkMessageRenderer workflow={workflow} document={document} />],
   [
     'oauth-prompt',

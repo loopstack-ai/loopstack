@@ -1,6 +1,6 @@
 import { Expose, plainToInstance } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
+import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
+import type { EnvironmentStatus, WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import { WorkspaceEnvironmentEntity } from '../entities/index.js';
 
 /**
@@ -51,6 +51,11 @@ export class WorkspaceEnvironmentDto implements WorkspaceEnvironmentInterface {
   @IsOptional()
   @IsBoolean()
   local?: boolean;
+
+  @Expose()
+  @IsOptional()
+  @IsIn(['running', 'stopped'])
+  status?: EnvironmentStatus;
 
   static create(entity: WorkspaceEnvironmentEntity): WorkspaceEnvironmentDto {
     return plainToInstance(WorkspaceEnvironmentDto, entity, {

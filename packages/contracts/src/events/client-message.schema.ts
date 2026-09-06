@@ -15,6 +15,7 @@ import {
   WorkflowUpdatedEventSchema,
 } from './workflow-events.schema.js';
 import {
+  EnvironmentUpdatedEventSchema,
   GitUpdatedEventSchema,
   SecretDeletedEventSchema,
   SecretUpsertedEventSchema,
@@ -32,6 +33,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
   SecretUpsertedEventSchema,
   SecretDeletedEventSchema,
   GitUpdatedEventSchema,
+  EnvironmentUpdatedEventSchema,
   LlmResponseStartEventSchema,
   LlmResponseTextDeltaEventSchema,
   LlmResponseThinkingDeltaEventSchema,

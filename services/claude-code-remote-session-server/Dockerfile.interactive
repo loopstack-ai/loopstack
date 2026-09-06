@@ -4,9 +4,5 @@
 ARG BASE_IMAGE=loopstack-engineer-agent:latest
 FROM ${BASE_IMAGE}
 
-# The Loopstack CLI is the agent's default surface for running and testing workflows (against the app on
-# localhost:3000, no login) — the terminal-native alternative to the browser-based Studio.
-RUN npm install -g @loopstack/cli
-
 COPY interactive/ask-user-mcp.mjs /opt/loopstack/ask-user-mcp.mjs
 COPY interactive/ask-user.mcp.json /etc/loopstack/ask-user.mcp.json

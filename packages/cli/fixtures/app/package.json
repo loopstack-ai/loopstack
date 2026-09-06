@@ -8,30 +8,30 @@
   },
   "scripts": {
     "build": "nest build",
-    "start": "tsx src/main.ts",
-    "start:dev": "tsx watch src/main.ts",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@loopstack/loopstack-module": "latest",
     "@loopstack/common": "latest",
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/core": "^11.0.0",
-    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/core": "^12.0.1",
+    "@nestjs/platform-express": "^12.0.1",
     "class-transformer": "^0.5.0",
     "class-validator": "^0.15.0",
-    "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
     "zod": "^4.0.0"
   },
   "devDependencies": {
     "@loopstack/testing": "latest",
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
-    "@types/node": "^22.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.0.0",
+    "@nestjs/cli": "^12.0.0",
+    "@nestjs/schematics": "^12.0.0",
+    "@nestjs/testing": "^12.0.1",
+    "@types/node": "^24.0.0",
+    "typescript": "^6.0.2",
     "vitest": "^4.0.0"
   }
 }

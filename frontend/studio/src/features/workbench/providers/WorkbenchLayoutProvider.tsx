@@ -77,7 +77,8 @@ export function WorkbenchLayoutProvider({
 
   // Preview panel enabled when workspace has at least one connectable environment
   const hasConnectableEnvs =
-    environments === undefined || environments.some((e) => !!e.connectionUrl && (!!e.workerId || e.local));
+    environments === undefined ||
+    environments.some((e) => !!e.connectionUrl && (!!e.workerId || e.local) && e.status === 'running');
   const previewPanelEnabled = hasConnectableEnvs;
   const defaultPanelSize: Record<string, PanelSize> = {
     runs: 'medium',

@@ -383,6 +383,34 @@ export class RemoteClient {
     return result;
   }
 
+  /**
+   * Purge a workspace: delete everything under `workspaceRoot` from inside the container. Runs as the
+   * container user (root) via the exec endpoint, so it removes files a host-side `rm` couldn't (bind-mount
+   * files the container created) and cannot roam the host filesystem. The mount point itself is kept — only
+   * its contents are removed.
+   */
+  async purgeWorkspace(
+    connectionUrl: string,
+    workspaceRoot = '/workspace',
+  ): Promise<{ success: boolean; message: string }> {
+    // Guard against nuking the container root: the delete only ever touches inside the container (and its
+    // mounts), but an empty or `/` root is never intended.
+    if (!/^\/[^\s]+/.test(workspaceRoot) || workspaceRoot === '/') {
+      throw new Error(`Refusing to purge unsafe workspaceRoot "${workspaceRoot}"`);
+    }
+    // `-mindepth 1` keeps the mount point; `-delete` is depth-first so it clears directories too. Run from
+    // `/` so deleting the shell's own cwd can't wedge the command.
+    const { exitCode, output } = await this.streamCommand(connectionUrl, {
+      command: `find ${workspaceRoot} -mindepth 1 -delete`,
+      cwd: '/',
+    });
+    const success = exitCode === 0;
+    return {
+      success,
+      message: success ? `Purged ${workspaceRoot}` : `Purge failed (exit ${exitCode}): ${output.slice(-500)}`,
+    };
+  }
+
   async getFileTree(connectionUrl: string, basePath?: string): Promise<FileTreeNode[]> {
     const path = basePath ? `/files/tree?path=${encodeURIComponent(basePath)}` : '/files/tree';
     return this.doRequest<FileTreeNode[]>(connectionUrl, 'GET', path);

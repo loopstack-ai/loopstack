@@ -11,7 +11,7 @@ import MarkdownMessageRenderer from '@/features/documents/renderers/MarkdownMess
 import PlainMessageRenderer from '@/features/documents/renderers/PlainMessageRenderer.tsx';
 import { useFeatureRegistry } from '@/features/feature-registry';
 import { InertPromptEntry } from './prompts/cards.tsx';
-import type { TranscriptEntry } from './transcript.ts';
+import type { TranscriptEntry } from './transcript-model.ts';
 
 /**
  * Widgets whose legacy renderers are display-only (no submit logic) and safe to reuse.

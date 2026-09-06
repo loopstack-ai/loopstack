@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DocumentItemInterface } from '@loopstack/contracts/api';
-import { composeTranscript } from './transcript.ts';
+import { composeTranscript } from './transcript-model.ts';
 
 let counter = 0;
 const doc = (over: Partial<DocumentItemInterface> & { workflowId: string }): DocumentItemInterface =>
