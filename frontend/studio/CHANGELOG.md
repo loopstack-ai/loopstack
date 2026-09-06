@@ -1,5 +1,33 @@
 # @loopstack/loopstack-studio
 
+## 0.38.0
+
+### Minor Changes
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Live workflow preview in Studio. The preview panel now follows a running app's dynamic connection URL and only lists environments that are actually running: `WorkspaceEnvironmentDto` exposes `status`, `EnvironmentService.markRunning` records the app URL as `connectionUrl` (and no longer defaults it to the agent URL) while `markStopped` clears it. A new `environment.updated` workspace event — dispatched by `EnvironmentService` and the environment controller — invalidates the workspace-environments query via the live event stream, so the panel updates to the new URL (and drops torn-down slots) without a page reload.
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`300165b`](https://github.com/loopstack-ai/loopstack/commit/300165b5f158c916d07da9ada867cdeb69111aab) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Render `TerminalDocument` as a colored terminal.
+
+  Studio now has a `terminal` widget renderer that parses ANSI SGR escape codes
+  (16-color, bright, xterm 256-color, and truecolor, plus bold/dim/italic/underline)
+  into a dark, monospaced terminal card that keeps itself scrolled to the newest
+  line. Terminal output — NestJS logs, npm/tsx, git — keeps its colors instead of
+  showing raw `\x1b[..m` sequences.
+
+### Patch Changes
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`06d6a9d`](https://github.com/loopstack-ai/loopstack/commit/06d6a9dd4b7a6ceca6abfd5d4646faab19ea628f) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix the studio build failing on case-sensitive filesystems.
+
+  `run-view/` had a `Transcript.tsx` component alongside a `transcript.ts` model, whose emitted declaration
+  files (`Transcript.d.ts` / `transcript.d.ts`) collide on case-insensitive filesystems (macOS) but not on
+  case-sensitive ones (Linux/CI/containers), where `vite-plugin-dts` then failed with an `ENOENT` unlink.
+  The model is renamed to `transcript-model.ts`, so the build works everywhere.
+
+- Updated dependencies [[`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5)]:
+  - @loopstack/contracts@0.41.0
+  - @loopstack/client@0.41.0
+  - @loopstack/react@4.0.0
+
 ## 0.37.0
 
 ### Minor Changes

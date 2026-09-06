@@ -1,5 +1,13 @@
 # @loopstack/core-ui-module
 
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [[`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5), [`300165b`](https://github.com/loopstack-ai/loopstack/commit/300165b5f158c916d07da9ada867cdeb69111aab)]:
+  - @loopstack/core@0.41.0
+  - @loopstack/common@0.41.0
+
 ## 0.5.2
 
 ### Patch Changes

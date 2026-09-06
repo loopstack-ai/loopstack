@@ -1,5 +1,18 @@
 # hello-world
 
+## 0.2.9
+
+### Patch Changes
+
+- Updated dependencies [[`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5), [`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5), [`300165b`](https://github.com/loopstack-ai/loopstack/commit/300165b5f158c916d07da9ada867cdeb69111aab)]:
+  - @loopstack/hitl-examples@0.2.1
+  - @loopstack/observability-examples@0.1.2
+  - @loopstack/claude-module@0.27.0
+  - @loopstack/llm-provider-module@0.10.0
+  - @loopstack/loopstack-module@0.35.0
+  - @loopstack/secrets-module@0.27.0
+  - @loopstack/common@0.41.0
+
 ## 0.2.8
 
 ### Patch Changes

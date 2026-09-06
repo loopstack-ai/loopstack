@@ -1,5 +1,22 @@
 # @loopstack/common
 
+## 0.41.0
+
+### Minor Changes
+
+- [#253](https://github.com/loopstack-ai/loopstack/pull/253) [`300165b`](https://github.com/loopstack-ai/loopstack/commit/300165b5f158c916d07da9ada867cdeb69111aab) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add `TerminalDocument` — a document type for raw terminal output.
+
+  `TerminalDocument` (`{ text, title? }`) stores a terminal stream verbatim, ANSI
+  escape codes intact, and renders in Studio as a dark, monospaced terminal card
+  that interprets those escapes as colors. Use it for live logs from subprocesses
+  (clone/install/build/boot output, npm/tsx/git) instead of dumping raw output —
+  with its `\x1b[..m` codes showing as noise — into a Markdown code block.
+
+### Patch Changes
+
+- Updated dependencies [[`558d24e`](https://github.com/loopstack-ai/loopstack/commit/558d24eb39a9fd253a81c43ecbba249c1bfbe0c5)]:
+  - @loopstack/contracts@0.41.0
+
 ## 0.39.0
 
 ### Patch Changes
