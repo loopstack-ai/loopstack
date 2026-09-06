@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20.19', '22']
+        node: ['22']
     services:
       postgres:
         image: postgres:16-alpine
@@ -125,9 +125,10 @@ jobs:
 
       # The scaffold install resolves peers strictly (no --legacy-peer-deps). npm 10's arborist crashes
       # with "Cannot read properties of null (reading 'edgesOut')" while loading peer sets for the pinned
-      # file: tarballs — a bug fixed in npm ≥ 11. Node 20.19/22 still ship npm 10, so upgrade first.
+      # file: tarballs — a bug fixed in npm ≥ 11. The Node 22 runner ships npm 10, so upgrade first.
+      # (npm 11, not 12: npm 12 requires Node ≥ 22.22, whereas npm 11 supports any Node 22.9+.)
       - name: Upgrade npm (scaffold install needs npm ≥ 11)
-        run: npm install -g npm@12
+        run: npm install -g npm@11
 
       - name: Run scaffold smoke test
         env:
