@@ -1,3 +1,4 @@
+import { cliHandoffFeature } from '../cli-handoff';
 import { localFileExplorerFeature, remoteFileExplorerFeature } from '../file-explorer';
 import { gitFeature } from '../git';
 import { secretsFeature } from '../secrets';
@@ -13,4 +14,5 @@ export const AVAILABLE_FEATURES: Record<string, StudioFeature> = {
   localFileExplorer: localFileExplorerFeature,
   remoteFileExplorer: remoteFileExplorerFeature,
   secrets: secretsFeature,
+  cliHandoff: cliHandoffFeature,
 };
