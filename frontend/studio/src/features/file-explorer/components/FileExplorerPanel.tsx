@@ -49,7 +49,8 @@ interface FileExplorerPanelProps {
 }
 
 function FileExplorerPanel({ variant, featureId, title, description, workspaceId }: FileExplorerPanelProps) {
-  const { closePanel, panelSize, setPanelSize, environments, selectedSlotId } = useWorkbenchLayout();
+  const { closePanel, panelSize, setPanelSize, environments, selectedSlotId, requestedFilePath, clearRequestedFile } =
+    useWorkbenchLayout();
   const featureConfig = useFeatureConfig(featureId);
 
   const allowedEnvironments = (featureConfig?.config?.environments as string[] | undefined) ?? [];
@@ -83,6 +84,8 @@ function FileExplorerPanel({ variant, featureId, title, description, workspaceId
           workspaceId={workspaceId}
           slotId={selectedSlotId || undefined}
           enabled={enabled}
+          requestedFilePath={requestedFilePath}
+          onRequestConsumed={clearRequestedFile}
         >
           <FileExplorerContent />
         </FileExplorerProvider>

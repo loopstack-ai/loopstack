@@ -6,37 +6,37 @@ import type { GitLogResponse, GitRemoteResponse, GitStatusResponse } from '../ty
 
 const gitPath = (workspaceId: string) => `/api/v1/workspaces/${workspaceId}/git`;
 
-export function useGitStatus(workspaceId: string | undefined, slotId?: string) {
+export function useGitStatus(workspaceId: string | undefined, slotId?: string, enabled = true) {
   const client = useLoopstackClient();
   return useQuery({
     queryKey: [...queryKeys.gitStatus(client.envKey, workspaceId!), slotId ?? ''],
     queryFn: () =>
       client.http.get<GitStatusResponse>(`${gitPath(workspaceId!)}/status`, slotId ? { slotId } : undefined),
-    enabled: !!workspaceId,
+    enabled: !!workspaceId && enabled,
     staleTime: 30_000,
     retry: false,
   });
 }
 
-export function useGitLog(workspaceId: string | undefined, limit = 50, slotId?: string) {
+export function useGitLog(workspaceId: string | undefined, limit = 50, slotId?: string, enabled = true) {
   const client = useLoopstackClient();
   return useQuery({
     queryKey: [...queryKeys.gitLog(client.envKey, workspaceId!), slotId ?? ''],
     queryFn: () =>
       client.http.get<GitLogResponse>(`${gitPath(workspaceId!)}/log`, { limit, ...(slotId ? { slotId } : {}) }),
-    enabled: !!workspaceId,
+    enabled: !!workspaceId && enabled,
     staleTime: 30_000,
     retry: false,
   });
 }
 
-export function useGitRemote(workspaceId: string | undefined, slotId?: string) {
+export function useGitRemote(workspaceId: string | undefined, slotId?: string, enabled = true) {
   const client = useLoopstackClient();
   return useQuery({
     queryKey: [...queryKeys.gitRemote(client.envKey, workspaceId!), slotId ?? ''],
     queryFn: () =>
       client.http.get<GitRemoteResponse | null>(`${gitPath(workspaceId!)}/remote`, slotId ? { slotId } : undefined),
-    enabled: !!workspaceId,
+    enabled: !!workspaceId && enabled,
     staleTime: 60_000,
     retry: false,
   });

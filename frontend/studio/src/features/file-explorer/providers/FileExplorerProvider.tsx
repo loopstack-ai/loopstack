@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLoopstackClient } from '@loopstack/react';
 import { type FileExplorerVariant, fileTreeKey, useFileContent, useFileTree } from '../hooks/useFileExplorer';
 import type { FileExplorerNode } from '../types';
@@ -32,6 +32,9 @@ interface FileExplorerProviderProps {
   workspaceId?: string;
   slotId?: string;
   enabled?: boolean;
+  /** A path another panel asked to open; resolved against the tree and selected once it loads, then cleared. */
+  requestedFilePath?: string | null;
+  onRequestConsumed?: () => void;
   children: ReactNode;
 }
 
@@ -40,6 +43,8 @@ export function FileExplorerProvider({
   workspaceId,
   slotId,
   enabled = true,
+  requestedFilePath,
+  onRequestConsumed,
   children,
 }: FileExplorerProviderProps) {
   const client = useLoopstackClient();
@@ -77,6 +82,32 @@ export function FileExplorerProvider({
       return [...prev, node];
     });
   }, []);
+
+  // Deep-open: when another panel requested a path, resolve it against the loaded tree (matching on the
+  // repo-relative tail, so a container-absolute `/workspace/...` tree path still matches), expand its
+  // folders, select it, then clear the request. Cleared even when not found so it doesn't retry forever.
+  useEffect(() => {
+    if (!requestedFilePath || !treeQuery.data) return;
+    const norm = (p: string) => p.replace(/^\/?workspace\//, '').replace(/^\/+/, '');
+    const target = norm(requestedFilePath);
+    const find = (nodes: FileExplorerNode[], trail: string[]): { node: FileExplorerNode; trail: string[] } | null => {
+      for (const node of nodes) {
+        if (node.type === 'file') {
+          if (norm(node.path) === target) return { node, trail };
+        } else if (node.children?.length) {
+          const found = find(node.children, [...trail, node.id]);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    const match = find(treeQuery.data, []);
+    if (match) {
+      if (match.trail.length) setExpandedFolders((prev) => new Set([...prev, ...match.trail]));
+      selectFile(match.node);
+    }
+    onRequestConsumed?.();
+  }, [requestedFilePath, treeQuery.data, selectFile, onRequestConsumed]);
 
   const closeFile = useCallback(
     (node: FileExplorerNode) => {

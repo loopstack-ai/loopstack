@@ -15,11 +15,14 @@ interface WorkbenchGitPanelProps {
 }
 
 export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
-  const { panelSize, setPanelSize, closePanel, selectedSlotId } = useWorkbenchLayout();
+  const { panelSize, setPanelSize, closePanel, selectedSlotId, environments } = useWorkbenchLayout();
   const { router } = useStudio();
-  const { data: status, isLoading: statusLoading } = useGitStatus(workspaceId, selectedSlotId);
-  const { data: logData, isLoading: logLoading } = useGitLog(workspaceId, 50, selectedSlotId);
-  const { data: remote } = useGitRemote(workspaceId, selectedSlotId);
+  // Git talks to a live container; only query when the selected environment slot is actually running,
+  // otherwise the backend has no agent URL to resolve and returns a 500.
+  const envRunning = (environments ?? []).some((e) => e.slotId === selectedSlotId && e.status === 'running');
+  const { data: status, isLoading: statusLoading } = useGitStatus(workspaceId, selectedSlotId, envRunning);
+  const { data: logData, isLoading: logLoading } = useGitLog(workspaceId, 50, selectedSlotId, envRunning);
+  const { data: remote } = useGitRemote(workspaceId, selectedSlotId, envRunning);
   useGitInvalidation(workspaceId);
 
   const createWorkflow = useCreateWorkflow();
@@ -67,7 +70,11 @@ export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
       <div className="flex h-full flex-col">
         <EnvironmentSelector />
         <div className="flex-1 overflow-y-auto px-4 py-3">
-          {isLoading ? (
+          {!envRunning ? (
+            <p className="text-muted-foreground py-4 text-sm">
+              No running environment for this workspace. Start a run to enable Git.
+            </p>
+          ) : isLoading ? (
             <div className="flex items-center gap-2 py-4">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-muted-foreground text-sm">Loading...</span>
