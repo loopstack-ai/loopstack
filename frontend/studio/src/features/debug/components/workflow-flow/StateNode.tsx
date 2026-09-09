@@ -11,8 +11,8 @@ const HIDDEN_HANDLE = '!border-none !bg-muted-foreground/30 !h-3 !w-3 !min-h-0 !
 
 function getNodeClassName(data: StateNodeData): string {
   if (data.isCurrent) return 'border-primary shadow-primary/20 bg-primary/5 ring-primary/30 z-10 shadow-lg ring-4';
-  if (data.isEnd) return 'border-green-500/30 bg-green-500/10';
-  if (data.isStart) return 'border-blue-500/30 bg-blue-500/10';
+  if (data.isEnd) return 'border-green-500/30 bg-green-500/10 dark:border-green-400/40 dark:bg-green-400/10';
+  if (data.isStart) return 'border-blue-500/30 bg-blue-500/10 dark:border-blue-400/40 dark:bg-blue-400/10';
   if (data.isVisited) return 'border-border/60 bg-muted/40';
   return `border-border/40 bg-card/60 ${data.forceVisible ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`;
 }
@@ -143,7 +143,7 @@ const StatusBadges: React.FC<{ data: StateNodeData }> = ({ data }) => (
     {data.isEnd && (
       <Badge
         variant="outline"
-        className="h-5 shrink-0 border-green-500/30 bg-green-500/5 px-1.5 text-[10px] text-green-600"
+        className="h-5 shrink-0 border-green-500/30 bg-green-500/5 px-1.5 text-[10px] text-green-600 dark:border-green-400/40 dark:bg-green-400/10 dark:text-green-400"
       >
         End
       </Badge>
@@ -151,7 +151,7 @@ const StatusBadges: React.FC<{ data: StateNodeData }> = ({ data }) => (
     {data.isStart && (
       <Badge
         variant="outline"
-        className="h-5 shrink-0 border-blue-500/30 bg-blue-500/5 px-1.5 text-[10px] text-blue-600"
+        className="h-5 shrink-0 border-blue-500/30 bg-blue-500/5 px-1.5 text-[10px] text-blue-600 dark:border-blue-400/40 dark:bg-blue-400/10 dark:text-blue-400"
       >
         Start
       </Badge>

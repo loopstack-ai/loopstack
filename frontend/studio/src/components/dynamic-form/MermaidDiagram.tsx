@@ -1,28 +1,30 @@
 import mermaid from 'mermaid';
 import React, { useEffect, useRef } from 'react';
+import { useTheme } from '@/providers/ThemeProvider.tsx';
 
 interface MermaidDiagramProps {
   chart: string;
   className?: string;
 }
 
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'default',
-  securityLevel: 'loose',
-  flowchart: {
-    useMaxWidth: true,
-    htmlLabels: true,
-  },
-});
-
 const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, className }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const renderDiagram = async () => {
       const element = ref.current;
       if (!element) return;
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: theme === 'dark' ? 'dark' : 'default',
+        securityLevel: 'loose',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+        },
+      });
 
       try {
         const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
@@ -37,9 +39,9 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, className }) => 
 
         if (ref.current) {
           ref.current.innerHTML = `
-            <div class="bg-red-50 border border-red-200 rounded-md p-4 text-red-700">
+            <div class="bg-red-50 border border-red-200 rounded-md p-4 text-red-700 dark:bg-red-950 dark:border-red-900 dark:text-red-300">
               <strong>Mermaid Diagram Error:</strong> Failed to render diagram
-              <pre class="mt-2 text-xs bg-red-100 p-2 rounded overflow-x-auto">${chart}</pre>
+              <pre class="mt-2 text-xs bg-red-100 p-2 rounded overflow-x-auto dark:bg-red-900/40">${chart}</pre>
             </div>
           `;
         }
@@ -47,7 +49,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, className }) => 
     };
 
     void renderDiagram();
-  }, [chart]);
+  }, [chart, theme]);
 
   return <div ref={ref} className={`my-4 flex justify-center ${className || ''}`} />;
 };

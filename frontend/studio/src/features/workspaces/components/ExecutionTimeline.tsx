@@ -32,7 +32,7 @@ const ChildWorkflowList: React.FC<{
   const children = data ?? [];
 
   if (children.length === 0) {
-    return <p className="py-1 pl-8 text-xs text-gray-400">No child workflows</p>;
+    return <p className="py-1 pl-8 text-xs text-muted-foreground">No child workflows</p>;
   }
 
   return (
@@ -50,8 +50,8 @@ const ChildWorkflowList: React.FC<{
             <p className="text-sm font-medium">
               Run #{child.run} {child.title ? `(${child.title})` : ''}
             </p>
-            <p className="text-xs text-gray-500">{child.workflowName}</p>
-            <p className="text-xs text-gray-400">{formatUpdatedTime(child.updatedAt)}</p>
+            <p className="text-xs text-muted-foreground">{child.workflowName}</p>
+            <p className="text-xs text-muted-foreground">{formatUpdatedTime(child.updatedAt)}</p>
           </div>
           <Badge variant="default" className={getWorkflowStateColor(child.status)}>
             {child.status}
@@ -136,16 +136,16 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
   const getWorkflowStateColor = (status: WorkflowState): string => {
     switch (status) {
       case WorkflowState.Completed:
-        return 'bg-green-600';
+        return 'bg-green-600 dark:bg-green-500';
       case WorkflowState.Paused:
-        return 'bg-yellow-600';
+        return 'bg-yellow-600 dark:bg-yellow-500';
       case WorkflowState.Failed:
-        return 'bg-red-600';
+        return 'bg-red-600 dark:bg-red-500';
       case WorkflowState.Canceled:
       case WorkflowState.Pending:
       case WorkflowState.Running:
       default:
-        return 'bg-black';
+        return 'bg-foreground text-background';
     }
   };
 
@@ -159,11 +159,11 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
           <h3 className="hover:text-primary font-medium transition-colors">
             Run #{item.run} {item.title ? `(${item.title})` : ''}
           </h3>
-          <p className="mt-1 text-sm text-gray-500">{item.workflowName}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{item.workflowName}</p>
           {item.hasChildren > 0 && (
             <button
               onClick={(e) => toggleExpand(item.id, e)}
-              className="hover:bg-muted mt-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-gray-400"
+              className="hover:bg-muted mt-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground"
             >
               {expandedIds.has(item.id) ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
               {item.hasChildren} sub {item.hasChildren === 1 ? 'execution' : 'executions'}
@@ -174,7 +174,7 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
           <Badge variant="default" className={getWorkflowStateColor(item.status)}>
             {item.status}
           </Badge>
-          <span className="text-xs text-gray-400">{formatUpdatedTime(item.updatedAt)}</span>
+          <span className="text-xs text-muted-foreground">{formatUpdatedTime(item.updatedAt)}</span>
         </div>
       </div>
       {item.hasChildren > 0 && expandedIds.has(item.id) && (

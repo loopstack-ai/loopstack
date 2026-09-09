@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../lib/utils.ts';
+import { useTheme } from '../../providers/ThemeProvider.tsx';
 import { Card } from '../ui/card';
 
 interface CompletionMessagePaperProps {
@@ -19,29 +20,31 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
   fullWidth = false,
   className,
 }) => {
+  const { theme } = useTheme();
+
   const roleConfig = {
     system: {
-      color: '#efb108',
+      color: theme === 'dark' ? '#e0bb65' : '#efb108',
       align: 'left',
     },
     user: {
-      color: '#0496d0',
+      color: theme === 'dark' ? '#2aacb8' : '#0496d0',
       align: 'right',
     },
     assistant: {
-      color: '#004a98',
+      color: theme === 'dark' ? '#56a8f5' : '#004a98',
       align: 'left',
     },
     document: {
-      color: '#0e2135',
+      color: theme === 'dark' ? '#9da0a8' : '#0e2135',
       align: 'left',
     },
     tool: {
-      color: '#efb108',
+      color: theme === 'dark' ? '#e0bb65' : '#efb108',
       align: 'left',
     },
     error: {
-      color: '#dc0d33',
+      color: theme === 'dark' ? '#f75464' : '#dc0d33',
       align: 'left',
     },
   };
