@@ -16,6 +16,8 @@ export interface StartSessionRequest {
   resumeSessionId?: string;
   /** Restrict the run to these tools; when omitted the run uses bypassPermissions (full access). */
   allowedTools?: string[];
+  /** Extra system prompt appended for this run (via `--append-system-prompt`), e.g. a strategy prompt. */
+  systemPrompt?: string;
 }
 
 export interface SessionStatusResponse {
@@ -216,6 +218,7 @@ export class SessionSupervisor {
       appendedPrompts.push(ASK_USER_SYSTEM_PROMPT);
     }
     if (ENV_BRIEFING) appendedPrompts.push(ENV_BRIEFING);
+    if (req.systemPrompt) appendedPrompts.push(req.systemPrompt);
     if (appendedPrompts.length) args.push('--append-system-prompt', appendedPrompts.join('\n\n'));
 
     return args;
