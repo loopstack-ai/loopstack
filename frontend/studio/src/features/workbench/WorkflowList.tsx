@@ -101,7 +101,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 hover:cursor-pointer hover:text-gray-700"
+                      className="text-muted-foreground hover:cursor-pointer hover:text-foreground"
                     >
                       <ListOrdered className="h-5 w-5" />
                     </Button>
@@ -126,7 +126,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-gray-500 hover:cursor-pointer hover:text-gray-700"
+                      className="text-muted-foreground hover:cursor-pointer hover:text-foreground"
                     >
                       <WorkflowIcon className="h-5 w-5" />
                     </Button>

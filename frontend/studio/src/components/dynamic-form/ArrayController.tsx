@@ -33,12 +33,12 @@ export const ArrayController: React.FC<FormElementProps> = ({
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
-        <Button variant="ghost" size="sm" className="mb-2 flex items-center gap-2 p-2 hover:bg-gray-100" type="button">
+        <Button variant="ghost" size="sm" className="mb-2 flex items-center gap-2 p-2 hover:bg-accent" type="button">
           {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           <span className="font-medium">
             {ui?.title ?? schema.title ?? name}
             {!isOpen && (
-              <span className="ml-2 text-sm text-gray-500">
+              <span className="ml-2 text-sm text-muted-foreground">
                 ({fields.length} {fields.length === 1 ? 'item' : 'items'})
               </span>
             )}

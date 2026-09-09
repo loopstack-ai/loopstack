@@ -41,7 +41,7 @@ const ImagePartRenderer: React.FC<{ part: ImagePart }> = ({ part }) => (
       className="h-auto max-w-full rounded-lg border shadow-sm"
       style={{ maxHeight: '400px' }}
     />
-    {part.mediaType && <div className="mt-1 text-xs text-gray-500">Type: {part.mediaType}</div>}
+    {part.mediaType && <div className="mt-1 text-xs text-muted-foreground">Type: {part.mediaType}</div>}
   </div>
 );
 
@@ -51,7 +51,7 @@ const FilePartRenderer: React.FC<{ part: FilePart }> = ({ part }) => (
       <div className="text-2xl">📎</div>
       <div>
         <div className="text-sm font-medium">{part.filename || 'Unnamed file'}</div>
-        <div className="text-xs text-gray-500">{part.mediaType}</div>
+        <div className="text-xs text-muted-foreground">{part.mediaType}</div>
       </div>
     </div>
   </div>
@@ -61,9 +61,9 @@ const ReasoningPartRenderer: React.FC<{ part: ReasoningPart }> = ({ part }) =>
   part.text ? (
     <div>
       <div className="mb-2 flex items-center space-x-2">
-        <div className="text-sm font-medium text-purple-600">Reasoning</div>
+        <div className="text-sm font-medium text-purple-600 dark:text-purple-400">Reasoning</div>
       </div>
-      <div className="text-sm whitespace-pre-wrap text-purple-800">{part.text}</div>
+      <div className="text-sm whitespace-pre-wrap text-purple-800 dark:text-purple-300">{part.text}</div>
     </div>
   ) : (
     ''
@@ -75,14 +75,16 @@ const ToolCallPartRenderer: React.FC<{ part: ToolCallPart }> = ({ part }) => (
       <div className="flex items-center space-x-2">
         <div className="text-sm font-medium">{part.toolName}</div>
         {part.providerExecuted && (
-          <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">Executed</span>
+          <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800 dark:bg-green-400/10 dark:text-green-400">
+            Executed
+          </span>
         )}
       </div>
-      <div className="ml-5 font-mono text-xs text-gray-500">ID: {part.toolCallId}</div>
+      <div className="ml-5 font-mono text-xs text-muted-foreground">ID: {part.toolCallId}</div>
     </div>
     {part.input ? (
-      <div className="rounded border bg-white p-2 text-xs">
-        <div className="mb-1 text-gray-600">Input:</div>
+      <div className="rounded border bg-muted p-2 text-xs">
+        <div className="mb-1 text-muted-foreground">Input:</div>
         <pre className="overflow-x-auto whitespace-pre-wrap">{JSON.stringify(part.input, null, 2)}</pre>
       </div>
     ) : (
@@ -95,9 +97,9 @@ const ToolResultPartRenderer: React.FC<{ part: ToolResultPart }> = ({ part }) =>
   <div>
     <div className="mb-2 flex items-center justify-between">
       <div className="text-sm font-medium">{part.toolName} Result</div>
-      <div className="ml-5 font-mono text-xs text-gray-500">ID: {part.toolCallId}</div>
+      <div className="ml-5 font-mono text-xs text-muted-foreground">ID: {part.toolCallId}</div>
     </div>
-    <div className="rounded border bg-white p-2 text-xs">
+    <div className="rounded border bg-muted p-2 text-xs">
       <pre className="overflow-x-auto whitespace-pre-wrap">{JSON.stringify(part.output, null, 2)}</pre>
     </div>
   </div>
@@ -121,7 +123,7 @@ const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }
         return <ToolResultPartRenderer key={index} part={part as ToolResultPart} />;
       default:
         return (
-          <div key={index} className="rounded bg-gray-100 p-2 text-sm">
+          <div key={index} className="rounded bg-muted p-2 text-sm">
             Unknown content type: {part.type}
           </div>
         );
@@ -132,7 +134,7 @@ const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }
     // Handle system messages (always string)
     if (message.role === 'system') {
       return (
-        <div className="rounded-lg border-l-4 border-gray-400 bg-gray-50 p-3 text-sm text-gray-600 italic">
+        <div className="rounded-lg border-l-4 border-border bg-muted p-3 text-sm text-muted-foreground italic">
           <div className="mb-1 font-medium">System</div>
           <div className="whitespace-pre-wrap">{message.content as string}</div>
         </div>
@@ -151,7 +153,7 @@ const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }
       return <div className="space-y-2">{content.map((part, index) => renderContentPart(part, index))}</div>;
     }
 
-    return <div className="text-sm text-red-600">Invalid content format</div>;
+    return <div className="text-sm text-red-600 dark:text-red-400">Invalid content format</div>;
   };
 
   return <div className="message-content">{renderContent()}</div>;

@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/loopstack.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>loopstack-studio</title>
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem('loopstack:theme');
+          if (theme !== 'light') theme = 'dark';
+        } catch (e) {
+          theme = 'dark';
+        }
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
