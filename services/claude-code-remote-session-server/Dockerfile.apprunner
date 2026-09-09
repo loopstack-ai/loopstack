@@ -24,5 +24,7 @@ RUN chmod +x ./start.sh
 ENV AGENT_PORT=3001
 ENV WORKSPACE_ROOT=/workspace
 EXPOSE 3001
+# Frontend dev server (Vite default) for the manual test — the Engineer publishes it to a random host port.
+EXPOSE 5173
 
 CMD ["./start.sh"]
