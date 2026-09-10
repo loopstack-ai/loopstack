@@ -14,6 +14,8 @@ export interface StartSessionRequest {
   effort?: string;
   maxBudgetUsd?: number;
   resumeSessionId?: string;
+  /** Fork the resumed session into a copy (`--fork-session`), leaving the original transcript untouched. */
+  fork?: boolean;
   /** Restrict the run to these tools; when omitted the run uses bypassPermissions (full access). */
   allowedTools?: string[];
   /** Extra system prompt appended for this run (via `--append-system-prompt`), e.g. a strategy prompt. */
@@ -200,7 +202,10 @@ export class SessionSupervisor {
 
   private buildArgs(req: StartSessionRequest): string[] {
     const args = ['-p', '--output-format', 'stream-json', '--verbose'];
-    if (req.resumeSessionId) args.push('--resume', req.resumeSessionId);
+    if (req.resumeSessionId) {
+      args.push('--resume', req.resumeSessionId);
+      if (req.fork) args.push('--fork-session');
+    }
 
     const budget = req.maxBudgetUsd ?? DEFAULT_MAX_BUDGET_USD;
     if (budget) args.push('--max-budget-usd', String(budget));
