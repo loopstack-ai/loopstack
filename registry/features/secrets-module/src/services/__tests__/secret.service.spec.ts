@@ -24,9 +24,12 @@ describe('SecretService', () => {
   let repo: SecretRepositoryMock;
   let service: SecretService;
 
+  const makeService = (globalSecretKeys?: string[]) =>
+    new SecretService(repo as unknown as Repository<SecretEntity>, { globalSecretKeys });
+
   beforeEach(() => {
     repo = createRepositoryMock();
-    service = new SecretService(repo as unknown as Repository<SecretEntity>);
+    service = makeService();
   });
 
   describe('findAllByWorkspace', () => {
@@ -128,6 +131,62 @@ describe('SecretService', () => {
       repo.findOne.mockResolvedValue(null);
 
       await expect(service.delete('missing', 'ws-1')).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('resolveEnvMap', () => {
+    it('overlays workspace secrets on the global allowlist (workspace wins)', async () => {
+      service = makeService(['GLOBAL_ONLY', 'SHARED']);
+      process.env.GLOBAL_ONLY = 'g1';
+      process.env.SHARED = 'from-env';
+      repo.find.mockResolvedValue([
+        { key: 'SHARED', value: 'from-ws' },
+        { key: 'WS_ONLY', value: 'w1' },
+      ]);
+
+      try {
+        expect(await service.resolveEnvMap('ws-1')).toEqual({
+          GLOBAL_ONLY: 'g1',
+          SHARED: 'from-ws',
+          WS_ONLY: 'w1',
+        });
+      } finally {
+        delete process.env.GLOBAL_ONLY;
+        delete process.env.SHARED;
+      }
+    });
+
+    it('ignores allowlist keys absent from the environment, and needs no allowlist', async () => {
+      delete process.env.MISSING;
+      service = makeService(['MISSING']);
+      repo.find.mockResolvedValue([{ key: 'WS_ONLY', value: 'w1' }]);
+      expect(await service.resolveEnvMap('ws-1')).toEqual({ WS_ONLY: 'w1' });
+
+      service = makeService(); // no allowlist configured → workspace-only
+      expect(await service.resolveEnvMap('ws-1')).toEqual({ WS_ONLY: 'w1' });
+    });
+  });
+
+  describe('resolveKeys', () => {
+    it('flags global-only keys and marks workspace-overridden keys as non-global, sorted by key', async () => {
+      service = makeService(['GLOBAL_ONLY', 'SHARED']);
+      process.env.GLOBAL_ONLY = 'g';
+      process.env.SHARED = 'g';
+      repo.find.mockResolvedValue([
+        { key: 'SHARED', value: 'w' },
+        { key: 'WS_ONLY', value: 'w' },
+      ]);
+
+      try {
+        expect(await service.resolveKeys('ws-1')).toEqual([
+          { key: 'GLOBAL_ONLY', hasValue: true, global: true },
+          { key: 'SHARED', hasValue: true, global: false },
+          { key: 'WS_ONLY', hasValue: true, global: false },
+        ]);
+      } finally {
+        delete process.env.GLOBAL_ONLY;
+        delete process.env.SHARED;
+      }
     });
   });
 });
