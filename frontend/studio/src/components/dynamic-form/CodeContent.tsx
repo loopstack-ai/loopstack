@@ -73,11 +73,10 @@ const adaptedPrismDark: Record<string, Record<string, unknown>> = {
   italic: { fontStyle: 'italic' },
 };
 
-const adaptedPrism: Record<string, Record<string, unknown>> = {
+const adaptedPrismLight: Record<string, Record<string, unknown>> = {
   'code[class*="language-"]': {
-    color: 'black',
+    color: '#080808',
     background: 'none',
-    textShadow: '0 1px white',
     fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
     fontSize: '1em',
     textAlign: 'left',
@@ -86,18 +85,11 @@ const adaptedPrism: Record<string, Record<string, unknown>> = {
     wordBreak: 'normal',
     wordWrap: 'normal',
     lineHeight: '1.5',
-    MozTabSize: '4',
-    OTabSize: '4',
     tabSize: '4',
-    WebkitHyphens: 'none',
-    MozHyphens: 'none',
-    msHyphens: 'none',
     hyphens: 'none',
   },
   'pre[class*="language-"]': {
-    color: 'black',
-    // "background": "#f5f2f0",
-    textShadow: '0 1px white',
+    color: '#080808',
     fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
     fontSize: '1em',
     textAlign: 'left',
@@ -106,169 +98,54 @@ const adaptedPrism: Record<string, Record<string, unknown>> = {
     wordBreak: 'normal',
     wordWrap: 'normal',
     lineHeight: '1.5',
-    MozTabSize: '4',
-    OTabSize: '4',
     tabSize: '4',
-    WebkitHyphens: 'none',
-    MozHyphens: 'none',
-    msHyphens: 'none',
     hyphens: 'none',
     padding: '1em',
     margin: '.5em 0',
     overflow: 'auto',
   },
-  'pre[class*="language-"]::-moz-selection': {
-    textShadow: 'none',
-    background: '#b3d4fc',
-  },
-  'pre[class*="language-"] ::-moz-selection': {
-    textShadow: 'none',
-    background: '#b3d4fc',
-  },
-  'code[class*="language-"]::-moz-selection': {
-    textShadow: 'none',
-    background: '#b3d4fc',
-  },
-  'code[class*="language-"] ::-moz-selection': {
-    textShadow: 'none',
-    background: '#b3d4fc',
-  },
-  'pre[class*="language-"]::selection': {
-    textShadow: 'none',
-    background: '#b3d4fc',
-  },
-  'pre[class*="language-"] ::selection': {
-    textShadow: 'none',
-    background: '#b3d4fc',
-  },
-  'code[class*="language-"]::selection': {
-    textShadow: 'none',
-    background: '#b3d4fc',
-  },
-  'code[class*="language-"] ::selection': {
-    textShadow: 'none',
-    background: '#b3d4fc',
-  },
   ':not(pre) > code[class*="language-"]': {
-    // "background": "#f5f2f0",
     padding: '.1em',
     borderRadius: '.3em',
     whiteSpace: 'normal',
   },
-  comment: {
-    color: 'slategray',
-  },
-  prolog: {
-    color: 'slategray',
-  },
-  doctype: {
-    color: 'slategray',
-  },
-  cdata: {
-    color: 'slategray',
-  },
-  punctuation: {
-    color: '#999',
-  },
-  namespace: {
-    opacity: 0.7,
-  },
-  property: {
-    color: '#905',
-  },
-  tag: {
-    color: '#905',
-  },
-  boolean: {
-    color: '#905',
-  },
-  number: {
-    color: '#905',
-  },
-  constant: {
-    color: '#905',
-  },
-  symbol: {
-    color: '#905',
-  },
-  deleted: {
-    color: '#905',
-  },
-  selector: {
-    color: '#690',
-  },
-  'attr-name': {
-    color: '#690',
-  },
-  string: {
-    color: '#690',
-  },
-  char: {
-    color: '#690',
-  },
-  builtin: {
-    color: '#690',
-  },
-  inserted: {
-    color: '#690',
-  },
-  operator: {
-    color: '#9a6e3a',
-    background: 'hsla(0, 0%, 100%, .5)',
-  },
-  entity: {
-    color: '#9a6e3a',
-    background: 'hsla(0, 0%, 100%, .5)',
-    cursor: 'help',
-  },
-  url: {
-    color: '#9a6e3a',
-    background: 'hsla(0, 0%, 100%, .5)',
-  },
-  '.language-css .token.string': {
-    color: '#9a6e3a',
-    background: 'hsla(0, 0%, 100%, .5)',
-  },
-  '.style .token.string': {
-    color: '#9a6e3a',
-    background: 'hsla(0, 0%, 100%, .5)',
-  },
-  atrule: {
-    color: '#07a',
-  },
-  'attr-value': {
-    color: '#07a',
-  },
-  keyword: {
-    color: '#07a',
-  },
-  function: {
-    color: '#DD4A68',
-  },
-  'class-name': {
-    color: '#DD4A68',
-  },
-  regex: {
-    color: '#e90',
-  },
-  important: {
-    color: '#e90',
-    fontWeight: 'bold',
-  },
-  variable: {
-    color: '#e90',
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  italic: {
-    fontStyle: 'italic',
-  },
+  comment: { color: '#8c8c8c' },
+  prolog: { color: '#8c8c8c' },
+  doctype: { color: '#8c8c8c' },
+  cdata: { color: '#8c8c8c' },
+  punctuation: { color: '#080808' },
+  namespace: { opacity: 0.7 },
+  property: { color: '#00627a' },
+  tag: { color: '#008077' },
+  boolean: { color: '#871094' },
+  number: { color: '#1750eb' },
+  constant: { color: '#871094' },
+  symbol: { color: '#871094' },
+  deleted: { color: '#871094' },
+  selector: { color: '#067d17' },
+  'attr-name': { color: '#067d17' },
+  string: { color: '#067d17' },
+  char: { color: '#067d17' },
+  builtin: { color: '#067d17' },
+  inserted: { color: '#067d17' },
+  operator: { color: '#080808', background: 'transparent' },
+  entity: { color: '#080808', background: 'transparent', cursor: 'help' },
+  url: { color: '#080808', background: 'transparent' },
+  atrule: { color: '#0033b3' },
+  'attr-value': { color: '#0033b3' },
+  keyword: { color: '#0033b3' },
+  function: { color: '#00627a' },
+  'class-name': { color: '#871094' },
+  regex: { color: '#1750eb' },
+  important: { color: '#1750eb', fontWeight: 'bold' },
+  variable: { color: '#1750eb' },
+  bold: { fontWeight: 'bold' },
+  italic: { fontStyle: 'italic' },
 };
 
 const CodeContent: React.FC<{ content: string }> = ({ content }) => {
   const { theme } = useTheme();
-  const prismStyle = theme === 'dark' ? adaptedPrismDark : adaptedPrism;
+  const prismStyle = theme === 'dark' ? adaptedPrismDark : adaptedPrismLight;
 
   return (
     <Markdown
