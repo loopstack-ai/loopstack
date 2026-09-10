@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SecretEntity } from '../../entities/index.js';
-import { SecretService } from '../secret.service.js';
+import { SecretService, formatResolvedSecretsMessage } from '../secret.service.js';
 
 type SecretRepositoryMock = {
   find: Mock;
@@ -164,6 +164,47 @@ describe('SecretService', () => {
 
       service = makeService(); // no allowlist configured → workspace-only
       expect(await service.resolveEnvMap('ws-1')).toEqual({ WS_ONLY: 'w1' });
+    });
+  });
+
+  describe('resolveEnv', () => {
+    it('returns the effective env with its workspace/global source breakdown (sorted)', async () => {
+      service = makeService(['GLOBAL_ONLY', 'SHARED']);
+      process.env.GLOBAL_ONLY = 'g1';
+      process.env.SHARED = 'from-env';
+      repo.find.mockResolvedValue([
+        { key: 'SHARED', value: 'from-ws' },
+        { key: 'WS_ONLY', value: 'w1' },
+      ]);
+
+      try {
+        const resolved = await service.resolveEnv('ws-1');
+        expect(resolved.env).toEqual({ GLOBAL_ONLY: 'g1', SHARED: 'from-ws', WS_ONLY: 'w1' });
+        expect(resolved.workspaceKeys).toEqual(['SHARED', 'WS_ONLY']);
+        expect(resolved.globalKeys).toEqual(['GLOBAL_ONLY']);
+      } finally {
+        delete process.env.GLOBAL_ONLY;
+        delete process.env.SHARED;
+      }
+    });
+  });
+
+  describe('formatResolvedSecretsMessage', () => {
+    const env = {};
+    it('summarizes both sources', () => {
+      expect(formatResolvedSecretsMessage({ env, workspaceKeys: ['A', 'B'], globalKeys: ['C'] })).toBe(
+        'Injected secrets — workspace: A, B · global fallback: C.',
+      );
+    });
+
+    it('summarizes a single source', () => {
+      expect(formatResolvedSecretsMessage({ env, workspaceKeys: [], globalKeys: ['C'] })).toBe(
+        'Injected secrets — global fallback: C.',
+      );
+    });
+
+    it('returns null when nothing was injected', () => {
+      expect(formatResolvedSecretsMessage({ env, workspaceKeys: [], globalKeys: [] })).toBeNull();
     });
   });
 

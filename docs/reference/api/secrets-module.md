@@ -99,6 +99,7 @@ import { SecretService } from '@loopstack/secrets-module';
 export class SecretService {
   constructor(secretRepository: Repository<SecretEntity>, config: SecretsModuleConfig);
   findAllByWorkspace(workspaceId: string): Promise<SecretEntity[]>;
+  resolveEnv(workspaceId: string): Promise<ResolvedWorkspaceEnv>;
   resolveEnvMap(workspaceId: string): Promise<Record<string, string>>;
   resolveKeys(workspaceId: string): Promise<ResolvedSecretKey[]>;
   create(
@@ -241,6 +242,22 @@ export type RequestSecretsTaskResult =
       workflowId: string;
     }
   | string;
+```
+
+## Functions
+
+### formatResolvedSecretsMessage
+
+A one-line, user-facing summary of a `ResolvedWorkspaceEnv` — which injected secret keys came from
+the workspace vs the global fallback — for surfacing the secret sources to the user in a workflow message.
+Returns null when nothing was injected.
+
+```ts
+import { formatResolvedSecretsMessage } from '@loopstack/secrets-module';
+```
+
+```ts
+export function formatResolvedSecretsMessage({ workspaceKeys, globalKeys }: ResolvedWorkspaceEnv): string | null;
 ```
 
 ## Variables
