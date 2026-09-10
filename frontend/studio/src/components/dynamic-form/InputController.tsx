@@ -58,17 +58,21 @@ interface SchemaWithTypeAndEnum {
   type?: string;
   enum?: unknown[];
   hidden?: boolean;
+  /** Schema-embedded widget hint (e.g. Zod `.meta({ widget: 'textarea' })`), used when no `ui` widget is set. */
+  widget?: string;
 }
 
 /**
  * Determines the widget type based on schema properties
  */
 const resolveWidgetType = (schema: UiPropertiesType, uiWidget?: string): WidgetType => {
-  if (uiWidget && WIDGET_NAMES.includes(uiWidget as WidgetType)) {
-    return uiWidget as WidgetType;
-  }
-
   const typedSchema = schema as SchemaWithTypeAndEnum;
+
+  // Explicit `ui` widget wins; otherwise honor a widget hint carried on the schema itself.
+  const widget = uiWidget ?? typedSchema.widget;
+  if (widget && WIDGET_NAMES.includes(widget as WidgetType)) {
+    return widget as WidgetType;
+  }
 
   // Infer from schema type
   if (typedSchema.type === 'boolean') {
