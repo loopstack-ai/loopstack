@@ -46,14 +46,14 @@ interface SessionRecord {
 const SESSIONS_DIR = path.join(os.tmpdir(), 'claude-sessions');
 const KILL_GRACE_MS = 5000;
 
-// The interactive image bakes in an `ask_user` MCP tool + this config file. When it's present we launch
-// claude with the tool available and instruct it to ask-then-stop; the base image lacks the file and
-// runs non-interactively. So the image alone selects the mode — the server needs no extra flag.
-const ASK_USER_MCP_CONFIG = '/etc/loopstack/ask-user.mcp.json';
-const ASK_USER_MCP_AVAILABLE = existsSync(ASK_USER_MCP_CONFIG);
+// The agent image bakes in the Loopstack MCP tools + this config file. The individual tools are gated per
+// session by env flags (LOOPSTACK_MCP_ASK_USER / LOOPSTACK_MCP_CREATE_PR), read by both the MCP server (tool
+// listing) and here (system-prompt guidance), so one image serves every mode without a per-image variant.
+const MCP_CONFIG = '/etc/loopstack/loopstack.mcp.json';
+const MCP_CONFIG_AVAILABLE = existsSync(MCP_CONFIG);
 // Forceful on purpose: MCP tools are deferred behind tool-search in this Claude version, so unless the
-// prompt names `ask_user` and makes plain-text questions a dead end, the agent just asks in text and
-// never discovers the tool. This wording reliably drives tool-search → ask_user → end turn.
+// prompt names the tool and makes the plain-text path a dead end, the agent never discovers it. This
+// wording reliably drives tool-search → tool → end turn.
 const ASK_USER_SYSTEM_PROMPT =
   'You are running in a HEADLESS session with no interactive terminal. If you write a question as plain ' +
   'text it is NOT delivered to the user and your turn ends with no answer. The ONLY way to get any ' +
@@ -61,6 +61,11 @@ const ASK_USER_SYSTEM_PROMPT =
   'available; use tool search to locate it if it is not already visible). Whenever you need input from ' +
   'the user you MUST call ask_user with one clear question and then stop. Never ask the user anything in ' +
   'a normal assistant message.';
+const CREATE_PR_SYSTEM_PROMPT =
+  'When the work on this branch is ready for review, you MUST define the pull request by calling the ' +
+  'create_pr tool (a tool named create_pr is available; use tool search to locate it if it is not already ' +
+  'visible) with a title and a body, then end your turn. Do NOT write the PR description as plain text — it ' +
+  'is not delivered that way. Do not push or merge; the host opens the PR from the details you provide.';
 
 // Optional environment briefing, appended to the system prompt when set (e.g. to describe pre-provisioned
 // services or steer the agent to the CLI). Intentionally unused by default — we rely on the docs and the
@@ -218,9 +223,11 @@ export class SessionSupervisor {
     else args.push('--permission-mode', 'bypassPermissions');
 
     const appendedPrompts: string[] = [];
-    if (ASK_USER_MCP_AVAILABLE) {
-      args.push('--mcp-config', ASK_USER_MCP_CONFIG, '--strict-mcp-config');
-      appendedPrompts.push(ASK_USER_SYSTEM_PROMPT);
+    if (MCP_CONFIG_AVAILABLE) {
+      args.push('--mcp-config', MCP_CONFIG, '--strict-mcp-config');
+      // Append each tool's guidance only when that tool is enabled for this session (via container env).
+      if (process.env.LOOPSTACK_MCP_ASK_USER) appendedPrompts.push(ASK_USER_SYSTEM_PROMPT);
+      if (process.env.LOOPSTACK_MCP_CREATE_PR) appendedPrompts.push(CREATE_PR_SYSTEM_PROMPT);
     }
     if (ENV_BRIEFING) appendedPrompts.push(ENV_BRIEFING);
     if (req.systemPrompt) appendedPrompts.push(req.systemPrompt);

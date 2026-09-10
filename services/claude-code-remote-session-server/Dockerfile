@@ -29,6 +29,11 @@ COPY package.json package-lock.json* ./
 RUN npm install --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 
+# Loopstack MCP exit-point tools (ask_user / create_pr). Both are gated per session by env flags, so this
+# one image serves interactive, commit, PR, and plain runs alike — no separate interactive variant.
+COPY interactive/loopstack-mcp.mjs /opt/loopstack/loopstack-mcp.mjs
+COPY interactive/loopstack.mcp.json /etc/loopstack/loopstack.mcp.json
+
 # Boot conditional services (Postgres/Redis), then the session server.
 COPY start.sh ./
 RUN chmod +x ./start.sh

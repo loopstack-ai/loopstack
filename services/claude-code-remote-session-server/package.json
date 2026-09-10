@@ -15,9 +15,8 @@
     "test": "jest --passWithNoTests",
     "docker:build:base": "docker build -f Dockerfile.base -t loopstack-engineer-base:latest .",
     "docker:build": "docker build -t loopstack-engineer-agent:latest .",
-    "docker:build:interactive": "docker build -f Dockerfile.interactive -t loopstack-engineer-agent-interactive:latest .",
     "docker:build:apprunner": "docker build -f Dockerfile.apprunner -t loopstack-engineer-apprunner:latest .",
-    "docker:build:all": "npm run docker:build:base && npm run docker:build && npm run docker:build:interactive && npm run docker:build:apprunner"
+    "docker:build:all": "npm run docker:build:base && npm run docker:build && npm run docker:build:apprunner"
   },
   "dependencies": {
     "express": "^5.2.1",
