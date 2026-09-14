@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "loopstack": {
-      "command": "node",
-      "args": ["/opt/loopstack/loopstack-mcp.mjs"]
-    }
-  }
-}
