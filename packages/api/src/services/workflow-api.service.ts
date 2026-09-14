@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { RunTraceEventEntity, WorkflowCheckpointEntity, WorkflowEntity, WorkflowState } from '@loopstack/common';
@@ -28,6 +29,7 @@ export class WorkflowApiService {
     private readonly runTraceService: RunTraceService,
     private readonly createWorkflowService: CreateWorkflowService,
     private readonly workflowRegistryService: WorkflowRegistryService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -187,6 +189,9 @@ export class WorkflowApiService {
     if (!workflow) throw new NotFoundException(`Workflow with ID ${id} not found`);
 
     await this.workflowRepository.delete({ id, createdBy: user });
+    // In-process domain event so the host app can release resources it holds for this run (checkout
+    // dirs, containers, volumes, …). Emitted once per deleted workflow, after the delete committed.
+    this.eventEmitter.emit('workflow.deleted', { id, workspaceId: workflow.workspaceId });
   }
 
   async setStatus(id: string, user: string, status: WorkflowState): Promise<void> {
@@ -219,10 +224,12 @@ export class WorkflowApiService {
         id: In(ids),
         createdBy: user,
       },
-      select: ['id'],
+      // workspaceId rides along for the `workflow.deleted` events emitted below.
+      select: ['id', 'workspaceId'],
     });
 
     const existingWorkflowIds = existingWorkflows.map((workflow) => workflow.id);
+    const workspaceByWorkflowId = new Map(existingWorkflows.map((workflow) => [workflow.id, workflow.workspaceId]));
     const notFoundIds = ids.filter((id) => !existingWorkflowIds.includes(id));
 
     notFoundIds.forEach((id) => {
@@ -276,6 +283,11 @@ export class WorkflowApiService {
         });
       });
     }
+
+    // One `workflow.deleted` per actually-deleted run (see `delete` for the event contract).
+    deleted.forEach((id) =>
+      this.eventEmitter.emit('workflow.deleted', { id, workspaceId: workspaceByWorkflowId.get(id) }),
+    );
 
     return { deleted, failed };
   }

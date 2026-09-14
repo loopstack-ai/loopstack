@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
@@ -20,6 +21,7 @@ export class WorkspaceApiService {
     private workspaceRepository: Repository<WorkspaceEntity>,
     private configService: ConfigService,
     private studioDiscoveryService: StudioDiscoveryService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -172,6 +174,11 @@ export class WorkspaceApiService {
     if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
 
     await this.workspaceRepository.delete({ id, createdBy: user });
+    // In-process domain event so the host app can release resources it holds for this workspace (disk
+    // state, containers, …). Emitted once per deleted workspace, after the delete committed. Cascaded
+    // workflow deletions do NOT emit their own `workflow.deleted` events — a workspace-level listener is
+    // expected to reclaim everything the workspace owned.
+    this.eventEmitter.emit('workspace.deleted', { id });
   }
 
   async batchDelete(
@@ -250,6 +257,9 @@ export class WorkspaceApiService {
         });
       });
     }
+
+    // One `workspace.deleted` per actually-deleted workspace (see `delete` for the event contract).
+    deleted.forEach((id) => this.eventEmitter.emit('workspace.deleted', { id }));
 
     return { deleted, failed };
   }
