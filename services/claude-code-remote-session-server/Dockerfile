@@ -15,6 +15,20 @@ FROM ${BASE_IMAGE}
 # The coding agent itself.
 RUN npm i -g @anthropic-ai/claude-code
 
+# GitHub CLI — used by the agent to search existing issues (authenticates via the GITHUB_TOKEN in the session
+# env). Installed from GitHub's official apt repo.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends gnupg \
+  && mkdir -p -m 755 /etc/apt/keyrings \
+  && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+     | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+  && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+     > /etc/apt/sources.list.d/github-cli.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends gh \
+  && rm -rf /var/lib/apt/lists/*
+
 # The Loopstack CLI is the agent's default surface for running and testing workflows (against the app on
 # localhost:3000, no login) — the terminal-native alternative to the browser-based Studio.
 #
@@ -29,8 +43,8 @@ COPY package.json package-lock.json* ./
 RUN npm install --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 
-# Loopstack MCP exit-point tools (ask_user / create_pr). Both are gated per session by env flags, so this
-# one image serves interactive, commit, PR, and plain runs alike — no separate interactive variant.
+# Loopstack MCP exit-point tools (ask_user / create_pr / create_github_issue). All gated per session by env
+# flags, so this one image serves interactive, commit, PR, issue, and plain runs alike — no separate variant.
 COPY interactive/loopstack-mcp.mjs /opt/loopstack/loopstack-mcp.mjs
 COPY interactive/loopstack.mcp.json /etc/loopstack/loopstack.mcp.json
 

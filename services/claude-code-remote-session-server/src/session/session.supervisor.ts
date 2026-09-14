@@ -66,6 +66,14 @@ const CREATE_PR_SYSTEM_PROMPT =
   'create_pr tool (a tool named create_pr is available; use tool search to locate it if it is not already ' +
   'visible) with a title and a body, then end your turn. Do NOT write the PR description as plain text — it ' +
   'is not delivered that way. Do not push or merge; the host opens the PR from the details you provide.';
+const CREATE_ISSUE_SYSTEM_PROMPT =
+  'To file a confirmed improvement idea as a GitHub issue, you MUST call the create_github_issue tool (a ' +
+  'tool named create_github_issue is available; use tool search to locate it if it is not already visible) ' +
+  'with a title, a Markdown body, and one category. Do NOT write the issue as plain text — it is not filed ' +
+  'that way. Unlike create_pr you MAY call it multiple times (one per idea) and you do NOT need to end your ' +
+  'turn because of it; Loopstack creates each issue and returns the link. Only call it for ideas the user ' +
+  'has confirmed. To RECORD an idea the user chose to decline (so it is tracked and not re-suggested later), ' +
+  'call the same tool with the declineReason argument set — it is created and immediately closed as declined.';
 
 // Optional environment briefing, appended to the system prompt when set (e.g. to describe pre-provisioned
 // services or steer the agent to the CLI). Intentionally unused by default — we rely on the docs and the
@@ -228,6 +236,7 @@ export class SessionSupervisor {
       // Append each tool's guidance only when that tool is enabled for this session (via container env).
       if (process.env.LOOPSTACK_MCP_ASK_USER) appendedPrompts.push(ASK_USER_SYSTEM_PROMPT);
       if (process.env.LOOPSTACK_MCP_CREATE_PR) appendedPrompts.push(CREATE_PR_SYSTEM_PROMPT);
+      if (process.env.LOOPSTACK_MCP_CREATE_ISSUE) appendedPrompts.push(CREATE_ISSUE_SYSTEM_PROMPT);
     }
     if (ENV_BRIEFING) appendedPrompts.push(ENV_BRIEFING);
     if (req.systemPrompt) appendedPrompts.push(req.systemPrompt);

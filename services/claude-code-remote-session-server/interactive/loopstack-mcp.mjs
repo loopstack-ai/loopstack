@@ -1,17 +1,25 @@
 // Minimal stateless stdio MCP server exposing Loopstack's exit-point tools, each gated by an env flag so
 // tool availability is decided per session (the image no longer selects the mode):
-//   - `ask_user`   — listed when LOOPSTACK_MCP_ASK_USER is set.
-//   - `create_pr`  — listed when LOOPSTACK_MCP_CREATE_PR is set.
+//   - `ask_user`            — listed when LOOPSTACK_MCP_ASK_USER is set.
+//   - `create_pr`           — listed when LOOPSTACK_MCP_CREATE_PR is set.
+//   - `create_github_issue` — listed when LOOPSTACK_MCP_CREATE_ISSUE is set.
 //
-// Both are exit points: the tool records nothing and returns a fixed ack so Claude's tool call/result
-// cycle completes and it ends its turn. The host reads the tool_use input from the transcript (the question,
-// or the PR title/body) and acts on it. Newline-delimited JSON-RPC 2.0 over stdio.
+// Each records nothing and returns a fixed ack so Claude's tool call/result cycle completes. The host reads
+// the tool_use input from the transcript (the question, the PR title/body, or each issue's title/body/category)
+// and acts on it. `ask_user`/`create_pr` are single exit points (end the turn); `create_github_issue` may be
+// called repeatedly within a turn (the host accumulates them). Newline-delimited JSON-RPC 2.0 over stdio.
 
 const ASK_USER_ENABLED = !!process.env.LOOPSTACK_MCP_ASK_USER;
 const CREATE_PR_ENABLED = !!process.env.LOOPSTACK_MCP_CREATE_PR;
+const CREATE_ISSUE_ENABLED = !!process.env.LOOPSTACK_MCP_CREATE_ISSUE;
 
 const ASK_USER_ACK = 'Forwarded to the user successfully. Wait for the next user message.';
 const CREATE_PR_ACK = 'Pull request details recorded successfully. End your turn now — the host opens the PR.';
+const CREATE_ISSUE_ACK =
+  'Issue request recorded. Loopstack creates it and returns the link. You may request more issues, or ' +
+  'continue working / ask the user — do NOT end your turn solely because of this call.';
+
+const ISSUE_CATEGORIES = ['example', 'feature', 'core', 'documentation', 'test', 'studio'];
 
 const TOOLS = {
   ask_user: {
@@ -52,6 +60,45 @@ const TOOLS = {
           },
         },
         required: ['title', 'body'],
+      },
+    },
+  },
+  create_github_issue: {
+    enabled: CREATE_ISSUE_ENABLED,
+    ack: CREATE_ISSUE_ACK,
+    def: {
+      name: 'create_github_issue',
+      description:
+        'Request a GitHub issue to be created for an improvement idea you have confirmed with the user. The ' +
+        'issue presents an IDEA only — not a decision, detailed concept, or implementation plan. Loopstack ' +
+        'creates the issue (with the category as a label) and returns the link. You MAY call this multiple ' +
+        'times (one per idea) and you do NOT need to end your turn because of it — keep working or ask the user.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Concise issue title describing the idea.' },
+          body: {
+            type: 'string',
+            description:
+              'Issue body in Markdown: the idea, the gap it addresses, the rationale, and a short note on basic ' +
+              'feasibility. An idea only — no final decision, detailed concept, or implementation plan.',
+          },
+          category: {
+            type: 'string',
+            enum: ISSUE_CATEGORIES,
+            description:
+              'Scope of the idea: "example"/"feature" for registry packages, "core" for loopstack/packages, ' +
+              '"documentation", "test", or "studio" for the frontend.',
+          },
+          declineReason: {
+            type: 'string',
+            description:
+              'Optional. When set, the issue is created and IMMEDIATELY closed as "not planned" with this ' +
+              'reason posted as a comment — use only for an idea the user chose to RECORD AS DECLINED (so it ' +
+              "won't be re-suggested later), not for an idea to pursue. Omit for a normal open idea.",
+          },
+        },
+        required: ['title', 'body', 'category'],
       },
     },
   },
