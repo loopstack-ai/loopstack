@@ -16,7 +16,10 @@
     "docker:build:base": "docker build -f Dockerfile.base -t loopstack-engineer-base:latest .",
     "docker:build": "docker build -t loopstack-engineer-agent:latest .",
     "docker:build:apprunner": "docker build -f Dockerfile.apprunner -t loopstack-engineer-apprunner:latest .",
-    "docker:build:all": "npm run docker:build:base && npm run docker:build && npm run docker:build:apprunner"
+    "docker:build:base-dind": "docker build -f Dockerfile.base-dind -t loopstack-engineer-base-dind:latest .",
+    "docker:build:dind": "docker build --build-arg BASE_IMAGE=loopstack-engineer-base-dind:latest -t loopstack-engineer-agent-dind:latest .",
+    "docker:build:apprunner-dind": "docker build -f Dockerfile.apprunner --build-arg BASE_IMAGE=loopstack-engineer-base-dind:latest -t loopstack-engineer-apprunner-dind:latest .",
+    "docker:build:all": "npm run docker:build:base && npm run docker:build && npm run docker:build:apprunner && npm run docker:build:base-dind && npm run docker:build:dind && npm run docker:build:apprunner-dind"
   },
   "dependencies": {
     "express": "^5.2.1",

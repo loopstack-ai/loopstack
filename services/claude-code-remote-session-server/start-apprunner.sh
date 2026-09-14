@@ -7,5 +7,8 @@ set -e
 ENABLE_SERVICES=1
 export ENABLE_SERVICES
 /usr/local/bin/boot-services.sh
+if [ -x /usr/local/bin/boot-docker.sh ]; then
+  /usr/local/bin/boot-docker.sh
+fi
 
 exec node dist/index.js
