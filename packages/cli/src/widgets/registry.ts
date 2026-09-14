@@ -1,6 +1,7 @@
 import { collectForm } from './collect/form.collect.js';
 import { collectChoices, collectConfirm, collectText } from './collect/prompts.collect.js';
 import { collectSecretInput } from './collect/secret-input.collect.js';
+import { collectTerminalHandoff } from './collect/terminal-handoff.collect.js';
 import { collectButton, collectPromptInput } from './collect/workflow.collect.js';
 import { formWidget } from './document/form.widget.js';
 import { jsonWidget } from './document/json.widget.js';
@@ -39,6 +40,9 @@ const WIDGETS = new Map<string, CliWidget>([
   // config, not to a document.
   ['prompt-input', { collect: collectPromptInput }],
   ['button', { collect: collectButton }],
+  // Terminal hand-off: runs a local command with an inherited TTY, then fires
+  // its transition on exit (e.g. `claude --continue` in a container).
+  ['terminal-handoff', { collect: collectTerminalHandoff }],
 ]);
 
 /**

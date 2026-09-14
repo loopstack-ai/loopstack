@@ -1,4 +1,4 @@
-import { Boxes, LayoutGrid, MoreHorizontal, PanelLeftIcon, Play, Star } from 'lucide-react';
+import { Boxes, LayoutGrid, Moon, MoreHorizontal, PanelLeftIcon, Play, Star, Sun } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { useFilterWorkspaces } from '@/hooks/useWorkspaces.ts';
 import { cn } from '@/lib/utils';
 import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
 import { useStudio, useStudioOptional } from '@/providers/StudioProvider.tsx';
+import { useTheme } from '@/providers/ThemeProvider.tsx';
 import {
   Sidebar,
   SidebarContent,
@@ -212,8 +213,28 @@ const FavouritesNav = () => {
 //   );
 // };
 
+const ThemeToggle = () => {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton onClick={toggleTheme} tooltip={isDark ? 'Switch to light theme' : 'Switch to dark theme'}>
+        {isDark ? <Moon /> : <Sun />}
+        <span>{isDark ? 'Dark' : 'Light'} theme</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+};
+
 const DefaultSidebarFooter = () => {
-  return <SidebarFooter />;
+  return (
+    <SidebarFooter>
+      <SidebarMenu>
+        <ThemeToggle />
+      </SidebarMenu>
+    </SidebarFooter>
+  );
 };
 
 export const StudioSidebar = () => {

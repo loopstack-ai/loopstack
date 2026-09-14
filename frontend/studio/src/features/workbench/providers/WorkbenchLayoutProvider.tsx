@@ -27,6 +27,12 @@ export interface WorkbenchLayoutContextType {
   setSelectedSlotId: (slotId: string) => void;
   openPreviewWithEnvironment: (slotId: string) => void;
 
+  // File-explorer deep-open: a card elsewhere requests a path; the explorer picks it up when it mounts,
+  // resolves it against the loaded tree, and clears it.
+  requestedFilePath: string | null;
+  openFileInExplorer: (path: string) => void;
+  clearRequestedFile: () => void;
+
   // Active workflow section (for navigation highlight sync)
   activeSectionId: string | null;
   setActiveSectionId: (id: string | null) => void;
@@ -133,6 +139,20 @@ export function WorkbenchLayoutProvider({
     [setActivePanel],
   );
 
+  const [requestedFilePath, setRequestedFilePath] = useState<string | null>(null);
+
+  const openFileInExplorer = useCallback(
+    (filePath: string) => {
+      setRequestedFilePath(filePath);
+      // Targets the remote file-explorer panel (the file-explorer feature an app registers); the panel
+      // resolves `requestedFilePath` against its tree once loaded.
+      setActivePanel('remote-files');
+    },
+    [setActivePanel],
+  );
+
+  const clearRequestedFile = useCallback(() => setRequestedFilePath(null), []);
+
   const value = useMemo<WorkbenchLayoutContextType>(
     () => ({
       workspaceId,
@@ -152,6 +172,10 @@ export function WorkbenchLayoutProvider({
       selectedSlotId,
       setSelectedSlotId,
       openPreviewWithEnvironment,
+
+      requestedFilePath,
+      openFileInExplorer,
+      clearRequestedFile,
 
       activeSectionId,
       setActiveSectionId,
@@ -173,6 +197,10 @@ export function WorkbenchLayoutProvider({
 
       selectedSlotId,
       openPreviewWithEnvironment,
+
+      requestedFilePath,
+      openFileInExplorer,
+      clearRequestedFile,
 
       activeSectionId,
       setActiveSectionId,

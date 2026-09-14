@@ -73,35 +73,27 @@ const OAuthCallbackPage: React.FC = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        fontFamily: 'system-ui, sans-serif',
-      }}
-    >
-      <div style={{ textAlign: 'center', maxWidth: 400, padding: 24 }}>
+    <div className="bg-background text-foreground flex min-h-screen items-center justify-center font-sans">
+      <div className="max-w-100 p-6 text-center">
         {(status === 'sending' || status === 'completing') && <p>Processing authentication...</p>}
         {(status === 'sent' || status === 'completed') && (
           <>
-            <p style={{ fontSize: 18, fontWeight: 500 }}>Authentication complete</p>
-            <p style={{ color: '#666', marginTop: 8 }}>This window will close automatically.</p>
+            <p className="text-lg font-medium">Authentication complete</p>
+            <p className="text-muted-foreground mt-2">This window will close automatically.</p>
           </>
         )}
         {status === 'failed' && (
           <>
-            <p style={{ fontSize: 18, fontWeight: 500 }}>Sign-in not completed</p>
-            <p style={{ color: '#666', marginTop: 8 }}>
+            <p className="text-lg font-medium">Sign-in not completed</p>
+            <p className="text-muted-foreground mt-2">
               {failureMessage ?? 'This sign-in link has expired or was already used.'}
             </p>
           </>
         )}
         {status === 'error' && (
           <>
-            <p style={{ fontSize: 18, fontWeight: 500 }}>Something went wrong</p>
-            <p style={{ color: '#666', marginTop: 8 }}>
+            <p className="text-lg font-medium">Something went wrong</p>
+            <p className="text-muted-foreground mt-2">
               Could not communicate with the application. Please close this window and try again.
             </p>
           </>

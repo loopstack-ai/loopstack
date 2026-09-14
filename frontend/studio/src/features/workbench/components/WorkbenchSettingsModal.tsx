@@ -28,7 +28,11 @@ const WorkbenchSettingsModal: React.FC<WorkbenchSettingsModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-gray-500 hover:cursor-pointer hover:text-gray-700">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:cursor-pointer hover:text-foreground"
+        >
           <Settings className="h-5 w-5" />
         </Button>
       </DialogTrigger>

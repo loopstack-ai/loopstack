@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react';
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import type { WorkspaceActionInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
@@ -21,8 +22,19 @@ const WorkspacePage = () => {
 
   const workspace = fetchWorkspace.data;
 
-  // Start form action: not yet supported for controller-based apps
-  const startFormAction: WorkspaceActionInterface | undefined = undefined;
+  // Home page: build a launch card per `start-form` widget the app declares (@StudioApp ui.widgets),
+  // resolving each referenced workflow's schema so its args render on the card.
+  const startFormActions: WorkspaceActionInterface[] = useMemo(() => {
+    const app = fetchAppsConfig.data?.find((a) => a.appName === workspace?.appName);
+    const widgets = app?.ui?.widgets ?? [];
+    return widgets
+      .filter((w) => w.widget === 'start-form')
+      .map((w) => {
+        const workflowName = w.options?.workflow as string | undefined;
+        const workflow = app?.workflows.find((x) => x.workflowName === workflowName);
+        return { widget: 'start-form', options: { ...w.options, schema: workflow?.schema } };
+      });
+  }, [fetchAppsConfig.data, workspace?.appName]);
 
   const breadcrumbData = [
     { label: 'Workspaces', href: router.getWorkspaces() },
@@ -47,8 +59,8 @@ const WorkspacePage = () => {
         <WorkbenchSidebarShell>
           <MainLayout breadcrumbsData={breadcrumbData}>
             <ErrorSnackbar error={fetchAppsConfig.error} />
-            {startFormAction ? (
-              <WorkspaceHomePage workspace={workspace} action={startFormAction} />
+            {startFormActions.length > 0 ? (
+              <WorkspaceHomePage workspace={workspace} actions={startFormActions} />
             ) : (
               <div className="flex flex-col items-center justify-center py-16">
                 <p className="text-muted-foreground">No home page configured for this workspace.</p>

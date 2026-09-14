@@ -85,7 +85,9 @@ export class SecretRequestDocument {
 ### SecretService
 
 Service that performs workspace-scoped CRUD on secrets — find, create, update, upsert, and delete;
-inject it to read or write secret values programmatically from backend code.
+inject it to read or write secret values programmatically from backend code. It also resolves the
+effective env for a workspace, overlaying the module's configured global fallback keys (from
+`process.env`) with the workspace's own secrets — see `SecretsModuleConfig`.
 
 ```ts
 import { SecretService } from '@loopstack/secrets-module';
@@ -95,8 +97,11 @@ import { SecretService } from '@loopstack/secrets-module';
 
 ```ts
 export class SecretService {
-  constructor(secretRepository: Repository<SecretEntity>);
+  constructor(secretRepository: Repository<SecretEntity>, config: SecretsModuleConfig);
   findAllByWorkspace(workspaceId: string): Promise<SecretEntity[]>;
+  resolveEnv(workspaceId: string): Promise<ResolvedWorkspaceEnv>;
+  resolveEnvMap(workspaceId: string): Promise<Record<string, string>>;
+  resolveKeys(workspaceId: string): Promise<ResolvedSecretKey[]>;
   create(
     workspaceId: string,
     data: {
@@ -130,10 +135,13 @@ NestJS module that provides workspace-scoped secrets storage — the `SecretEnti
 
 Registration:
 
-- `SecretsModule` — bare import registers the entity, controller, services, tools, and workflow; use
-  this when you do not need feature-registry toggling.
-- `SecretsModule.forFeature({ enabled?: boolean })` — use when you want the secrets capability registered
-  with the feature registry so it can be opt-in toggled via the `enabled` flag.
+- `SecretsModule` — bare import registers the global root with the default (empty) config; use when you
+  don't need the feature toggle or a global-secret allowlist.
+- `SecretsModule.forRoot(config)` — sets the app-wide default `SecretsModuleConfig` (e.g. the
+  global-secret allowlist read by `SecretService`). Import once at the root.
+- `SecretsModule.forFeature(config)` — registers the `secrets` Studio feature and overrides the config
+  for this module's `SecretService` / `get_secret_keys` — so different modules can declare different
+  global-secret allowlists.
 
 Requires: a configured database — your root `TypeOrmModule.forRoot()` must include `SecretEntity` (the
 module registers it via `TypeOrmModule.forFeature` internally, but the connection and schema must exist).
@@ -144,7 +152,8 @@ import { SecretsModule } from '@loopstack/secrets-module';
 
 ```ts
 export class SecretsModule {
-  static forFeature(config?: { enabled?: boolean }): DynamicModule;
+  static forRoot(config?: SecretsModuleConfig): DynamicModule;
+  static forFeature(config?: SecretsModuleConfig): DynamicModule;
 }
 ```
 
@@ -166,11 +175,29 @@ export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs> {
 }
 ```
 
+## Interfaces
+
+### SecretsModuleConfig
+
+Configuration for `SecretsModule.forRoot` / `SecretsModule.forFeature`.
+
+```ts
+import { SecretsModuleConfig } from '@loopstack/secrets-module';
+```
+
+```ts
+export interface SecretsModuleConfig {
+  enabled?: boolean;
+  globalSecretKeys?: string[];
+}
+```
+
 ## Type Aliases
 
 ### GetSecretKeysResult
 
-Result for `get_secret_keys` — one entry per secret with its `key` and a `hasValue` flag, never the value.
+Result for `get_secret_keys` — one entry per available key with a `hasValue` flag (never the value) and a
+`global` flag marking keys that resolve from the global fallback rather than a workspace secret.
 
 ```ts
 import { GetSecretKeysResult } from '@loopstack/secrets-module';
@@ -180,6 +207,7 @@ import { GetSecretKeysResult } from '@loopstack/secrets-module';
 export type GetSecretKeysResult = {
   key: string;
   hasValue: boolean;
+  global: boolean;
 }[];
 ```
 
@@ -216,6 +244,22 @@ export type RequestSecretsTaskResult =
   | string;
 ```
 
+## Functions
+
+### formatResolvedSecretsMessage
+
+A one-line, user-facing summary of a `ResolvedWorkspaceEnv` — which injected secret keys came from
+the workspace vs the global fallback — for surfacing the secret sources to the user in a workflow message.
+Returns null when nothing was injected.
+
+```ts
+import { formatResolvedSecretsMessage } from '@loopstack/secrets-module';
+```
+
+```ts
+export function formatResolvedSecretsMessage({ workspaceKeys, globalKeys }: ResolvedWorkspaceEnv): string | null;
+```
+
 ## Variables
 
 ### GetSecretKeysResultSchema
@@ -232,6 +276,7 @@ GetSecretKeysResultSchema: z.ZodArray<
     {
       key: z.ZodString;
       hasValue: z.ZodBoolean;
+      global: z.ZodBoolean;
     },
     z.core.$strict
   >

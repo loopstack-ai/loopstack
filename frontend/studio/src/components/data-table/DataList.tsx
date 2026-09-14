@@ -122,7 +122,7 @@ export function DataList<T extends { id: string }>({
         showFilter={!!onFiltersChange && Object.keys(filterConfig).length > 0}
         showSearch={!!onSearchChange}
       >
-        <div className="text-sm text-gray-400">
+        <div className="text-sm text-muted-foreground">
           <Checkbox
             checked={selectedRows.length === data.length && data.length > 0}
             onCheckedChange={toggleSelectAll}

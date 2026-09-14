@@ -27,7 +27,7 @@ const WorkflowRunButtons: React.FC<WorkflowRunButtonsProps> = ({ workflow }) => 
                 size="sm"
                 onClick={handlePing}
                 disabled={runWorkflow.isPending}
-                className="ml-3.5 h-8 w-8 bg-transparent p-0 text-black hover:bg-gray-100"
+                className="ml-3.5 h-8 w-8 bg-transparent p-0 text-foreground hover:bg-accent"
               >
                 {runWorkflow.isPending ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
