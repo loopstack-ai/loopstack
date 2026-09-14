@@ -1,5 +1,11 @@
 # @loopstack/secrets-module
 
+## 0.28.0
+
+### Minor Changes
+
+- [#257](https://github.com/loopstack-ai/loopstack/pull/257) [`74021f0`](https://github.com/loopstack-ai/loopstack/commit/74021f0af70e10c593d76218b985b208ac3817b3) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add module-scoped **global secret fallback**. `SecretsModule.forRoot(config)` / `forFeature(config)` now accept `globalSecretKeys` — key names allowed to fall back to a value from `process.env` when the current workspace has no secret of that key (a workspace secret of the same key always wins). Different modules can declare different allowlists (the config-bound `SecretService` / `get_secret_keys` are re-provided per registration, over a shared `@Global` root). `SecretService` gains `resolveEnv(workspaceId)` (the effective `key → value` env plus a `workspaceKeys` / `globalKeys` source breakdown), `resolveEnvMap(workspaceId)` (just the env), and `resolveKeys(workspaceId)` (available keys, each flagged `global`); `get_secret_keys` now reports globally-available keys too (with a `global` flag), so required-secret checks treat them as present. Also exports `formatResolvedSecretsMessage(resolved)` — a one-line summary of which injected keys came from the workspace vs the global fallback, for surfacing to the user. Backward-compatible: with no `globalSecretKeys` configured, behavior is unchanged.
+
 ## 0.27.0
 
 ### Minor Changes

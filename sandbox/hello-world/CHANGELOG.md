@@ -1,5 +1,12 @@
 # hello-world
 
+## 0.2.10
+
+### Patch Changes
+
+- Updated dependencies [[`74021f0`](https://github.com/loopstack-ai/loopstack/commit/74021f0af70e10c593d76218b985b208ac3817b3)]:
+  - @loopstack/secrets-module@0.28.0
+
 ## 0.2.9
 
 ### Patch Changes
