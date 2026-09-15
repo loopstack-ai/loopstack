@@ -178,7 +178,7 @@ export class WorkspaceApiService {
     // state, containers, …). Emitted once per deleted workspace, after the delete committed. Cascaded
     // workflow deletions do NOT emit their own `workflow.deleted` events — a workspace-level listener is
     // expected to reclaim everything the workspace owned.
-    this.eventEmitter.emit('workspace.deleted', { id, user });
+    this.eventEmitter.emit('workspace.deleted', { id, appName: workspace.appName, user });
   }
 
   async batchDelete(
@@ -200,7 +200,8 @@ export class WorkspaceApiService {
         id: In(ids),
         createdBy: user,
       },
-      select: ['id'],
+      // appName rides along for the `workspace.deleted` events emitted below.
+      select: ['id', 'appName'],
     });
 
     const existingIds = existingWorkspaces.map((workspace) => workspace.id);
@@ -259,7 +260,8 @@ export class WorkspaceApiService {
     }
 
     // One `workspace.deleted` per actually-deleted workspace (see `delete` for the event contract).
-    deleted.forEach((id) => this.eventEmitter.emit('workspace.deleted', { id, user }));
+    const appNameById = new Map(existingWorkspaces.map((w) => [w.id, w.appName]));
+    deleted.forEach((id) => this.eventEmitter.emit('workspace.deleted', { id, appName: appNameById.get(id), user }));
 
     return { deleted, failed };
   }
