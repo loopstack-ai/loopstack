@@ -191,7 +191,7 @@ export class WorkflowApiService {
     await this.workflowRepository.delete({ id, createdBy: user });
     // In-process domain event so the host app can release resources it holds for this run (checkout
     // dirs, containers, volumes, …). Emitted once per deleted workflow, after the delete committed.
-    this.eventEmitter.emit('workflow.deleted', { id, workspaceId: workflow.workspaceId });
+    this.eventEmitter.emit('workflow.deleted', { id, workspaceId: workflow.workspaceId, user });
   }
 
   async setStatus(id: string, user: string, status: WorkflowState): Promise<void> {
@@ -286,7 +286,7 @@ export class WorkflowApiService {
 
     // One `workflow.deleted` per actually-deleted run (see `delete` for the event contract).
     deleted.forEach((id) =>
-      this.eventEmitter.emit('workflow.deleted', { id, workspaceId: workspaceByWorkflowId.get(id) }),
+      this.eventEmitter.emit('workflow.deleted', { id, workspaceId: workspaceByWorkflowId.get(id), user }),
     );
 
     return { deleted, failed };

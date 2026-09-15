@@ -178,7 +178,7 @@ export class WorkspaceApiService {
     // state, containers, …). Emitted once per deleted workspace, after the delete committed. Cascaded
     // workflow deletions do NOT emit their own `workflow.deleted` events — a workspace-level listener is
     // expected to reclaim everything the workspace owned.
-    this.eventEmitter.emit('workspace.deleted', { id });
+    this.eventEmitter.emit('workspace.deleted', { id, user });
   }
 
   async batchDelete(
@@ -259,7 +259,7 @@ export class WorkspaceApiService {
     }
 
     // One `workspace.deleted` per actually-deleted workspace (see `delete` for the event contract).
-    deleted.forEach((id) => this.eventEmitter.emit('workspace.deleted', { id }));
+    deleted.forEach((id) => this.eventEmitter.emit('workspace.deleted', { id, user }));
 
     return { deleted, failed };
   }
