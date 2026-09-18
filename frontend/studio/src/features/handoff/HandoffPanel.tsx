@@ -18,9 +18,9 @@ export function HandoffPanel() {
   const { panelSize, setPanelSize, closePanel } = useWorkbenchLayout();
   const { workflowId } = useParams();
   const { data: workflow } = useWorkflow(workflowId);
-  const { data: documents } = useFilterDocuments(workflowId);
+  const { documents } = useFilterDocuments(workflowId);
 
-  const handoffDocs = (documents ?? []).filter((doc) => doc.tags?.includes(HANDOFF_TAG));
+  const handoffDocs = documents.filter((doc) => doc.tags?.includes(HANDOFF_TAG));
 
   return (
     <SidebarPanel

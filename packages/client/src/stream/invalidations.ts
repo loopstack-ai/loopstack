@@ -32,7 +32,9 @@ export function resolveInvalidations(message: ClientMessage, envKey: string): Qu
       return keys;
     }
     case 'document.created':
-      return [queryKeys.documents(envKey, message.workflowId)];
+      // Documents are not invalidated wholesale: a run's list can be arbitrarily long, so the cache binder
+      // fetches only what changed since its newest row and merges that in (see `useLiveDocuments`).
+      return [];
     case 'secret.upserted':
     case 'secret.deleted':
       return [queryKeys.secrets(envKey, message.workspaceId)];

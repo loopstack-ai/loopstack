@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { createClient } from '@loopstack/client';
-import { LoopstackProvider, useLiveInvalidation } from '@loopstack/react';
+import { LoopstackProvider, useLiveDocuments, useLiveInvalidation } from '@loopstack/react';
 import { useMe } from '../hooks/useAuth.ts';
 import { createReportingFetch } from '../services/reporting-fetch.ts';
 import { useStudio } from './StudioProvider.tsx';
@@ -12,6 +12,8 @@ import { useStudio } from './StudioProvider.tsx';
  */
 function LiveInvalidation() {
   useLiveInvalidation();
+  // Documents are merged into their cached window rather than invalidated — a run's list is unbounded.
+  useLiveDocuments();
   return null;
 }
 

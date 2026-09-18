@@ -2,6 +2,12 @@ import type { WorkflowListParams } from '../resources/workflows.js';
 import type { WorkspaceListParams } from '../resources/workspaces.js';
 
 /**
+ * Which documents of a run a window holds: `'current'` only the ones in force (the message view),
+ * `'all'` re-saved ones too (the transcript view).
+ */
+export type DocumentScope = 'current' | 'all';
+
+/**
  * Cache key builders shared by every Loopstack client surface.
  *
  * Conventions:
@@ -30,7 +36,10 @@ export const queryKeys = {
   availableEnvironments: (envKey: string) => ['availableEnvironments', envKey] as const,
   dashboardStats: (envKey: string) => ['dashboardStats', envKey] as const,
   document: (envKey: string, id: string) => ['document', envKey, id] as const,
-  documents: (envKey: string, workflowId: string) => ['documents', envKey, workflowId] as const,
+  // The scope (which documents the window holds) is part of the key: the transcript view includes
+  // re-saved documents, the message view does not, so the two must not share one cache entry.
+  documents: (envKey: string, workflowId: string, scope: DocumentScope = 'current') =>
+    ['documents', envKey, workflowId, scope] as const,
   secrets: (envKey: string, workspaceId: string) => ['secrets', envKey, workspaceId] as const,
   environments: (envKey: string, workspaceId: string) => ['workspace-environments', envKey, workspaceId] as const,
   gitStatus: (envKey: string, workspaceId: string) => ['gitStatus', envKey, workspaceId] as const,

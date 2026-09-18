@@ -29,6 +29,13 @@ export const DocumentFilterSchema = z.object({
   workflowId: z.uuid().optional(),
   isInvalidated: z.boolean().optional(),
   place: z.string().optional(),
+  /**
+   * Only documents written after this instant — new ones and re-saved ones alike. Lets a client hold a
+   * window of a run and fetch just what changed since its newest row, instead of re-reading the list.
+   */
+  updatedAfter: z.iso.datetime().optional(),
+  /** Only documents ordered before this `index` — the previous page when walking a run's history backwards. */
+  beforeIndex: z.number().optional(),
 });
 export type DocumentFilterInterface = z.infer<typeof DocumentFilterSchema>;
 

@@ -2,6 +2,7 @@ import type {
   AuthUserInterface,
   AvailableEnvironmentInterface,
   DashboardStatsInterface,
+  DocumentFilterInterface,
   DocumentItemInterface,
   PaginatedInterface,
   StudioAppConfig,
@@ -22,7 +23,7 @@ import type { DashboardResource } from '../resources/dashboard.js';
 import type { DocumentsResource } from '../resources/documents.js';
 import type { WorkflowListParams, WorkflowsResource } from '../resources/workflows.js';
 import type { WorkspaceListParams, WorkspacesResource } from '../resources/workspaces.js';
-import { queryKeys } from './query-keys.js';
+import { type DocumentScope, queryKeys } from './query-keys.js';
 
 interface QueryResources {
   envKey: string;
@@ -32,6 +33,72 @@ interface QueryResources {
   config: ConfigResource;
   dashboard: DashboardResource;
   auth: AuthResource;
+}
+
+/**
+ * How many documents a window holds — the newest ones of a run. A run's history can be arbitrarily long, so
+ * views open on its live end and walk backwards on demand ({@link fetchDocumentsBefore}) instead of loading
+ * everything.
+ */
+export const DOCUMENT_WINDOW_SIZE = 200;
+
+/**
+ * A slice of a run's documents: the loaded ones in display order (oldest first), plus how many the run has
+ * in total — the difference is what "load older" can still fetch.
+ */
+export interface DocumentWindow {
+  documents: DocumentItemInterface[];
+  total: number;
+}
+
+function documentFilter(workflowId: string, scope: DocumentScope): DocumentFilterInterface {
+  return { workflowId, ...(scope === 'all' ? {} : { isInvalidated: false }) };
+}
+
+/** The newest {@link DOCUMENT_WINDOW_SIZE} documents of a run, returned oldest-first for display. */
+export async function fetchDocumentWindow(
+  documents: DocumentsResource,
+  workflowId: string,
+  scope: DocumentScope = 'current',
+): Promise<DocumentWindow> {
+  const page = await documents.list({
+    filter: documentFilter(workflowId, scope),
+    sortBy: [{ field: 'index', order: SortOrder.DESC }],
+    limit: DOCUMENT_WINDOW_SIZE,
+  });
+  return { documents: [...page.data].reverse(), total: page.total };
+}
+
+/**
+ * Documents written after `updatedAfter` — the live delta. Covers new documents and re-saved ones alike
+ * (a re-save keeps its `index` but bumps `updatedAt`), so a caller merges the result by id.
+ */
+export function fetchDocumentsSince(
+  documents: DocumentsResource,
+  workflowId: string,
+  updatedAfter: string,
+  scope: DocumentScope = 'current',
+): Promise<PaginatedInterface<DocumentItemInterface>> {
+  return documents.list({
+    filter: { ...documentFilter(workflowId, scope), updatedAfter },
+    sortBy: [{ field: 'index', order: SortOrder.ASC }],
+    limit: DOCUMENT_WINDOW_SIZE,
+  });
+}
+
+/** The page of documents just before `beforeIndex`, oldest-first — one step back through a run's history. */
+export async function fetchDocumentsBefore(
+  documents: DocumentsResource,
+  workflowId: string,
+  beforeIndex: number,
+  scope: DocumentScope = 'current',
+): Promise<DocumentItemInterface[]> {
+  const page = await documents.list({
+    filter: { ...documentFilter(workflowId, scope), beforeIndex },
+    sortBy: [{ field: 'index', order: SortOrder.DESC }],
+    limit: DOCUMENT_WINDOW_SIZE,
+  });
+  return [...page.data].reverse();
 }
 
 /** A `queryOptions`-shaped descriptor consumable by any TanStack Query version. */
@@ -47,8 +114,8 @@ export interface LoopstackQueries {
   childWorkflows: (parentId: string) => QueryDescriptor<PaginatedInterface<WorkflowItemInterface>>;
   workflowCheckpoints: (id: string) => QueryDescriptor<WorkflowCheckpointInterface[]>;
   document: (id: string) => QueryDescriptor<DocumentItemInterface>;
-  /** The visible documents of a workflow run, in display order. */
-  documents: (workflowId: string) => QueryDescriptor<PaginatedInterface<DocumentItemInterface>>;
+  /** The newest documents of a workflow run, in display order — see {@link DocumentWindow}. */
+  documents: (workflowId: string, scope?: DocumentScope) => QueryDescriptor<DocumentWindow>;
   workspace: (id: string) => QueryDescriptor<WorkspaceInterface>;
   workspaceList: (params?: WorkspaceListParams) => QueryDescriptor<PaginatedInterface<WorkspaceInterface>>;
   apps: () => QueryDescriptor<StudioAppConfig[]>;
@@ -112,13 +179,9 @@ export function createQueries({
       queryFn: () => documents.get(id),
     }),
 
-    documents: (workflowId: string) => ({
-      queryKey: queryKeys.documents(envKey, workflowId),
-      queryFn: () =>
-        documents.list({
-          filter: { workflowId, isInvalidated: false },
-          sortBy: [{ field: 'index', order: SortOrder.ASC }],
-        }),
+    documents: (workflowId: string, scope: DocumentScope = 'current') => ({
+      queryKey: queryKeys.documents(envKey, workflowId, scope),
+      queryFn: () => fetchDocumentWindow(documents, workflowId, scope),
     }),
 
     workspace: (id: string) => ({
