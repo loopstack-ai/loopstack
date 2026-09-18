@@ -1,18 +1,16 @@
 {
-  "name": "@loopstack/agent-examples",
-  "displayName": "Loopstack Agent Examples",
-  "description": "Workflow examples for LLM agents in Loopstack — basic AgentWorkflow, code-exploration agent, MCP-connected agent, a from-scratch custom agent loop with a deterministic turn budget, and tool-error handling inside an agent loop.",
+  "name": "@loopstack/module-config-examples",
+  "displayName": "Loopstack Module Config Examples",
+  "description": "Workflow examples for configurable NestJS modules in Loopstack — the forRoot/forFeature convention, per-module config isolation, and passing config through a wrapper module.",
   "keywords": [
     "loopstack",
     "example",
-    "agent",
-    "llm",
-    "claude",
-    "mcp",
-    "error-handling",
+    "module",
+    "forroot",
+    "forfeature",
     "workflow"
   ],
-  "version": "0.1.3",
+  "version": "0.0.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,13 +31,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/agent": "*",
-    "@loopstack/claude-module": "*",
-    "@loopstack/code-agent": "*",
     "@loopstack/common": "*",
-    "@loopstack/llm-provider-module": "*",
-    "@loopstack/mcp-module": "*",
-    "@loopstack/remote-client": "*",
     "@nestjs/common": "^12.0.1",
     "zod": "^4.3.6"
   },
@@ -48,6 +40,8 @@
     "src"
   ],
   "devDependencies": {
+    "@loopstack/core": "*",
+    "@loopstack/testing": "*",
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",
     "unplugin-swc": "^1.5.9"

@@ -3,3 +3,5 @@ export * from './workflows/agent/agent-example.workflow';
 export * from './workflows/code-agent/code-agent-example.workflow';
 export * from './workflows/mcp-linear/mcp-linear-example.workflow';
 export * from './workflows/custom-agent/custom-agent-example.workflow';
+export * from './workflows/agent-error-handling/agent-error-handling.workflow';
+export * from './workflows/agent-error-handling/agent-error-handling-failing-sub.workflow';

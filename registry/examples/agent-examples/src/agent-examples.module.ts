@@ -7,6 +7,11 @@ import { McpModule } from '@loopstack/mcp-module';
 import { RemoteClientModule } from '@loopstack/remote-client';
 import { CalculatorTool } from './tools/calculator.tool';
 import { WeatherLookupTool } from './tools/weather-lookup.tool';
+import { AgentErrorHandlingFailingSubWorkflow } from './workflows/agent-error-handling/agent-error-handling-failing-sub.workflow';
+import { AgentErrorHandlingWorkflow } from './workflows/agent-error-handling/agent-error-handling.workflow';
+import { FailingSubWorkflowTool } from './workflows/agent-error-handling/tools/failing-sub-workflow.tool';
+import { RuntimeErrorTool } from './workflows/agent-error-handling/tools/runtime-error.tool';
+import { StrictSchemaTool } from './workflows/agent-error-handling/tools/strict-schema.tool';
 import { AgentExampleWorkflow } from './workflows/agent/agent-example.workflow';
 import { CodeAgentExampleWorkflow } from './workflows/code-agent/code-agent-example.workflow';
 import { CustomAgentExampleWorkflow } from './workflows/custom-agent/custom-agent-example.workflow';
@@ -17,6 +22,7 @@ const WORKFLOWS = [
   CodeAgentExampleWorkflow,
   McpLinearExampleWorkflow,
   CustomAgentExampleWorkflow,
+  AgentErrorHandlingWorkflow,
 ];
 
 @StudioApp({
@@ -34,7 +40,15 @@ const WORKFLOWS = [
     }),
     RemoteClientModule.forFeature({ slots: [{ id: 'sandbox', type: 'sandbox', title: 'Sandbox' }] }),
   ],
-  providers: [CalculatorTool, WeatherLookupTool, ...WORKFLOWS],
+  providers: [
+    CalculatorTool,
+    WeatherLookupTool,
+    StrictSchemaTool,
+    RuntimeErrorTool,
+    FailingSubWorkflowTool,
+    AgentErrorHandlingFailingSubWorkflow,
+    ...WORKFLOWS,
+  ],
   exports: WORKFLOWS,
 })
 export class AgentExamplesModule {}
