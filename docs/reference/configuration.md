@@ -92,7 +92,17 @@ When `enableAuth` is `true`, `JWT_SECRET` (and `JWT_REFRESH_SECRET`) must be set
 
 ### `cors`
 
-Standard NestJS/Express CORS options (the [`cors`](https://github.com/expressjs/cors#configuration-options) package). Defaults to `{ origin: true, credentials: true }`. Set to `false` to disable CORS.
+Standard NestJS/Express CORS options (the [`cors`](https://github.com/expressjs/cors#configuration-options) package). Set to `false` to disable CORS.
+
+When `cors` is omitted, the API builds a safe default instead of Express's permissive one. It reflects any `http(s)://localhost` origin (any port, including `127.0.0.1` and `[::1]`) plus the origins listed in `corsOrigins`, always with credentials enabled, and rejects every other origin. Non-browser requests without an `Origin` header are allowed.
+
+### `corsOrigins`
+
+Extra allowed origins for the default CORS policy, in addition to localhost. Falls back to the `CORS_ORIGINS` or `FRONTEND_URL` environment variable (comma-separated). Ignored when `cors` is set.
+
+| Option | Env var | Default |
+|---|---|---|
+| `corsOrigins` | `CORS_ORIGINS` / `FRONTEND_URL` | — |
 
 ### `trace`
 
