@@ -1,5 +1,5 @@
 import { Loader2 } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { WorkflowFullInterface } from '@loopstack/contracts/api';
@@ -71,6 +71,23 @@ interface DocumentFormRendererProps {
   viewOnly: boolean;
 }
 
+/** Field paths of every validation error, so a failed submit can say what to fix. */
+function describeFormErrors(errors: unknown, path: string[] = []): string {
+  const fields: string[] = [];
+  const walk = (node: unknown, at: string[]): void => {
+    if (!node || typeof node !== 'object') return;
+    if ('message' in (node as Record<string, unknown>) && typeof (node as { message?: unknown }).message === 'string') {
+      fields.push(at.join('.') || 'the form');
+      return;
+    }
+    for (const [key, value] of Object.entries(node as Record<string, unknown>)) walk(value, [...at, key]);
+  };
+  walk(errors, path);
+  const unique = [...new Set(fields)];
+  if (!unique.length) return 'The form could not be submitted — some values are not valid.';
+  return `Not submitted — check ${unique.map((f) => `\`${f}\``).join(', ')}.`;
+}
+
 const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
   parentWorkflow,
   workflow,
@@ -78,6 +95,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
   enabled,
   viewOnly,
 }) => {
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const runWorkflow = useRunWorkflow();
   const documentConfigs = useDocumentConfigs();
   const docConfig = documentConfigs.get(document.documentName);
@@ -135,8 +153,13 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
   const handleActionClick = (action: FormAction) => {
     if (!action.transition) return;
     void form.handleSubmit(
-      (data) => handleFormSubmit(action.transition!)(data),
-      (errors) => console.error('[DocumentFormRenderer] validation failed', errors),
+      (data) => {
+        setSubmitError(null);
+        handleFormSubmit(action.transition!)(data);
+      },
+      // A button that does nothing is indistinguishable from a broken one, and a field error nested in an
+      // array is easy to miss — name the fields here so the reason is on screen, not only in the console.
+      (errors) => setSubmitError(describeFormErrors(errors)),
     )();
   };
 
@@ -156,6 +179,11 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
         actions={
           !viewOnly && actions.length > 0 ? (
             <div className="flex w-full flex-col items-end gap-4">
+              {submitError && (
+                <p className="text-destructive w-full text-right text-sm" role="alert">
+                  {submitError}
+                </p>
+              )}
               {actions.map((action, index) => {
                 const isDisabled =
                   disabledProps ||
