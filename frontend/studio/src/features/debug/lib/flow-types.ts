@@ -10,10 +10,34 @@ export interface BuildWorkflowGraphOptions {
 export const NODE_WIDTH = 208;
 export const NODE_HEIGHT = 104;
 
+/**
+ * Transition shape the graph builder accepts.
+ *
+ * Covers both sources it renders: the serialized transitions the API returns
+ * (`WorkflowTransitionType` — `guard` names the gating method), and the legacy
+ * YAML workflow configs the code explorer previews, which are parsed as-is and may
+ * carry arbitrary `if` / `condition` / `call` keys. Deliberately local to Studio:
+ * `@loopstack/contracts` describes only what the engine emits.
+ */
+export interface GraphTransitionInput {
+  id: string;
+  from: string | string[];
+  to: string;
+  trigger?: string;
+  guard?: string;
+  /** Legacy YAML config preview only. */
+  if?: unknown;
+  /** Legacy YAML config preview only. */
+  condition?: unknown;
+  /** Legacy YAML config preview only. */
+  call?: { tool: string }[];
+}
+
 export interface ResolvedTransition {
   id: string;
   from: string;
   to: string;
+  guard?: string;
   condition?: string;
   trigger?: string;
   call?: { tool: string }[];
@@ -37,6 +61,7 @@ export interface TransitionEdgeData extends Record<string, unknown> {
   isExecuted: boolean;
   isSelfLoop: boolean;
   forceVisible: boolean;
+  guard?: string;
   condition?: string;
   trigger?: string;
   call?: { tool: string }[];

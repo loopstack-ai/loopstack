@@ -1,32 +1,21 @@
 import { z } from 'zod';
-import { AssignmentConfigSchema, AssignmentSchema } from './assignment.schema.js';
-import { TemplateExpression } from './template-expression.schema.js';
-import { ToolCallConfigSchema, ToolCallSchema } from './tool-call.schema.js';
 
-export const WorkflowTransitionConfigSchema = z
-  .object({
-    id: z.string(),
-    from: z.union([z.string(), z.array(z.string())]),
-    to: z.string(),
-    if: z.union([TemplateExpression, z.boolean()]).optional(),
-    trigger: z.union([z.enum(['manual', 'onEntry']), TemplateExpression]).optional(),
-    call: z.array(ToolCallConfigSchema).optional(),
-    assign: AssignmentConfigSchema.optional(),
-    onError: z.string().optional(),
-    debug: z.boolean().optional(),
-  })
-  .strict();
-
+/**
+ * A workflow transition as the engine serializes it.
+ *
+ * This is a display/read shape, not an authoring format: transitions are declared
+ * with the `@Transition` and `@Guard` decorators on workflow methods, and this
+ * schema describes what the API returns for them — `WorkflowConfigDto.transitions`
+ * and `WorkflowInterface.availableTransitions`.
+ */
 export const WorkflowTransitionSchema = z
   .object({
     id: z.string(),
     from: z.union([z.string(), z.array(z.string())]),
     to: z.string(),
-    if: z.boolean().optional(),
+    /** `manual` for wait transitions, `onEntry` for automatic ones. */
     trigger: z.enum(['manual', 'onEntry']).optional(),
-    call: z.array(ToolCallSchema).optional(),
-    assign: AssignmentSchema.optional(),
-    onError: z.string().optional(),
-    debug: z.boolean().optional(),
+    /** Name of the guard method gating the transition, from `@Guard('methodName')`. */
+    guard: z.string().optional(),
   })
   .strict();

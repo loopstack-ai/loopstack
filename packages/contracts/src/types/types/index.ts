@@ -1,7 +1,5 @@
-export * from './assignment.type.js';
 export * from './document.type.js';
 export * from './startup.type.js';
-export * from './tool-call.type.js';
 export * from './tool-config.type.js';
 export * from './transition-payload.type.js';
 export * from './ui-form.type.js';

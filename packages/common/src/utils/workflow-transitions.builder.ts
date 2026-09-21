@@ -5,16 +5,17 @@ import { getGuardMetadataMap, getTransitionMetadata } from './block-metadata.uti
  * Builds the serializable workflow transition list from a workflow's
  * decorator metadata (`@Transition`, `@Guard`).
  *
- * The result matches `WorkflowTransitionConfigSchema` and is the shape
- * the frontend graph (and other consumers of `WorkflowConfigDto.transitions`)
- * expect.
+ * The result matches `WorkflowTransitionSchema` and is the shape the frontend
+ * graph (and other consumers of `WorkflowConfigDto.transitions`) expect. It is a
+ * read-only projection of the decorators — the engine routes off the metadata
+ * itself, never off this list.
  *
  * Mapping:
  *   - `methodName`           → `id`
  *   - `from`, `to`           → `from`, `to`
  *   - `wait: true`           → `trigger: 'manual'`
  *   - `wait: false|undefined`→ `trigger: 'onEntry'`
- *   - `@Guard('canDoX')`     → `if: '${{ canDoX() }}'` (TemplateExpression)
+ *   - `@Guard('canDoX')`     → `guard: 'canDoX'`
  */
 export function buildWorkflowTransitions(target: object): WorkflowTransitionType[] {
   const transitions = getTransitionMetadata(target);
@@ -29,7 +30,7 @@ export function buildWorkflowTransitions(target: object): WorkflowTransitionType
       trigger: t.wait ? 'manual' : 'onEntry',
     };
     if (guard) {
-      result.if = `\${{ ${guard.guardMethodName}() }}`;
+      result.guard = guard.guardMethodName;
     }
     return result;
   });
