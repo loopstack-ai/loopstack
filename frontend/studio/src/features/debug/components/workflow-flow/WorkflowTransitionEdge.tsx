@@ -3,7 +3,6 @@ import { Wrench } from 'lucide-react';
 import React from 'react';
 import { resolveEdgePath } from '../../lib/edge-paths.ts';
 import type { TransitionEdgeData } from '../../lib/flow-types.ts';
-import { formatCondition } from '../../lib/flow-utils.ts';
 
 interface TransitionLabelProps {
   transitionId: string;
@@ -61,6 +60,7 @@ const WorkflowTransitionEdge: React.FC<EdgeProps> = ({
     isSelfLoop = false,
     forceVisible = false,
     call,
+    guard,
     condition,
   } = (data ?? {}) as Partial<TransitionEdgeData>;
 
@@ -70,9 +70,10 @@ const WorkflowTransitionEdge: React.FC<EdgeProps> = ({
     labelY,
   } = resolveEdgePath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition }, { isSelfLoop });
 
-  const formattedCondition = condition ? formatCondition(condition) : null;
+  // A guard is a method name; `condition` only ever comes from a legacy YAML config preview.
+  const conditionLabel = guard ? `${guard}()` : (condition ?? null);
   const tools = call?.map((c) => c.tool).join(', ');
-  const hasLabel = transitionId || tools || formattedCondition;
+  const hasLabel = transitionId || tools || conditionLabel;
 
   const edgeStyle: React.CSSProperties = isSelfLoop
     ? { ...((style ?? {}) as React.CSSProperties), strokeLinecap: 'round', strokeLinejoin: 'round' }
@@ -97,7 +98,7 @@ const WorkflowTransitionEdge: React.FC<EdgeProps> = ({
           <TransitionLabel
             transitionId={transitionId ?? ''}
             tools={tools}
-            condition={formattedCondition}
+            condition={conditionLabel}
             isExecuted={isExecuted}
             forceVisible={forceVisible}
           />

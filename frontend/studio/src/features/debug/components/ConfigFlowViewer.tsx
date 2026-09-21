@@ -13,7 +13,7 @@ import '@xyflow/react/dist/style.css';
 import { Loader2 } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
-import type { WorkflowTransitionType } from '@loopstack/contracts/types';
+import type { GraphTransitionInput } from '../lib/flow-types.ts';
 import { buildWorkflowGraph } from '../lib/flow-utils.ts';
 import StateNode from './workflow-flow/StateNode.tsx';
 import WorkflowTransitionEdge from './workflow-flow/WorkflowTransitionEdge.tsx';
@@ -39,7 +39,8 @@ const ConfigFlowViewer: React.FC<ConfigFlowViewerProps> = ({ config }) => {
   useEffect(() => {
     if (!config) return;
 
-    const transitions = (config.transitions as unknown as WorkflowTransitionType[]) ?? [];
+    // Also renders legacy YAML workflow configs, whose transitions are passed through unparsed.
+    const transitions = (config.transitions as unknown as GraphTransitionInput[]) ?? [];
 
     const { nodes: newNodes, edges: newEdges } = buildWorkflowGraph(
       config,

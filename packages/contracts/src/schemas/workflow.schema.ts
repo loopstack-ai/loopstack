@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { BlockSchema } from './block.schema.js';
 import { UiFormSchema } from './ui-form.schema.js';
-import { WorkflowTransitionConfigSchema } from './workflow-transition.schema.js';
 
 export const NamespacePropsSchema = z.object({
   label: z.string(),
@@ -15,5 +14,4 @@ export const WorkflowBaseSchema = BlockSchema.extend({
 
 export const WorkflowSchema = WorkflowBaseSchema.extend({
   type: z.literal('workflow').default('workflow'),
-  transitions: z.array(WorkflowTransitionConfigSchema).optional(),
 });

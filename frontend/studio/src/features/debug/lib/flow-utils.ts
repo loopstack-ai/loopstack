@@ -1,10 +1,11 @@
 import Dagre from '@dagrejs/dagre';
 import { type Edge, MarkerType, type Node, Position } from '@xyflow/react';
 import type { WorkflowCheckpointInterface } from '@loopstack/contracts/api';
-import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
+import type { WorkflowInterface } from '@loopstack/contracts/types';
 import type {
   BuildWorkflowGraphOptions,
   FlowDirection,
+  GraphTransitionInput,
   ResolvedTransition,
   StateNodeData,
   TransitionEdgeData,
@@ -12,15 +13,6 @@ import type {
 import { NODE_HEIGHT, NODE_WIDTH } from './flow-types.ts';
 
 export type { BuildWorkflowGraphOptions, StateNodeData } from './flow-types.ts';
-
-const CONDITION_OPERATORS: Record<string, string> = {
-  gt: '>',
-  lt: '<',
-  eq: '==',
-  ne: '!=',
-  ge: '>=',
-  le: '<=',
-};
 
 // Checkpoint-based history entry (from WorkflowCheckpointEntity)
 type CheckpointEntry = WorkflowCheckpointInterface;
@@ -56,13 +48,13 @@ export function getLayoutedElements(
 }
 
 interface TransitionContainer {
-  transitions?: WorkflowTransitionType[];
+  transitions?: GraphTransitionInput[];
   definition?: TransitionContainer;
   specification?: TransitionContainer;
   [key: string]: unknown;
 }
 
-export function getTransitions(obj: unknown, seen = new Set<unknown>()): WorkflowTransitionType[] {
+export function getTransitions(obj: unknown, seen = new Set<unknown>()): GraphTransitionInput[] {
   if (!obj || typeof obj !== 'object' || seen.has(obj)) return [];
   try {
     seen.add(obj);
@@ -101,23 +93,22 @@ export function getTransitions(obj: unknown, seen = new Set<unknown>()): Workflo
   return [];
 }
 
-export function formatCondition(condition: string): string {
-  if (!condition) return '';
-  const clean = condition.replace(/\{\{|\}\}/g, '').trim();
-  const parts = clean.split(/\s+/);
-  if (parts.length === 3) {
-    const [op, left, right] = parts;
-    const symbol = CONDITION_OPERATORS[op];
-    if (symbol) return `${left} ${symbol} ${right}`;
-  }
-  return clean;
+/**
+ * Reads the free-form condition off a legacy YAML workflow config previewed by the code
+ * explorer. Those files are parsed as-is and are the only source of `if` / `condition`;
+ * transitions from the API express gating as a `guard` method name instead.
+ */
+function legacyCondition(transition: GraphTransitionInput): string | undefined {
+  const raw = transition.if ?? transition.condition;
+  if (typeof raw === 'string') return raw.trim() || undefined;
+  return raw === undefined || raw === null ? undefined : String(raw);
 }
 
 export function buildWorkflowGraph(
   parentWorkflow: unknown,
   workflowData: WorkflowInterface | undefined,
   workflowId: string,
-  configTransitions: WorkflowTransitionType[] = [],
+  configTransitions: GraphTransitionInput[] = [],
   direction: FlowDirection,
   forceVisible = false,
   checkpoints: CheckpointEntry[] = [],
@@ -165,9 +156,9 @@ export function buildWorkflowGraph(
 function collectTransitions(
   parentWorkflow: unknown,
   workflowData: WorkflowInterface | undefined,
-  configTransitions: WorkflowTransitionType[],
+  configTransitions: GraphTransitionInput[],
   extraSources: unknown[] | undefined,
-): WorkflowTransitionType[] {
+): GraphTransitionInput[] {
   const all = [...configTransitions];
   if (parentWorkflow) all.push(...getTransitions(parentWorkflow));
   if (workflowData) all.push(...getTransitions(workflowData));
@@ -185,7 +176,7 @@ function collectTransitions(
   });
 }
 
-function collectStates(transitions: WorkflowTransitionType[], checkpoints: CheckpointEntry[]): Set<string> {
+function collectStates(transitions: GraphTransitionInput[], checkpoints: CheckpointEntry[]): Set<string> {
   const states = new Set<string>(['start']);
 
   for (const t of transitions) {
@@ -221,21 +212,18 @@ function buildExecutedMap(checkpoints: CheckpointEntry[]): Map<string, number> {
   return map;
 }
 
-function resolveTransitions(
-  definitions: WorkflowTransitionType[],
-  checkpoints: CheckpointEntry[],
-): ResolvedTransition[] {
+function resolveTransitions(definitions: GraphTransitionInput[], checkpoints: CheckpointEntry[]): ResolvedTransition[] {
   const result: ResolvedTransition[] = [];
 
   for (const t of definitions) {
     const fromStates = Array.isArray(t.from) ? t.from : [t.from];
-    const withCondition = t as WorkflowTransitionType & { if?: string; condition?: string };
     for (const fromState of fromStates) {
       result.push({
         id: t.id,
         from: fromState ?? 'start',
         to: t.to,
-        condition: withCondition.if ?? withCondition.condition,
+        guard: t.guard,
+        condition: legacyCondition(t),
         trigger: t.trigger,
         call: t.call,
       });
