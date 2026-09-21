@@ -1,5 +1,11 @@
 # @loopstack/cli
 
+## 0.22.0
+
+### Minor Changes
+
+- [#257](https://github.com/loopstack-ai/loopstack/pull/257) [`5085179`](https://github.com/loopstack-ai/loopstack/commit/5085179c529c1675a55df7ecc6d1307f3156ddee) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add a `terminal-handoff` widget. A workflow can present a `terminal-handoff` document widget carrying a `command`; on a TTY the CLI runs that command with an inherited terminal (handing the session over, e.g. to an interactive `claude` in a container) and fires the widget's transition when the command exits. Off a TTY it prints the command instead.
+
 ## 0.21.0
 
 ### Minor Changes

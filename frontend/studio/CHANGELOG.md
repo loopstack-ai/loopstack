@@ -1,5 +1,19 @@
 # @loopstack/loopstack-studio
 
+## 0.39.0
+
+### Minor Changes
+
+- [#257](https://github.com/loopstack-ai/loopstack/pull/257) [`1b041ca`](https://github.com/loopstack-ai/loopstack/commit/1b041cac062dbaeddc37d4b99e93e859ddd212b1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add a `handoff` sidebar feature. When an app registers the `handoff` feature, the workbench shows a "Handoff" panel built from the run's own `handoff`-tagged documents (so a workflow decides what to offer and when) — e.g. open the checkout in an editor, or resume the run's session in a terminal — plus a "Changed files" tree of the files the run edited, each openable in VS Code (a `vscode://file` link), copied as a shell command, or opened in the file explorer. A hand-off document carrying a `command` renders as a copy-to-clipboard card, one carrying a `url` as an "open in a new tab" link, so browser hand-offs render alongside terminal ones. Adds a workbench `openFileInExplorer(path)` bridge so a card can deep-link a file into the file-explorer panel, which resolves it against the loaded tree.
+
+- [#257](https://github.com/loopstack-ai/loopstack/pull/257) [`d7d62de`](https://github.com/loopstack-ai/loopstack/commit/d7d62dee90d957644b6d41e7a50360175d2a7677) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Studio ships light and dark themes built on the IntelliJ palettes, with a theme toggle in the sidebar footer. The choice persists in `localStorage` under `loopstack:theme` (dark by default) and is applied by an inline script in `index.html` before first paint, so reloading doesn't flash the wrong theme. A `ThemeProvider` owns the state and toggles the `dark` class on `<html>`; the component tokens, workflow diagram, Mermaid diagrams and Prism syntax highlighting all resolve against the active theme.
+
+- [#257](https://github.com/loopstack-ai/loopstack/pull/257) [`bbccff7`](https://github.com/loopstack-ai/loopstack/commit/bbccff710225a290e98ec4d06126dc93aae837bd) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Render a workspace **home** page from an app's `ui.widgets`: each `start-form` widget becomes a launch card with the referenced workflow's args form and a configurable button label, and more than one card can be stacked (e.g. a "Provision Base" card beside a "Run the engineer" card). Inputs also honor a schema-embedded widget hint (Zod `.meta({ widget: 'textarea' })`), so a workflow can request a multi-line prompt field without a separate `ui` config.
+
+### Patch Changes
+
+- [#257](https://github.com/loopstack-ai/loopstack/pull/257) [`1b041ca`](https://github.com/loopstack-ai/loopstack/commit/1b041cac062dbaeddc37d4b99e93e859ddd212b1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The Git panel no longer errors when the selected environment isn't running. It now skips the git status/log/remote requests (which returned a 500 with no connected agent) and shows a "no running environment" message instead, re-enabling automatically once an environment is live.
+
 ## 0.38.0
 
 ### Minor Changes
