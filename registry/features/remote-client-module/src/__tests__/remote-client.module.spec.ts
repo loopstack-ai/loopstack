@@ -1,33 +1,28 @@
-import { type DynamicModule, Module, type Type } from '@nestjs/common';
+import type { DynamicModule, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { describe, expect, it, vi } from 'vitest';
+import { DataSource } from 'typeorm';
+import { describe, expect, it } from 'vitest';
 import { ENVIRONMENT_CONFIG } from '@loopstack/common';
+import { RemoteClientModule } from '../remote-client.module.js';
+import { EnvironmentConfigService } from '../services/environment-config.service.js';
+import { RemoteClient } from '../services/remote-client.service.js';
 
-// TypeOrmModule.forFeature creates real repository providers that explode without a DataSource.
-// Stub it so the test can focus on RemoteClientModule's own wiring (RemoteClient, env config).
-vi.mock(import('@nestjs/typeorm'), async (importOriginal) => {
-  const actual = await importOriginal();
-  @Module({})
-  class StubTypeOrmModule {}
-  return {
-    ...actual,
-    TypeOrmModule: {
-      ...actual.TypeOrmModule,
-      forFeature: (): DynamicModule => ({ module: StubTypeOrmModule, providers: [], exports: [] }),
-    },
-  };
-});
-
-const { RemoteClientModule } = await import('../remote-client.module.js');
-const { EnvironmentConfigService } = await import('../services/environment-config.service.js');
-const { RemoteClient } = await import('../services/remote-client.service.js');
+// `TypeOrmModule.forFeature` builds its repository providers from the DataSource, so the `{}` the
+// mocker hands out for every other token is not enough. Same stub shape as @loopstack/testing's
+// MockInfraModule: empty `entityMetadatas` plus a non-mongo `options.type` is all the repository
+// factory reads before it returns `getRepository`'s result.
+const mockDataSource = {
+  entityMetadatas: [] as unknown[],
+  options: { type: 'postgres' },
+  getRepository: () => ({}),
+};
 
 // Cross-package deps (TypeORM repositories, SecretsModule internals, etc.) are out of scope —
 // we only care that RemoteClientModule wires its OWN providers correctly.
-// useMocker stubs any unresolved injection token with an empty object.
+// useMocker stubs every other unresolved injection token with an empty object.
 function build(imports: Array<Type<unknown> | DynamicModule>) {
   return Test.createTestingModule({ imports })
-    .useMocker(() => ({}))
+    .useMocker((token) => (token === DataSource ? mockDataSource : {}))
     .compile();
 }
 
