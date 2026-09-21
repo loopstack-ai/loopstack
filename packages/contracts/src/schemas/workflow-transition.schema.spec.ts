@@ -22,10 +22,38 @@ describe('workflow transition contract', () => {
     expect(schemas).not.toHaveProperty(name);
   });
 
-  it('exports a single WorkflowTransitionSchema describing the serialized transition', () => {
+  it('exports a WorkflowTransitionSchema describing the transition the engine serializes', () => {
     expect(schemas.WorkflowTransitionSchema).toBeDefined();
 
     const parsed = schemas.WorkflowTransitionSchema.parse({
+      id: 'onSubmit',
+      from: 'awaiting_input',
+      to: 'done',
+      trigger: 'manual',
+    });
+
+    expect(parsed).toEqual({
+      id: 'onSubmit',
+      from: 'awaiting_input',
+      to: 'done',
+      trigger: 'manual',
+    });
+  });
+
+  it('the runtime transition shape carries no guard', () => {
+    const result = schemas.WorkflowTransitionSchema.safeParse({
+      id: 'checkAuth',
+      from: 'start',
+      to: 'authed',
+      trigger: 'manual',
+      guard: 'needsAuth',
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('the declared/config transition shape reports the guard by method name', () => {
+    const parsed = schemas.WorkflowTransitionDefinitionSchema.parse({
       id: 'checkAuth',
       from: 'start',
       to: 'authed',

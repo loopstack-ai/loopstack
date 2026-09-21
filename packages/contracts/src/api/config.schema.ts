@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { JSONSchemaDefinition } from '../schemas/json-schema.schema.js';
-import { WorkflowTransitionSchema } from '../schemas/workflow-transition.schema.js';
+import { WorkflowTransitionDefinitionSchema } from '../schemas/workflow-transition.schema.js';
 import type { JSONSchemaConfigType, StaticDocumentMeta, UiFormType } from '../types/index.js';
 
 export const StudioWidgetConfigSchema = z.object({
@@ -58,7 +58,7 @@ export const WorkflowConfigSchema = z.object({
   description: z.string().optional(),
   schema: z.custom<JSONSchemaConfigType>().optional(),
   ui: z.custom<UiFormType>().optional(),
-  transitions: z.array(WorkflowTransitionSchema).optional(),
+  transitions: z.array(WorkflowTransitionDefinitionSchema).optional(),
 });
 export type WorkflowConfigInterface = z.infer<typeof WorkflowConfigSchema>;
 
