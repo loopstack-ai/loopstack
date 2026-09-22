@@ -154,9 +154,10 @@ const LocalHealthCheck = () => {
               <>
                 <p className="text-foreground text-sm font-semibold">Waiting for the server to respond</p>
                 <p className="text-muted-foreground text-xs">
-                  A request has been queued for a while without failing. Studio keeps one live connection per open
-                  window, and browsers allow only a handful per site — <strong>closing another Studio window</strong>{' '}
-                  usually frees one. It clears on its own once the request goes through.
+                  Requests are queued rather than failing. Every expanded sub-workflow and every open Studio window
+                  holds a live connection, and browsers allow only a handful per site —{' '}
+                  <strong>collapsing a sub-workflow</strong> or closing another window frees one. It clears on its own
+                  once the request goes through.
                 </p>
               </>
             ) : (
