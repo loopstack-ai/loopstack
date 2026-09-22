@@ -1,11 +1,14 @@
 import { ApiClientEvents, apiClientEvents } from '@/events';
 
 /**
- * How long a request may wait before it is treated as stuck. Generous on purpose: a single request can
- * legitimately span several seconds of backend work (a transition that calls out to GitHub, say), and a
- * false alarm during normal work is worse than the problem it warns about.
+ * How long a request may wait before it is treated as stuck.
+ *
+ * No endpoint does long work inside the request: running a workflow reads it, marks it pending and enqueues
+ * a task, and the transition itself — with whatever it calls out to — runs in the worker. So a request that
+ * is still outstanding after seconds is not the server thinking, and the threshold only needs to clear the
+ * slowest honest request (a large document page over a slow link), not a unit of backend work.
  */
-const STALL_AFTER_MS = 10_000;
+const STALL_AFTER_MS = 5_000;
 
 /** The event stream is a fetch too, and by design it never settles — timing it would alarm immediately. */
 function isEventStream(input: RequestInfo | URL, init?: RequestInit): boolean {
