@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { StudioDocumentConfig, WorkflowFullInterface } from '@loopstack/contracts/api';
 import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
+import { usePendingTransition } from '@/hooks/usePendingTransition.ts';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 
 /**
@@ -29,23 +30,30 @@ export function useDocumentTransition(
 
   const transitionId = resolveTransition(docConfig?.ui);
   const canSubmit = !!transitionId && availableTransitions.includes(transitionId);
+  const { isPending, markSubmitted, cancel } = usePendingTransition(availableTransitions);
 
   const submit = useCallback(
     (payload: unknown) => {
       if (!transitionId || !canSubmit) return;
-      runWorkflow.mutate({
-        workflowId: parentWorkflow.id,
-        payload: {
-          transition: {
-            id: transitionId,
-            workflowId: workflow.id,
-            payload,
-          } as TransitionPayloadInterface,
+      markSubmitted(transitionId);
+      runWorkflow.mutate(
+        {
+          workflowId: parentWorkflow.id,
+          payload: {
+            transition: {
+              id: transitionId,
+              workflowId: workflow.id,
+              payload,
+            } as TransitionPayloadInterface,
+          },
         },
-      });
+        { onError: () => cancel() },
+      );
     },
-    [transitionId, canSubmit, runWorkflow, parentWorkflow.id, workflow.id],
+    [transitionId, canSubmit, markSubmitted, cancel, runWorkflow, parentWorkflow.id, workflow.id],
   );
 
-  return { submit, canSubmit, isLoading: runWorkflow.isPending };
+  // The mutation resolves on enqueue, the pending transition resolves on apply — a widget needs
+  // both, so it stays busy from the click until the answer is really in.
+  return { submit, canSubmit, isLoading: runWorkflow.isPending || isPending };
 }

@@ -5,7 +5,7 @@ import type { DocumentItemInterface } from '@loopstack/contracts/api';
 import { useLoopstackClient } from '../provider.js';
 
 export interface LiveDocumentsOptions {
-  /** Trailing debounce window per workflow. Default 300 ms. */
+  /** Coalescing window per workflow, measured from its first event. Default 300 ms. */
   debounceMs?: number;
 }
 
@@ -72,8 +72,9 @@ export function useLiveDocuments(options: LiveDocumentsOptions = {}): void {
     };
 
     const schedule = (workflowId: string) => {
-      const pending = timers.get(workflowId);
-      if (pending) clearTimeout(pending);
+      // Coalesce from the run's first event, not its last: a run writing documents faster than
+      // `debounceMs` must still get its window synced while it is busy, not only once it falls quiet.
+      if (timers.has(workflowId)) return;
       timers.set(
         workflowId,
         setTimeout(() => {

@@ -5,13 +5,13 @@ import type { QueryKey } from '@loopstack/client';
 import { useLoopstackClient } from '../provider.js';
 
 export interface LiveInvalidationOptions {
-  /** Trailing debounce window per cache key. Default 300 ms. */
+  /** Coalescing window per cache key, measured from its first event. Default 300 ms. */
   debounceMs?: number;
 }
 
 /**
  * Binds the live event stream to the host's QueryClient: every server event
- * stales the cache keys {@link resolveInvalidations} maps it to, debounced
+ * stales the cache keys {@link resolveInvalidations} maps it to, coalesced
  * per key so event bursts trigger one refetch. `stream.reset` (lost resume
  * cursor) invalidates the whole environment — every key scoped to this
  * client's `envKey` — and nothing else.
@@ -28,8 +28,11 @@ export function useLiveInvalidation(options: LiveInvalidationOptions = {}): void
 
     const invalidate = (queryKey: QueryKey) => {
       const keyStr = JSON.stringify(queryKey);
-      const pending = timers.get(keyStr);
-      if (pending) clearTimeout(pending);
+      // The window runs from the key's *first* event, and events arriving inside it ride along on
+      // the refetch it already scheduled. Restarting the timer instead would let a stream busier
+      // than `debounceMs` — an executing run, an agent writing documents — postpone the key for the
+      // whole burst, which is what made an answered HITL prompt sit unchanged for seconds.
+      if (timers.has(keyStr)) return;
       timers.set(
         keyStr,
         setTimeout(() => {
