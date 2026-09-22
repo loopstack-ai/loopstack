@@ -81,7 +81,7 @@ describe('workflow transition contract', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accepts only the two concrete triggers', () => {
+  it('rejects a trigger that is not a concrete value', () => {
     const result = schemas.WorkflowTransitionSchema.safeParse({
       id: 'checkAuth',
       from: 'start',
@@ -90,5 +90,27 @@ describe('workflow transition contract', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it('the runtime transition shape rejects the declared-only onEntry trigger', () => {
+    const result = schemas.WorkflowTransitionSchema.safeParse({
+      id: 'checkAuth',
+      from: 'start',
+      to: 'authed',
+      trigger: 'onEntry',
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('the declared/config transition shape still accepts onEntry', () => {
+    const result = schemas.WorkflowTransitionDefinitionSchema.safeParse({
+      id: 'checkAuth',
+      from: 'start',
+      to: 'authed',
+      trigger: 'onEntry',
+    });
+
+    expect(result.success).toBe(true);
   });
 });
