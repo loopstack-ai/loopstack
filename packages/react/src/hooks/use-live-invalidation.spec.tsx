@@ -41,7 +41,7 @@ describe('useLiveInvalidation', () => {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workflows', TEST_ENV_KEY] });
   });
 
-  it('resets the debounce window on every event (trailing edge)', () => {
+  it('measures the window from the first event, so a later one cannot postpone it', () => {
     const { client, stream } = createTestClient();
     const { wrapper, queryClient } = createWrapper(client);
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
@@ -50,11 +50,31 @@ describe('useLiveInvalidation', () => {
     stream.emit(workflowUpdated('wf-1'));
     vi.advanceTimersByTime(200);
     stream.emit(workflowUpdated('wf-1'));
-    vi.advanceTimersByTime(200);
 
     expect(invalidate).not.toHaveBeenCalled();
+    // 300 ms after the *first* event — the second one rides along rather than restarting the window.
     vi.advanceTimersByTime(100);
     expect(invalidate).toHaveBeenCalledTimes(3);
+  });
+
+  it('keeps refreshing while events keep arriving faster than the window', () => {
+    const { client, stream } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    renderHook(() => useLiveInvalidation(), { wrapper });
+    // A run mid-execution emits steadily; the cache must not go stale for the length of the burst.
+    for (let elapsed = 0; elapsed < 5_000; elapsed += 250) {
+      stream.emit(workflowUpdated('wf-1'));
+      vi.advanceTimersByTime(250);
+    }
+
+    const workflowKeyCalls = invalidate.mock.calls.filter(
+      ([args]) => JSON.stringify(args?.queryKey) === JSON.stringify(['workflow', TEST_ENV_KEY, 'wf-1']),
+    );
+    // Refreshed throughout the burst, still coalesced to roughly one per window rather than per event.
+    expect(workflowKeyCalls.length).toBeGreaterThanOrEqual(5);
+    expect(workflowKeyCalls.length).toBeLessThanOrEqual(20);
   });
 
   it('debounces distinct keys independently', () => {

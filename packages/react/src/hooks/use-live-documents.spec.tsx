@@ -63,6 +63,24 @@ describe('useLiveDocuments', () => {
     );
   });
 
+  it('keeps syncing while a run writes documents faster than the window', async () => {
+    const { client, documents, stream } = createTestClient();
+    const { wrapper, queryClient } = createWrapper(client);
+    const queryKey = queryKeys.documents(TEST_ENV_KEY, 'wf-1', 'current');
+    queryClient.setQueryData(queryKey, { documents: [doc('a', 1, '2026-09-18T08:00:00.000Z')], total: 1 });
+    documents.list.mockResolvedValue({ data: [], total: 0, page: 0, limit: 200 });
+
+    renderHook(() => useLiveDocuments({ debounceMs: 30 }), { wrapper });
+    for (let event = 0; event < 16; event++) {
+      stream.emit({ type: 'document.created', workflowId: 'wf-1', userId: 'u', workerId: 'w' });
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+
+    // Asserted while the burst is still running: an agent writing steadily must not be able to
+    // postpone the window, which is what left an answered prompt showing pre-click content.
+    expect(documents.list.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
   it('ignores runs nobody is displaying', async () => {
     const { client, documents, stream } = createTestClient();
     const { wrapper } = createWrapper(client);

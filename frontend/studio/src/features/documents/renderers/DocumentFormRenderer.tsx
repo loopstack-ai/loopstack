@@ -7,6 +7,7 @@ import type { DocumentItemInterface, MimeType, TransitionPayloadInterface } from
 import Form from '@/components/dynamic-form/Form.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useDocumentConfigs } from '@/hooks/useConfig';
+import { usePendingTransition } from '@/hooks/usePendingTransition.ts';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 
 interface FormAction {
@@ -124,22 +125,31 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 
   const availableTransitions = workflow.availableTransitions?.map((transition) => transition.id) ?? [];
 
+  // Per-action transitions rule out the shared `useDocumentTransition` (it resolves a single one),
+  // but the pending state is the same problem: the run mutation settles on enqueue, not on apply.
+  const { isPending, markSubmitted, cancel } = usePendingTransition(availableTransitions);
+  const isSubmitting = runWorkflow.isPending || isPending;
+
   const executeWorkflowRun = (transition: string, payload: unknown) => {
     if (!availableTransitions.includes(transition)) {
       console.error(`Transition ${transition} not available.`);
       return;
     }
 
-    runWorkflow.mutate({
-      workflowId: parentWorkflow.id,
-      payload: {
-        transition: {
-          id: transition,
-          workflowId: workflow.id,
-          payload: payload,
-        } as TransitionPayloadInterface,
+    markSubmitted(transition);
+    runWorkflow.mutate(
+      {
+        workflowId: parentWorkflow.id,
+        payload: {
+          transition: {
+            id: transition,
+            workflowId: workflow.id,
+            payload: payload,
+          } as TransitionPayloadInterface,
+        },
       },
-    });
+      { onError: () => cancel() },
+    );
   };
 
   const handleFormSubmit = (transition: string) => (data: Record<string, unknown>) => {
@@ -194,12 +204,12 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
                     key={index}
                     type="button"
                     variant={(action.variant as 'default' | 'outline' | 'destructive') ?? 'default'}
-                    disabled={isDisabled || runWorkflow.isPending}
+                    disabled={isDisabled || isSubmitting}
                     onClick={() => handleActionClick(action)}
                     className={action.type === 'button-full-w' ? 'w-full' : 'w-48'}
                     {...(action.props ?? {})}
                   >
-                    {runWorkflow.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                     {action.label ?? 'Submit'}
                   </Button>
                 );

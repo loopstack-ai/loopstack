@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useRunWorkflow } from '@loopstack/react';
 import { useDocumentConfigs } from '@/hooks/useConfig.ts';
+import { usePendingTransition } from '@/hooks/usePendingTransition.ts';
 import { Transcript } from './Transcript.tsx';
 import { SandboxRunButton } from './prompts/SandboxRunButton.tsx';
 import { BareWaitCard, FailedRunCard, NotSupportedCard } from './prompts/cards.tsx';
@@ -63,6 +64,9 @@ export function RunView({ workflowId, settings }: { workflowId: string | undefin
   }, [entries, prompts.picked]);
 
   const picked = prompts.picked;
+  // `run` resolves once the transition is queued, so the mutation alone cannot say whether the
+  // answer landed — the prompt stays busy until it stops offering the transition that was sent.
+  const { isPending, markSubmitted, cancel } = usePendingTransition(picked?.view.transitions ?? []);
   const PromptComponent = picked?.view.widget ? promptRegistry.get(picked.view.widget) : undefined;
   const idle = prompts.idlePrompt;
   const IdleComponent = idle?.view.widget ? promptRegistry.get(idle.view.widget) : undefined;
@@ -78,12 +82,16 @@ export function RunView({ workflowId, settings }: { workflowId: string | undefin
     if (!picked) return;
     const id = transitionId ?? picked.view.defaultTransition;
     if (!id) return;
+    markSubmitted(id);
     // The CLI's submit call: the transition is applied to the prompting workflow itself;
     // sub-workflow completions propagate to the root via the parent's callback.
-    runWorkflow.mutate({
-      workflowId: picked.view.workflowId,
-      payload: { transition: { id, workflowId: picked.view.workflowId, payload } },
-    });
+    runWorkflow.mutate(
+      {
+        workflowId: picked.view.workflowId,
+        payload: { transition: { id, workflowId: picked.view.workflowId, payload } },
+      },
+      { onError: () => cancel() },
+    );
   };
 
   return (
@@ -109,7 +117,7 @@ export function RunView({ workflowId, settings }: { workflowId: string | undefin
             <PromptComponent
               view={picked.view}
               submit={submit}
-              isSubmitting={runWorkflow.isPending}
+              isSubmitting={runWorkflow.isPending || isPending}
               workspaceId={nodes[0]?.workflow.workspaceId}
             />
           </div>
