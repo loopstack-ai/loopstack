@@ -54,7 +54,7 @@ class TimeoutProbeWorkflow extends BaseWorkflow {
 @Workflow({ title: 'Instant Probe' })
 class InstantProbeWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  run() {
+  finish() {
     this.setResult({ done: true });
   }
 }

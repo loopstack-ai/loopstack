@@ -84,7 +84,7 @@ describe('RunTraceService', () => {
     const queryBuilder = {
       select: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
-      getRawOne: vi.fn(async () => ({ max: '7' })),
+      getRawOne: vi.fn(async (): Promise<{ max: string | null }> => ({ max: '7' })),
     };
     const repository = {
       create: (row: Record<string, unknown>) => row,

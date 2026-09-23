@@ -12,6 +12,9 @@
     },
     "test": {
       "dependsOn": ["^build"]
+    },
+    "compile": {
+      "dependsOn": ["^build"]
     }
   },
   "concurrency": "30"
