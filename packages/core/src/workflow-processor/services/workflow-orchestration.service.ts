@@ -59,12 +59,16 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
 
     const { instance: workflow, workflowName } = this.workflowRegistryService.resolve(workflowClass);
 
+    // A child normally belongs to its parent's workspace. Naming another one puts it under that workspace's
+    // lock instead, which is what lets a parent start work that runs alongside its own rather than behind it.
+    const workspaceId = options?.workspaceId ?? scope.workspaceId;
+
     const workflowEntity = await this.createWorkflowService.create(
       workflow,
-      { id: scope.workspaceId },
+      { id: workspaceId },
       {
         workflowName,
-        workspaceId: scope.workspaceId,
+        workspaceId,
         args: { ...args },
         callbackTransition: options?.callback?.transition ?? null,
         callbackMetadata: options?.callback?.metadata ?? null,
@@ -76,12 +80,12 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
 
     await this.taskSchedulerService.addTask({
       id: 'sub_workflow_execution-' + randomUUID(),
-      workspaceId: scope.workspaceId,
+      workspaceId,
       task: {
         name: 'sub_workflow_execution',
         type: 'run_workflow',
         user: scope.userId,
-        workspaceId: scope.workspaceId,
+        workspaceId,
         workflowId: workflowEntity.id,
         workflowName,
         args: { ...args },

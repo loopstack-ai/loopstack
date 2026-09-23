@@ -22,6 +22,16 @@ export interface RunOptions {
   callback?: { transition: string; metadata?: Record<string, unknown> };
   show?: SubWorkflowShow;
   label?: string;
+  /**
+   * Run the child in another workspace instead of the parent's.
+   *
+   * Tasks serialize per workspace, so this is how a parent starts work that runs **at the same time** as
+   * its own workspace's: a child queued elsewhere takes that workspace's lock, not this one's. The callback
+   * still resumes the parent under the parent's own workspace, so ordering there is unchanged.
+   *
+   * The workspace must already exist. Defaults to the parent's.
+   */
+  workspaceId?: string;
 }
 
 /**
