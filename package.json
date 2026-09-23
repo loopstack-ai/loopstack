@@ -10,6 +10,7 @@
   "main": "index.js",
   "scripts": {
     "build": "turbo run build",
+    "compile": "turbo run compile",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --cache --cache-location node_modules/.cache/eslint/",

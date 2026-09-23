@@ -1,11 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type MockInstance, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RemoteClient } from '../remote-client.service.js';
 
 const CONNECTION_URL = 'https://fly-instance.fly.dev';
 
 describe('RemoteClient', () => {
   let client: RemoteClient;
-  let fetchMock: jest.SpyInstance<Promise<Response>, Parameters<typeof fetch>>;
+  let fetchMock: MockInstance<typeof fetch>;
 
   beforeEach(() => {
     client = new RemoteClient();

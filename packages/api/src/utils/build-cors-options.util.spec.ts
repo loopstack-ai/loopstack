@@ -2,10 +2,8 @@ import type { CorsOptions } from 'cors';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildCorsOptions } from './build-cors-options.util.js';
 
-type OriginFn = Extract<
-  CorsOptions['origin'],
-  (origin: string | undefined, cb: (e: Error | null, ok?: boolean) => void) => void
->;
+/** The callback-style member of the `origin` union (`cors`'s `CustomOrigin`, which it does not export). */
+type OriginFn = Extract<NonNullable<CorsOptions['origin']>, (...args: never[]) => unknown>;
 
 function checkOrigin(cors: CorsOptions | false, origin: string | undefined): boolean {
   if (cors === false || typeof cors.origin !== 'function') {
@@ -13,7 +11,7 @@ function checkOrigin(cors: CorsOptions | false, origin: string | undefined): boo
   }
   let allowed = false;
   (cors.origin as OriginFn)(origin, (_err, ok) => {
-    allowed = ok ?? false;
+    allowed = ok === true;
   });
   return allowed;
 }
