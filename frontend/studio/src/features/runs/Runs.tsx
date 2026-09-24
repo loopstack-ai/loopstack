@@ -8,7 +8,7 @@ import { Badge } from '../../components/ui/badge.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import { useBatchDeleteWorkflows, useDeleteWorkflow, useFilterWorkflows } from '../../hooks/useWorkflows.ts';
 import { useFilterWorkspaces } from '../../hooks/useWorkspaces.ts';
-import { getWorkflowStateColor, isAwaitingInput } from '../../lib/run-status.ts';
+import { getWorkflowStateColor, needsInput } from '../../lib/run-status.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 
 interface RunsProps {
@@ -169,11 +169,11 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
               const status = value as string;
               const color = getWorkflowStateColor(status as WorkflowState);
               // A waiting run with nothing running under it has nobody left to wait for but you.
-              const waitingOnYou = row ? isAwaitingInput(row as WorkflowItemInterface) : false;
+              const waitingOnYou = row ? needsInput(row as WorkflowItemInterface) : false;
               return (
                 <div className="flex items-center gap-1.5">
                   <Badge className={`rounded-full border px-2 py-1 text-xs whitespace-nowrap ${color}`}>{status}</Badge>
-                  {waitingOnYou && <Badge className="px-2 py-1">Awaiting input</Badge>}
+                  {waitingOnYou && <Badge className="px-2 py-1">Needs input</Badge>}
                 </div>
               );
             },

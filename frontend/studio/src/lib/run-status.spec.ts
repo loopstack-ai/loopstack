@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { WorkflowState } from '@loopstack/contracts/enums';
-import { getWorkflowStateColor, isAwaitingInput } from './run-status';
+import { getWorkflowStateColor, needsInput } from './run-status';
 
-describe('isAwaitingInput', () => {
+describe('needsInput', () => {
   it('flags a waiting run with nothing running under it', () => {
-    expect(isAwaitingInput({ status: WorkflowState.Waiting, activeChildren: 0 })).toBe(true);
+    expect(needsInput({ status: WorkflowState.Waiting, activeChildren: 0 })).toBe(true);
   });
 
   it('does not flag a waiting run whose children are still working', () => {
     // The distinction the whole badge exists for: a parent parked on a child's callback carries `waiting`
     // exactly as a run holding an unanswered question does.
-    expect(isAwaitingInput({ status: WorkflowState.Waiting, activeChildren: 2 })).toBe(false);
+    expect(needsInput({ status: WorkflowState.Waiting, activeChildren: 2 })).toBe(false);
   });
 
   it('does not flag runs that are not waiting', () => {
     for (const status of [WorkflowState.Running, WorkflowState.Completed, WorkflowState.Failed]) {
-      expect(isAwaitingInput({ status, activeChildren: 0 })).toBe(false);
+      expect(needsInput({ status, activeChildren: 0 })).toBe(false);
     }
   });
 });

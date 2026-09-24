@@ -6,7 +6,7 @@ import { queryKeys } from '@loopstack/client';
 import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import { useLoopstackClient } from '@loopstack/react';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
-import { getWorkflowStateColor, isAwaitingInput } from '@/lib/run-status.ts';
+import { getWorkflowStateColor, needsInput } from '@/lib/run-status.ts';
 import CustomListView from '../../../components/lists/CustomListView.tsx';
 import { Badge } from '../../../components/ui/badge.tsx';
 import { useBatchDeleteWorkflows, useChildWorkflows, useFilterWorkflows } from '../../../hooks/useWorkflows.ts';
@@ -53,7 +53,7 @@ const ChildWorkflowList: React.FC<{
             <p className="text-xs text-muted-foreground">{formatUpdatedTime(child.updatedAt)}</p>
           </div>
           <div className="flex items-center gap-1.5">
-            {isAwaitingInput(child) && <Badge>Awaiting input</Badge>}
+            {needsInput(child) && <Badge>Needs input</Badge>}
             <Badge variant="default" className={getWorkflowStateColor(child.status)}>
               {child.status}
             </Badge>
@@ -160,7 +160,7 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-1.5">
-            {isAwaitingInput(item) && <Badge>Awaiting input</Badge>}
+            {needsInput(item) && <Badge>Needs input</Badge>}
             <Badge variant="default" className={getWorkflowStateColor(item.status)}>
               {item.status}
             </Badge>

@@ -18,8 +18,7 @@ at any depth.
 Finding the ones that need a person took a second field, because `waiting` does not say who is being waited
 on: every run that parks without finishing carries it, so a parent sitting on a child's callback looks
 exactly like a run holding an unanswered question. `WorkflowItemInterface` gains **`activeChildren`** — the
-children still running, waiting or pending — and a waiting run with none of them is marked **Awaiting
-input**. It is a proxy for `evaluateWorkflowPrompts`, which is exact but needs every run's documents; its
+children still running, waiting or pending — and a waiting run with none of them is marked **Needs input**. It is a proxy for `evaluateWorkflowPrompts`, which is exact but needs every run's documents; its
 blind spot is a run parked between automatic retries.
 
 Two fixes fell out of it: Studio's landing page listed runs with status `paused`, which the engine never

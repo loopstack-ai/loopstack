@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 import { NewRunDialog, RecentRunItem } from '@/features/workbench';
 import { useFilterWorkflows } from '@/hooks/useWorkflows.ts';
-import { isAwaitingInput } from '@/lib/run-status.ts';
+import { needsInput } from '@/lib/run-status.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 export default function StudioLandingPage() {
@@ -18,7 +18,7 @@ export default function StudioLandingPage() {
   // `paused` is never assigned by the engine — a run that parks is `waiting`. Of those, the ones with
   // nothing running underneath are the ones holding a question for you.
   const fetchWaiting = useFilterWorkflows(undefined, { status: 'waiting' }, 'createdAt', 'DESC', 0, 20);
-  const pausedRuns = (fetchWaiting.data?.data ?? []).filter(isAwaitingInput).slice(0, 5);
+  const pausedRuns = (fetchWaiting.data?.data ?? []).filter(needsInput).slice(0, 5);
 
   const handleNewRunSuccess = useCallback(
     (workflowId: string) => {

@@ -29,7 +29,7 @@ export function getWorkflowStateColor(status: WorkflowState): string {
 }
 
 /**
- * Whether a run is most likely waiting on a **person** — what the "Awaiting input" badge reports.
+ * Whether a run is most likely waiting on a **person** — what the "Needs input" badge reports.
  *
  * `waiting` on its own does not say who is being waited on: every run that parks without finishing carries
  * it, so a parent sitting on a child's callback looks exactly like a run holding an unanswered question.
@@ -41,6 +41,6 @@ export function getWorkflowStateColor(status: WorkflowState): string {
  * run's documents — far too much to fetch for a list. The proxy's known blind spot is a run parked between
  * automatic retries: nothing is running under it, but nobody is being asked anything either.
  */
-export function isAwaitingInput(item: Pick<WorkflowItemInterface, 'status' | 'activeChildren'>): boolean {
+export function needsInput(item: Pick<WorkflowItemInterface, 'status' | 'activeChildren'>): boolean {
   return item.status === WorkflowState.Waiting && item.activeChildren === 0;
 }
