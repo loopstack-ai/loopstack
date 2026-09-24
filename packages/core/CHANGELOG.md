@@ -1,5 +1,23 @@
 # @loopstack/core
 
+## 0.42.0
+
+### Minor Changes
+
+- [#346](https://github.com/loopstack-ai/loopstack/pull/346) [`686e121`](https://github.com/loopstack-ai/loopstack/commit/686e121704c2cbdf24bd21139121bd3c92dbc97d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Let a sub-workflow run in another workspace: `RunOptions.workspaceId` on `workflow.run()` /
+  `orchestrator.queue()` names the workspace the child belongs to, defaulting to the parent's as before.
+
+  Tasks serialize per workspace, so this is what lets a parent start work that runs **at the same time** as
+  its own workspace's rather than behind it — the child takes the named workspace's lock instead. The parent
+  callback is unaffected: it is still scheduled under the parent's own workspace, so ordering there is
+  unchanged and a child finishing elsewhere resumes its parent exactly as one at home does. The workspace must
+  already exist.
+
+### Patch Changes
+
+- Updated dependencies [[`686e121`](https://github.com/loopstack-ai/loopstack/commit/686e121704c2cbdf24bd21139121bd3c92dbc97d), [`6436004`](https://github.com/loopstack-ai/loopstack/commit/6436004c0c161d836e5ff416d39926f913fbbc8e), [`341aa7f`](https://github.com/loopstack-ai/loopstack/commit/341aa7fb85e437509a100b3af7e11e015626a22d)]:
+  - @loopstack/common@0.42.0
+
 ## 0.41.0
 
 ### Minor Changes

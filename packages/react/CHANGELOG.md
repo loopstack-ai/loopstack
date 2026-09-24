@@ -1,5 +1,39 @@
 # @loopstack/react
 
+## 5.0.0
+
+### Minor Changes
+
+- [#346](https://github.com/loopstack-ai/loopstack/pull/346) [`085c078`](https://github.com/loopstack-ai/loopstack/commit/085c07829d313caff759bf73b578be6673c4091c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Load a run's documents as a window of its newest messages, keep it current from the event stream, and fetch
+  older history on demand — so long runs keep updating instead of freezing at the start of the run.
+
+  A run's document list is unbounded, but it was fetched as a single unpaginated request: the server applied
+  its default limit (100) to an `index ASC` query, so a client always received the _oldest_ 100 documents and
+  every later message fell outside the response. Each `document.created` event still triggered a refetch — of
+  the same first page — which looked exactly like live updates having stopped.
+  - `@loopstack/contracts`: `DocumentFilterSchema` gains the range filters `updatedAfter` (documents written
+    after an instant — new and re-saved alike) and `beforeIndex` (documents ordered before an index).
+  - `@loopstack/api`: the document filter honors both, and list limits are capped by `DOCUMENT_MAX_LIMIT`
+    (default 500) so one request cannot read an unbounded list.
+  - `@loopstack/client`: `queries.documents(workflowId, scope?)` now resolves to a `DocumentWindow`
+    (`{ documents, total }`) holding the newest `DOCUMENT_WINDOW_SIZE` (200) documents in display order, with
+    `scope: 'current' | 'all'` selecting whether re-saved documents are included (the cache key carries it).
+    New `fetchDocumentsSince`/`fetchDocumentsBefore` helpers fetch the live delta and the previous page.
+    `document.created` no longer resolves to a cache invalidation.
+  - `@loopstack/react`: new `useLiveDocuments()` — mount it alongside `useLiveInvalidation()` — merges the
+    documents written since a cached window's newest row into that window by id, covering new and re-saved
+    documents. `useWorkflowDocuments(workflowId, scope?)` returns
+    `{ documents, total, hasOlder, loadOlder, isLoadingOlder, isLoading, isSuccess, error }`.
+  - `@loopstack/loopstack-studio`: the run view opens on the newest messages and offers a "Load older messages"
+    button that prepends the previous page while holding the read position; the transcript view uses the shared
+    window query and loses its own 500-document ceiling.
+
+### Patch Changes
+
+- Updated dependencies [[`085c078`](https://github.com/loopstack-ai/loopstack/commit/085c07829d313caff759bf73b578be6673c4091c), [`6c697db`](https://github.com/loopstack-ai/loopstack/commit/6c697dbe9d7e7d754129681848d7aa12725a6dde), [`6436004`](https://github.com/loopstack-ai/loopstack/commit/6436004c0c161d836e5ff416d39926f913fbbc8e), [`341aa7f`](https://github.com/loopstack-ai/loopstack/commit/341aa7fb85e437509a100b3af7e11e015626a22d), [`a5789f8`](https://github.com/loopstack-ai/loopstack/commit/a5789f8d278d41b1bb7f5a2adf9370c4b528d54b)]:
+  - @loopstack/contracts@0.42.0
+  - @loopstack/client@0.42.0
+
 ## 4.0.0
 
 ### Patch Changes
