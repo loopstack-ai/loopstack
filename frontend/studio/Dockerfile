@@ -1,25 +1,18 @@
-FROM node:20-alpine AS build
-WORKDIR /app
+# Serves the Studio app bundle.
+#
+# `dist/` is produced by the workspace build before the image is built:
+#   npx turbo run build --filter='@loopstack/loopstack-studio^...'
+#   npm run build:prod -w @loopstack/loopstack-studio
+#
+# The bundle is static, so the image is identical on every architecture
+# apart from the base image and `serve`.
 
-ARG COMMIT_SHA=unknown
-ARG VERSION=unknown
-
-COPY package.json package-lock.json* ./
-RUN npm install
-
-COPY . .
-
-ENV VITE_COMMIT_SHA=${COMMIT_SHA}
-ENV VITE_APP_VERSION=${VERSION}
-
-RUN npm run build:prod
-
-FROM node:20-alpine AS production
+FROM node:24-alpine
 WORKDIR /app
 
 RUN npm install -g serve
 
-COPY --from=build /app/dist ./dist
+COPY dist ./dist
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
