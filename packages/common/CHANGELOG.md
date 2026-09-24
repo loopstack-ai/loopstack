@@ -1,5 +1,43 @@
 # @loopstack/common
 
+## 0.42.0
+
+### Minor Changes
+
+- [#346](https://github.com/loopstack-ai/loopstack/pull/346) [`686e121`](https://github.com/loopstack-ai/loopstack/commit/686e121704c2cbdf24bd21139121bd3c92dbc97d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Let a sub-workflow run in another workspace: `RunOptions.workspaceId` on `workflow.run()` /
+  `orchestrator.queue()` names the workspace the child belongs to, defaulting to the parent's as before.
+
+  Tasks serialize per workspace, so this is what lets a parent start work that runs **at the same time** as
+  its own workspace's rather than behind it — the child takes the named workspace's lock instead. The parent
+  callback is unaffected: it is still scheduled under the parent's own workspace, so ordering there is
+  unchanged and a child finishing elsewhere resumes its parent exactly as one at home does. The workspace must
+  already exist.
+
+- [#329](https://github.com/loopstack-ai/loopstack/pull/329) [`6436004`](https://github.com/loopstack-ai/loopstack/commit/6436004c0c161d836e5ff416d39926f913fbbc8e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `WorkflowTransitionType` now describes the transition the engine actually serializes. **Breaking for
+  external consumers:** the type and its schema are `{ id, from, to, trigger?, guard? }` — `if`, `call`,
+  `assign`, `onError` and `debug` are gone, and a guard is reported by method name (`guard: 'needsAuth'`)
+  rather than as a string expression. `@loopstack/contracts/schemas` drops
+  `WorkflowTransitionConfigSchema`, `TemplateExpression`, `AssignmentSchema`, `AssignmentConfigSchema`,
+  `ToolCallSchema` and `ToolCallConfigSchema`; `@loopstack/contracts/types` drops `AssignmentType`,
+  `AssignmentConfigType` and `ToolCallType`. `WorkflowSchema` no longer carries `transitions` — the
+  `@Transition` / `@Guard` decorators are the only way to declare them, and `buildWorkflowTransitions` is
+  the only source the config endpoint reads. `WorkflowConfigDto.transitions` is now validated against the
+  real schema instead of an unchecked `z.custom`, and `DocumentConfigSchema`'s `tags` and `meta` fields
+  are typed as the concrete values the runtime already reads. Studio labels a guarded edge with its guard
+  method name.
+
+### Patch Changes
+
+- [#336](https://github.com/loopstack-ai/loopstack/pull/336) [`341aa7f`](https://github.com/loopstack-ai/loopstack/commit/341aa7fb85e437509a100b3af7e11e015626a22d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `WorkflowTransitionType` now describes only what the engine serializes at runtime:
+  `{ id, from, to, trigger? }`. The guard name moves to the new
+  `WorkflowTransitionDefinitionSchema` / `WorkflowTransitionDefinitionType`, the shape the
+  config endpoint serves — `WorkflowConfigDto.transitions` and the return type of
+  `buildWorkflowTransitions` — where the declared edge is drawn whether or not its guard can
+  fire. `WorkflowTransitionSchema` is `.strict()`, so anything validating a config-endpoint
+  transition list must use the definition schema.
+- Updated dependencies [[`085c078`](https://github.com/loopstack-ai/loopstack/commit/085c07829d313caff759bf73b578be6673c4091c), [`6c697db`](https://github.com/loopstack-ai/loopstack/commit/6c697dbe9d7e7d754129681848d7aa12725a6dde), [`6436004`](https://github.com/loopstack-ai/loopstack/commit/6436004c0c161d836e5ff416d39926f913fbbc8e), [`341aa7f`](https://github.com/loopstack-ai/loopstack/commit/341aa7fb85e437509a100b3af7e11e015626a22d), [`a5789f8`](https://github.com/loopstack-ai/loopstack/commit/a5789f8d278d41b1bb7f5a2adf9370c4b528d54b)]:
+  - @loopstack/contracts@0.42.0
+
 ## 0.41.0
 
 ### Minor Changes

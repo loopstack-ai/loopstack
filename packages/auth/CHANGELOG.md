@@ -1,5 +1,14 @@
 # @loopstack/auth
 
+## 0.42.0
+
+### Patch Changes
+
+- Updated dependencies [[`085c078`](https://github.com/loopstack-ai/loopstack/commit/085c07829d313caff759bf73b578be6673c4091c), [`6c697db`](https://github.com/loopstack-ai/loopstack/commit/6c697dbe9d7e7d754129681848d7aa12725a6dde), [`686e121`](https://github.com/loopstack-ai/loopstack/commit/686e121704c2cbdf24bd21139121bd3c92dbc97d), [`6436004`](https://github.com/loopstack-ai/loopstack/commit/6436004c0c161d836e5ff416d39926f913fbbc8e), [`341aa7f`](https://github.com/loopstack-ai/loopstack/commit/341aa7fb85e437509a100b3af7e11e015626a22d), [`a5789f8`](https://github.com/loopstack-ai/loopstack/commit/a5789f8d278d41b1bb7f5a2adf9370c4b528d54b)]:
+  - @loopstack/contracts@0.42.0
+  - @loopstack/common@0.42.0
+  - @loopstack/core@0.42.0
+
 ## 0.41.0
 
 ### Minor Changes

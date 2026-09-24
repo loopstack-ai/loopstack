@@ -1,5 +1,13 @@
 # @loopstack/web-module
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`686e121`](https://github.com/loopstack-ai/loopstack/commit/686e121704c2cbdf24bd21139121bd3c92dbc97d), [`6436004`](https://github.com/loopstack-ai/loopstack/commit/6436004c0c161d836e5ff416d39926f913fbbc8e), [`341aa7f`](https://github.com/loopstack-ai/loopstack/commit/341aa7fb85e437509a100b3af7e11e015626a22d)]:
+  - @loopstack/common@0.42.0
+  - @loopstack/claude-module@0.27.1
+
 ## 0.5.0
 
 ### Minor Changes

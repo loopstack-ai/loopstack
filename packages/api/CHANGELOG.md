@@ -1,5 +1,85 @@
 # @loopstack/api
 
+## 0.42.0
+
+### Minor Changes
+
+- [#346](https://github.com/loopstack-ai/loopstack/pull/346) [`11cca1f`](https://github.com/loopstack-ai/loopstack/commit/11cca1ff168f5038a4991366f6da45849e061b92) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Emit in-process domain events on deletions, so a host app can release resources it holds for the deleted
+  rows (disk state, containers, volumes, …): `workspace.deleted` with `{ id, user }` from
+  `WorkspaceApiService.delete`/`batchDelete` (one per deleted workspace), and `workflow.deleted` with
+  `{ id, workspaceId, user }` from `WorkflowApiService.delete`/`batchDelete` (one per deleted run). Events fire
+  after the delete committed, via the globally registered `EventEmitter2` — listen with
+  `@OnEvent('workspace.deleted')` / `@OnEvent('workflow.deleted')`. Workflow rows removed by a workspace
+  deletion's FK cascade do not emit individual `workflow.deleted` events; a workspace-level listener is
+  expected to reclaim everything the workspace owned.
+
+- [#346](https://github.com/loopstack-ai/loopstack/pull/346) [`085c078`](https://github.com/loopstack-ai/loopstack/commit/085c07829d313caff759bf73b578be6673c4091c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Load a run's documents as a window of its newest messages, keep it current from the event stream, and fetch
+  older history on demand — so long runs keep updating instead of freezing at the start of the run.
+
+  A run's document list is unbounded, but it was fetched as a single unpaginated request: the server applied
+  its default limit (100) to an `index ASC` query, so a client always received the _oldest_ 100 documents and
+  every later message fell outside the response. Each `document.created` event still triggered a refetch — of
+  the same first page — which looked exactly like live updates having stopped.
+  - `@loopstack/contracts`: `DocumentFilterSchema` gains the range filters `updatedAfter` (documents written
+    after an instant — new and re-saved alike) and `beforeIndex` (documents ordered before an index).
+  - `@loopstack/api`: the document filter honors both, and list limits are capped by `DOCUMENT_MAX_LIMIT`
+    (default 500) so one request cannot read an unbounded list.
+  - `@loopstack/client`: `queries.documents(workflowId, scope?)` now resolves to a `DocumentWindow`
+    (`{ documents, total }`) holding the newest `DOCUMENT_WINDOW_SIZE` (200) documents in display order, with
+    `scope: 'current' | 'all'` selecting whether re-saved documents are included (the cache key carries it).
+    New `fetchDocumentsSince`/`fetchDocumentsBefore` helpers fetch the live delta and the previous page.
+    `document.created` no longer resolves to a cache invalidation.
+  - `@loopstack/react`: new `useLiveDocuments()` — mount it alongside `useLiveInvalidation()` — merges the
+    documents written since a cached window's newest row into that window by id, covering new and re-saved
+    documents. `useWorkflowDocuments(workflowId, scope?)` returns
+    `{ documents, total, hasOlder, loadOlder, isLoadingOlder, isLoading, isSuccess, error }`.
+  - `@loopstack/loopstack-studio`: the run view opens on the newest messages and offers a "Load older messages"
+    button that prepends the previous page while holding the read position; the transcript view uses the shared
+    window query and loses its own 500-document ceiling.
+
+- [#346](https://github.com/loopstack-ai/loopstack/pull/346) [`6c697db`](https://github.com/loopstack-ai/loopstack/commit/6c697dbe9d7e7d754129681848d7aa12725a6dde) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Make a run that is waiting on a person findable.
+
+  Run lists filtered on `parentId: null`, which hid two things. A run queued into a workspace by a parent
+  elsewhere has a parent, so it never appeared in the workspace it actually runs in — the only place anyone
+  would look for it. And a gate several sub-workflows deep was reachable only by opening each ancestor in turn.
+
+  `WorkflowFilterInterface` gains **`topLevel`**: runs that _start_ where you are looking — no parent, or a
+  parent in another workspace. It asks the question the old filter was standing in for, and Studio now offers
+  it as a visible, removable filter rather than a hidden default, so clearing it widens the list to every run
+  at any depth.
+
+  Finding the ones that need a person took a second field, because `waiting` does not say who is being waited
+  on: every run that parks without finishing carries it, so a parent sitting on a child's callback looks
+  exactly like a run holding an unanswered question. `WorkflowItemInterface` gains **`activeChildren`** — the
+  children still running, waiting or pending — and a waiting run with none of them is marked **Needs input**. It is a proxy for `evaluateWorkflowPrompts`, which is exact but needs every run's documents; its
+  blind spot is a run parked between automatic retries.
+
+  Two fixes fell out of it: Studio's landing page listed runs with status `paused`, which the engine never
+  assigns, and its run filter offered `paused` while omitting `waiting` — the one state worth filtering by.
+  Status badges also shared one dark-mode-aware palette now, instead of the run list carrying a light-only
+  copy of its own.
+
+- [#329](https://github.com/loopstack-ai/loopstack/pull/329) [`6436004`](https://github.com/loopstack-ai/loopstack/commit/6436004c0c161d836e5ff416d39926f913fbbc8e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `WorkflowTransitionType` now describes the transition the engine actually serializes. **Breaking for
+  external consumers:** the type and its schema are `{ id, from, to, trigger?, guard? }` — `if`, `call`,
+  `assign`, `onError` and `debug` are gone, and a guard is reported by method name (`guard: 'needsAuth'`)
+  rather than as a string expression. `@loopstack/contracts/schemas` drops
+  `WorkflowTransitionConfigSchema`, `TemplateExpression`, `AssignmentSchema`, `AssignmentConfigSchema`,
+  `ToolCallSchema` and `ToolCallConfigSchema`; `@loopstack/contracts/types` drops `AssignmentType`,
+  `AssignmentConfigType` and `ToolCallType`. `WorkflowSchema` no longer carries `transitions` — the
+  `@Transition` / `@Guard` decorators are the only way to declare them, and `buildWorkflowTransitions` is
+  the only source the config endpoint reads. `WorkflowConfigDto.transitions` is now validated against the
+  real schema instead of an unchecked `z.custom`, and `DocumentConfigSchema`'s `tags` and `meta` fields
+  are typed as the concrete values the runtime already reads. Studio labels a guarded edge with its guard
+  method name.
+
+### Patch Changes
+
+- Updated dependencies [[`085c078`](https://github.com/loopstack-ai/loopstack/commit/085c07829d313caff759bf73b578be6673c4091c), [`6c697db`](https://github.com/loopstack-ai/loopstack/commit/6c697dbe9d7e7d754129681848d7aa12725a6dde), [`686e121`](https://github.com/loopstack-ai/loopstack/commit/686e121704c2cbdf24bd21139121bd3c92dbc97d), [`6436004`](https://github.com/loopstack-ai/loopstack/commit/6436004c0c161d836e5ff416d39926f913fbbc8e), [`341aa7f`](https://github.com/loopstack-ai/loopstack/commit/341aa7fb85e437509a100b3af7e11e015626a22d), [`a5789f8`](https://github.com/loopstack-ai/loopstack/commit/a5789f8d278d41b1bb7f5a2adf9370c4b528d54b)]:
+  - @loopstack/contracts@0.42.0
+  - @loopstack/common@0.42.0
+  - @loopstack/core@0.42.0
+  - @loopstack/auth@0.42.0
+
 ## 0.41.0
 
 ### Minor Changes
