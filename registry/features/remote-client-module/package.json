@@ -37,6 +37,7 @@
     "@loopstack/secrets-module": "^0.28.1"
   },
   "devDependencies": {
+    "@loopstack/testing": "^0.42.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/typeorm": "^12.0.1",
     "@swc/core": "^1.15.33",

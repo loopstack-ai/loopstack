@@ -1,6 +1,7 @@
 import type { DocumentEntity } from '@loopstack/common';
 import { getWorkflowIdentifier } from '@loopstack/common';
-import { ExecutionScope, type ExecutionScopeData, RunTraceCollector } from '@loopstack/core';
+import { ExecutionScope, type ExecutionScopeData } from '../workflow-processor/utils/execution-scope.js';
+import { RunTraceCollector } from '../workflow-processor/utils/run-trace-collector.js';
 
 /** What `runTransition` returns: the state and result drafts after the transition resolves. */
 export interface TransitionDraftResult<TState = Record<string, unknown>, TResult = Record<string, unknown>> {

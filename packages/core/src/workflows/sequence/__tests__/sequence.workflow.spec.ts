@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RunContext, WorkflowOrchestrator } from '@loopstack/common';
-import { runTransition } from '@loopstack/testing';
+import { runTransition } from '../../../testing/run-transition.js';
 import type { WorkflowRegistryService } from '../../../workflow-processor/services/workflow-registry.service.js';
 import type { SequenceArgs, SequenceResult } from '../sequence.types.js';
 import { SequenceWorkflow } from '../sequence.workflow.js';
