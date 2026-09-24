@@ -83,6 +83,10 @@
       "prettier --check"
     ]
   },
+  "engines": {
+    "node": ">=20.19",
+    "npm": ">=11"
+  },
   "packageManager": "npm@11.11.0",
   "workspaces": [
     "packages/*",
