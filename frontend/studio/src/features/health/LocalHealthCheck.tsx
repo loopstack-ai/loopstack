@@ -10,6 +10,8 @@ export const Escalation = {
   Login: 2,
   Debug: 3,
   Connection: 4,
+  /** Requests are being queued rather than failing — a different problem with a different remedy. */
+  Stalled: 5,
 } as const;
 
 export type Escalation = (typeof Escalation)[keyof typeof Escalation];
@@ -115,9 +117,18 @@ const LocalHealthCheck = () => {
     const unsubscribe2 = apiClientEvents.on(ApiClientEvents.ERR_NETWORK, () => {
       setEscalation(Escalation.Connection);
     });
+    const unsubscribe3 = apiClientEvents.on(ApiClientEvents.REQUEST_STALLED, () => {
+      setEscalation(Escalation.Stalled);
+    });
+    // Only clears what it set: a stall resolving says nothing about an auth or connection problem.
+    const unsubscribe4 = apiClientEvents.on(ApiClientEvents.REQUEST_RECOVERED, () => {
+      setEscalation((current) => (current === Escalation.Stalled ? Escalation.None : current));
+    });
     return () => {
       unsubscribe1();
       unsubscribe2();
+      unsubscribe3();
+      unsubscribe4();
     };
   }, []);
 
@@ -139,14 +150,28 @@ const LocalHealthCheck = () => {
         <div className="flex items-center gap-3">
           <div className="bg-destructive h-2 w-2 rounded-full" />
           <div>
-            <p className="text-foreground text-sm font-semibold">Connection issues detected</p>
-            <p className="text-muted-foreground text-xs">
-              Please make sure the environment{' '}
-              <strong>
-                {environment.name} ({environment.id})
-              </strong>{' '}
-              is properly configured and running.
-            </p>
+            {escalation === Escalation.Stalled ? (
+              <>
+                <p className="text-foreground text-sm font-semibold">Waiting for the server to respond</p>
+                <p className="text-muted-foreground text-xs">
+                  Requests are queued rather than failing. Every expanded sub-workflow and every open Studio window
+                  holds a live connection, and browsers allow only a handful per site —{' '}
+                  <strong>collapsing a sub-workflow</strong> or closing another window frees one. It clears on its own
+                  once the request goes through.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-foreground text-sm font-semibold">Connection issues detected</p>
+                <p className="text-muted-foreground text-xs">
+                  Please make sure the environment{' '}
+                  <strong>
+                    {environment.name} ({environment.id})
+                  </strong>{' '}
+                  is properly configured and running.
+                </p>
+              </>
+            )}
           </div>
         </div>
 

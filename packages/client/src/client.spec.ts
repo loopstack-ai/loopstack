@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createClient } from './client.js';
 import { LoopstackApiError } from './http.js';
 import { queryKeys } from './queries/query-keys.js';
+import { DOCUMENT_WINDOW_SIZE } from './queries/query-options.js';
 
 interface RecordedCall {
   url: string;
@@ -103,7 +104,7 @@ describe('query descriptors', () => {
 
     expect(client.envKey).toBe(URL_BASE);
     expect(client.queries.workflow('wf-1').queryKey).toEqual(['workflow', URL_BASE, 'wf-1']);
-    expect(client.queries.documents('wf-1').queryKey).toEqual(['documents', URL_BASE, 'wf-1']);
+    expect(client.queries.documents('wf-1').queryKey).toEqual(['documents', URL_BASE, 'wf-1', 'current']);
   });
 
   it('respects an explicit envKey', () => {
@@ -114,15 +115,31 @@ describe('query descriptors', () => {
     expect(client.queries.childWorkflows('wf-0').queryKey).toEqual(['childWorkflows', 'local', 'wf-0']);
   });
 
-  it('documents queryFn requests visible documents in display order', async () => {
-    const { calls, fetchFn } = createMockFetch([{ body: { data: [], total: 0, page: 1, limit: 100 } }]);
+  it('documents queryFn requests the newest window and returns it oldest-first', async () => {
+    const newer = { id: 'b', index: 2 };
+    const older = { id: 'a', index: 1 };
+    const { calls, fetchFn } = createMockFetch([{ body: { data: [newer, older], total: 7, page: 0, limit: 200 } }]);
     const client = createClient({ url: URL_BASE, fetch: fetchFn });
 
-    await client.queries.documents('wf-1').queryFn();
+    const window = await client.queries.documents('wf-1').queryFn();
 
     const url = new URL(calls[0].url);
     expect(JSON.parse(url.searchParams.get('filter')!)).toEqual({ workflowId: 'wf-1', isInvalidated: false });
-    expect(JSON.parse(url.searchParams.get('sortBy')!)).toEqual([{ field: 'index', order: 'ASC' }]);
+    // Newest-first on the wire — the window is the live end of a run, however long it is.
+    expect(JSON.parse(url.searchParams.get('sortBy')!)).toEqual([{ field: 'index', order: 'DESC' }]);
+    expect(url.searchParams.get('limit')).toBe(String(DOCUMENT_WINDOW_SIZE));
+    // …and oldest-first for display, with the run's full count for "load older".
+    expect(window).toEqual({ documents: [older, newer], total: 7 });
+  });
+
+  it('documents queryFn keeps re-saved documents in the transcript scope', async () => {
+    const { calls, fetchFn } = createMockFetch([{ body: { data: [], total: 0, page: 0, limit: 200 } }]);
+    const client = createClient({ url: URL_BASE, fetch: fetchFn });
+
+    await client.queries.documents('wf-1', 'all').queryFn();
+
+    expect(JSON.parse(new URL(calls[0].url).searchParams.get('filter')!)).toEqual({ workflowId: 'wf-1' });
+    expect(client.queries.documents('wf-1', 'all').queryKey).toEqual(['documents', URL_BASE, 'wf-1', 'all']);
   });
 
   it('list keys are prefixed by the plural key so broad invalidation catches them', () => {

@@ -48,6 +48,9 @@ jobs:
       - name: Build packages
         run: npm run build
 
+      - name: Typecheck
+        run: npm run compile --if-present
+
       - name: Check formatting
         run: npm run format:check --if-present
 

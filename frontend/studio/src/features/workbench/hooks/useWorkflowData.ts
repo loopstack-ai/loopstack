@@ -47,11 +47,11 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
   );
 
   const documents: DocumentItemInterface[] = useMemo(() => {
-    if (!fetchDocuments.data) {
+    if (!fetchDocuments.isSuccess) {
       return streamingDocuments;
     }
 
-    const filteredFetchedDocuments = fetchDocuments.data.filter(filterDocuments);
+    const filteredFetchedDocuments = fetchDocuments.documents.filter(filterDocuments);
     const streamingByMessageId = new Map(
       streamingDocuments
         .map((item) => [getLlmMessageId(item), item] as const)
@@ -71,7 +71,7 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
     });
 
     return [...fetchedDocuments, ...activeStreamingDocuments];
-  }, [fetchDocuments.data, filterDocuments, streamingDocuments]);
+  }, [fetchDocuments.documents, fetchDocuments.isSuccess, filterDocuments, streamingDocuments]);
 
   const handleRun = useCallback(
     (transition: string, data: Record<string, unknown> | string | undefined) => {
@@ -97,6 +97,9 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
     workflowReady: fetchWorkflow.isSuccess,
     workflowError: fetchWorkflow.data?.errorMessage,
     documents,
+    hasOlderDocuments: fetchDocuments.hasOlder,
+    loadOlderDocuments: fetchDocuments.loadOlder,
+    isLoadingOlderDocuments: fetchDocuments.isLoadingOlder,
     documentsLoading: fetchDocuments.isLoading,
     documentsReady: fetchDocuments.isSuccess,
     documentsError: fetchDocuments.error,

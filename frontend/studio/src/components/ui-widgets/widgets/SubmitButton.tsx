@@ -13,11 +13,14 @@ interface SubmitButtonProps {
 export const SubmitButton: React.FC<SubmitButtonProps> = ({ ui, disabled, onClick, isLoading }) => {
   const submitButtonText = ui?.label || 'Submit';
   const submitButtonProps = ui?.props || {};
+  // Honoured the same way a form action's is: a widget button that is not the primary action has to be
+  // able to say so, and `variant` is already part of the options it is given.
+  const variant = (ui?.variant as React.ComponentProps<typeof Button>['variant']) ?? 'default';
 
   return (
     <Button
       type="button"
-      variant="default"
+      variant={variant}
       {...submitButtonProps}
       disabled={disabled || isLoading}
       onClick={() => onClick()}

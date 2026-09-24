@@ -1,5 +1,5 @@
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import React, { useEffect } from 'react';
+import { AlertCircle, ChevronUp, RefreshCw } from 'lucide-react';
+import React, { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
@@ -29,6 +29,9 @@ const WorkflowItem: React.FC<{
     workflowReady,
     workflowError,
     documents,
+    hasOlderDocuments,
+    loadOlderDocuments,
+    isLoadingOlderDocuments,
     documentsLoading,
     documentsReady,
     documentsError,
@@ -54,10 +57,33 @@ const WorkflowItem: React.FC<{
     runWorkflow.mutate({ workflowId: workflowId });
   };
 
+  // Prepending older messages grows the page upwards, which would scroll the read position away. Measuring
+  // from the bottom (stable across the insert) and restoring it after paint keeps the same messages in view.
+  const handleLoadOlder = useCallback(async () => {
+    const distanceFromBottom = document.documentElement.scrollHeight - document.documentElement.scrollTop;
+    await loadOlderDocuments();
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => window.scrollTo({ top: document.documentElement.scrollHeight - distanceFromBottom })),
+    );
+  }, [loadOlderDocuments]);
+
   return (
     <div className={cn('flex flex-col', embed ? 'p-0' : 'p-4')}>
       <LoadingCentered loading={workflowLoading || documentsLoading} />
       <ErrorSnackbar error={documentsError} />
+
+      {workflowReady && childWorkflow && hasOlderDocuments && (
+        <div className="mb-3 flex justify-center">
+          <Button variant="outline" size="sm" disabled={isLoadingOlderDocuments} onClick={() => void handleLoadOlder()}>
+            {isLoadingOlderDocuments ? (
+              <div className="mr-1 h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              <ChevronUp className="mr-1 h-3.5 w-3.5" />
+            )}
+            Load older messages
+          </Button>
+        </div>
+      )}
 
       {workflowReady && childWorkflow && (
         <DocumentList

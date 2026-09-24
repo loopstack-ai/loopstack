@@ -76,7 +76,6 @@ export class ConfigController {
       throw new Error(`Block ${workflow.constructor.name} is missing @Workflow decorator`);
     }
 
-    const transitions = buildWorkflowTransitions(workflow);
     const argsSchema = getBlockArgsSchema(workflow);
     const argsJsonSchema = argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined;
 
@@ -86,7 +85,7 @@ export class ConfigController {
       description: config.description,
       schema: argsJsonSchema,
       ui: config.ui,
-      transitions: transitions.length > 0 ? transitions : (config.transitions ?? []),
+      transitions: buildWorkflowTransitions(workflow),
     });
   }
 

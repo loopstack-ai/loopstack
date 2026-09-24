@@ -33,12 +33,15 @@ function makeWorkflow() {
   return { workflow, orchestrator, registry };
 }
 
-function ctx(args: FanOutArgs, workflowId = 'parent-1'): RunContext {
+/** The workflow's own state shape, read off its transition signature so the fixtures cannot drift. */
+type FanOutState = { [K in keyof Parameters<FanOutWorkflow['done']>[0]]: Parameters<FanOutWorkflow['done']>[0][K] };
+
+function ctx(args: FanOutArgs, workflowId = 'parent-1'): RunContext<FanOutArgs> {
   return {
     userId: 'u1',
     workspaceId: 'ws1',
     workflowId,
-    args: args as unknown as Record<string, unknown>,
+    args,
     signal: new AbortController().signal,
     execution: { place: 'start', retryCount: 0 },
   };
@@ -61,7 +64,9 @@ describe('FanOutWorkflow', () => {
         mode: 'all',
       };
 
-      const { state } = await runTransition(workflow, () => workflow.start({} as never, ctx(args)), { state: {} });
+      const { state } = await runTransition<FanOutState>(workflow, () => workflow.start({} as never, ctx(args)), {
+        state: {} as FanOutState,
+      });
 
       expect(orchestrator.queue).toHaveBeenCalledTimes(2);
       expect(orchestrator.queue).toHaveBeenNthCalledWith(
@@ -81,7 +86,9 @@ describe('FanOutWorkflow', () => {
       const { workflow, orchestrator } = makeWorkflow();
       const args: FanOutArgs = { entries: [], itemsWereArray: true, mode: 'all' };
 
-      const { state } = await runTransition(workflow, () => workflow.start({} as never, ctx(args)), { state: {} });
+      const { state } = await runTransition<FanOutState>(workflow, () => workflow.start({} as never, ctx(args)), {
+        state: {} as FanOutState,
+      });
 
       expect(orchestrator.queue).not.toHaveBeenCalled();
       expect(state.pendingCount).toBe(0);
@@ -91,7 +98,7 @@ describe('FanOutWorkflow', () => {
   describe('onChildComplete', () => {
     it('records a completed child and decrements pendingCount', async () => {
       const { workflow } = makeWorkflow();
-      const state = {
+      const state: FanOutState = {
         pendingCount: 2,
         results: {},
         itemKeys: ['a', 'b'],
@@ -123,7 +130,7 @@ describe('FanOutWorkflow', () => {
 
     it("in mode 'all', a failed child triggers cancelChildren on the parent", async () => {
       const { workflow, orchestrator } = makeWorkflow();
-      const state = {
+      const state: FanOutState = {
         pendingCount: 2,
         results: {},
         itemKeys: ['a', 'b'],
@@ -155,7 +162,7 @@ describe('FanOutWorkflow', () => {
 
     it("in mode 'allSettled', a failed child does NOT trigger cancelChildren", async () => {
       const { workflow, orchestrator } = makeWorkflow();
-      const state = {
+      const state: FanOutState = {
         pendingCount: 2,
         results: {},
         itemKeys: ['a', 'b'],
@@ -186,7 +193,7 @@ describe('FanOutWorkflow', () => {
 
     it('throws when the callback is missing a correlation key', async () => {
       const { workflow } = makeWorkflow();
-      const state = {
+      const state: FanOutState = {
         pendingCount: 1,
         results: {},
         itemKeys: ['a'],
@@ -218,7 +225,7 @@ describe('FanOutWorkflow', () => {
   describe('done', () => {
     it('returns a keyed-record result when items were a record', async () => {
       const { workflow } = makeWorkflow();
-      const state = {
+      const state: FanOutState = {
         pendingCount: 0,
         results: {
           a: { status: 'completed' as const, data: 1 },
@@ -242,7 +249,7 @@ describe('FanOutWorkflow', () => {
 
     it('returns an ordered-array result when items were an array', async () => {
       const { workflow } = makeWorkflow();
-      const state = {
+      const state: FanOutState = {
         pendingCount: 0,
         results: {
           '0': { status: 'completed' as const, data: 'first' },
@@ -266,7 +273,7 @@ describe('FanOutWorkflow', () => {
 
     it('marks missing callbacks as failed (no callback received)', async () => {
       const { workflow } = makeWorkflow();
-      const state = {
+      const state: FanOutState = {
         pendingCount: 0,
         results: { a: { status: 'completed' as const, data: 1 } },
         itemKeys: ['a', 'b'],

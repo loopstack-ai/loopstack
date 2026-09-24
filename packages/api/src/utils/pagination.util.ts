@@ -8,8 +8,11 @@
 export function resolvePagination(
   pagination: { page?: number | undefined; limit?: number | undefined },
   defaultLimit: number,
+  maxLimit?: number,
 ): { skip: number; take: number; page: number; limit: number } {
-  const limit = pagination.limit ?? defaultLimit;
+  const requested = pagination.limit ?? defaultLimit;
+  // A client asking for more than the cap gets the cap: one request must never read an unbounded list.
+  const limit = maxLimit ? Math.min(requested, maxLimit) : requested;
   const page = pagination.page ?? 0;
   return { skip: page * limit, take: limit, page, limit };
 }

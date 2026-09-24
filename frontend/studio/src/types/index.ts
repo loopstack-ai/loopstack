@@ -27,7 +27,6 @@ export interface StudioRouter {
   navigateToChildWorkflow(workflowId: string, clickId: string | undefined): Promise<void>;
   getWorkspaceRuns(workspaceId: string): string;
   navigateToWorkspaceRuns(workspaceId: string): Promise<void>;
-  getEmbedWorkflow(workflowId: string): string;
   getPreviewWorkflow(workflowId: string): string;
   getCurrentEnvironmentId(): string;
   getTheme(): 'local' | 'cloud';

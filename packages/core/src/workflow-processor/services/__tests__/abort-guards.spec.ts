@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { TransitionAbortedError } from '../../../common/index.js';
-import type { ExecutionScopeData } from '../../utils/index.js';
+import { type ExecutionScopeData, RunTraceCollector } from '../../utils/index.js';
 import { DocumentPersistenceService } from '../document-persistence.service.js';
 import { ToolPipelineService } from '../tool-pipeline.service.js';
 import { WorkflowOrchestrationService } from '../workflow-orchestration.service.js';
@@ -17,6 +17,7 @@ function abortedScope(): ExecutionScopeData {
     userId: 'u1',
     workspaceId: 'ws1',
     workflowId: 'wf1',
+    workflowName: 'probe',
     labels: [],
     args: undefined,
     options: { stateless: false },
@@ -24,6 +25,8 @@ function abortedScope(): ExecutionScopeData {
     queryRunner: null,
     documents: [],
     persistenceState: { documentsUpdated: false },
+    trace: new RunTraceCollector(),
+    tracePersist: false,
     transition: { id: 't1', from: null, to: 'next', payload: {} },
     abortController,
     stateDraft: {},
@@ -63,6 +66,7 @@ describe('abort guards', () => {
         { get: () => scope } as never,
         {} as never,
         { addTask: schedulerAddTask } as never,
+        {} as never,
         {} as never,
         {} as never,
         {} as never,

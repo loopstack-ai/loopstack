@@ -17,7 +17,6 @@ export { default as WorkbenchPage } from './pages/WorkbenchPage';
 export { default as WorkflowDebugPage } from './pages/WorkflowDebugPage';
 export { default as DebugWorkflowsPage } from './pages/DebugWorkflowsPage';
 export { default as DebugWorkflowDetailsPage } from './pages/DebugWorkflowDetailsPage';
-export { default as EmbedWorkbenchPage } from './pages/EmbedWorkbenchPage';
 export { default as PreviewWorkbenchPage } from './pages/PreviewWorkbenchPage';
 export { default as RunsPage } from './pages/RunsPage';
 export { default as RunsListPage } from './pages/RunsListPage';

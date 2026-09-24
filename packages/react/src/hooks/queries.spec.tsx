@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { TEST_ENV_KEY, createTestClient, createWrapper } from '../testing/test-utils.js';
 import {
@@ -43,7 +43,7 @@ describe('query hooks', () => {
     expect(workflows.get).not.toHaveBeenCalled();
   });
 
-  it('useWorkflowDocuments requests visible documents in display order', async () => {
+  it('useWorkflowDocuments opens on the newest window of a run', async () => {
     const { client, documents } = createTestClient();
     const { wrapper } = createWrapper(client);
 
@@ -52,7 +52,41 @@ describe('query hooks', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(documents.list).toHaveBeenCalledWith({
       filter: { workflowId: 'wf-1', isInvalidated: false },
-      sortBy: [{ field: 'index', order: 'ASC' }],
+      sortBy: [{ field: 'index', order: 'DESC' }],
+      limit: 200,
+    });
+  });
+
+  it('useWorkflowDocuments offers older history only while some is unloaded', async () => {
+    const { client, documents } = createTestClient();
+    documents.list.mockResolvedValueOnce({
+      data: [{ id: 'b', index: 2, updatedAt: '2026-09-18T08:00:01.000Z' }],
+      total: 3,
+      page: 0,
+      limit: 200,
+    });
+    const { wrapper } = createWrapper(client);
+
+    const { result } = renderHook(() => useWorkflowDocuments('wf-1'), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.hasOlder).toBe(true);
+
+    documents.list.mockResolvedValueOnce({
+      data: [{ id: 'a', index: 1, updatedAt: '2026-09-18T08:00:00.000Z' }],
+      total: 3,
+      page: 0,
+      limit: 200,
+    });
+    await act(async () => {
+      await result.current.loadOlder();
+    });
+
+    // The older page is prepended, keeping display order.
+    expect(result.current.documents.map((item) => item.id)).toEqual(['a', 'b']);
+    expect(documents.list).toHaveBeenLastCalledWith({
+      filter: { workflowId: 'wf-1', isInvalidated: false, beforeIndex: 2 },
+      sortBy: [{ field: 'index', order: 'DESC' }],
+      limit: 200,
     });
   });
 

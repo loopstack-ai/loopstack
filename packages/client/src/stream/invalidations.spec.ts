@@ -43,10 +43,8 @@ describe('resolveInvalidations', () => {
     ]);
   });
 
-  it('document.created invalidates the workflow documents', () => {
-    expect(resolveInvalidations({ ...base, type: 'document.created', workflowId: 'wf' }, ENV)).toEqual([
-      ['documents', ENV, 'wf'],
-    ]);
+  it('document.created invalidates nothing — the cache binder fetches the delta instead', () => {
+    expect(resolveInvalidations({ ...base, type: 'document.created', workflowId: 'wf' }, ENV)).toEqual([]);
   });
 
   it('secret events invalidate workspace secrets', () => {

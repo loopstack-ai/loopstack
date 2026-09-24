@@ -10,7 +10,12 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "test": {}
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "compile": {
+      "dependsOn": ["^build"]
+    }
   },
   "concurrency": "30"
 }

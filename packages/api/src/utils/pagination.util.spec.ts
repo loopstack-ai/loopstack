@@ -15,6 +15,13 @@ describe('resolvePagination', () => {
     expect(resolvePagination({ page: 3 }, 100)).toEqual({ skip: 300, take: 100, page: 3, limit: 100 });
   });
 
+  it('caps the limit at the maximum, so one request cannot read an unbounded list', () => {
+    expect(resolvePagination({ limit: 5000 }, 100, 500)).toEqual({ skip: 0, take: 500, page: 0, limit: 500 });
+    expect(resolvePagination({ limit: 200 }, 100, 500).take).toBe(200);
+    // The cap also bounds the skip arithmetic, so a paged request stays consistent with what is served.
+    expect(resolvePagination({ page: 2, limit: 5000 }, 100, 500).skip).toBe(1000);
+  });
+
   it('reports the actually served page and limit', () => {
     const { page, limit } = resolvePagination({}, 50);
     expect(page).toBe(0);

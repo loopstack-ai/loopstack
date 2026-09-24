@@ -1,6 +1,10 @@
 export const ApiClientEvents = {
   UNAUTHORIZED: 'api.unauthorized',
   ERR_NETWORK: 'api.ERR_NETWORK',
+  /** A request has been waiting far longer than any request should, without failing. */
+  REQUEST_STALLED: 'api.requestStalled',
+  /** Every stalled request has since settled. */
+  REQUEST_RECOVERED: 'api.requestRecovered',
 } as const;
 
 export type ApiClientEvents = (typeof ApiClientEvents)[keyof typeof ApiClientEvents];
@@ -23,8 +27,7 @@ function createApiClientEventEmitter() {
 }
 
 /**
- * Narrow channel for API transport errors (unauthorized, network down) feeding
- * the health-check escalation flow. The Loopstack SDK's reporting fetch
- * wrapper emits here.
+ * Narrow channel for API transport trouble (unauthorized, network down, requests that hang) feeding the
+ * health-check escalation flow. The Loopstack SDK's reporting fetch wrapper emits here.
  */
 export const apiClientEvents = createApiClientEventEmitter();

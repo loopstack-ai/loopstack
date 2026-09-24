@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
+import { type DocumentScope, type DocumentWindow, fetchDocumentsBefore, queryKeys } from '@loopstack/client';
 import type { WorkflowListParams, WorkspaceListParams } from '@loopstack/client';
 import type {
   AuthUserInterface,
@@ -19,6 +21,9 @@ import type {
   WorkspaceInterface,
 } from '@loopstack/contracts/api';
 import { useLoopstackClient } from '../provider.js';
+
+/** Stable empty list, so a window that hasn't loaded yet doesn't change identity on every render. */
+const EMPTY_DOCUMENTS: DocumentItemInterface[] = [];
 
 /**
  * Host-controlled query behavior (staleTime, refetchInterval, select, …) —
@@ -109,17 +114,66 @@ export function useDocument<TData = DocumentItemInterface>(
   });
 }
 
-/** Fetch the visible documents of a workflow run, in display order. */
-export function useWorkflowDocuments<TData = PaginatedInterface<DocumentItemInterface>>(
+export interface UseWorkflowDocumentsResult {
+  /** The loaded documents, oldest first. */
+  documents: DocumentItemInterface[];
+  /** How many documents the run has in total — `documents.length` when everything is loaded. */
+  total: number;
+  /** Older documents exist beyond the loaded window; {@link loadOlder} fetches the next page back. */
+  hasOlder: boolean;
+  /** Prepend the page of documents before the oldest loaded one. */
+  loadOlder: () => Promise<void>;
+  isLoadingOlder: boolean;
+  isLoading: boolean;
+  isSuccess: boolean;
+  error: Error | null;
+}
+
+/**
+ * The newest documents of a workflow run, in display order, with history on demand.
+ *
+ * A run's document list is unbounded, so this opens on the live end (the newest
+ * {@link DOCUMENT_WINDOW_SIZE}) rather than the start, and `loadOlder()` walks backwards a page at a time.
+ * New and re-saved documents arrive through {@link useLiveDocuments}, which merges them into this window.
+ */
+export function useWorkflowDocuments(
   workflowId: string | undefined,
-  options?: QueryHookOptions<PaginatedInterface<DocumentItemInterface>, TData>,
-): UseQueryResult<TData> {
+  scope: DocumentScope = 'current',
+): UseWorkflowDocumentsResult {
   const client = useLoopstackClient();
-  return useQuery({
-    ...client.queries.documents(workflowId!),
-    ...options,
-    enabled: !!workflowId && (options?.enabled ?? true),
-  });
+  const queryClient = useQueryClient();
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+  const query = useQuery({ ...client.queries.documents(workflowId!, scope), enabled: !!workflowId });
+
+  const documents = query.data?.documents ?? EMPTY_DOCUMENTS;
+  const total = query.data?.total ?? 0;
+
+  const loadOlder = useCallback(async () => {
+    const oldest = documents[0];
+    if (!workflowId || !oldest) return;
+    setIsLoadingOlder(true);
+    try {
+      const older = await fetchDocumentsBefore(client.documents, workflowId, oldest.index, scope);
+      if (older.length === 0) return;
+      queryClient.setQueryData<DocumentWindow>(
+        queryKeys.documents(client.envKey, workflowId, scope),
+        (current) => current && { ...current, documents: [...older, ...current.documents] },
+      );
+    } finally {
+      setIsLoadingOlder(false);
+    }
+  }, [client, queryClient, workflowId, scope, documents]);
+
+  return {
+    documents,
+    total,
+    hasOlder: documents.length < total,
+    loadOlder,
+    isLoadingOlder,
+    isLoading: query.isLoading,
+    isSuccess: query.isSuccess,
+    error: query.error,
+  };
 }
 
 /** Fetch a single workspace by ID. */

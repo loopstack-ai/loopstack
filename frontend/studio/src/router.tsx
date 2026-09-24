@@ -12,7 +12,6 @@ import DashboardPage from './pages/DashboardPage.tsx';
 import DebugPage from './pages/DebugPage.tsx';
 import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
 import DebugWorkflowsPage from './pages/DebugWorkflowsPage.tsx';
-import EmbedWorkbenchPage from './pages/EmbedWorkbenchPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
 import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
 import RouteErrorPage from './pages/RouteErrorPage.tsx';
@@ -91,7 +90,6 @@ const router: DataRouter = createBrowserRouter([
     element: <EmbedRoot />,
     errorElement: <RouteErrorPage />,
     children: [
-      { path: 'workflows/:workflowId', element: <EmbedWorkbenchPage /> },
       { path: 'preview', element: <PreviewWorkbenchPage /> },
       { path: 'preview/workflows/:workflowId', element: <PreviewWorkbenchPage /> },
     ],

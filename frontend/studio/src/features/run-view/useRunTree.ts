@@ -1,8 +1,6 @@
 import { useQueries } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import type { LoopstackClient } from '@loopstack/client';
 import type { DocumentItemInterface, WorkflowFullInterface } from '@loopstack/contracts/api';
-import { SortOrder } from '@loopstack/contracts/enums';
 import { useLoopstackClient } from '@loopstack/react';
 
 export interface RunTreeNode {
@@ -11,34 +9,6 @@ export interface RunTreeNode {
   workflow: WorkflowFullInterface;
   /** All documents of the workflow, invalidated included — the CLI transcript's document set. */
   documents: DocumentItemInterface[];
-}
-
-const DOCUMENTS_PAGE_SIZE = 100;
-const DOCUMENTS_MAX_PAGES = 5;
-
-/**
- * All documents of a workflow (re-saves included — the CLI transcript renders them as
- * honest output). The key extends the standard documents key, so the SSE invalidation
- * that stales `documents(workflowId)` prefix-matches this one too.
- */
-function allDocumentsQuery(client: LoopstackClient, workflowId: string) {
-  return {
-    queryKey: [...client.queries.documents(workflowId).queryKey, 'all'] as const,
-    queryFn: async (): Promise<DocumentItemInterface[]> => {
-      const documents: DocumentItemInterface[] = [];
-      for (let page = 0; page < DOCUMENTS_MAX_PAGES; page++) {
-        const result = await client.documents.list({
-          filter: { workflowId },
-          sortBy: [{ field: 'index', order: SortOrder.ASC }],
-          page,
-          limit: DOCUMENTS_PAGE_SIZE,
-        });
-        documents.push(...result.data);
-        if (result.data.length < DOCUMENTS_PAGE_SIZE) break;
-      }
-      return documents;
-    },
-  };
 }
 
 /**
@@ -64,7 +34,8 @@ export function useRunTree(rootWorkflowId: string | undefined): { nodes: RunTree
     queries: ids.map((id) => ({ ...client.queries.childWorkflows(id) })),
   });
   const documentResults = useQueries({
-    queries: ids.map((id) => allDocumentsQuery(client, id)),
+    // The transcript shows re-saved documents too, so this window is the 'all' scope.
+    queries: ids.map((id) => ({ ...client.queries.documents(id, 'all') })),
   });
 
   // Fold newly discovered children into the walk (visited-set semantics).
@@ -93,7 +64,7 @@ export function useRunTree(rootWorkflowId: string | undefined): { nodes: RunTree
             workflowId: id,
             depth: depths.get(id) ?? 0,
             workflow,
-            documents: documentResults[index]?.data ?? [],
+            documents: documentResults[index]?.data?.documents ?? [],
           };
         })
         .filter((node): node is RunTreeNode => node !== undefined),

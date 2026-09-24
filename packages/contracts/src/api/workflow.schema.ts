@@ -23,6 +23,17 @@ export const WorkflowItemSchema = z.object({
   workspaceId: z.string(),
   parentId: z.string().nullable(),
   hasChildren: z.number(),
+  /**
+   * Children still running, waiting or pending.
+   *
+   * `waiting` alone does not say who is being waited on: a parent parked on a child's callback carries it
+   * exactly as a run awaiting your answer does. Zero active children is what separates them — a waiting
+   * leaf is waiting for a person.
+   *
+   * Defaulted rather than required: only the list query counts it, and a response from a server that
+   * predates it should still parse.
+   */
+  activeChildren: z.number().default(0),
 });
 export type WorkflowItemInterface = z.infer<typeof WorkflowItemSchema>;
 
@@ -66,6 +77,14 @@ export const WorkflowFilterSchema = z.object({
   workspaceId: z.uuid().optional(),
   parentId: z.uuid().nullable().optional(),
   status: z.string().optional(),
+  /**
+   * Only runs that **start** where you are looking: no parent, or a parent in another workspace.
+   *
+   * `parentId: null` is not the same question. A run queued into this workspace by a parent elsewhere has
+   * a parent, so it is filtered out by that — yet it is top-level here, and its own workspace is the only
+   * place anyone would look for it. With `workspaceId` unset this means simply "no parent".
+   */
+  topLevel: z.boolean().optional(),
 });
 export type WorkflowFilterInterface = z.infer<typeof WorkflowFilterSchema>;
 

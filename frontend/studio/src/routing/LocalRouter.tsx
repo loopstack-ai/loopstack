@@ -96,10 +96,6 @@ export class LocalRouter implements StudioRouter {
     await this.navigate(this.getWorkspaceRuns(workspaceId));
   }
 
-  getEmbedWorkflow(workflowId: string) {
-    return `${this.embedPrefix}/workflows/${workflowId}`;
-  }
-
   getPreviewWorkflow(workflowId: string) {
     return `${this.embedPrefix}/preview/workflows/${workflowId}`;
   }

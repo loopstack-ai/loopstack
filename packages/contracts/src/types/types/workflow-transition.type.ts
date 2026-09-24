@@ -1,4 +1,6 @@
 import { z } from 'zod';
-import { WorkflowTransitionConfigSchema } from '../../schemas/index.js';
+import { WorkflowTransitionDefinitionSchema, WorkflowTransitionSchema } from '../../schemas/index.js';
 
-export type WorkflowTransitionType = z.infer<typeof WorkflowTransitionConfigSchema>;
+export type WorkflowTransitionType = z.infer<typeof WorkflowTransitionSchema>;
+
+export type WorkflowTransitionDefinitionType = z.infer<typeof WorkflowTransitionDefinitionSchema>;

@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
@@ -20,6 +21,7 @@ export class WorkspaceApiService {
     private workspaceRepository: Repository<WorkspaceEntity>,
     private configService: ConfigService,
     private studioDiscoveryService: StudioDiscoveryService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -172,6 +174,11 @@ export class WorkspaceApiService {
     if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
 
     await this.workspaceRepository.delete({ id, createdBy: user });
+    // In-process domain event so the host app can release resources it holds for this workspace (disk
+    // state, containers, …). Emitted once per deleted workspace, after the delete committed. Cascaded
+    // workflow deletions do NOT emit their own `workflow.deleted` events — a workspace-level listener is
+    // expected to reclaim everything the workspace owned.
+    this.eventEmitter.emit('workspace.deleted', { id, appName: workspace.appName, user });
   }
 
   async batchDelete(
@@ -193,7 +200,8 @@ export class WorkspaceApiService {
         id: In(ids),
         createdBy: user,
       },
-      select: ['id'],
+      // appName rides along for the `workspace.deleted` events emitted below.
+      select: ['id', 'appName'],
     });
 
     const existingIds = existingWorkspaces.map((workspace) => workspace.id);
@@ -250,6 +258,10 @@ export class WorkspaceApiService {
         });
       });
     }
+
+    // One `workspace.deleted` per actually-deleted workspace (see `delete` for the event contract).
+    const appNameById = new Map(existingWorkspaces.map((w) => [w.id, w.appName]));
+    deleted.forEach((id) => this.eventEmitter.emit('workspace.deleted', { id, appName: appNameById.get(id), user }));
 
     return { deleted, failed };
   }

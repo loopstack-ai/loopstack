@@ -35,12 +35,17 @@ function makeWorkflow() {
   return { workflow, orchestrator };
 }
 
-function ctx(args: SequenceArgs): RunContext {
+/** The workflow's own state shape, read off its transition signature so the fixtures cannot drift. */
+type SequenceState = {
+  [K in keyof Parameters<SequenceWorkflow['done']>[0]]: Parameters<SequenceWorkflow['done']>[0][K];
+};
+
+function ctx(args: SequenceArgs): RunContext<SequenceArgs> {
   return {
     userId: 'u1',
     workspaceId: 'ws1',
     workflowId: 'parent-1',
-    args: args as unknown as Record<string, unknown>,
+    args,
     signal: new AbortController().signal,
     execution: { place: 'start', retryCount: 0 },
   };
@@ -64,7 +69,9 @@ describe('SequenceWorkflow', () => {
         mode: 'all',
       };
 
-      const { state } = await runTransition(workflow, () => workflow.start({} as never, ctx(args)), { state: {} });
+      const { state } = await runTransition<SequenceState>(workflow, () => workflow.start({} as never, ctx(args)), {
+        state: {} as SequenceState,
+      });
 
       expect(orchestrator.queue).toHaveBeenCalledTimes(1);
       expect(orchestrator.queue).toHaveBeenCalledWith(
@@ -82,7 +89,9 @@ describe('SequenceWorkflow', () => {
       const { workflow, orchestrator } = makeWorkflow();
       const args: SequenceArgs = { entries: [], itemsWereArray: true, mode: 'all' };
 
-      const { state } = await runTransition(workflow, () => workflow.start({} as never, ctx(args)), { state: {} });
+      const { state } = await runTransition<SequenceState>(workflow, () => workflow.start({} as never, ctx(args)), {
+        state: {} as SequenceState,
+      });
 
       expect(orchestrator.queue).not.toHaveBeenCalled();
       expect(state.currentIndex).toBe(0);
@@ -101,7 +110,7 @@ describe('SequenceWorkflow', () => {
         itemsWereArray: true,
         mode: 'all',
       };
-      const state = {
+      const state: SequenceState = {
         currentIndex: 0,
         results: {},
         itemKeys: ['a', 'b'],
@@ -143,7 +152,7 @@ describe('SequenceWorkflow', () => {
         itemsWereArray: true,
         mode: 'all',
       };
-      const state = {
+      const state: SequenceState = {
         currentIndex: 0,
         results: {},
         itemKeys: ['a', 'b', 'c'],
@@ -181,7 +190,7 @@ describe('SequenceWorkflow', () => {
         itemsWereArray: true,
         mode: 'allSettled',
       };
-      const state = {
+      const state: SequenceState = {
         currentIndex: 0,
         results: {},
         itemKeys: ['a', 'b'],
@@ -210,7 +219,7 @@ describe('SequenceWorkflow', () => {
   describe('done', () => {
     it('returns ordered array result when items were array', async () => {
       const { workflow } = makeWorkflow();
-      const state = {
+      const state: SequenceState = {
         currentIndex: 2,
         results: {
           a: { status: 'completed' as const, data: 1 },
@@ -233,7 +242,7 @@ describe('SequenceWorkflow', () => {
 
     it('returns keyed record result when items were record', async () => {
       const { workflow } = makeWorkflow();
-      const state = {
+      const state: SequenceState = {
         currentIndex: 2,
         results: {
           first: { status: 'completed' as const, data: 1 },

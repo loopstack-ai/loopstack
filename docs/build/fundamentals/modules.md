@@ -65,7 +65,7 @@ my-app/
     ├── services/
     │   └── my.service.ts
     └── templates/
-        └── prompt.md             # Handlebars/JEXL templates
+        └── prompt.md             # Handlebars templates
 ```
 
 Conventions:

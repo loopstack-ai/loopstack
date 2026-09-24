@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { BlockSchema } from './block.schema.js';
-import { TemplateExpression } from './template-expression.schema.js';
 import { UiFormSchema } from './ui-form.schema.js';
 
 export const MimeTypeSchema = z.enum([
@@ -21,15 +20,13 @@ export const DocumentConfigSchema = BlockSchema.extend({
   description: z.string().optional(),
   content: z.any().optional(),
   ui: UiFormSchema.optional(),
-  tags: z.union([TemplateExpression, z.array(z.string())]).optional(),
+  tags: z.array(z.string()).optional(),
   meta: z
     .object({
-      hidden: z.union([z.boolean(), TemplateExpression]).optional(),
-      mimeType: z.union([MimeTypeSchema, TemplateExpression]).optional(),
-      invalidate: z.union([z.boolean(), TemplateExpression]).optional(),
-      level: z
-        .union([TemplateExpression, z.literal('debug'), z.literal('info'), z.literal('warning'), z.literal('error')])
-        .optional(),
+      hidden: z.boolean().optional(),
+      mimeType: MimeTypeSchema.optional(),
+      invalidate: z.boolean().optional(),
+      level: z.union([z.literal('debug'), z.literal('info'), z.literal('warning'), z.literal('error')]).optional(),
       enableAtPlaces: z.array(z.string()).optional(),
       hideAtPlaces: z.array(z.string()).optional(),
       data: z.any().optional(),

@@ -13,8 +13,8 @@ import {
 } from '@loopstack/contracts/api';
 import type { RunTraceEvent } from '@loopstack/contracts/types';
 
-/** `loadRelationCountAndMap` attaches the children count dynamically. */
-type WorkflowEntityWithChildCount = WorkflowEntity & { hasChildren?: number };
+/** `loadRelationCountAndMap` attaches the children counts dynamically. */
+type WorkflowEntityWithChildCount = WorkflowEntity & { hasChildren?: number; activeChildren?: number };
 
 export function toWorkflowItem(entity: WorkflowEntity): WorkflowItemInterface {
   return assertResponse(WorkflowItemSchema, {
@@ -31,6 +31,9 @@ export function toWorkflowItem(entity: WorkflowEntity): WorkflowItemInterface {
     workspaceId: entity.workspaceId,
     parentId: entity.parentId ?? null,
     hasChildren: (entity as WorkflowEntityWithChildCount).hasChildren ?? 0,
+    // Absent on the single-entity reads, which do not load the counts; zero there means "not counted",
+    // and only the list view reads it.
+    activeChildren: (entity as WorkflowEntityWithChildCount).activeChildren ?? 0,
   });
 }
 

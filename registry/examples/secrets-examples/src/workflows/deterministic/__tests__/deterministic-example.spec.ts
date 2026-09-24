@@ -6,8 +6,8 @@ import { SecretsExamplesModule } from '../../../secrets-examples.module';
 import { DeterministicExampleWorkflow } from '../deterministic-example.workflow';
 
 const KEYS = [
-  { key: 'EXAMPLE_API_KEY', hasValue: true },
-  { key: 'EXAMPLE_SECRET', hasValue: true },
+  { key: 'EXAMPLE_API_KEY', hasValue: true, global: false },
+  { key: 'EXAMPLE_SECRET', hasValue: true, global: false },
 ];
 
 /**
