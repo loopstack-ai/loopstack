@@ -3,19 +3,22 @@ import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 import { NewRunDialog, RecentRunItem } from '@/features/workbench';
 import { useFilterWorkflows } from '@/hooks/useWorkflows.ts';
+import { isAwaitingInput } from '@/lib/run-status.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 export default function StudioLandingPage() {
   const { router } = useStudio();
   const [newRunDialogOpen, setNewRunDialogOpen] = useState(false);
   const [limit, setLimit] = useState(3);
-  const fetchWorkflows = useFilterWorkflows(undefined, { parentId: null }, 'createdAt', 'DESC', 0, limit);
+  const fetchWorkflows = useFilterWorkflows(undefined, { topLevel: true }, 'createdAt', 'DESC', 0, limit);
   const workflows = fetchWorkflows.data?.data ?? [];
   const total = fetchWorkflows.data?.total ?? 0;
   const hasMore = workflows.length < total;
 
-  const fetchPaused = useFilterWorkflows(undefined, { parentId: null, status: 'paused' }, 'createdAt', 'DESC', 0, 5);
-  const pausedRuns = fetchPaused.data?.data ?? [];
+  // `paused` is never assigned by the engine — a run that parks is `waiting`. Of those, the ones with
+  // nothing running underneath are the ones holding a question for you.
+  const fetchWaiting = useFilterWorkflows(undefined, { status: 'waiting' }, 'createdAt', 'DESC', 0, 20);
+  const pausedRuns = (fetchWaiting.data?.data ?? []).filter(isAwaitingInput).slice(0, 5);
 
   const handleNewRunSuccess = useCallback(
     (workflowId: string) => {

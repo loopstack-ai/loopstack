@@ -236,7 +236,7 @@ function PreviewEmptyState({
   const navigate = useNavigate();
   const { router } = useStudio();
   const [limit, setLimit] = useState(3);
-  const fetchWorkflows = useFilterWorkflows(undefined, { parentId: null }, 'createdAt', 'DESC', 0, limit);
+  const fetchWorkflows = useFilterWorkflows(undefined, { topLevel: true }, 'createdAt', 'DESC', 0, limit);
   const workflows = fetchWorkflows.data?.data ?? [];
   const total = fetchWorkflows.data?.total ?? 0;
   const hasMore = workflows.length < total;

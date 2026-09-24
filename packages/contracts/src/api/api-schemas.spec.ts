@@ -117,6 +117,7 @@ describe('response schemas', () => {
     workspaceId: UUID,
     parentId: null,
     hasChildren: 0,
+    activeChildren: 0,
   };
 
   it('parses a workflow item and rejects non-ISO dates', () => {

@@ -4,9 +4,9 @@ import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { queryKeys } from '@loopstack/client';
 import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
-import { WorkflowState } from '@loopstack/contracts/enums';
 import { useLoopstackClient } from '@loopstack/react';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
+import { getWorkflowStateColor, isAwaitingInput } from '@/lib/run-status.ts';
 import CustomListView from '../../../components/lists/CustomListView.tsx';
 import { Badge } from '../../../components/ui/badge.tsx';
 import { useBatchDeleteWorkflows, useChildWorkflows, useFilterWorkflows } from '../../../hooks/useWorkflows.ts';
@@ -16,9 +16,8 @@ import CreateWorkflowDialog from './NewWorkflowRunDialog.tsx';
 const ChildWorkflowList: React.FC<{
   parentId: string;
   formatUpdatedTime: (updatedAt: string) => string;
-  getWorkflowStateColor: (status: WorkflowState) => string;
   onChildClick: (id: string) => void;
-}> = ({ parentId, formatUpdatedTime, getWorkflowStateColor, onChildClick }) => {
+}> = ({ parentId, formatUpdatedTime, onChildClick }) => {
   const { data, isPending } = useChildWorkflows(parentId, true);
 
   if (isPending) {
@@ -53,9 +52,12 @@ const ChildWorkflowList: React.FC<{
             <p className="text-xs text-muted-foreground">{child.workflowName}</p>
             <p className="text-xs text-muted-foreground">{formatUpdatedTime(child.updatedAt)}</p>
           </div>
-          <Badge variant="default" className={getWorkflowStateColor(child.status)}>
-            {child.status}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            {isAwaitingInput(child) && <Badge>Awaiting input</Badge>}
+            <Badge variant="default" className={getWorkflowStateColor(child.status)}>
+              {child.status}
+            </Badge>
+          </div>
         </div>
       ))}
     </div>
@@ -109,7 +111,9 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
   // Fetch workflows with pagination
   const fetchWorkflows = useFilterWorkflows(
     undefined,
-    { workspaceId: workspace.id, parentId: null },
+    // `topLevel`, not `parentId: null`: a round queued into this workspace by a coordinator elsewhere
+    // has a parent, and this is the only workspace anyone would look for it in.
+    { workspaceId: workspace.id, topLevel: true },
     'createdAt',
     'DESC',
     page,
@@ -131,22 +135,6 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
 
   const handleWorkflowClick = (id: string) => {
     void router.navigateToWorkflow(id);
-  };
-
-  const getWorkflowStateColor = (status: WorkflowState): string => {
-    switch (status) {
-      case WorkflowState.Completed:
-        return 'bg-green-600 dark:bg-green-500';
-      case WorkflowState.Paused:
-        return 'bg-yellow-600 dark:bg-yellow-500';
-      case WorkflowState.Failed:
-        return 'bg-red-600 dark:bg-red-500';
-      case WorkflowState.Canceled:
-      case WorkflowState.Pending:
-      case WorkflowState.Running:
-      default:
-        return 'bg-foreground text-background';
-    }
   };
 
   const workflows = fetchWorkflows.data?.data ?? [];
@@ -171,9 +159,12 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
           )}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Badge variant="default" className={getWorkflowStateColor(item.status)}>
-            {item.status}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            {isAwaitingInput(item) && <Badge>Awaiting input</Badge>}
+            <Badge variant="default" className={getWorkflowStateColor(item.status)}>
+              {item.status}
+            </Badge>
+          </div>
           <span className="text-xs text-muted-foreground">{formatUpdatedTime(item.updatedAt)}</span>
         </div>
       </div>
@@ -181,7 +172,6 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
         <ChildWorkflowList
           parentId={item.id}
           formatUpdatedTime={formatUpdatedTime}
-          getWorkflowStateColor={getWorkflowStateColor}
           onChildClick={handleWorkflowClick}
         />
       )}

@@ -23,7 +23,7 @@ export {
  */
 export function useFilterWorkflows(
   searchTerm: string | undefined,
-  filter: Record<string, string | null>,
+  filter: Record<string, string | boolean | null>,
   sortBy: string = 'id',
   order: string = 'DESC',
   page: number = 0,

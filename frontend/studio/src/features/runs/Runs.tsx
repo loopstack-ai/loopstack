@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import type { WorkflowItemInterface } from '@loopstack/contracts/api';
+import { WorkflowState } from '@loopstack/contracts/enums';
 import type { FilterOption } from '../../components/data-table/data-table.ts';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column } from '../../components/lists/ListView.tsx';
@@ -6,16 +8,8 @@ import { Badge } from '../../components/ui/badge.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import { useBatchDeleteWorkflows, useDeleteWorkflow, useFilterWorkflows } from '../../hooks/useWorkflows.ts';
 import { useFilterWorkspaces } from '../../hooks/useWorkspaces.ts';
+import { getWorkflowStateColor, isAwaitingInput } from '../../lib/run-status.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
-
-const statusColors: Record<string, string> = {
-  completed: 'bg-green-50 text-green-900 border-green-200',
-  failed: 'bg-destructive/10 text-destructive border-destructive/20',
-  canceled: 'bg-orange-50 text-orange-900 border-orange-200',
-  running: 'bg-blue-50 text-blue-900 border-blue-200',
-  paused: 'bg-yellow-50 text-yellow-900 border-yellow-200',
-  pending: 'bg-muted text-muted-foreground border-border',
-};
 
 interface RunsProps {
   defaultFilters?: Record<string, string>;
@@ -29,10 +23,17 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
   const [orderBy, setOrderBy] = useState<string>('createdAt');
   const [order, setOrder] = useState<'ASC' | 'DESC'>('DESC');
   const [searchTerm, setSearchTerm] = useState<string | undefined>();
-  const [filters, setFilters] = useState<Record<string, string>>(defaultFilters);
+  // Scoped to top-level runs by default, as a *visible* filter rather than a hidden default: the chip says
+  // why sub-executions are missing, and clearing it is how you find a gate buried three levels down.
+  const [filters, setFilters] = useState<Record<string, string>>({ runs: 'top', ...defaultFilters });
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const mergedFilters: Record<string, string | null> = { ...filters, parentId: null };
+  // `runs` is the view's own control, not a column — it becomes the API's `topLevel` question.
+  const { runs: runScope, ...columnFilters } = filters;
+  const mergedFilters: Record<string, string | boolean | null> = {
+    ...columnFilters,
+    ...(runScope === 'top' ? { topLevel: true } : {}),
+  };
 
   const fetchWorkflows = useFilterWorkflows(debouncedSearchTerm, mergedFilters, orderBy, order, page, rowsPerPage);
   const fetchWorkspaces = useFilterWorkspaces(undefined, {}, 'title', 'ASC', 0, 100);
@@ -164,11 +165,16 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
             id: 'status',
             label: 'Status',
             minWidth: 100,
-            format: (value: unknown) => {
+            format: (value: unknown, row?: unknown) => {
               const status = value as string;
-              const color = statusColors[status] || 'bg-muted text-muted-foreground border-border';
+              const color = getWorkflowStateColor(status as WorkflowState);
+              // A waiting run with nothing running under it has nobody left to wait for but you.
+              const waitingOnYou = row ? isAwaitingInput(row as WorkflowItemInterface) : false;
               return (
-                <Badge className={`rounded-full border px-2 py-1 text-xs whitespace-nowrap ${color}`}>{status}</Badge>
+                <div className="flex items-center gap-1.5">
+                  <Badge className={`rounded-full border px-2 py-1 text-xs whitespace-nowrap ${color}`}>{status}</Badge>
+                  {waitingOnYou && <Badge className="px-2 py-1">Awaiting input</Badge>}
+                </div>
               );
             },
           },
@@ -181,7 +187,10 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
         ] as Column[]
       }
       filterConfig={{
-        status: ['pending', 'running', 'paused', 'completed', 'failed', 'canceled'],
+        // "All runs" clears it, and clearing it is what includes every sub-execution at any depth.
+        runs: [{ label: 'Top-level only', value: 'top' }],
+        // `paused` is not offered: the engine never assigns it — a run that parks is `waiting`.
+        status: ['pending', 'running', 'waiting', 'completed', 'failed', 'canceled'],
         workspaceId: workspaceFilterOptions,
         workflowName: workflowNameFilterOptions,
       }}
