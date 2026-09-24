@@ -96,7 +96,6 @@
     "sandbox/hello-world",
     "sandbox/smoke-tests",
     "sandbox/package-tester",
-    "sandbox/acceptance-harness",
     "sandbox/loopstack-engineer"
   ]
 }
