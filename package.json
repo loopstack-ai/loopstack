@@ -93,9 +93,6 @@
     "frontend/*",
     "registry/*/*",
     "services/*",
-    "sandbox/hello-world",
-    "sandbox/smoke-tests",
-    "sandbox/package-tester",
-    "sandbox/loopstack-engineer"
+    "sandbox/*"
   ]
 }

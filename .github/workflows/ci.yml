@@ -45,6 +45,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # `sandbox/*` is a glob, and untracked sandbox projects (the engineer clone, throwaway test apps)
+      # join the workspace locally. They must never reach the committed lockfile: a clean clone holds only
+      # the tracked sandbox apps, so regenerating here must be a no-op. A diff means a local install leaked.
+      - name: Lockfile is canonical
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          git diff --exit-code package-lock.json
+
       - name: Build packages
         run: npm run build
 
