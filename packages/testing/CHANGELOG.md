@@ -1,5 +1,21 @@
 # @loopstack/testing
 
+## 0.43.0
+
+### Minor Changes
+
+- [#350](https://github.com/loopstack-ai/loopstack/pull/350) [`fde95c4`](https://github.com/loopstack-ai/loopstack/commit/fde95c4d1e326b7ca9257b5d2c7f1d46565f4a0f) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Expose `runTransition` from `@loopstack/core/testing`.
+
+  The helper runs a transition inside a real `ExecutionScope` and returns the committed state and result
+  drafts, for unit tests that instantiate a workflow directly. It sits beside the `ExecutionScope` and
+  `RunTraceCollector` it wires up, on a dedicated subpath that keeps it out of the package's main entry point.
+  It accepts a workflow's state interface as its state type, given explicitly or inferred from a typed seed.
+
+### Patch Changes
+
+- Updated dependencies [[`fde95c4`](https://github.com/loopstack-ai/loopstack/commit/fde95c4d1e326b7ca9257b5d2c7f1d46565f4a0f)]:
+  - @loopstack/core@0.43.0
+
 ## 0.42.0
 
 ### Patch Changes

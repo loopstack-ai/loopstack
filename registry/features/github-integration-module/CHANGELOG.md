@@ -1,5 +1,15 @@
 # @loopstack/github-integration
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`fde95c4`](https://github.com/loopstack-ai/loopstack/commit/fde95c4d1e326b7ca9257b5d2c7f1d46565f4a0f)]:
+  - @loopstack/core@0.43.0
+  - @loopstack/hitl@0.6.2
+  - @loopstack/oauth-module@0.5.5
+  - @loopstack/remote-client@0.28.3
+
 ## 0.5.1
 
 ### Patch Changes

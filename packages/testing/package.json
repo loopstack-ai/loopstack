@@ -2,7 +2,7 @@
   "name": "@loopstack/testing",
   "displayName": "Loopstack Testing Utils",
   "description": "Testing utilities for building tests for loopstack components",
-  "version": "0.42.0",
+  "version": "0.43.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -28,7 +28,7 @@
   "dependencies": {
     "@loopstack/common": "^0.42.0",
     "@loopstack/contracts": "^0.42.0",
-    "@loopstack/core": "^0.42.0",
+    "@loopstack/core": "^0.43.0",
     "@nestjs/config": "^12.0.0",
     "@nestjs/typeorm": "^12.0.1",
     "lodash": "^4.18.1",

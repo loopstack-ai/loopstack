@@ -1,5 +1,16 @@
 # @loopstack/cli
 
+## 0.22.2
+
+### Patch Changes
+
+- [#350](https://github.com/loopstack-ai/loopstack/pull/350) [`bbcb53f`](https://github.com/loopstack-ai/loopstack/commit/bbcb53f170d246958a3e880bd77949cb5a44ea97) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Require Node 20.19 rather than 20.
+
+  The CLI is ESM and loads Loopstack packages that are too, which needs the `require(esm)` support Node added
+  in 20.19 — so `>=20` admitted versions where an install succeeds and the first run fails on a module it
+  cannot load. The floor now matches what the documentation has always stated, and npm says so at install time
+  instead.
+
 ## 0.22.1
 
 ### Patch Changes
