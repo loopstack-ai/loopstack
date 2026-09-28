@@ -1,5 +1,14 @@
 # @loopstack/loopstack-studio
 
+## 0.40.1
+
+### Patch Changes
+
+- [#350](https://github.com/loopstack-ai/loopstack/pull/350) [`13390a7`](https://github.com/loopstack-ai/loopstack/commit/13390a745471c25599ace6aa0208a2acc94edff8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Build the Studio image from the workspace bundle.
+
+  The image serves a bundle built alongside the rest of the repo, so it ships the code the repo was tested
+  with and needs no registry access while the image builds. The base image is Node 24.
+
 ## 0.40.0
 
 ### Minor Changes

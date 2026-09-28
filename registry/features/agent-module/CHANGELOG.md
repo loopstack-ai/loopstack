@@ -1,5 +1,13 @@
 # @loopstack/agent
 
+## 0.6.2
+
+### Patch Changes
+
+- Updated dependencies [[`fde95c4`](https://github.com/loopstack-ai/loopstack/commit/fde95c4d1e326b7ca9257b5d2c7f1d46565f4a0f)]:
+  - @loopstack/core@0.43.0
+  - @loopstack/llm-provider-module@0.10.2
+
 ## 0.6.1
 
 ### Patch Changes
