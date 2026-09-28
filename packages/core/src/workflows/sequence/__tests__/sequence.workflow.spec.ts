@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RunContext, WorkflowOrchestrator } from '@loopstack/common';
-import { runTransition } from '@loopstack/testing';
+import { runTransition } from '../../../testing/run-transition.js';
 import type { WorkflowRegistryService } from '../../../workflow-processor/services/workflow-registry.service.js';
 import type { SequenceArgs, SequenceResult } from '../sequence.types.js';
 import { SequenceWorkflow } from '../sequence.workflow.js';
@@ -36,9 +36,7 @@ function makeWorkflow() {
 }
 
 /** The workflow's own state shape, read off its transition signature so the fixtures cannot drift. */
-type SequenceState = {
-  [K in keyof Parameters<SequenceWorkflow['done']>[0]]: Parameters<SequenceWorkflow['done']>[0][K];
-};
+type SequenceState = Parameters<SequenceWorkflow['done']>[0];
 
 function ctx(args: SequenceArgs): RunContext<SequenceArgs> {
   return {

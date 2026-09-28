@@ -1,4 +1,4 @@
-FROM node:20-slim AS build
+FROM node:24-slim AS build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN npm run build
 WORKDIR /workspace-setup
 COPY workspace-root/ ./
 RUN mkdir -p packages
-RUN npm install -g @nestjs/cli
+RUN npm install -g @nestjs/cli@12.0.6
 RUN nest new app --skip-git --skip-install --package-manager npm
 WORKDIR /workspace-setup/app
 RUN npm install @loopstack/loopstack-module
@@ -29,7 +29,7 @@ WORKDIR /workspace-setup
 RUN npm install
 RUN npm run build
 
-FROM node:20-slim
+FROM node:24-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends postgresql redis-server git && \

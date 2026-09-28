@@ -1,6 +1,7 @@
 import type { DocumentEntity } from '@loopstack/common';
 import { getWorkflowIdentifier } from '@loopstack/common';
-import { ExecutionScope, type ExecutionScopeData, RunTraceCollector } from '@loopstack/core';
+import { ExecutionScope, type ExecutionScopeData } from '../workflow-processor/utils/execution-scope.js';
+import { RunTraceCollector } from '../workflow-processor/utils/run-trace-collector.js';
 
 /** What `runTransition` returns: the state and result drafts after the transition resolves. */
 export interface TransitionDraftResult<TState = Record<string, unknown>, TResult = Record<string, unknown>> {
@@ -47,13 +48,17 @@ interface InternalWorkflow {
  * expect(state.currentIndex).toBe(0);
  * ```
  *
+ * The state type is the workflow's own state interface — pass it as the type argument
+ * (`runTransition<MyState>(...)`) or let it be inferred from a typed `options.state` seed.
+ * An untyped `{ state: {} }` seed infers `{}`, which leaves nothing to assert against.
+ *
  * Note: this helper does NOT enforce the void-return contract — tests can ignore
  * the transition's resolved value. In production the processor throws on non-undefined
  * returns; here we leave that check to the integration-level path.
  */
 export async function runTransition<
-  TState extends Record<string, unknown> = Record<string, unknown>,
-  TResult extends Record<string, unknown> = Record<string, unknown>,
+  TState extends object = Record<string, unknown>,
+  TResult extends object = Record<string, unknown>,
 >(
   workflow: object,
   invoke: () => unknown | Promise<unknown>,

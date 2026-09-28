@@ -83,16 +83,16 @@
       "prettier --check"
     ]
   },
+  "engines": {
+    "node": ">=20.19",
+    "npm": ">=11"
+  },
   "packageManager": "npm@11.11.0",
   "workspaces": [
     "packages/*",
     "frontend/*",
     "registry/*/*",
     "services/*",
-    "sandbox/hello-world",
-    "sandbox/smoke-tests",
-    "sandbox/package-tester",
-    "sandbox/acceptance-harness",
-    "sandbox/loopstack-engineer"
+    "sandbox/*"
   ]
 }

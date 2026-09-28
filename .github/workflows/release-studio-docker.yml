@@ -5,6 +5,9 @@
 # Builds and publishes the loopstack-studio Docker image.
 # Called by release workflows.
 #
+# The app bundle is built from the workspace on the runner and copied into
+# the image, so the image ships the same code the repo was tested with.
+#
 # INPUTS:
 # - version: Version tag for the image
 #
@@ -12,6 +15,9 @@
 # Can rebuild images without republishing to npm.
 
 name: Release Studio Docker
+
+env:
+  NODE_VERSION: '24'
 
 on:
   workflow_call:
@@ -49,6 +55,33 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            turbo-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build workspace dependencies
+        run: npx turbo run build --filter='@loopstack/loopstack-studio^...'
+
+      - name: Build Studio bundle
+        env:
+          VITE_COMMIT_SHA: ${{ github.sha }}
+          VITE_APP_VERSION: ${{ steps.version.outputs.version }}
+        run: npm run build:prod -w @loopstack/loopstack-studio
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -80,9 +113,6 @@ jobs:
           push: true
           tags: ${{ steps.meta-stable.outputs.tags }}
           labels: ${{ steps.meta-stable.outputs.labels }}
-          build-args: |
-            COMMIT_SHA=${{ github.sha }}
-            VERSION=${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
