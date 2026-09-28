@@ -36,9 +36,7 @@ function makeWorkflow() {
 }
 
 /** The workflow's own state shape, read off its transition signature so the fixtures cannot drift. */
-type SequenceState = {
-  [K in keyof Parameters<SequenceWorkflow['done']>[0]]: Parameters<SequenceWorkflow['done']>[0][K];
-};
+type SequenceState = Parameters<SequenceWorkflow['done']>[0];
 
 function ctx(args: SequenceArgs): RunContext<SequenceArgs> {
   return {
