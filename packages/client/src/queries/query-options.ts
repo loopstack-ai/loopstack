@@ -70,17 +70,18 @@ export async function fetchDocumentWindow(
 }
 
 /**
- * Documents written after `updatedAfter` — the live delta. Covers new documents and re-saved ones alike
- * (a re-save keeps its `index` but bumps `updatedAt`), so a caller merges the result by id.
+ * Documents written after `updatedAfter` — the live delta. Covers new documents, re-saved ones (a re-save
+ * keeps its `index` but bumps `updatedAt`) and invalidated ones (a keyed save marks the documents it
+ * supersedes, which bumps them too), so a caller merges the result by id and drops what a 'current' window
+ * must no longer show. The delta is therefore the same for either scope.
  */
 export function fetchDocumentsSince(
   documents: DocumentsResource,
   workflowId: string,
   updatedAfter: string,
-  scope: DocumentScope = 'current',
 ): Promise<PaginatedInterface<DocumentItemInterface>> {
   return documents.list({
-    filter: { ...documentFilter(workflowId, scope), updatedAfter },
+    filter: { ...documentFilter(workflowId, 'all'), updatedAfter },
     sortBy: [{ field: 'index', order: SortOrder.ASC }],
     limit: DOCUMENT_WINDOW_SIZE,
   });

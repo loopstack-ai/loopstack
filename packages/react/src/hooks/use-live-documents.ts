@@ -14,19 +14,29 @@ const SCOPES: DocumentScope[] = ['current', 'all'];
 
 /**
  * Merge freshly fetched documents into a window: a document already present is replaced (a re-saved
- * progress line or a finished stream), a new one is appended. Display order (`index`) is restored after.
+ * progress line or a finished stream), a new one is appended. An invalidated document — superseded by a
+ * keyed re-save — is removed from a 'current' window, as a fresh fetch of that scope would leave it out.
+ * Display order (`index`) is restored after.
  */
-export function mergeDocuments(window: DocumentWindow, incoming: DocumentItemInterface[]): DocumentWindow {
+export function mergeDocuments(
+  window: DocumentWindow,
+  incoming: DocumentItemInterface[],
+  scope: DocumentScope,
+): DocumentWindow {
   if (incoming.length === 0) return window;
   const byId = new Map(window.documents.map((item) => [item.id, item]));
-  let added = 0;
+  let total = window.total;
   for (const item of incoming) {
-    if (!byId.has(item.id)) added++;
+    if (scope === 'current' && item.isInvalidated) {
+      if (byId.delete(item.id)) total--;
+      continue;
+    }
+    if (!byId.has(item.id)) total++;
     byId.set(item.id, item);
   }
   return {
     documents: [...byId.values()].sort((a, b) => a.index - b.index),
-    total: window.total + added,
+    total,
   };
 }
 
@@ -36,7 +46,7 @@ export function mergeDocuments(window: DocumentWindow, incoming: DocumentItemInt
  * A run's document list grows without bound, so a `document.created` event does **not** invalidate it —
  * refetching the list on every message is what made long runs stop updating. Instead this fetches only the
  * documents written since the window's newest row (`updatedAfter`) and merges them in by id, which covers
- * new documents and re-saved ones alike. Workflows with no cached window are ignored: nothing is displaying
+ * new documents, re-saved ones and ones a keyed re-save invalidated. Workflows with no cached window are ignored: nothing is displaying
  * them, and the window query fetches the live end when one opens.
  *
  * Mount once per {@link LoopstackProvider}, alongside {@link useLiveInvalidation}.
@@ -64,10 +74,10 @@ export function useLiveDocuments(options: LiveDocumentsOptions = {}): void {
         return;
       }
 
-      const page = await fetchDocumentsSince(client.documents, workflowId, newest, scope);
+      const page = await fetchDocumentsSince(client.documents, workflowId, newest);
       if (page.data.length === 0) return;
       queryClient.setQueryData<DocumentWindow>(queryKey, (current) =>
-        current ? mergeDocuments(current, page.data) : current,
+        current ? mergeDocuments(current, page.data, scope) : current,
       );
     };
 
