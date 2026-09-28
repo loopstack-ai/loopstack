@@ -23,25 +23,14 @@ function resource(data: DocumentItemInterface[] = []) {
 }
 
 describe('fetchDocumentsSince', () => {
-  it('asks only for what changed, oldest-first', async () => {
+  it('asks only for what changed, invalidated documents included, oldest-first', async () => {
     const { calls, resource: documents } = resource([doc('a', 1)]);
 
     await fetchDocumentsSince(documents, 'wf-1', '2026-09-18T08:00:00.000Z');
 
-    expect(calls[0].filter).toEqual({
-      workflowId: 'wf-1',
-      isInvalidated: false,
-      updatedAfter: '2026-09-18T08:00:00.000Z',
-    });
-    expect(calls[0].sortBy).toEqual([{ field: 'index', order: 'ASC' }]);
-  });
-
-  it('includes re-saved documents in the transcript scope', async () => {
-    const { calls, resource: documents } = resource();
-
-    await fetchDocumentsSince(documents, 'wf-1', '2026-09-18T08:00:00.000Z', 'all');
-
+    // No isInvalidated filter: a keyed re-save bumps the superseded row, and a window must see that.
     expect(calls[0].filter).toEqual({ workflowId: 'wf-1', updatedAfter: '2026-09-18T08:00:00.000Z' });
+    expect(calls[0].sortBy).toEqual([{ field: 'index', order: 'ASC' }]);
   });
 });
 
