@@ -34,7 +34,7 @@ function makeWorkflow() {
 }
 
 /** The workflow's own state shape, read off its transition signature so the fixtures cannot drift. */
-type FanOutState = { [K in keyof Parameters<FanOutWorkflow['done']>[0]]: Parameters<FanOutWorkflow['done']>[0][K] };
+type FanOutState = Parameters<FanOutWorkflow['done']>[0];
 
 function ctx(args: FanOutArgs, workflowId = 'parent-1'): RunContext<FanOutArgs> {
   return {
