@@ -6,6 +6,8 @@ import { CheckboxField } from './fields/CheckboxField';
 import type { CheckboxFieldSchema } from './fields/CheckboxField';
 import { CodeViewField } from './fields/CodeViewField';
 import type { CodeFieldSchema } from './fields/CodeViewField';
+import { MarkdownCollapsedField } from './fields/MarkdownCollapsedField';
+import type { MarkdownCollapsedFieldSchema } from './fields/MarkdownCollapsedField';
 import { MarkdownViewField } from './fields/MarkdownViewField';
 import type { MarkdownFieldSchema } from './fields/MarkdownViewField';
 import { RadioField } from './fields/RadioField';
@@ -27,6 +29,7 @@ type WidgetType =
   | 'text'
   | 'code-view'
   | 'markdown-view'
+  | 'markdown-collapsed'
   | 'textarea';
 
 type FieldSchema =
@@ -38,7 +41,8 @@ type FieldSchema =
   | InputFieldSchema
   | TextareaFieldSchema
   | CodeFieldSchema
-  | MarkdownFieldSchema;
+  | MarkdownFieldSchema
+  | MarkdownCollapsedFieldSchema;
 
 const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { schema: any }>> = {
   checkbox: CheckboxField,
@@ -50,6 +54,7 @@ const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { sch
   textarea: TextareaField,
   'code-view': CodeViewField,
   'markdown-view': MarkdownViewField,
+  'markdown-collapsed': MarkdownCollapsedField,
 } as const;
 
 const WIDGET_NAMES = Object.keys(WIDGET_REGISTRY) as WidgetType[];
