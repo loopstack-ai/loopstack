@@ -40,7 +40,8 @@ export const RadioField: React.FC<RadioFieldProps> = ({ name, schema, ui, requir
     <Controller
       name={name}
       control={form.control}
-      defaultValue={config.defaultValue || ''}
+      // An empty string is a real value for a string field and a type error for an enum — see SelectField.
+      defaultValue={config.defaultValue}
       rules={{
         required: required ? 'This field is required' : undefined,
       }}
