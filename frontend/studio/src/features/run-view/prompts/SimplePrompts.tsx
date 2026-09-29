@@ -117,11 +117,28 @@ export function PromptInput({ view, submit, isSubmitting }: RunPromptProps) {
   );
 }
 
+/** The shadcn button styles a widget may ask for; anything else falls back to the default. */
+const BUTTON_VARIANTS = ['default', 'secondary', 'outline', 'ghost', 'destructive', 'link'] as const;
+type ButtonVariant = (typeof BUTTON_VARIANTS)[number];
+
+/**
+ * The style a widget asked for.
+ *
+ * A workflow-level button is often the lesser of the actions on offer — an escape hatch beside the thing
+ * you normally do — and the default style says the opposite.
+ */
+function variant(view: RunPromptProps['view']): ButtonVariant | undefined {
+  const asked = view.options?.variant;
+  return typeof asked === 'string' && (BUTTON_VARIANTS as readonly string[]).includes(asked)
+    ? (asked as ButtonVariant)
+    : undefined;
+}
+
 /** Workflow-level `button`: a single action firing its transition with an empty payload. */
 export function ActionButton({ view, submit, isSubmitting }: RunPromptProps) {
   const label = typeof view.options?.label === 'string' ? view.options.label : (view.defaultTransition ?? 'Continue');
   return (
-    <Button onClick={() => submit({})} disabled={isSubmitting}>
+    <Button variant={variant(view)} onClick={() => submit({})} disabled={isSubmitting}>
       {label}
     </Button>
   );
@@ -131,7 +148,7 @@ export function ActionButton({ view, submit, isSubmitting }: RunPromptProps) {
 export function FullWidthActionButton({ view, submit, isSubmitting }: RunPromptProps) {
   const label = typeof view.options?.label === 'string' ? view.options.label : (view.defaultTransition ?? 'Continue');
   return (
-    <Button className="w-full" onClick={() => submit({})} disabled={isSubmitting}>
+    <Button variant={variant(view)} className="w-full" onClick={() => submit({})} disabled={isSubmitting}>
       {label}
     </Button>
   );
