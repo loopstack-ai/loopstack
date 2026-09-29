@@ -114,6 +114,39 @@ describe('FormPrompt', () => {
     expect(submit).not.toHaveBeenCalled();
   });
 
+  it('draws an object field by the widget it declares, not as nested fields', () => {
+    const picking: ParkView = {
+      ...view,
+      content: {
+        choice: {
+          options: [
+            { value: 'A', label: 'Re-queue', summary: 'End the run and re-queue it.' },
+            { value: 'B', label: 'Hold', summary: 'Hold the run on a button.', recommended: true },
+          ],
+          selected: 'B',
+        },
+      },
+      schema: {
+        type: 'object',
+        properties: {
+          choice: {
+            type: 'object',
+            properties: { options: { type: 'array' }, selected: { type: 'string' } },
+          },
+        },
+      },
+      options: {
+        properties: { choice: { widget: 'option-picker', title: 'Options' } },
+        actions: [{ label: 'Approve', transition: 'approved' }],
+      },
+    };
+    render(<FormPrompt view={picking} submit={vi.fn()} isSubmitting={false} />);
+    expect(screen.getByRole('radio', { name: /B — Hold/ })).toBeChecked();
+    expect(screen.getByText('End the run and re-queue it.')).toBeInTheDocument();
+    // Not taken apart: no field for the raw `selected` string.
+    expect(screen.queryByLabelText('selected')).not.toBeInTheDocument();
+  });
+
   it('renders nothing when none of its actions can fire', () => {
     const { container } = render(
       <FormPrompt view={{ ...view, transitions: [] }} submit={vi.fn()} isSubmitting={false} />,
