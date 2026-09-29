@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
+import { type ButtonVariant, buttonVariant } from './button-variant.ts';
 import type { RunPromptProps } from './types.ts';
 
 function question(view: RunPromptProps['view']): string {
@@ -118,20 +119,9 @@ export function PromptInput({ view, submit, isSubmitting }: RunPromptProps) {
 }
 
 /** The shadcn button styles a widget may ask for; anything else falls back to the default. */
-const BUTTON_VARIANTS = ['default', 'secondary', 'outline', 'ghost', 'destructive', 'link'] as const;
-type ButtonVariant = (typeof BUTTON_VARIANTS)[number];
-
-/**
- * The style a widget asked for.
- *
- * A workflow-level button is often the lesser of the actions on offer — an escape hatch beside the thing
- * you normally do — and the default style says the opposite.
- */
+/** The style a workflow-level button asked for. */
 function variant(view: RunPromptProps['view']): ButtonVariant | undefined {
-  const asked = view.options?.variant;
-  return typeof asked === 'string' && (BUTTON_VARIANTS as readonly string[]).includes(asked)
-    ? (asked as ButtonVariant)
-    : undefined;
+  return buttonVariant(view.options?.variant);
 }
 
 /** Workflow-level `button`: a single action firing its transition with an empty payload. */
