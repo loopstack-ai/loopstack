@@ -57,7 +57,7 @@ Quick reference for what Loopstack can do. Each entry links to the relevant buil
 | Chat interface             | `prompt-input` widget for conversational UIs                                                                 |
 | Form widgets               | Text, textarea, select, slider, code-view, radio, checkbox                                                   |
 | Document actions           | Buttons that trigger workflow transitions                                                                    |
-| Conditional widgets        | `enabledWhen` shows/hides UI based on workflow state                                                         |
+| Conditional widgets        | `showWhen` shows/hides and `enabledWhen` enables/disables widgets based on workflow place                    |
 | Sub-workflow embedding     | `.run()` auto-renders child workflows inline in the parent's view via `show: 'inline' \| 'link' \| 'hidden'` |
 
 ## Extensibility

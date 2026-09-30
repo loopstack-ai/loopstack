@@ -156,9 +156,9 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
 }
 ```
 
-## `enabledWhen` — Conditional Widgets
+## `enabledWhen` and `showWhen` — Conditional Widgets
 
-Show/hide widgets based on the current workflow place:
+Two widget keys gate a widget on the current workflow place. `enabledWhen` keeps the widget on screen but disables it outside the listed places:
 
 ```yaml
 ui:
@@ -178,7 +178,27 @@ ui:
             label: 'Confirm'
 ```
 
-The widget only appears when the workflow is at the `review` or `editing` place.
+The form is visible at every place, but it can only be edited and submitted while the workflow is at the `review` or `editing` place.
+
+`showWhen` hides the widget entirely outside the listed places — use it for a widget that should only exist at one step:
+
+```yaml
+ui:
+  widgets:
+    - widget: prompt-input
+      enabledWhen:
+        - waiting_for_user
+      options:
+        transition: userMessage
+    - widget: button
+      showWhen:
+        - awaiting_tools
+      options:
+        transition: cancelPendingTools
+        label: Cancel pending tools
+```
+
+The prompt input is always on screen and disabled while the agent works; the cancel button is only rendered while the workflow is at `awaiting_tools`. When a widget sets both keys, `showWhen` decides whether it is rendered and `enabledWhen` whether it is enabled. See [Workflow YAML Schema — `showWhen`](../../reference/workflow-yaml.md#showwhen).
 
 ## Using HITL as a Sub-Workflow
 
