@@ -1,7 +1,7 @@
 import type {
   AvailableEnvironmentInterface,
   StudioAppConfig,
-  ToolConfigInterface,
+  ToolConfigItemInterface,
   WorkflowConfigInterface,
   WorkflowSourceInterface,
 } from '@loopstack/contracts/api';
@@ -18,9 +18,9 @@ export function createConfigResource(http: HttpClient) {
     workflowSource: (workflowName: string): Promise<WorkflowSourceInterface> =>
       http.get(`/api/v1/config/workflows/${encodeURIComponent(workflowName)}/source`),
 
-    tools: (): Promise<ToolConfigInterface[]> => http.get('/api/v1/config/tools'),
+    tools: (): Promise<ToolConfigItemInterface[]> => http.get('/api/v1/config/tools'),
 
-    tool: (toolName: string): Promise<ToolConfigInterface> =>
+    tool: (toolName: string): Promise<ToolConfigItemInterface> =>
       http.get(`/api/v1/config/tools/${encodeURIComponent(toolName)}`),
 
     availableEnvironments: (): Promise<AvailableEnvironmentInterface[]> => http.get('/api/v1/config/environments'),

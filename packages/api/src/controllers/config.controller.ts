@@ -18,8 +18,8 @@ import {
   AvailableEnvironmentSchema,
   StudioAppConfig,
   StudioAppConfigSchema,
-  ToolConfigInterface,
-  ToolConfigSchema,
+  ToolConfigItemInterface,
+  ToolConfigItemSchema,
   WorkflowConfigInterface,
   WorkflowConfigSchema,
   WorkflowSourceInterface,
@@ -90,12 +90,12 @@ export class ConfigController {
   }
 
   @Get('tools')
-  getToolConfigs(): ToolConfigInterface[] {
+  getToolConfigs(): ToolConfigItemInterface[] {
     return this.toolRegistryService.getAll().map((tool) => this.buildToolConfig(tool));
   }
 
   @Get('tools/:toolName')
-  getToolConfig(@Param('toolName') toolName: string): ToolConfigInterface {
+  getToolConfig(@Param('toolName') toolName: string): ToolConfigItemInterface {
     try {
       const tool = this.toolRegistryService.get(toolName);
       return this.buildToolConfig(tool);
@@ -104,11 +104,11 @@ export class ConfigController {
     }
   }
 
-  private buildToolConfig(tool: object): ToolConfigInterface {
+  private buildToolConfig(tool: object): ToolConfigItemInterface {
     const config = getBlockConfig<ToolConfigType>(tool);
     const name = getBlockName(tool);
 
-    return assertResponse(ToolConfigSchema, {
+    return assertResponse(ToolConfigItemSchema, {
       name,
       description: config?.description,
       ui: config?.ui,

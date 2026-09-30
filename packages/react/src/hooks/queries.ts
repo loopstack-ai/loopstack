@@ -10,7 +10,7 @@ import type {
   DocumentItemInterface,
   PaginatedInterface,
   StudioAppConfig,
-  ToolConfigInterface,
+  ToolConfigItemInterface,
   WorkerInfoInterface,
   WorkflowCheckpointInterface,
   WorkflowConfigInterface,
@@ -239,8 +239,8 @@ export function useWorkflowSource<TData = WorkflowSourceInterface>(
 }
 
 /** Fetch the configs of all registered tools. */
-export function useToolConfigs<TData = ToolConfigInterface[]>(
-  options?: QueryHookOptions<ToolConfigInterface[], TData>,
+export function useToolConfigs<TData = ToolConfigItemInterface[]>(
+  options?: QueryHookOptions<ToolConfigItemInterface[], TData>,
 ): UseQueryResult<TData> {
   const client = useLoopstackClient();
   return useQuery({
@@ -250,9 +250,9 @@ export function useToolConfigs<TData = ToolConfigInterface[]>(
 }
 
 /** Fetch a single tool config by name. */
-export function useToolConfig<TData = ToolConfigInterface>(
+export function useToolConfig<TData = ToolConfigItemInterface>(
   toolName: string | undefined,
-  options?: QueryHookOptions<ToolConfigInterface, TData>,
+  options?: QueryHookOptions<ToolConfigItemInterface, TData>,
 ): UseQueryResult<TData> {
   const client = useLoopstackClient();
   return useQuery({
