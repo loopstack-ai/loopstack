@@ -1,1 +1,1 @@
-export * from './claude-web-search-server.tool.js';
+export * from './claude-native-web-search.tool.js';

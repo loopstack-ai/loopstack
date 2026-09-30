@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * A single web search hit (title + URL) returned by `ClaudeWebSearch`.
+ * A single web search hit (title + URL) returned by `ClaudeWebSearchStepTool`.
  *
  * @public
  */
@@ -21,7 +21,7 @@ export const WebSearchHitSchema = z.strictObject({
 });
 
 /**
- * A block of web search hits tied to a single server tool use, returned by `ClaudeWebSearch`.
+ * A block of web search hits tied to a single server tool use, returned by `ClaudeWebSearchStepTool`.
  *
  * @public
  */
@@ -41,7 +41,7 @@ export const WebSearchResultBlockSchema = z.strictObject({
 });
 
 /**
- * Result for `ClaudeWebSearch` — the query, interleaved hit blocks and text commentary, a sources reminder, and timing.
+ * Result for `ClaudeWebSearchStepTool` — the query, interleaved hit blocks and text commentary, a sources reminder, and timing.
  *
  * @public
  */
@@ -53,7 +53,7 @@ export interface WebSearchResult {
 }
 
 /**
- * Zod schema for {@link WebSearchResult} — the `resultSchema` of `claude_web_search`.
+ * Zod schema for {@link WebSearchResult} — the `resultSchema` of `claude_web_search_step`.
  *
  * @public
  */
