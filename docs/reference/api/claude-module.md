@@ -10,7 +10,7 @@ includeInLlmsFullTxt: false
 
 ### ClaudeModule
 
-NestJS module that provides the Claude LLM provider (`ClaudeLlmProvider`, registered under provider id `claude`), the `ClaudeClientService`, and the `ClaudeWebSearchServerTool` server tool.
+NestJS module that provides the Claude LLM provider (`ClaudeLlmProvider`, registered under provider id `claude`), the `ClaudeClientService`, and the `ClaudeNativeWebSearchTool` server tool.
 
 Registration:
 
@@ -26,19 +26,19 @@ import { ClaudeModule } from '@loopstack/claude-module';
 export class ClaudeModule {}
 ```
 
-### ClaudeWebSearchServerTool
+### ClaudeNativeWebSearchTool
 
-Tool that runs Claude's built-in server-side web search for real-time information retrieval during agent conversations.
+Claude's provider-native web search. List it in an LLM call's `tools` (an agent or `llm_generate_text`) and Claude runs the search inside that same call. It is not callable from workflow code — for a standalone search step, use `ClaudeWebSearchStepTool` (`claude_web_search_step`) from `@loopstack/claude-tools-module`.
 
 ```ts
-import { ClaudeWebSearchServerTool } from '@loopstack/claude-module';
+import { ClaudeNativeWebSearchTool } from '@loopstack/claude-module';
 ```
 
 **Provided by:** `ClaudeModule`
 
 ```ts
-export class ClaudeWebSearchServerTool extends ServerTool<ClaudeWebSearchServerToolConfig> {
-  toServerToolConfig(config?: ClaudeWebSearchServerToolConfig): unknown;
+export class ClaudeNativeWebSearchTool extends ServerTool<ClaudeNativeWebSearchToolConfig> {
+  toServerToolConfig(config?: ClaudeNativeWebSearchToolConfig): unknown;
 }
 ```
 
@@ -65,30 +65,30 @@ export interface ClaudeProviderConfig {
 
 ## Type Aliases
 
-### ClaudeWebSearchServerToolConfig
+### ClaudeNativeWebSearchToolConfig
 
-Config for `ClaudeWebSearchServerTool`.
+Config for `ClaudeNativeWebSearchTool`.
 
 ```ts
-import { ClaudeWebSearchServerToolConfig } from '@loopstack/claude-module';
+import { ClaudeNativeWebSearchToolConfig } from '@loopstack/claude-module';
 ```
 
 ```ts
-export type ClaudeWebSearchServerToolConfig = z.infer<typeof ClaudeWebSearchServerToolConfigSchema>;
+export type ClaudeNativeWebSearchToolConfig = z.infer<typeof ClaudeNativeWebSearchToolConfigSchema>;
 ```
 
 ## Variables
 
-### ClaudeWebSearchServerToolConfigSchema
+### ClaudeNativeWebSearchToolConfigSchema
 
-Zod schema for `ClaudeWebSearchServerTool` configuration.
+Zod schema for `ClaudeNativeWebSearchTool` configuration.
 
 ```ts
-import { ClaudeWebSearchServerToolConfigSchema } from '@loopstack/claude-module';
+import { ClaudeNativeWebSearchToolConfigSchema } from '@loopstack/claude-module';
 ```
 
 ```ts
-ClaudeWebSearchServerToolConfigSchema: z.ZodObject<
+ClaudeNativeWebSearchToolConfigSchema: z.ZodObject<
   {
     maxUses: z.ZodDefault<z.ZodNumber>;
     allowedDomains: z.ZodOptional<z.ZodArray<z.ZodString>>;

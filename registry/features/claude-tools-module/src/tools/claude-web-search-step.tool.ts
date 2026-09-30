@@ -12,22 +12,22 @@ const SOURCES_REMINDER =
   'REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.';
 
 /**
- * Zod schema for `ClaudeWebSearch` arguments.
+ * Zod schema for `ClaudeWebSearchStepTool` arguments.
  *
  * @public
  */
-export const ClaudeWebSearchArgsSchema = z
+export const ClaudeWebSearchStepArgsSchema = z
   .object({
     query: z.string().min(2).describe('The search query to execute'),
   })
   .strict();
 
 /**
- * Zod schema for `ClaudeWebSearch` configuration.
+ * Zod schema for `ClaudeWebSearchStepTool` configuration.
  *
  * @public
  */
-export const ClaudeWebSearchConfigSchema = z.object({
+export const ClaudeWebSearchStepConfigSchema = z.object({
   model: z.string().optional(),
   maxTokens: z.number().optional(),
   envApiKey: z.string().optional(),
@@ -35,45 +35,52 @@ export const ClaudeWebSearchConfigSchema = z.object({
 });
 
 /**
- * Args for `ClaudeWebSearch`.
+ * Args for `ClaudeWebSearchStepTool`.
  *
  * @public
  */
-export type ClaudeWebSearchArgs = z.infer<typeof ClaudeWebSearchArgsSchema>;
+export type ClaudeWebSearchStepArgs = z.infer<typeof ClaudeWebSearchStepArgsSchema>;
 
 /**
- * Config for `ClaudeWebSearch`.
+ * Config for `ClaudeWebSearchStepTool`.
  *
  * @public
  */
-export type ClaudeWebSearchConfig = z.infer<typeof ClaudeWebSearchConfigSchema>;
+export type ClaudeWebSearchStepConfig = z.infer<typeof ClaudeWebSearchStepConfigSchema>;
 
 /**
- * Tool that runs a web search through the Claude provider's built-in `web_search` server tool, returning search hits and model commentary.
+ * Workflow step that runs a web search as its own Claude request, returning search hits and model commentary.
+ * The request uses `claude_native_web_search`, and its reply is not saved to the conversation. To give an agent
+ * web search, list `claude_native_web_search` in its `tools` instead — attaching this tool to an agent costs a
+ * second LLM call per search.
  *
  * @providedBy ClaudeToolsModule
  * @public
  */
 @Tool({
-  name: 'claude_web_search',
+  name: 'claude_web_search_step',
   description:
-    'Search the web using the Anthropic Claude API built-in web_search server tool. ' +
+    'Workflow step: search the web by making a separate Claude request. ' +
     'Returns a list of search hits (title + URL) and any text commentary from the model. ' +
-    "Use this to retrieve current information beyond the model's knowledge cutoff.",
-  schema: ClaudeWebSearchArgsSchema,
-  configSchema: ClaudeWebSearchConfigSchema,
+    'To give an agent web search, list claude_native_web_search in its tools instead.',
+  schema: ClaudeWebSearchStepArgsSchema,
+  configSchema: ClaudeWebSearchStepConfigSchema,
   resultSchema: WebSearchResultSchema,
   effects: 'none',
 })
-export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSearchConfig, WebSearchResult> {
-  private readonly logger = new Logger(ClaudeWebSearch.name);
+export class ClaudeWebSearchStepTool extends BaseTool<
+  ClaudeWebSearchStepArgs,
+  ClaudeWebSearchStepConfig,
+  WebSearchResult
+> {
+  private readonly logger = new Logger(ClaudeWebSearchStepTool.name);
 
   @Inject() private readonly llmGenerateText: LlmGenerateTextTool;
 
   protected async handle(
-    args: ClaudeWebSearchArgs,
+    args: ClaudeWebSearchStepArgs,
     ctx: RunContext,
-    options?: ToolCallOptions<ClaudeWebSearchConfig>,
+    options?: ToolCallOptions<ClaudeWebSearchStepConfig>,
   ): Promise<ToolEnvelope<WebSearchResult>> {
     const config = options?.config;
     const startTime = performance.now();
@@ -83,8 +90,10 @@ export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSear
       {
         config: {
           system: this.getSystemPrompt(),
+          provider: 'claude',
           model: config?.model,
-          tools: ['claude_web_search_server'],
+          tools: ['claude_native_web_search'],
+          save: false,
           providerConfig: {
             ...(config?.maxTokens != null ? { maxTokens: config.maxTokens } : {}),
             ...(config?.envApiKey ? { envApiKey: config.envApiKey } : {}),
