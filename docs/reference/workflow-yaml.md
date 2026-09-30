@@ -1,6 +1,6 @@
 ---
 title: Workflow YAML Schema
-description: Complete reference for workflow .ui.yaml files — title, description, widget layout, input forms, action buttons, and enabled-state configuration for Loopstack Studio.
+description: Complete reference for workflow .ui.yaml files — title, description, widget layout, input forms, action buttons, and place-based widget gating with enabledWhen (disable) and showWhen (hide) for Loopstack Studio.
 ---
 
 # Workflow YAML Schema
@@ -96,20 +96,36 @@ ui:
 
 ### `enabledWhen`
 
-Controls when a widget is interactive based on the current workflow place:
+- **Type:** `string[]` (optional)
+- **Description:** Controls when a widget is interactive based on the current workflow place. Outside the listed places the widget is still rendered, but disabled.
+
+```yaml
+- widget: prompt-input
+  enabledWhen:
+    - waiting_for_user
+  options:
+    transition: userMessage
+```
+
+The input stays on screen at every place and accepts messages only while the workflow is at `waiting_for_user`.
 
 ### `showWhen`
 
-Controls when a widget is visible based on the current workflow place. Unlike `enabledWhen` (which controls interactivity), `showWhen` hides the widget entirely when the workflow is not at one of the listed places:
+- **Type:** `string[]` (optional)
+- **Description:** Controls when a widget is visible based on the current workflow place. Unlike `enabledWhen` (which controls interactivity), `showWhen` hides the widget entirely when the workflow is not at one of the listed places.
 
 ```yaml
-- widget: form
-  enabledWhen:
-    - waiting
-    - editing
+- widget: button
+  showWhen:
+    - awaiting_tools
+  options:
+    transition: cancelPendingTools
+    label: Cancel pending tools
 ```
 
-The widget is only shown when the workflow is at one of the listed places.
+The button is only rendered while the workflow is at `awaiting_tools`.
+
+When a widget sets both, `showWhen` is checked first: outside its places the widget is hidden, and inside them `enabledWhen` decides whether it is enabled. A widget with neither is shown at every place. In all cases a visible widget is also disabled while its `transition` is not currently available.
 
 ## Complete Example
 
