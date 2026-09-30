@@ -5,7 +5,7 @@ description: How Loopstack features (Git, File Explorer, Secrets, etc.) are regi
 
 # Studio Features
 
-A **feature** in Loopstack is an optional capability that a module opts into and that the Studio UI can render a dedicated surface for — typically a sidebar panel or a document widget. Built-in examples are the `git`, `fileExplorer`, and `secrets` features. Features are an advanced extension point: most apps never need to create one.
+A **feature** in Loopstack is an optional capability that a module opts into and that the Studio UI can render a dedicated surface for — typically a sidebar panel or a document widget. Built-in examples are the `git`, `fileExplorer`, `secrets`, and `handoff` features. Features are an advanced extension point: most apps never need to create one.
 
 ## When to Use a Feature
 
@@ -44,6 +44,27 @@ export class MyAppModule {}
 ```
 
 Importing `GitModule` alone provides the Git tools. Calling `GitModule.forFeature(...)` additionally registers the `git` feature for this app, which makes Studio render the Git sidebar panel.
+
+## Example — Hand-offs to the User's Machine
+
+`HandoffModule.forFeature()` from `@loopstack/handoff-module` registers the `handoff` feature. Studio then shows a "Handoff" sidebar panel with every document tagged `handoff` for the run in view, and renders two document widgets:
+
+| Document               | Widget          | Content                                                                           |
+| ---------------------- | --------------- | --------------------------------------------------------------------------------- |
+| `HandoffDocument`      | `handoff`       | `title`, `description?`, and a `command` to copy or a `url` to open               |
+| `ChangedFilesDocument` | `changed-files` | `hostRoot` (absolute path on the user's machine) and the changed `paths` under it |
+
+```typescript
+import { HandoffDocument } from '@loopstack/handoff-module';
+
+await this.documentStore.save(
+  HandoffDocument,
+  { title: 'Open in Zed', command: 'zed "/home/me/project"' },
+  { key: 'open_in_zed' },
+);
+```
+
+The package also ships `TerminalHandoffDocument`, which drives the CLI's `terminal-handoff` widget: under `loopstack run` it hands the terminal to a local `command` and fires the `handoffDone` transition when it exits. It needs no feature registration.
 
 ## Defining a Custom Feature
 

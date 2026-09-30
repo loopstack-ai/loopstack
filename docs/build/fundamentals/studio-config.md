@@ -36,11 +36,12 @@ The same widget format is used in document and workflow YAML configs under `ui.w
 
 Some registry modules light up additional Studio surfaces when imported by your app — sidebars, panels, or richer document widgets. They register themselves at bootstrap and appear under `StudioAppConfig.features`, which Studio reads to decide what UI to expose. You don't have to wire anything up beyond importing the module.
 
-| Feature        | Registered by                                                                     | What it adds to Studio                           |
-| -------------- | --------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `git`          | `@loopstack/git-module` (`GitModule.forFeature(config)`)                          | Git status panel and version-control affordances |
-| `fileExplorer` | `@loopstack/local-file-explorer-module`, `@loopstack/remote-file-explorer-module` | File-tree browser sidebar                        |
-| `secrets`      | `@loopstack/secrets-module` (`SecretsModule.forFeature(config)`)                  | Workspace secrets management UI                  |
+| Feature        | Registered by                                                                     | What it adds to Studio                                             |
+| -------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `git`          | `@loopstack/git-module` (`GitModule.forFeature(config)`)                          | Git status panel and version-control affordances                   |
+| `fileExplorer` | `@loopstack/local-file-explorer-module`, `@loopstack/remote-file-explorer-module` | File-tree browser sidebar                                          |
+| `secrets`      | `@loopstack/secrets-module` (`SecretsModule.forFeature(config)`)                  | Workspace secrets management UI                                    |
+| `handoff`      | `@loopstack/handoff-module` (`HandoffModule.forFeature(config)`)                  | Handoff panel and the `handoff` / `changed-files` document widgets |
 
 To enable a feature, import the corresponding module's `forFeature()` (or `forRoot()`) in your app's module graph. Features that aren't imported simply don't appear — Studio degrades gracefully and never assumes a feature is present.
 

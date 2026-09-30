@@ -54,6 +54,17 @@ import {
 import { ClaudeModule } from '@loopstack/claude-module';
 ```
 
+## `@loopstack/handoff-module`
+
+```typescript
+import {
+  ChangedFilesDocument,
+  HandoffDocument,
+  HandoffModule,
+  TerminalHandoffDocument,
+} from '@loopstack/handoff-module';
+```
+
 ## `@loopstack/openai-module`
 
 ```typescript

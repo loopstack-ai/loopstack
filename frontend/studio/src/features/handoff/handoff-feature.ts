@@ -7,8 +7,8 @@ import { HandoffPanel } from './HandoffPanel';
 /**
  * The `handoff` feature — a sidebar panel of the run's prepared hand-off commands (open in IDE, continue in
  * terminal, …), plus the inline renderer for `handoff` documents in the run timeline. Enabled when the
- * backend app mounts it via `CodeWorkspaceModule.forFeature()`; its contents are the per-run
- * `HandoffDocument`s workflows emit.
+ * backend app mounts it via `HandoffModule.forFeature()` (`@loopstack/handoff-module`); its contents are the
+ * per-run `HandoffDocument`s workflows emit.
  */
 export const handoffFeature: StudioFeature = {
   id: 'handoff',
