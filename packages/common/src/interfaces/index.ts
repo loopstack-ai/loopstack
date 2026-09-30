@@ -4,7 +4,6 @@ export * from './handler.interface.js';
 export * from './role.interface.js';
 export * from './tool-execution-interceptor.interface.js';
 export * from './user.interface.js';
-export * from './ai-provider.interface.js';
 export * from './block.interface.js';
 export * from './transition-results.types.js';
 export * from './sso-response.interface.js';
