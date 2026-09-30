@@ -1,21 +1,11 @@
 import type { Type } from '@nestjs/common';
+import type { StudioUiConfig } from '@loopstack/contracts/api';
 import type { BaseWorkflow } from '../base/base-workflow.js';
 import { deriveAppIdentifier } from '../utils/identifier.utils.js';
 
+export type { StudioUiConfig, StudioWidgetConfig } from '@loopstack/contracts/api';
+
 export const STUDIO_APP_KEY = 'loopstack:studio-app';
-
-export interface StudioWidgetConfig {
-  widget: string;
-  options?: Record<string, unknown>;
-}
-
-export interface StudioUiConfig {
-  /**
-   * Widgets to render in the app's Studio surface. Each widget is identified
-   * by a name and may carry widget-specific options.
-   */
-  widgets?: StudioWidgetConfig[];
-}
 
 /**
  * Options for the `@StudioApp()` decorator — the app identity, title, workflows,

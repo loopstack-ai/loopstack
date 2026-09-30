@@ -6,7 +6,7 @@ import type {
   DocumentItemInterface,
   PaginatedInterface,
   StudioAppConfig,
-  ToolConfigInterface,
+  ToolConfigItemInterface,
   WorkerInfoInterface,
   WorkflowCheckpointInterface,
   WorkflowConfigInterface,
@@ -122,8 +122,8 @@ export interface LoopstackQueries {
   apps: () => QueryDescriptor<StudioAppConfig[]>;
   workflowConfig: (workflowName: string) => QueryDescriptor<WorkflowConfigInterface>;
   workflowSource: (workflowName: string) => QueryDescriptor<WorkflowSourceInterface>;
-  toolConfigs: () => QueryDescriptor<ToolConfigInterface[]>;
-  toolConfig: (toolName: string) => QueryDescriptor<ToolConfigInterface>;
+  toolConfigs: () => QueryDescriptor<ToolConfigItemInterface[]>;
+  toolConfig: (toolName: string) => QueryDescriptor<ToolConfigItemInterface>;
   availableEnvironments: () => QueryDescriptor<AvailableEnvironmentInterface[]>;
   dashboardStats: () => QueryDescriptor<DashboardStatsInterface>;
   me: () => QueryDescriptor<AuthUserInterface>;

@@ -10,6 +10,7 @@ export const StudioWidgetConfigSchema = z.object({
 export type StudioWidgetConfig = z.infer<typeof StudioWidgetConfigSchema>;
 
 export const StudioUiConfigSchema = z.object({
+  /** Widgets to render in the app's Studio surface, each identified by name with widget-specific options. */
   widgets: z.array(StudioWidgetConfigSchema).optional(),
 });
 export type StudioUiConfig = z.infer<typeof StudioUiConfigSchema>;
@@ -62,12 +63,12 @@ export const WorkflowConfigSchema = z.object({
 });
 export type WorkflowConfigInterface = z.infer<typeof WorkflowConfigSchema>;
 
-export const ToolConfigSchema = z.object({
+export const ToolConfigItemSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   ui: z.custom<UiFormType>().optional(),
 });
-export type ToolConfigInterface = z.infer<typeof ToolConfigSchema>;
+export type ToolConfigItemInterface = z.infer<typeof ToolConfigItemSchema>;
 
 export const WorkflowSourceSchema = z.object({
   name: z.string(),

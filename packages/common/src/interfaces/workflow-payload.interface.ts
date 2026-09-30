@@ -2,14 +2,15 @@ export interface WorkflowPayload<TArgs = unknown> {
   workspaceId: string;
   workflowId?: string;
   args?: TArgs;
-  transition?: TransitionPayload;
+  transition?: TransitionRequest;
   /** Optional labels for categorizing/filtering workflow runs (e.g. ['session:abc-123']) */
   labels?: string[];
   /** Persist this run's trace events (rows in `core_run_trace_event`), including sub-workflows. */
   trace?: boolean;
 }
 
-export interface TransitionPayload {
+/** A caller's request to fire a waiting transition; the runner adds the workflow id when it queues it. */
+export interface TransitionRequest {
   id: string;
   payload?: Record<string, unknown>;
 }
