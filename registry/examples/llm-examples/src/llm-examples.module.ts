@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { ClaudeToolsModule } from '@loopstack/claude-tools-module';
 import { StudioApp } from '@loopstack/common';
 import { OpenAiModule } from '@loopstack/openai-module';
 import { WebModule } from '@loopstack/web-module';
@@ -20,7 +19,7 @@ import { WebFetchExampleWorkflow } from './workflows/web-fetch/web-fetch-example
   ],
 })
 @Module({
-  imports: [ClaudeModule, ClaudeToolsModule, OpenAiModule, WebModule],
+  imports: [ClaudeModule, OpenAiModule, WebModule],
   providers: [
     FileDocument,
     PromptExampleWorkflow,
