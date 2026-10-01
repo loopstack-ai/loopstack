@@ -72,8 +72,11 @@ Use `this.documentStore.save()` inside workflow transition methods. Reference do
 // Create a new document
 await this.documentStore.save(NotesDocument, { text: 'Hello!' });
 
-// Create/update with a specific key (upsert — invalidates the previous version)
-await this.documentStore.save(NotesDocument, { text: 'Updated content' }, { key: 'notes-1' });
+// A new revision under a key — invalidates the previous version, placed at the end
+await this.documentStore.save(NotesDocument, { text: 'Revised content' }, { key: 'notes-1' });
+
+// Update in place — the new revision takes the place of the previous one
+await this.documentStore.save(NotesDocument, { text: 'Updated content' }, { key: 'notes-1', position: 'keep' });
 
 // With meta options (free-form extension data on the document row)
 await this.documentStore.save(NotesDocument, { text: 'Tagged note' }, { meta: { source: 'import' } });
@@ -96,12 +99,13 @@ await this.documentStore.save(draft, { key: 'notes-1' });
 
 ### Save Options
 
-| Option            | Type                           | Description                                                                                                                                                                                      |
-| ----------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `key`             | `string`                       | Stable upsert key — saving twice with the same `key` invalidates the previous row in place. Use for documents that update over time (status tickers, form state, transcripts).                   |
-| `validate`        | `'strict' \| 'safe' \| 'skip'` | Validation mode. Default `'strict'` — throws on invalid content. `'safe'` stores partial data + error. `'skip'` bypasses validation. See [Validation](../../learn/document-store.md#validation). |
-| `meta`            | `Record<string, unknown>`      | Free-form extension data persisted on the document row. Use for ad-hoc payload that downstream readers need. For framework concerns (hide from UI, etc.), use decorator options instead.         |
-| `meta.invalidate` | `boolean`                      | When `false`, prevents the previous version with the same `key` from being invalidated. Default behavior replaces the old version.                                                               |
+| Option            | Type                           | Description                                                                                                                                                                                                                                   |
+| ----------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `key`             | `string`                       | Stable revision key — saving again with the same `key` writes a new revision and invalidates the previous ones.                                                                                                                               |
+| `position`        | `'keep' \| 'end'`              | Where a keyed save puts the new revision. Default `'end'` — appended, below everything saved since. `'keep'` — in the place of the revision it supersedes; use for documents that update over time (status tickers, form state, transcripts). |
+| `validate`        | `'strict' \| 'safe' \| 'skip'` | Validation mode. Default `'strict'` — throws on invalid content. `'safe'` stores partial data + error. `'skip'` bypasses validation. See [Validation](../../learn/document-store.md#validation).                                              |
+| `meta`            | `Record<string, unknown>`      | Free-form extension data persisted on the document row. Use for ad-hoc payload that downstream readers need. For framework concerns (hide from UI, etc.), use decorator options instead.                                                      |
+| `meta.invalidate` | `boolean`                      | When `false`, prevents the previous version with the same `key` from being invalidated. Default behavior replaces the old version.                                                                                                            |
 
 ## Querying Documents
 

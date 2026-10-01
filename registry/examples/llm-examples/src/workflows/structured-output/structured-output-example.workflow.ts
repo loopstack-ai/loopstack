@@ -32,7 +32,7 @@ export class StructuredOutputExampleWorkflow extends BaseWorkflow<StructuredOutp
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Creating a 'Hello, World!' script in ${ctx.args.language}...` },
-      { key: 'status' },
+      { key: 'status', position: 'keep' },
     );
     this.assignState({ language: ctx.args.language });
   }
@@ -56,7 +56,7 @@ export class StructuredOutputExampleWorkflow extends BaseWorkflow<StructuredOutp
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Successfully generated: ${state.llmResult?.content?.description ?? ''}` },
-      { key: 'status' },
+      { key: 'status', position: 'keep' },
     );
     if (state.llmResult?.content) {
       this.setResult(state.llmResult.content);

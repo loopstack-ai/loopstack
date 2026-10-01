@@ -35,7 +35,7 @@ export class WebFetchExampleWorkflow extends BaseWorkflow<WebFetchArgs> {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'assistant', text: `Fetching ${ctx.args.url}...` },
-      { key: 'status' },
+      { key: 'status', position: 'keep' },
     );
   }
 

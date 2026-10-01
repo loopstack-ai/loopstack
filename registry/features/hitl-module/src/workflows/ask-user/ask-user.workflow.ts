@@ -66,19 +66,23 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs> {
     await this.documentStore.save(
       AskUserOptionsDocument,
       { question: state.question, options: state.options ?? [], allowCustomAnswer: state.allowCustomAnswer },
-      { key: 'question' },
+      { key: 'question', position: 'keep' },
     );
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isConfirmMode')
   async showQuestionConfirm(state: AskUserState) {
-    await this.documentStore.save(AskUserConfirmDocument, { question: state.question }, { key: 'question' });
+    await this.documentStore.save(
+      AskUserConfirmDocument,
+      { question: state.question },
+      { key: 'question', position: 'keep' },
+    );
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user' })
   async showQuestionText(state: AskUserState) {
-    await this.documentStore.save(AskUserDocument, { question: state.question }, { key: 'question' });
+    await this.documentStore.save(AskUserDocument, { question: state.question }, { key: 'question', position: 'keep' });
   }
 
   @Transition({ from: 'waiting_for_user', to: 'end', wait: true, schema: AskUserAnswerSchema })
@@ -92,19 +96,19 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs> {
           allowCustomAnswer: state.allowCustomAnswer,
           answer: input.data.answer,
         },
-        { key: 'question' },
+        { key: 'question', position: 'keep' },
       );
     } else if (state.mode === 'confirm') {
       await this.documentStore.save(
         AskUserConfirmDocument,
         { question: state.question, answer: input.data.answer },
-        { key: 'question' },
+        { key: 'question', position: 'keep' },
       );
     } else {
       await this.documentStore.save(
         AskUserDocument,
         { question: state.question, answer: input.data.answer },
-        { key: 'question' },
+        { key: 'question', position: 'keep' },
       );
     }
 

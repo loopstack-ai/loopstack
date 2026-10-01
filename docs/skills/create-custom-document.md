@@ -66,8 +66,11 @@ All options are optional.
 // Create a new document
 await this.documentStore.save(NotesDocument, { text: 'Hello!' });
 
-// Create or update with a specific key (upsert in place — invalidates the previous version)
-await this.documentStore.save(NotesDocument, { text: 'Updated' }, { key: 'notes-1' });
+// A new revision under a key — invalidates the previous version, placed at the end
+await this.documentStore.save(NotesDocument, { text: 'Revised' }, { key: 'notes-1' });
+
+// Update in place — the new revision takes the place of the previous one
+await this.documentStore.save(NotesDocument, { text: 'Updated' }, { key: 'notes-1', position: 'keep' });
 ```
 
 To hide a document type from the UI entirely, declare `internal: true` on its decorator (`@Document({ internal: true, ... })`) rather than passing a per-save flag. Internal documents are persisted and still readable server-side (e.g. by LLM providers), but never reach Studio.
@@ -87,7 +90,8 @@ await this.documentStore.save(draft, { key: 'notes-1' }); // with save options
 
 | Option     | Type                           | Description                                                                                           |
 | ---------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `key`      | `string`                       | Stable upsert key — passing the same `key` twice replaces the previous row in place.                  |
+| `key`      | `string`                       | Stable revision key — saving again with the same `key` invalidates the previous revision.             |
+| `position` | `'keep' \| 'end'`              | Where a keyed save puts the new revision: `'end'` (default) appends it, `'keep'` updates in place.    |
 | `validate` | `'strict' \| 'safe' \| 'skip'` | Schema validation mode. Default `'strict'`.                                                           |
 | `meta`     | `Record<string, unknown>`      | Free-form extension data persisted on the row. For framework concerns, use decorator options instead. |
 

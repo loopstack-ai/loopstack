@@ -70,8 +70,8 @@ export async function fetchDocumentWindow(
 }
 
 /**
- * Documents written after `updatedAfter` — the live delta. Covers new documents, re-saved ones (a re-save
- * keeps its `index` but bumps `updatedAt`) and invalidated ones (a keyed save marks the documents it
+ * Documents written after `updatedAfter` — the live delta. Covers new documents, re-saved ones (a keyed
+ * re-save writes a new revision, at its own `index` or the superseded one's) and invalidated ones (a keyed save marks the documents it
  * supersedes, which bumps them too), so a caller merges the result by id and drops what a 'current' window
  * must no longer show. The delta is therefore the same for either scope.
  */
