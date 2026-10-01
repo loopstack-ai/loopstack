@@ -5,7 +5,7 @@ description: How Loopstack features (Git, File Explorer, Secrets, etc.) are regi
 
 # Studio Features
 
-A **feature** in Loopstack is an optional capability that a module opts into and that the Studio UI can render a dedicated surface for — typically a sidebar panel or a document widget. Built-in examples are the `git`, `fileExplorer`, `secrets`, and `handoff` features. Features are an advanced extension point: most apps never need to create one.
+A **feature** in Loopstack is an optional capability that a module opts into and that the Studio UI can render a dedicated surface for — typically a sidebar panel or a document widget. Built-in examples are the `git`, `localFileExplorer`, `remoteFileExplorer`, `secrets`, and `handoff` features. Features are an advanced extension point: most apps never need to create one.
 
 ## When to Use a Feature
 
