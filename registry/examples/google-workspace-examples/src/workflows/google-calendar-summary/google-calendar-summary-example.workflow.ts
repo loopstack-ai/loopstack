@@ -19,7 +19,7 @@ const CalendarSummaryArgsSchema = z
 type CalendarSummaryArgs = z.infer<typeof CalendarSummaryArgsSchema>;
 
 @Workflow({
-  title: 'OAuth - Google Calendar Summary Example',
+  title: 'Google Workspace - Calendar Summary Example',
   description:
     'Fetches upcoming Google Calendar events and displays a summary. Launches the OAuth workflow as a sub-workflow on unauthorized errors and retries automatically.',
   name: 'google_calendar_summary_example',

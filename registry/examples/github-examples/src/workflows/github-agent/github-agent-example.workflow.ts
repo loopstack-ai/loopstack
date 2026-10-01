@@ -76,7 +76,7 @@ const TOOLS = [
 ];
 
 @Workflow({
-  title: 'OAuth - GitHub Agent Example',
+  title: 'GitHub - Agent Example',
   description:
     'An interactive chat agent with access to GitHub. Manages repositories, issues, pull requests, code, CI/CD, and search. Handles OAuth authentication automatically — the agent detects unauthorized errors and launches authentication on its own.',
   name: 'github_agent_example',

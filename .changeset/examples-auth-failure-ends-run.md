@@ -1,5 +1,6 @@
 ---
-'@loopstack/oauth-examples': patch
+'@loopstack/github-examples': patch
+'@loopstack/google-workspace-examples': patch
 ---
 
 `github_overview_example` and `google_calendar_summary_example` end `failed` when sign-in fails.

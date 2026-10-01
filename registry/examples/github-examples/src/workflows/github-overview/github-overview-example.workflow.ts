@@ -62,7 +62,7 @@ const GitHubReposOverviewArgsSchema = z
 type GitHubReposOverviewArgs = z.infer<typeof GitHubReposOverviewArgsSchema>;
 
 @Workflow({
-  title: 'OAuth - GitHub Overview Example',
+  title: 'GitHub - Overview Example',
   description:
     'Comprehensive GitHub example that exercises every GitHub tool. Fetches user info, repository details, issues, pull requests, branches, directory contents, workflow runs, and search results. Launches the OAuth sub-workflow on unauthorized errors and retries.',
   name: 'github_overview_example',

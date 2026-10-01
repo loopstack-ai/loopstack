@@ -1,16 +1,16 @@
 {
-  "name": "@loopstack/oauth-examples",
-  "displayName": "Loopstack OAuth Examples",
-  "description": "Workflow examples for OAuth-protected integrations in Loopstack — GitHub repos overview, GitHub agent, Google Calendar summary, Google Workspace agent.",
+  "name": "@loopstack/github-examples",
+  "displayName": "Loopstack GitHub Examples",
+  "description": "GitHub integration workflow examples for Loopstack — a scripted repo overview across the GitHub read tools, and an interactive Claude agent with 25 GitHub tools. Both sign in through the OAuth sub-workflow on demand.",
   "keywords": [
     "loopstack",
     "example",
-    "oauth",
     "github",
-    "google",
+    "oauth",
+    "agent",
     "workflow"
   ],
-  "version": "0.1.3",
+  "version": "0.1.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -34,7 +34,6 @@
     "@loopstack/claude-module": "*",
     "@loopstack/common": "*",
     "@loopstack/github-module": "*",
-    "@loopstack/google-workspace-module": "*",
     "@loopstack/llm-provider-module": "*",
     "@loopstack/oauth-module": "*",
     "@nestjs/common": "^12.0.1",
