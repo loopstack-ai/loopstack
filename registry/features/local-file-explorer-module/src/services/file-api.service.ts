@@ -48,7 +48,12 @@ export class FileApiService {
       throw new NotFoundException(`File not found: ${filePath}`);
     }
 
-    const content = await this.fileSystemService.readFileContent(fullFilePath);
+    const realFilePath = await this.fileSystemService.resolveContainedPath(rootPath, filePath);
+    if (realFilePath === null) {
+      throw new NotFoundException(`Invalid file path: ${filePath}`);
+    }
+
+    const content = await this.fileSystemService.readFileContent(realFilePath);
     if (content === null) {
       throw new NotFoundException(`Could not read file: ${filePath}`);
     }

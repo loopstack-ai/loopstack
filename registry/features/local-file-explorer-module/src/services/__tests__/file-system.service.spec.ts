@@ -70,6 +70,78 @@ describe('FileSystemService', () => {
     it('rejects a sibling directory sharing the root as a name prefix', () => {
       expect(service.validatePath(root, `${root}-sibling/file.txt`)).toBe(false);
     });
+
+    it('accepts names inside the root that start with two dots', () => {
+      expect(service.validatePath(root, path.join(root, '..notes.md'))).toBe(true);
+      expect(service.validatePath(root, path.join(root, '..dir', 'a.md'))).toBe(true);
+    });
+  });
+
+  describe('resolveContainedPath', () => {
+    let realRoot: string;
+    let outside: string;
+
+    beforeEach(async () => {
+      realRoot = await fs.realpath(root);
+      outside = await fs.mkdtemp(path.join(os.tmpdir(), 'fs-service-outside-'));
+      await write(outside, 'secret.txt', 'secret');
+    });
+
+    afterEach(async () => {
+      await fs.rm(outside, { recursive: true, force: true });
+    });
+
+    it('returns the real path of a file inside the root', async () => {
+      await write(root, 'docs/readme.md');
+
+      expect(await service.resolveContainedPath(root, 'docs/readme.md')).toBe(path.join(realRoot, 'docs', 'readme.md'));
+    });
+
+    it('returns the real path of a name starting with two dots', async () => {
+      await write(root, '..notes.md');
+
+      expect(await service.resolveContainedPath(root, '..notes.md')).toBe(path.join(realRoot, '..notes.md'));
+    });
+
+    it('follows a symlink whose target stays inside the root', async () => {
+      await write(root, 'real.txt');
+      await fs.symlink(path.join(root, 'real.txt'), path.join(root, 'alias.txt'));
+
+      expect(await service.resolveContainedPath(root, 'alias.txt')).toBe(path.join(realRoot, 'real.txt'));
+    });
+
+    it('rejects a file symlink pointing outside the root', async () => {
+      await fs.symlink(path.join(outside, 'secret.txt'), path.join(root, 'link.txt'));
+
+      expect(await service.resolveContainedPath(root, 'link.txt')).toBeNull();
+    });
+
+    it('rejects a path through a directory symlink pointing outside the root', async () => {
+      await fs.symlink(outside, path.join(root, 'linked-dir'));
+
+      expect(await service.resolveContainedPath(root, 'linked-dir/secret.txt')).toBeNull();
+    });
+
+    it('rejects lexical traversal out of the root', async () => {
+      const relativeToOutside = path.relative(root, path.join(outside, 'secret.txt'));
+
+      expect(await service.resolveContainedPath(root, relativeToOutside)).toBeNull();
+    });
+
+    it('returns null for a missing file or a dangling symlink', async () => {
+      await fs.symlink(path.join(root, 'gone.txt'), path.join(root, 'dangling.txt'));
+
+      expect(await service.resolveContainedPath(root, 'missing.txt')).toBeNull();
+      expect(await service.resolveContainedPath(root, 'dangling.txt')).toBeNull();
+    });
+
+    it('resolves against the real root when the root itself is a symlink', async () => {
+      await write(root, 'a.txt');
+      const linkedRoot = path.join(outside, 'linked-root');
+      await fs.symlink(root, linkedRoot);
+
+      expect(await service.resolveContainedPath(linkedRoot, 'a.txt')).toBe(path.join(realRoot, 'a.txt'));
+    });
   });
 
   describe('buildFileTree', () => {

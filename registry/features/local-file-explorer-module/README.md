@@ -63,6 +63,7 @@ HTTP request ──► LocalFileExplorerController
 - **Workspace scoping** — file paths are resolved relative to the workspace's `appName` directory. There is no way to read files outside that root through the API.
 - **Authenticated routes** — `@CurrentUser()` is required on every endpoint; unauthenticated requests are rejected by the standard Loopstack auth layer.
 - **Path traversal protection** — `FileSystemService` rejects paths that escape the workspace root.
+- **Symlink resolution** — before a read, the root and the requested path are resolved to their real locations; a symlink whose target lies outside the root is rejected, while symlinks that stay inside it are followed.
 - **File size limit** — single-file reads are capped at **10 MB**. Larger files return an empty content payload and a warning is logged.
 
 ### Ignored directories

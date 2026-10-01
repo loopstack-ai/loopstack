@@ -1,7 +1,11 @@
 import { Logger, NotFoundException } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FileApiService } from '../file-api.service.js';
-import type { FileSystemService } from '../file-system.service.js';
+import { FileSystemService } from '../file-system.service.js';
 
 const ROOT = '/workspace/root';
 const APP = 'my-app';
@@ -12,6 +16,7 @@ describe('FileApiService', () => {
     exists: ReturnType<typeof vi.fn>;
     buildFileTree: ReturnType<typeof vi.fn>;
     validatePath: ReturnType<typeof vi.fn>;
+    resolveContainedPath: ReturnType<typeof vi.fn>;
     readFileContent: ReturnType<typeof vi.fn>;
   };
   let service: FileApiService;
@@ -22,6 +27,7 @@ describe('FileApiService', () => {
       exists: vi.fn().mockResolvedValue(true),
       buildFileTree: vi.fn(),
       validatePath: vi.fn().mockReturnValue(true),
+      resolveContainedPath: vi.fn((root: string, filePath: string) => Promise.resolve(path.join(root, filePath))),
       readFileContent: vi.fn(),
     };
     service = new FileApiService(fileSystem as unknown as FileSystemService);
@@ -59,7 +65,25 @@ describe('FileApiService', () => {
       expect(await service.getFileContent(APP, 'docs/readme.md')).toEqual({ path: 'docs/readme.md', content: 'hello' });
       expect(fileSystem.validatePath).toHaveBeenCalledWith(ROOT, `${ROOT}/docs/readme.md`);
       expect(fileSystem.exists).toHaveBeenCalledWith(`${ROOT}/docs/readme.md`);
+      expect(fileSystem.resolveContainedPath).toHaveBeenCalledWith(ROOT, 'docs/readme.md');
       expect(fileSystem.readFileContent).toHaveBeenCalledWith(`${ROOT}/docs/readme.md`);
+    });
+
+    it('reads the resolved real path', async () => {
+      fileSystem.resolveContainedPath.mockResolvedValue(`${ROOT}/real.md`);
+      fileSystem.readFileContent.mockResolvedValue('hello');
+
+      expect(await service.getFileContent(APP, 'alias.md')).toEqual({ path: 'alias.md', content: 'hello' });
+      expect(fileSystem.readFileContent).toHaveBeenCalledWith(`${ROOT}/real.md`);
+    });
+
+    it('throws NotFoundException when the resolved path leaves the root', async () => {
+      fileSystem.resolveContainedPath.mockResolvedValue(null);
+
+      await expect(service.getFileContent(APP, 'link.txt')).rejects.toThrow(
+        new NotFoundException('Invalid file path: link.txt'),
+      );
+      expect(fileSystem.readFileContent).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException for a path rejected by validation', async () => {
@@ -145,6 +169,68 @@ describe('FileApiService', () => {
       fileSystem.readFileContent.mockResolvedValue('{"transitions": []}');
 
       expect((await service.getFileContent(APP, 'workflow.json')).workflowConfig).toBeUndefined();
+    });
+  });
+
+  describe('getFileContent with the real FileSystemService', () => {
+    let base: string;
+    let root: string;
+    let realService: FileApiService;
+
+    beforeEach(async () => {
+      base = await fs.mkdtemp(path.join(os.tmpdir(), 'file-api-'));
+      root = path.join(base, 'root');
+      await fs.mkdir(root);
+      await fs.writeFile(path.join(base, 'secret.txt'), 'SECRET OUTSIDE ROOT');
+      await fs.mkdir(path.join(base, 'outside-dir'));
+      await fs.writeFile(path.join(base, 'outside-dir', 'x.txt'), 'OUTSIDE DIR');
+      const config = { get: vi.fn(() => root) } as unknown as ConfigService;
+      realService = new FileApiService(new FileSystemService(config));
+    });
+
+    afterEach(async () => {
+      await fs.rm(base, { recursive: true, force: true });
+    });
+
+    it('rejects a file symlink pointing outside the root', async () => {
+      await fs.symlink('../secret.txt', path.join(root, 'link.txt'));
+
+      await expect(realService.getFileContent(APP, 'link.txt')).rejects.toThrow(
+        new NotFoundException('Invalid file path: link.txt'),
+      );
+    });
+
+    it('rejects a path through a directory symlink pointing outside the root', async () => {
+      await fs.symlink(path.join(base, 'outside-dir'), path.join(root, 'linked-dir'));
+
+      await expect(realService.getFileContent(APP, 'linked-dir/x.txt')).rejects.toThrow(
+        new NotFoundException('Invalid file path: linked-dir/x.txt'),
+      );
+    });
+
+    it('reads a symlink whose target stays inside the root', async () => {
+      await fs.writeFile(path.join(root, 'real.txt'), 'inside');
+      await fs.symlink('real.txt', path.join(root, 'alias.txt'));
+
+      expect(await realService.getFileContent(APP, 'alias.txt')).toEqual({ path: 'alias.txt', content: 'inside' });
+    });
+
+    it('reads files whose names start with two dots', async () => {
+      await fs.writeFile(path.join(root, '..notes.md'), 'notes');
+      await fs.mkdir(path.join(root, '..dir'));
+      await fs.writeFile(path.join(root, '..dir', 'a.md'), 'a');
+
+      expect(await realService.getFileContent(APP, '..notes.md')).toEqual({ path: '..notes.md', content: 'notes' });
+      expect(await realService.getFileContent(APP, '..dir/a.md')).toEqual({ path: '..dir/a.md', content: 'a' });
+    });
+
+    it('still rejects lexical traversal and reports missing files', async () => {
+      await expect(realService.getFileContent(APP, '../secret.txt')).rejects.toThrow(
+        new NotFoundException('Invalid file path: ../secret.txt'),
+      );
+      await expect(realService.getFileContent(APP, 'missing.txt')).rejects.toThrow(
+        new NotFoundException('File not found: missing.txt'),
+      );
     });
   });
 });
