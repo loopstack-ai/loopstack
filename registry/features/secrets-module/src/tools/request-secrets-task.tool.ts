@@ -34,7 +34,7 @@ export const RequestSecretsTaskResultSchema = z.string();
 
 /**
  * Tool that requests secrets from the user by launching `SecretsRequestWorkflow` as a callback-driven
- * sub-workflow; the agent-friendly variant of `request_secrets` for use inside agent loops.
+ * sub-workflow; it completes once the user has submitted the form.
  *
  * @providedBy SecretsModule
  * @public

@@ -217,6 +217,7 @@ export class WeatherChatWorkflow extends BaseWorkflow {
   async executeTools(state: ChatState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: ['get_weather'],
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });
@@ -309,7 +310,7 @@ The tool loop continues as long as the LLM keeps requesting tools. Once it produ
 
 **How `@Guard` works:** When the workflow reaches `response_received`, it evaluates all outgoing transitions. `executeTools` has `priority: 10` and a guard — Loopstack calls `hasToolCalls(state)` first. If it returns `true`, `executeTools` runs. If it returns `false`, Loopstack moves to the next-priority transition: `saveResponse`.
 
-**How `LlmDelegateToolCalls` works:** The LLM's response contains tool call requests (tool name + arguments). `LlmDelegateToolCallsTool` looks up each matching registered tool class (e.g. `GetWeatherTool`) and dispatches them in parallel. Synchronous tools return immediately and populate `result.toolResults`. Asynchronous tools (sub-workflow tools, HITL tools) return `pending: true` and emit a callback when they finish — the workflow's `toolResultReceived` (`wait: true` self-loop) catches each callback and calls `LlmUpdateToolResultTool` to merge the result. When `allCompleted` flips true, the unguarded `toolsComplete` transition fires and the loop returns to the LLM.
+**How `LlmDelegateToolCalls` works:** The LLM's response contains tool call requests (tool name + arguments). `LlmDelegateToolCallsTool` looks up each matching registered tool class (e.g. `GetWeatherTool`) and dispatches them in parallel — only tools named in its `tools` arg, the same list given to `llmGenerateText`; any other call comes back to the LLM as an error result. Synchronous tools return immediately and populate `result.toolResults`. Asynchronous tools (sub-workflow tools, HITL tools) return `pending: true` and emit a callback when they finish — the workflow's `toolResultReceived` (`wait: true` self-loop) catches each callback and calls `LlmUpdateToolResultTool` to merge the result. When `allCompleted` flips true, the unguarded `toolsComplete` transition fires and the loop returns to the LLM.
 
 For weather (a single sync tool), `toolResultReceived` is never entered — `allCompleted` is already true the moment `executeTools` returns. The wait-loop is in place so the same workflow shape scales the day you swap in or add a sub-workflow tool. Without it, the workflow would silently hang on the first async tool.
 

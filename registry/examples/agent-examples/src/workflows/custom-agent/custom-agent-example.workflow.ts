@@ -17,6 +17,9 @@ interface CustomAgentState {
   turnCount: number;
 }
 
+/** The tools offered to the LLM — and the only ones its tool calls may execute. */
+const TOOLS = ['weather_lookup', 'calculator'];
+
 /**
  * Custom agent loop with a deterministic turn budget and a forced wrap-up phase.
  *
@@ -81,7 +84,7 @@ export class CustomAgentExampleWorkflow extends BaseWorkflow {
         config: {
           provider: 'claude',
           system: this.render(join(__dirname, 'templates', 'system.md')),
-          tools: ['weather_lookup', 'calculator'],
+          tools: TOOLS,
         },
       },
     );
@@ -139,6 +142,7 @@ export class CustomAgentExampleWorkflow extends BaseWorkflow {
   async executeToolCalls(state: CustomAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: TOOLS,
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });
