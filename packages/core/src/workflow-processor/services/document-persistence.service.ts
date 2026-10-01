@@ -92,9 +92,20 @@ export class DocumentPersistenceService {
     }
 
     // Persist within the active transaction, or directly if called outside one (e.g. error documents after rollback)
-    return scope.queryRunner
-      ? scope.queryRunner.manager.save(DocumentEntity, entity)
-      : this.documentRepository.save(entity);
+    try {
+      return await (scope.queryRunner
+        ? scope.queryRunner.manager.save(DocumentEntity, entity)
+        : this.documentRepository.save(entity));
+    } catch (error) {
+      // A rejected write reports the column it violated and never the row, while the transition it takes
+      // down is retried with the same content — so without the document named here, the only thing left to
+      // read afterwards is a constraint message against a run of thousands of documents.
+      this.logger.error(
+        `Failed to persist ${documentName}(key=${key}) in transition '${transition.id}' of workflow ` +
+          `${scope.workflowId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
   }
 
   /**

@@ -22,6 +22,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -30,8 +31,11 @@
     "yaml": "^2.8.3"
   },
   "devDependencies": {
+    "@swc/core": "^1.15.33",
     "class-transformer": "^0.5.1",
     "reflect-metadata": "^0.2.2",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6",
     "zod": "^4.3.6"
   },
   "peerDependencies": {

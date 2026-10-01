@@ -4,6 +4,7 @@ export * from './caller-file.js';
 export * from './deep-merge.js';
 export * from './feature-registration.js';
 export * from './identifier.utils.js';
+export * from './jsonb-sanitizer.js';
 export * from './normalize-object.js';
 export * from './stable-json-transformer.js';
 export * from './stateless-child.util.js';

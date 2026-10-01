@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 import type { RunTraceEvent } from '@loopstack/contracts/types';
+import { jsonbTransformer } from '../utils/jsonb-sanitizer.js';
 
 /**
  * One persisted run-trace event — the DB projection of the in-memory `RunTraceEvent` stream.
@@ -32,7 +33,7 @@ export class RunTraceEventEntity {
   type!: string;
 
   /** The full event (including `type`, `seq`, `ts`), payload fields possibly elided. */
-  @Column('jsonb')
+  @Column('jsonb', { transformer: jsonbTransformer })
   payload!: RunTraceEvent;
 
   @CreateDateColumn({ name: 'created_at' })

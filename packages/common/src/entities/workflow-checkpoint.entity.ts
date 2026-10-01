@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { jsonbTransformer } from '../utils/jsonb-sanitizer.js';
 import { WorkflowEntity } from './workflow.entity.js';
 
 @Entity({ name: 'core_workflow_checkpoint' })
@@ -23,7 +24,7 @@ export class WorkflowCheckpointEntity {
   @Column({ type: 'varchar', name: 'transition_from', nullable: true })
   transitionFrom!: string | null;
 
-  @Column('jsonb', { default: {} })
+  @Column('jsonb', { default: {}, transformer: jsonbTransformer })
   state!: Record<string, unknown>;
 
   @Column('uuid', { name: 'document_ids', array: true, default: '{}' })

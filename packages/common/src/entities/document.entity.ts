@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { z } from 'zod';
+import { jsonbTransformer } from '../utils/jsonb-sanitizer.js';
 import { User } from './user.entity.js';
 import { WorkflowEntity } from './workflow.entity.js';
 
@@ -30,16 +31,16 @@ export class DocumentEntity<T = any> {
   @Index()
   workspaceId!: string;
 
-  @Column('jsonb', { nullable: true })
+  @Column('jsonb', { nullable: true, transformer: jsonbTransformer })
   content!: T | null;
 
-  @Column('jsonb', { nullable: true, name: 'validation_error' })
+  @Column('jsonb', { nullable: true, name: 'validation_error', transformer: jsonbTransformer })
   error!: z.ZodError | null;
 
   @Column('varchar', { name: 'tags', array: true, nullable: true })
   tags!: string[];
 
-  @Column('jsonb', { nullable: true })
+  @Column('jsonb', { nullable: true, transformer: jsonbTransformer })
   meta!: Record<string, any> | null;
 
   @Column({ name: 'is_invalidated', default: false })

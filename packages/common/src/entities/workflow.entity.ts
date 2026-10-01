@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import type { WorkflowTransitionType } from '@loopstack/contracts/types';
 import { WorkflowState } from '../enums/index.js';
+import { jsonbTransformer } from '../utils/jsonb-sanitizer.js';
 import { DocumentEntity } from './document.entity.js';
 import { User } from './user.entity.js';
 import { WorkspaceEntity } from './workspace.entity.js';
@@ -53,13 +54,13 @@ export class WorkflowEntity {
   @Column({ type: 'varchar', name: 'callback_transition', nullable: true })
   callbackTransition!: string | null;
 
-  @Column('jsonb', { name: 'callback_metadata', nullable: true })
+  @Column('jsonb', { name: 'callback_metadata', nullable: true, transformer: jsonbTransformer })
   callbackMetadata!: Record<string, unknown> | null;
 
-  @Column('jsonb', { default: {} })
+  @Column('jsonb', { default: {}, transformer: jsonbTransformer })
   args!: any;
 
-  @Column('jsonb', { default: {} })
+  @Column('jsonb', { default: {}, transformer: jsonbTransformer })
   context!: Record<string, any>;
 
   @CreateDateColumn({ name: 'created_at' })
@@ -75,12 +76,14 @@ export class WorkflowEntity {
     type: 'jsonb',
     name: 'result',
     nullable: true,
+    transformer: jsonbTransformer,
   })
   result!: Record<string, unknown> | null;
 
   @Column('jsonb', {
     name: 'available_transitions',
     nullable: true,
+    transformer: jsonbTransformer,
   })
   availableTransitions!: WorkflowTransitionType[] | null;
 
