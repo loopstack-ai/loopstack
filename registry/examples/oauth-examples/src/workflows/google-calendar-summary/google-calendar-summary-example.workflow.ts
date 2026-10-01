@@ -70,13 +70,19 @@ export class GoogleCalendarSummaryExampleWorkflow extends BaseWorkflow<CalendarS
     return !!state.requiresAuthentication;
   }
 
-  // Auth sub-workflow completed -> retry from start
+  // Auth sub-workflow completed -> retry from start. A failed or canceled OAuth sub-workflow routes
+  // to `auth_failed` instead, so a sign-in that cannot succeed ends the run rather than relaunching it.
   @Transition({
     from: 'awaiting_auth',
     to: 'start',
     wait: true,
+    errorPlace: 'auth_failed',
   })
   authCompleted(_state: CalendarSummaryState, _input: TransitionInput) {}
+
+  // Auth failed -> the user retries once the OAuth app is configured
+  @Transition({ from: 'auth_failed', to: 'start', wait: true })
+  retryAuth() {}
 
   // Success -> display summary
   @Transition({ from: 'calendar_fetched', to: 'end' })

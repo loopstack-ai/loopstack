@@ -122,13 +122,19 @@ export class GithubOverviewExampleWorkflow extends BaseWorkflow<GitHubReposOverv
     return !!state.requiresAuthentication;
   }
 
-  // Auth completed -> retry from start
+  // Auth completed -> retry from start. A failed or canceled OAuth sub-workflow routes to
+  // `auth_failed` instead, so a sign-in that cannot succeed ends the run rather than relaunching it.
   @Transition({
     from: 'awaiting_auth',
     to: 'start',
     wait: true,
+    errorPlace: 'auth_failed',
   })
   authCompleted(_state: GitHubReposOverviewState, _input: TransitionInput) {}
+
+  // Auth failed -> the user retries once the OAuth app is configured
+  @Transition({ from: 'auth_failed', to: 'start', wait: true })
+  retryAuth() {}
 
   // --- Step 2: Fetch user orgs ---
 
