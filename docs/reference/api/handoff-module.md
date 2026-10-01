@@ -58,8 +58,9 @@ Registration:
   importing `@StudioApp`, which lights up the panel and the renderers. The panel's contents are per-run:
   workflows save hand-off documents via `documentStore.save(HandoffDocument, …)`.
 
-The document classes need no registration — import and save them. `TerminalHandoffDocument` is rendered by
-the CLI's `terminal-handoff` widget and works without the Studio feature.
+The document classes need no registration — import and save them. `TerminalHandoffDocument` is driven by
+the CLI's `terminal-handoff` widget; with the feature enabled, Studio also renders it with an "End session"
+button that fires `handoffDone` by hand.
 
 ```ts
 import { HandoffModule } from '@loopstack/handoff-module';
@@ -75,8 +76,10 @@ export class HandoffModule {
 
 A hand-off prompt: when `loopstack run` is following a run and this document arms (its `handoffDone`
 transition is available at the current place), the CLI's `terminal-handoff` widget runs `command` with an
-inherited TTY — the terminal becomes that process — and fires `handoffDone` when it exits. The emitting
-workflow decides what `command` is and owns the `handoffDone` wait transition.
+inherited TTY — the terminal becomes that process — and fires `handoffDone` when it exits. Studio renders
+the same document as a copy-the-command card with an "End session" button that fires `handoffDone` by hand,
+for a run nobody is following. The emitting workflow decides what `command` is and owns the `handoffDone`
+wait transition.
 
 ```ts
 import { TerminalHandoffDocument } from '@loopstack/handoff-module';

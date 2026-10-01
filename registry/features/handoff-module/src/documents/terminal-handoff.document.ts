@@ -22,8 +22,10 @@ export const TerminalHandoffSchema = z
 /**
  * A hand-off prompt: when `loopstack run` is following a run and this document arms (its `handoffDone`
  * transition is available at the current place), the CLI's `terminal-handoff` widget runs `command` with an
- * inherited TTY — the terminal becomes that process — and fires `handoffDone` when it exits. Generic and
- * agent-neutral: the emitting workflow decides what `command` is and owns the `handoffDone` wait transition.
+ * inherited TTY — the terminal becomes that process — and fires `handoffDone` when it exits. Studio renders
+ * the same document as a copy-the-command card with an "End session" button that fires `handoffDone` by hand,
+ * for a run nobody is following. Generic and agent-neutral: the emitting workflow decides what `command` is
+ * and owns the `handoffDone` wait transition.
  *
  * @public
  */

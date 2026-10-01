@@ -18,7 +18,8 @@ files to open in an IDE, or — under `loopstack run` — the terminal itself.
   the changed paths; Studio renders a file tree with "open in Zed", "open in VS Code" and file-explorer
   actions.
 - **The run should hand the terminal to an interactive process** — save a `TerminalHandoffDocument` and wait on
-  `handoffDone`; the CLI runs the command with an inherited TTY and fires the transition when it exits.
+  `handoffDone`; the CLI runs the command with an inherited TTY and fires the transition when it exits. Studio
+  shows the command to copy and an "End session" button that fires the transition by hand.
 
 ## Installation
 
@@ -39,8 +40,8 @@ export class AppModule {}
 ```
 
 `forFeature()` registers the `handoff` feature: Studio shows the "Handoff" sidebar panel and renders the
-`handoff` and `changed-files` widgets. Without it, those documents show as an unknown document type.
-`TerminalHandoffDocument` is rendered by the CLI and needs no feature registration.
+`handoff`, `changed-files` and `terminal-handoff` widgets. Without it, those documents show as an unknown
+document type. The CLI renders `TerminalHandoffDocument` on its own, with or without the feature.
 
 ## Quick Start
 
@@ -69,7 +70,7 @@ Save each hand-off under a stable `key` so re-saving updates the card instead of
 | ------------------------- | ------------------ | ------------------ | --------- | --------------------------------------------------------- |
 | `HandoffDocument`         | `handoff`          | `handoff`          | `handoff` | `title`, `description?`, and one of `command` / `url`     |
 | `ChangedFilesDocument`    | `changed_files`    | `changed-files`    | `handoff` | `hostRoot` (absolute path on the user's machine), `paths` |
-| `TerminalHandoffDocument` | `terminal_handoff` | `terminal-handoff` | —         | `command`, `cwd?`; fires `handoffDone` when it exits      |
+| `TerminalHandoffDocument` | `terminal_handoff` | `terminal-handoff` | —         | `command`, `cwd?`; `handoffDone` on exit or "End session" |
 
 Every document tagged `handoff` (`HANDOFF_TAG`) appears in the Studio panel.
 

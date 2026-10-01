@@ -11,8 +11,9 @@ import { registerFeature } from '@loopstack/common';
  *   importing `@StudioApp`, which lights up the panel and the renderers. The panel's contents are per-run:
  *   workflows save hand-off documents via `documentStore.save(HandoffDocument, …)`.
  *
- * The document classes need no registration — import and save them. `TerminalHandoffDocument` is rendered by
- * the CLI's `terminal-handoff` widget and works without the Studio feature.
+ * The document classes need no registration — import and save them. `TerminalHandoffDocument` is driven by
+ * the CLI's `terminal-handoff` widget; with the feature enabled, Studio also renders it with an "End session"
+ * button that fires `handoffDone` by hand.
  *
  * @public
  */

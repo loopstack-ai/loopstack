@@ -64,7 +64,7 @@ await this.documentStore.save(
 );
 ```
 
-The package also ships `TerminalHandoffDocument`, which drives the CLI's `terminal-handoff` widget: under `loopstack run` it hands the terminal to a local `command` and fires the `handoffDone` transition when it exits. It needs no feature registration.
+The package also ships `TerminalHandoffDocument`, which drives the CLI's `terminal-handoff` widget: under `loopstack run` it hands the terminal to a local `command` and fires the `handoffDone` transition when it exits. With the feature enabled, Studio renders the same document as a copy-the-command card with an "End session" button that fires `handoffDone` by hand, for a run nobody is following.
 
 ## Defining a Custom Feature
 
