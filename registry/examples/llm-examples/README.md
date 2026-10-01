@@ -60,7 +60,7 @@ import { LoopstackModule } from '@loopstack/loopstack-module';
 export class AppModule {}
 ```
 
-`LlmExamplesModule` already re-imports `ClaudeModule`, `ClaudeToolsModule`, `OpenAiModule`, and `WebModule` — both providers register themselves with the LLM registry so the Multi-Provider example can dispatch to either. `LlmProviderModule.forRoot(...)` sets the default model the tools fall back to when a call doesn't override `{ config: { provider, model } }` explicitly.
+`LlmExamplesModule` already re-imports `ClaudeModule`, `OpenAiModule`, and `WebModule` — the Claude and OpenAI providers register themselves with the LLM registry so the Multi-Provider example can dispatch to either. `LlmProviderModule.forRoot(...)` sets the default model the tools fall back to when a call doesn't override `{ config: { provider, model } }` explicitly.
 
 ## Environment
 
@@ -213,7 +213,7 @@ When `prompt` is omitted, `WebFetchTool` returns the raw Markdown (truncated if 
 ### Related modules
 
 - `@loopstack/web-module` — fetch + Markdown conversion + summarization
-- `@loopstack/claude-tools-module` — Claude server-side web search (alternative when you want the LLM to search rather than fetch a specific URL)
+- `@loopstack/claude-module` — `claude_native_web_search`, Claude's server-side web search tool (alternative when you want the LLM to search rather than fetch a specific URL)
 
 ## About
 

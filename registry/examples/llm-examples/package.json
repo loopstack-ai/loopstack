@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@loopstack/claude-module": "*",
-    "@loopstack/claude-tools-module": "*",
     "@loopstack/common": "*",
     "@loopstack/llm-provider-module": "*",
     "@loopstack/openai-module": "*",
