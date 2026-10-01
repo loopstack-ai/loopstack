@@ -16,6 +16,7 @@ export interface ToolDocumentDeclaration {
   content: Record<string, unknown>;
   options?: {
     key?: string;
+    position?: 'keep' | 'end';
     meta?: Record<string, unknown>;
     validate?: 'strict' | 'safe' | 'skip';
   };
@@ -27,6 +28,7 @@ export const ToolDocumentDeclarationSchema = z.object({
   options: z
     .object({
       key: z.string().optional(),
+      position: z.enum(['keep', 'end']).optional(),
       meta: z.record(z.string(), z.unknown()).optional(),
       validate: z.enum(['strict', 'safe', 'skip']).optional(),
     })

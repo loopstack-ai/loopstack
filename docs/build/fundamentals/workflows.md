@@ -293,11 +293,11 @@ await this.documentStore.save(LlmMessageDocument, {
   text: 'Hello!',
 });
 
-// Update an existing document by key (upsert in place)
+// Update an existing document by key, in place
 await this.documentStore.save(
   LlmMessageDocument,
   { role: 'assistant', text: 'Updated response' },
-  { key: 'response-1' },
+  { key: 'response-1', position: 'keep' },
 );
 
 // Hidden context (not shown in UI — LLM still sees it as conversation history)

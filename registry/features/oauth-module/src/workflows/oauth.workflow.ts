@@ -73,7 +73,7 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
         state: oauthState,
         status: 'pending' as const,
       },
-      { key: 'oauthPrompt' },
+      { key: 'oauthPrompt', position: 'keep' },
     );
 
     this.assignState({ provider: ctx.args.provider, scopes: ctx.args.scopes, oauthState, authUrl });
@@ -102,7 +102,7 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs> {
         status: 'success' as const,
         message: 'Successfully connected.',
       },
-      { key: 'oauthPrompt' },
+      { key: 'oauthPrompt', position: 'keep' },
     );
 
     this.setResult({ authenticated: true } as unknown as Record<string, unknown>);

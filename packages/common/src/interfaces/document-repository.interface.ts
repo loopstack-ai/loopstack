@@ -3,12 +3,20 @@ export type DocumentClass<T = any> = Function & { new (...args: any[]): T; proto
 
 export interface DocumentSaveOptions {
   /**
-   * Stable upsert key. Saving twice with the same `key` invalidates the previous row in place,
-   * so the document keeps its position in the workflow's document list. Use this for documents
-   * that update over time (status tickers, form state, transcripts, structured-output drafts).
+   * Stable revision key. Saving again with the same `key` writes a new revision and invalidates the
+   * previous ones, so only the latest is live. Where the new revision sits is set by `position`.
    * If omitted, a random UUID is generated and the document is appended.
    */
   key?: string;
+  /**
+   * Where a keyed save puts the new revision in the workflow's document list.
+   * - `end` (default): appended, like any new document. A revision written after more work has
+   *   happened (a decision card shown again after a reply) belongs after that work.
+   * - `keep`: in the place of the revision it supersedes. Use this for an entry that changes over
+   *   time (status tickers, streamed messages, terminal output, form state, links).
+   * Has no effect on the first save under a key.
+   */
+  position?: 'keep' | 'end';
   /**
    * Free-form extension data stored on the document's `meta` JSONB column. Use for ad-hoc
    * payload that document renderers or downstream readers need (e.g. provider-specific

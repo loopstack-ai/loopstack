@@ -56,13 +56,6 @@ describe('composeTranscript', () => {
     expect(entries).toEqual([]);
   });
 
-  it('includes re-saved (invalidated) documents — the CLI renders them as honest output', () => {
-    const superseded = doc({ workflowId: 'root', isInvalidated: true });
-    const current = doc({ workflowId: 'root' });
-    const entries = composeTranscript([{ workflowId: 'root', depth: 0, documents: [superseded, current] }], resolve);
-    expect(entries).toHaveLength(2);
-  });
-
   it('carries depth and resolved widget on each entry', () => {
     const link = doc({ workflowId: 'root', documentName: 'link', content: { workflowId: 'child' } });
     const prompt = doc({ workflowId: 'child', documentName: 'ask_user' });
@@ -80,7 +73,7 @@ describe('composeTranscript', () => {
 });
 
 describe('composeTranscript — a re-saved document is one entry', () => {
-  /** A keyed save writes a new row, marks the old one invalidated, and passes on its index. */
+  /** A keyed save with `position: 'keep'` writes a new row, marks the old one invalidated, and passes on its index. */
   const revision = (of: DocumentItemInterface, over: Partial<DocumentItemInterface>): DocumentItemInterface =>
     doc({ workflowId: of.workflowId, index: of.index, ...over } as Partial<DocumentItemInterface> & {
       workflowId: string;
@@ -124,12 +117,32 @@ describe('composeTranscript — a re-saved document is one entry', () => {
     expect(entries.map((entry) => entry.document.content)).toEqual([{ text: 'parent' }, { text: 'child' }]);
   });
 
-  it('falls back to the newest revision when every one of them is invalidated', () => {
-    // A run torn down mid-write leaves no live row; the newest is still the closest thing to the truth.
-    const first = doc({ workflowId: 'root', isInvalidated: true, content: { text: 'a' } });
-    const last = revision(first, { isInvalidated: true, content: { text: 'ab' } });
-    const entries = composeTranscript([{ workflowId: 'root', depth: 0, documents: [first, last] }], resolve);
-    expect(entries.map((entry) => entry.document.content)).toEqual([{ text: 'ab' }]);
+  it('draws a revision that moved to the end there, and nothing where it was before', () => {
+    // A gate shown again after a reply is saved at a new index; the place it left holds only invalidated rows.
+    const gate = doc({ workflowId: 'root', isInvalidated: true, content: { text: 'gate v1' } });
+    const reply = doc({ workflowId: 'root', content: { text: 'reply' } });
+    const revised = doc({ workflowId: 'root', content: { text: 'gate v2' } });
+    const entries = composeTranscript([{ workflowId: 'root', depth: 0, documents: [gate, reply, revised] }], resolve);
+    expect(entries.map((entry) => entry.document.content)).toEqual([{ text: 'reply' }, { text: 'gate v2' }]);
+  });
+
+  it('still reveals a child from the place a link moved away from', () => {
+    const stale = doc({
+      workflowId: 'root',
+      documentName: 'link',
+      isInvalidated: true,
+      content: { workflowId: 'child' },
+    });
+    const child = doc({ workflowId: 'child', content: { text: 'from the child' } });
+    const moved = doc({ workflowId: 'root', documentName: 'link', content: { workflowId: 'child' } });
+    const entries = composeTranscript(
+      [
+        { workflowId: 'root', depth: 0, documents: [stale, moved] },
+        { workflowId: 'child', depth: 1, documents: [child] },
+      ],
+      resolve,
+    );
+    expect(entries.map((entry) => entry.document.content)).toEqual([{ text: 'from the child' }]);
   });
 
   it('still reveals a child when the link document was itself re-saved', () => {

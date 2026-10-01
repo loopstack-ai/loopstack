@@ -16,9 +16,10 @@ export interface TranscriptEntry {
 /**
  * The revisions of one entry, and where that entry belongs in the transcript.
  *
- * A keyed save does not update a row: it writes a new document, marks the one it supersedes as invalidated,
- * and gives the new one the superseded one's `index`. So the documents of a workflow that share an `index`
- * are the versions of a single entry, and exactly one of them is live.
+ * A keyed save does not update a row: it writes a new document and marks the ones it supersedes as
+ * invalidated. Saved with `position: 'keep'`, the new one takes the superseded one's `index`, so the
+ * documents of a workflow that share an `index` are the versions of a single entry. Saved at the end (the
+ * default), it gets an `index` of its own, and the one it left holds invalidated rows only.
  */
 interface Revisions {
   document: DocumentItemInterface;
@@ -36,11 +37,12 @@ interface Revisions {
  * **A re-saved document is one entry, not several.** The window is the `all` scope because the live delta
  * has to see invalidated rows to learn that something was superseded — so what arrives here is every
  * revision, and only the live one is drawn. Drawing them all is what turned a streaming terminal into one
- * card per poll, and a re-presented gate into a stack of cards whose buttons all looked live.
+ * card per poll, and a re-presented gate into a stack of cards whose buttons all looked live. An `index`
+ * with no live row is the place a revision moved away from, and draws nothing.
  *
- * **An entry keeps the position it first appeared at.** A revision carries a newer `createdAt`, so sorting
- * on the live row's timestamp would walk a card that is still being written to the bottom of the transcript
- * on every update, past everything written while it ran.
+ * **An entry updated in place keeps the position it first appeared at.** A revision carries a newer
+ * `createdAt`, so sorting on the live row's timestamp would walk a card that is still being written to the
+ * bottom of the transcript on every update, past everything written while it ran.
  */
 export function composeTranscript(
   sources: TranscriptSource[],
@@ -57,13 +59,8 @@ export function composeTranscript(
         continue;
       }
       seen.appearedAt = Math.min(seen.appearedAt, appearedAt);
-      // The live row wins. Where every revision is invalidated — a run torn down mid-write — the newest of
-      // them is still the closest thing to the truth.
-      const better =
-        (!document.isInvalidated && seen.document.isInvalidated) ||
-        (document.isInvalidated === seen.document.isInvalidated &&
-          appearedAt > new Date(seen.document.createdAt).getTime());
-      if (better) seen.document = document;
+      // The live row wins.
+      if (!document.isInvalidated && seen.document.isInvalidated) seen.document = document;
     }
   }
 
@@ -76,10 +73,12 @@ export function composeTranscript(
     if (depth > 0 && !visible.has(document.workflowId)) continue;
     const widget = resolveWidget(document.documentName);
     if (widget === 'link') {
+      // A link moved away from here still revealed its child from here on.
       const target = (document.content as { workflowId?: unknown } | null)?.workflowId;
       if (typeof target === 'string') visible.add(target);
       continue;
     }
+    if (document.isInvalidated) continue;
     entries.push({ document, depth, widget });
   }
   return entries;
