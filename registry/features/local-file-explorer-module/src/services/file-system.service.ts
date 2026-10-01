@@ -28,17 +28,26 @@ export class FileSystemService {
 
   /**
    * Validate that a target path is within the base path (prevent directory traversal).
+   * This is a lexical check on the path strings and does not follow symlinks — use
+   * `resolveContainedPath` before reading a file.
    */
   validatePath(basePath: string, targetPath: string): boolean {
-    const normalizedBasePath = path.normalize(basePath);
-    const normalizedTargetPath = path.normalize(targetPath);
-    const relativePath = path.relative(normalizedBasePath, normalizedTargetPath);
+    return this.isWithin(path.normalize(basePath), path.normalize(targetPath));
+  }
 
-    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-      return false;
+  /**
+   * Resolve a path relative to the base path to its real location, following symlinks.
+   * Returns the real path if it lies within the real base path, or null if it lies outside
+   * or either path cannot be resolved.
+   */
+  async resolveContainedPath(basePath: string, relativePath: string): Promise<string | null> {
+    try {
+      const realBasePath = await fs.realpath(basePath);
+      const realTargetPath = await fs.realpath(path.join(basePath, relativePath));
+      return this.isWithin(realBasePath, realTargetPath) ? realTargetPath : null;
+    } catch {
+      return null;
     }
-
-    return true;
   }
 
   /**
@@ -120,6 +129,11 @@ export class FileSystemService {
     } catch {
       return false;
     }
+  }
+
+  private isWithin(basePath: string, targetPath: string): boolean {
+    const relativePath = path.relative(basePath, targetPath);
+    return relativePath !== '..' && !relativePath.startsWith(`..${path.sep}`) && !path.isAbsolute(relativePath);
   }
 
   private shouldIgnore(name: string): boolean {
