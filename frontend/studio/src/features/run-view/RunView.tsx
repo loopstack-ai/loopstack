@@ -3,6 +3,7 @@ import { useRunWorkflow } from '@loopstack/react';
 import { useDocumentConfigs } from '@/hooks/useConfig.ts';
 import { usePendingTransition } from '@/hooks/usePendingTransition.ts';
 import { Transcript } from './Transcript.tsx';
+import { ControlPrompt } from './prompts/ControlPrompt.tsx';
 import { SandboxRunButton } from './prompts/SandboxRunButton.tsx';
 import { BareWaitCard, FailedRunCard, NotSupportedCard } from './prompts/cards.tsx';
 import { promptRegistry } from './prompts/registry.tsx';
@@ -122,6 +123,13 @@ export function RunView({ workflowId, settings }: { workflowId: string | undefin
             />
           </div>
         )}
+        {prompts.controls.map((control) => (
+          <ControlPrompt
+            key={`${control.view.workflowId}:${control.view.widget}:${control.view.defaultTransition ?? ''}`}
+            view={control.view}
+            workspaceId={nodes[0]?.workflow.workspaceId}
+          />
+        ))}
         {!picked && idle && IdleComponent && (
           <div className="bg-background rounded-lg border p-4 opacity-70 shadow-sm">
             <IdleComponent view={idle.view} submit={() => undefined} isSubmitting={true} />

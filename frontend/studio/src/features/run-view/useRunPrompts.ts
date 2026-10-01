@@ -29,6 +29,11 @@ export interface RunPrompts {
    * answerable yet) — classic parity: the chat input stays visible during generation.
    */
   idlePrompt?: { candidate: PromptCandidate; view: ParkView };
+  /**
+   * Workflow-level widgets that are live beside the picked prompt: a run's own controls — a reply input at
+   * a gate, a way out of a loop — shown with whatever card is active rather than hidden behind it.
+   */
+  controls: { candidate: PromptCandidate; view: ParkView }[];
   /** Per-document answered verdicts (presence semantics) for transcript rendering. */
   answered: (document: { content: unknown }) => boolean;
   /**
@@ -131,10 +136,8 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
       );
     });
 
-    const picked = pickPrompt(
-      candidates,
-      (candidate) => !!candidate.widget && promptRegistry.has(candidate.widget.widget),
-    );
+    const eligible = (candidate: PromptCandidate) => !!candidate.widget && promptRegistry.has(candidate.widget.widget);
+    const picked = pickPrompt(candidates, eligible);
     const withView = (candidate: PromptCandidate | undefined) =>
       candidate ? { candidate, view: toParkView(candidate) } : undefined;
 
@@ -174,8 +177,27 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
       blocked: withView(picked.blocked),
       fallback: withView(picked.fallback),
       idlePrompt,
+      controls: controlsBeside(candidates, picked.prompt, eligible).map((candidate) => withView(candidate)!),
       answered: (document) => isAnswered(document.content as Record<string, unknown> | null),
       sandboxSlots: [...sandboxSlots.values()],
     };
   }, [nodes, docConfigs, workflowWidgets]);
+}
+
+/**
+ * The workflow-level widgets to draw beside the picked prompt.
+ *
+ * `pickPrompt` chooses one prompt, documents first, so a run's own widget — the reply input at a gate, the
+ * button that leaves a loop — would never be seen while a card is active. Those are controls of the run, not
+ * alternatives to the card, so every live one is drawn, except the one that was itself picked.
+ */
+export function controlsBeside(
+  candidates: readonly PromptCandidate[],
+  picked: PromptCandidate | undefined,
+  isEligible: (candidate: PromptCandidate) => boolean,
+): PromptCandidate[] {
+  return candidates.filter(
+    (candidate) =>
+      candidate.kind === 'workflow' && candidate.state === 'active' && candidate !== picked && isEligible(candidate),
+  );
 }
