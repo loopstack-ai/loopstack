@@ -28,7 +28,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -38,6 +38,10 @@
   },
   "devDependencies": {
     "@nestjs/common": "^12.0.1",
+    "@nestjs/testing": "^12.0.1",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
@@ -47,16 +51,5 @@
   "files": [
     "dist"
   ],
-  "jest": {
-    "testEnvironment": "node",
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "testTimeout": 10000,
-    "forceExit": true,
-    "maxWorkers": 1
-  },
   "type": "module"
 }

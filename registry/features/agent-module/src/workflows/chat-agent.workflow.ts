@@ -25,7 +25,11 @@ import { AgentFinishTool } from '../tools/agent-finish.tool.js';
  * Runs an agent loop like AgentWorkflow, but instead of exiting on end_turn,
  * it waits for user input. The user can chat with the agent between LLM turns.
  *
- * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`, `taskMode`
+ * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`, `taskMode`, `provider`,
+ *   `model`
+ *
+ * `provider` and `model` default to the `LlmProviderModule` config in scope — the one passed to
+ * `AgentModule.forFeature({ llm })`, or the app-wide one.
  *
  * Exit behavior is controlled by `taskMode` arg:
  * - When true, the AgentFinishTool is added to the tool list. The agent exits
@@ -46,12 +50,14 @@ export const ChatAgentArgsSchema = z.object({
   userMessage: z.string(),
   context: z.string().optional(),
   taskMode: z.boolean().optional(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
 });
 
 /**
  * Args for `ChatAgentWorkflow` (passed to `run()`).
  *
- * Holds `system`, `tools`, `userMessage`, optional `context`, and optional `taskMode`.
+ * Holds `system`, `tools`, `userMessage`, and optional `context`, `taskMode`, `provider` and `model`.
  *
  * @public
  */
@@ -63,6 +69,8 @@ interface ChatAgentState {
   userMessage: string;
   context?: string;
   taskMode?: boolean;
+  provider?: string;
+  model?: string;
   llmResult?: LlmGenerateTextResult;
   delegateResult?: LlmDelegateResult;
   finishResult?: unknown;
@@ -114,7 +122,8 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
       {},
       {
         config: {
-          provider: 'claude',
+          provider: state.provider,
+          model: state.model,
           system: state.system,
           tools: this.offeredTools(state),
         },

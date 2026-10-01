@@ -23,8 +23,10 @@ import {
  *
  * Runs a standard agent loop: LLM → tool calls → loop until done.
  *
- * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`
- * - **Config** (per-injection via `@InjectWorkflow()`): `provider`, `model`, `providerConfig`
+ * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`, `provider`, `model`
+ *
+ * `provider` and `model` default to the `LlmProviderModule` config in scope — the one passed to
+ * `AgentModule.forFeature({ llm })`, or the app-wide one.
  *
  * Tools are resolved from the current workflow first, then from the workspace.
  */
@@ -38,12 +40,14 @@ export const AgentArgsSchema = z.object({
   tools: z.array(z.string()),
   userMessage: z.string(),
   context: z.string().optional(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
 });
 
 /**
  * Args for `AgentWorkflow` (passed to `run()`).
  *
- * Holds `system`, `tools`, `userMessage`, and optional `context`.
+ * Holds `system`, `tools`, `userMessage`, and optional `context`, `provider` and `model`.
  *
  * @public
  */
@@ -72,6 +76,8 @@ interface AgentState {
   tools: string[];
   userMessage: string;
   context?: string;
+  provider?: string;
+  model?: string;
   llmResult?: LlmGenerateTextResult;
   delegateResult?: LlmDelegateResult;
 }
@@ -80,7 +86,7 @@ interface AgentState {
  * Workflow that runs a generic LLM agent loop: prompt the LLM, delegate any tool
  * calls, feed their results back, and repeat until the model returns `end_turn`.
  *
- * Args (per `run()`): `system`, `tools`, `userMessage`, and optional `context`.
+ * Args (per `run()`): `system`, `tools`, `userMessage`, and optional `context`, `provider` and `model`.
  * Tools are resolved from the current workflow first, then from the workspace.
  * On completion it publishes an {@link AgentResult} with the final assistant `response`.
  *
@@ -124,7 +130,8 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
       {},
       {
         config: {
-          provider: 'claude',
+          provider: state.provider,
+          model: state.model,
           system: state.system,
           tools: state.tools,
         },
