@@ -195,6 +195,7 @@ When multiple transitions share the same `from` state, attach `@Guard('methodNam
 async executeToolCalls(state: MyState) {
   const result = await this.llmDelegateToolCalls.call({
     message: state.llmResult!.message,
+    tools: TOOLS, // the tool names given to llmGenerateText
     callback: { transition: 'toolResultReceived' },
   });
   this.assignState({ delegateResult: result.data });

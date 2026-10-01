@@ -83,6 +83,7 @@ export class ToolCallWorkflow extends BaseWorkflow {
   async executeToolCalls(state: ToolCallState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: ['get_weather'],
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });
@@ -135,7 +136,7 @@ setup → llmTurn → [hasToolCalls?]
 ## Key Concepts
 
 - **`tools` array in config** — Lists tool names the LLM can call. Names must match `@Tool({ name })` values. At startup, Loopstack auto-discovers every `@Tool()`-decorated provider in the module graph and indexes them by name. If a name doesn't match, you'll get an error listing all registered tools — useful for catching typos and missing module imports.
-- **`llmDelegateToolCalls`** — Dispatches tool calls from the LLM response message with a callback transition. Required for safety: sub-workflow / HITL / any tool that returns `pending: true` only completes once its callback fires
+- **`llmDelegateToolCalls`** — Dispatches tool calls from the LLM response message with a callback transition. Pass it the same `tools` list you gave `llmGenerateText`: only those tools are executed. Required for safety: sub-workflow / HITL / any tool that returns `pending: true` only completes once its callback fires
 - **`llmUpdateToolResult`** — Merges each async tool completion into the running `delegateResult`. The `wait: true` self-loop on `awaiting_tools` calls it once per completion
 - **`message.stopReason === 'tool_use'`** — The LLM wants to call a tool
 - **`allCompleted`** — All delegated tool calls have finished
@@ -147,10 +148,11 @@ setup → llmTurn → [hasToolCalls?]
 
 Internally it delegates to `LlmDelegateService`, which:
 
-1. **Resolves each tool by name** from the global tool registry (the same one built by `@Tool()` auto-discovery).
-2. **Dispatches all tool calls in parallel** with `Promise.all` — the LLM is free to request multiple tools in one turn, and they run concurrently.
-3. **Catches errors per tool** so one failing tool doesn't crash the others. Failures show up as `tool_result` entries with `isError: true` and are also collected on `result.errors` for inspection.
-4. **Tracks pending async tools** — tools that return `{ pending: true }` (typically [HITL](./agent-workflows.md#human-in-the-loop) or sub-workflow tools) don't produce a result immediately. The result includes a `pendingCount`, and `allCompleted` stays `false` until those tools fire their completion callbacks. `LlmUpdateToolResultTool` is the companion that processes those callbacks and updates the delegate result.
+1. **Refuses tools the LLM was not offered** — a tool call whose name is not in the `tools` arg is never executed; it becomes a `tool_result` with `isError: true` (`Tool "x" is not available to this agent`), so the LLM sees it and can correct itself.
+2. **Resolves each allowed tool by name** from the global tool registry (the same one built by `@Tool()` auto-discovery).
+3. **Dispatches all tool calls in parallel** with `Promise.all` — the LLM is free to request multiple tools in one turn, and they run concurrently.
+4. **Catches errors per tool** so one failing tool doesn't crash the others. Failures show up as `tool_result` entries with `isError: true` and are also collected on `result.errors` for inspection.
+5. **Tracks pending async tools** — tools that return `{ pending: true }` (typically [HITL](./agent-workflows.md#human-in-the-loop) or sub-workflow tools) don't produce a result immediately. The result includes a `pendingCount`, and `allCompleted` stays `false` until those tools fire their completion callbacks. `LlmUpdateToolResultTool` is the companion that processes those callbacks and updates the delegate result.
 
 The `callback` arg is required — it's how async tool completions find their way back to the workflow. For all-synchronous tool sets, `allCompleted` is already true when `executeToolCalls` returns and the `wait` transition is never entered; the callback is harmless overhead. For mixed or async-only sets, the `wait` transition is what keeps the workflow from silently hanging on pending tools.
 

@@ -110,15 +110,13 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
   async llmTurn(state: ChatAgentState) {
-    const tools = state.taskMode ? [...state.tools, 'agent_finish'] : state.tools;
-
     const result = await this.llmGenerateText.call(
       {},
       {
         config: {
           provider: 'claude',
           system: state.system,
-          tools,
+          tools: this.offeredTools(state),
         },
       },
     );
@@ -131,6 +129,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   async executeToolCalls(state: ChatAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: this.offeredTools(state),
       callback: { transition: 'toolResultReceived' },
     });
 
@@ -176,6 +175,11 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(state: ChatAgentState, input: TransitionInput<string>) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
+  }
+
+  /** The tools the LLM is offered — and the only ones its tool calls may execute. */
+  private offeredTools(state: ChatAgentState): string[] {
+    return state.taskMode ? [...state.tools, 'agent_finish'] : state.tools;
   }
 
   private hasToolCalls(state: ChatAgentState): boolean {

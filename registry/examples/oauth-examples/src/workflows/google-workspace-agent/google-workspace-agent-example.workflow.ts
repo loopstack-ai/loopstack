@@ -31,6 +31,22 @@ interface GoogleWorkspaceAgentState {
   delegateResult?: LlmDelegateResult;
 }
 
+/** The tools offered to the LLM — and the only ones its tool calls may execute. */
+const TOOLS = [
+  'google_calendar_list_calendars',
+  'google_calendar_fetch_events',
+  'google_calendar_create_event',
+  'gmail_search_messages',
+  'gmail_get_message',
+  'gmail_send_message',
+  'gmail_reply_to_message',
+  'google_drive_list_files',
+  'google_drive_get_file_metadata',
+  'google_drive_download_file',
+  'google_drive_upload_file',
+  'authenticate_google',
+];
+
 @Workflow({
   title: 'OAuth - Google Workspace Agent Example',
   description:
@@ -91,20 +107,7 @@ export class GoogleWorkspaceAgentExampleWorkflow extends BaseWorkflow {
           system: `You are a helpful Google Workspace assistant with access to Calendar, Gmail, and Drive tools.
 When a tool returns an unauthorized error, use authenticateGoogle to let the user sign in,
 then retry. Be concise and format results using markdown.`,
-          tools: [
-            'google_calendar_list_calendars',
-            'google_calendar_fetch_events',
-            'google_calendar_create_event',
-            'gmail_search_messages',
-            'gmail_get_message',
-            'gmail_send_message',
-            'gmail_reply_to_message',
-            'google_drive_list_files',
-            'google_drive_get_file_metadata',
-            'google_drive_download_file',
-            'google_drive_upload_file',
-            'authenticate_google',
-          ],
+          tools: TOOLS,
         },
       },
     );
@@ -116,6 +119,7 @@ then retry. Be concise and format results using markdown.`,
   async executeToolCalls(state: GoogleWorkspaceAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: TOOLS,
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });

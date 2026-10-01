@@ -19,6 +19,9 @@ interface AgentErrorHandlingState {
   turnCount: number;
 }
 
+/** The tools offered to the LLM — and the only ones its tool calls may execute. */
+const TOOLS = ['strict_schema', 'runtime_error', 'failing_sub_workflow'];
+
 /**
  * Demonstrates how tool errors (validation, runtime, and failed sub-workflows)
  * are handled by DelegateToolCalls and fed back to the LLM for self-correction.
@@ -74,7 +77,7 @@ export class AgentErrorHandlingWorkflow extends BaseWorkflow {
           provider: 'claude',
           model: 'claude-sonnet-4-6',
           system: this.render(join(__dirname, 'templates', 'system.md')),
-          tools: ['strict_schema', 'runtime_error', 'failing_sub_workflow'],
+          tools: TOOLS,
         },
       },
     );
@@ -89,6 +92,7 @@ export class AgentErrorHandlingWorkflow extends BaseWorkflow {
   async executeToolCalls(state: AgentErrorHandlingState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: TOOLS,
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });

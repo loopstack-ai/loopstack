@@ -139,6 +139,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   async executeToolCalls(state: AgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: state.tools,
       callback: { transition: 'toolResultReceived' },
     });
 

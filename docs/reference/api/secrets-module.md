@@ -27,7 +27,7 @@ export class GetSecretKeysTool extends BaseTool<object, object, GetSecretKeysRes
 ### RequestSecretsTask
 
 Tool that requests secrets from the user by launching `SecretsRequestWorkflow` as a callback-driven
-sub-workflow; the agent-friendly variant of `request_secrets` for use inside agent loops.
+sub-workflow; it completes once the user has submitted the form.
 
 ```ts
 import { RequestSecretsTask } from '@loopstack/secrets-module';
@@ -44,23 +44,6 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
     options?: ToolCallOptions,
   ): Promise<ToolEnvelope<RequestSecretsTaskResult>>;
   complete(_result: Record<string, unknown>): Promise<ToolEnvelope<RequestSecretsTaskResult>>;
-}
-```
-
-### RequestSecretsTool
-
-Tool that asks the user for secret values through a secure Studio form; values are stored server-side
-and only the key names are returned, never the secrets themselves.
-
-```ts
-import { RequestSecretsTool } from '@loopstack/secrets-module';
-```
-
-**Provided by:** `SecretsModule`
-
-```ts
-export class RequestSecretsTool extends BaseTool<RequestSecretsInput, object, RequestSecretsResult> {
-  protected handle(args: RequestSecretsInput): Promise<ToolEnvelope<RequestSecretsResult>>;
 }
 ```
 
@@ -130,7 +113,7 @@ export class SecretService {
 ### SecretsModule
 
 NestJS module that provides workspace-scoped secrets storage — the `SecretEntity`, `SecretService`,
-`SecretController` REST API, the `get_secret_keys` / `request_secrets` / `request_secrets_task` tools,
+`SecretController` REST API, the `get_secret_keys` / `request_secrets_task` tools,
 `SecretsRequestWorkflow`, and `SecretRequestDocument`.
 
 Registration:
@@ -211,22 +194,6 @@ export type GetSecretKeysResult = {
 }[];
 ```
 
-### RequestSecretsResult
-
-Result for `request_secrets` — the list of requested secret keys after the user submits the form.
-
-```ts
-import { RequestSecretsResult } from '@loopstack/secrets-module';
-```
-
-```ts
-export type RequestSecretsResult = {
-  variables: {
-    key: string;
-  }[];
-};
-```
-
 ### RequestSecretsTaskResult
 
 Result for `request_secrets_task` — the launched sub-workflow's id while pending, or a confirmation
@@ -280,30 +247,6 @@ GetSecretKeysResultSchema: z.ZodArray<
     },
     z.core.$strict
   >
->;
-```
-
-### RequestSecretsResultSchema
-
-Zod schema for `RequestSecretsResult` — the `resultSchema` of `request_secrets`.
-
-```ts
-import { RequestSecretsResultSchema } from '@loopstack/secrets-module';
-```
-
-```ts
-RequestSecretsResultSchema: z.ZodObject<
-  {
-    variables: z.ZodArray<
-      z.ZodObject<
-        {
-          key: z.ZodString;
-        },
-        z.core.$strict
-      >
-    >;
-  },
-  z.core.$strict
 >;
 ```
 

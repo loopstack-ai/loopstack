@@ -541,6 +541,7 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
   async executeToolCalls(state: ChatState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: ['get_weather'],
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });

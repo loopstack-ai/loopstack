@@ -45,6 +45,36 @@ interface GitHubAgentState {
   delegateResult?: LlmDelegateResult;
 }
 
+/** The tools offered to the LLM — and the only ones its tool calls may execute. */
+const TOOLS = [
+  'github_list_repos',
+  'github_get_repo',
+  'github_create_repo',
+  'github_list_branches',
+  'github_list_issues',
+  'github_get_issue',
+  'github_create_issue',
+  'github_create_issue_comment',
+  'github_list_pull_requests',
+  'github_get_pull_request',
+  'github_create_pull_request',
+  'github_merge_pull_request',
+  'github_list_pr_reviews',
+  'github_get_file_content',
+  'github_create_or_update_file',
+  'github_list_directory',
+  'github_get_commit',
+  'github_list_workflow_runs',
+  'github_trigger_workflow',
+  'github_get_workflow_run',
+  'github_search_code',
+  'github_search_repos',
+  'github_search_issues',
+  'github_get_authenticated_user',
+  'github_list_user_orgs',
+  'authenticate_github',
+];
+
 @Workflow({
   title: 'OAuth - GitHub Agent Example',
   description:
@@ -123,34 +153,7 @@ export class GithubAgentExampleWorkflow extends BaseWorkflow {
           system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
 and search tools. When a tool returns an unauthorized error, use authenticateGitHub
 to let the user sign in, then retry. Be concise and format results using markdown.`,
-          tools: [
-            'github_list_repos',
-            'github_get_repo',
-            'github_create_repo',
-            'github_list_branches',
-            'github_list_issues',
-            'github_get_issue',
-            'github_create_issue',
-            'github_create_issue_comment',
-            'github_list_pull_requests',
-            'github_get_pull_request',
-            'github_create_pull_request',
-            'github_merge_pull_request',
-            'github_list_pr_reviews',
-            'github_get_file_content',
-            'github_create_or_update_file',
-            'github_list_directory',
-            'github_get_commit',
-            'github_list_workflow_runs',
-            'github_trigger_workflow',
-            'github_get_workflow_run',
-            'github_search_code',
-            'github_search_repos',
-            'github_search_issues',
-            'github_get_authenticated_user',
-            'github_list_user_orgs',
-            'authenticate_github',
-          ],
+          tools: TOOLS,
         },
       },
     );
@@ -162,6 +165,7 @@ to let the user sign in, then retry. Be concise and format results using markdow
   async executeToolCalls(state: GitHubAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: TOOLS,
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });

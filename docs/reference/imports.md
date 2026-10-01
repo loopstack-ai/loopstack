@@ -74,7 +74,7 @@ import { OpenAiModule } from '@loopstack/openai-module';
 ## `@loopstack/secrets-module`
 
 ```typescript
-import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
+import { GetSecretKeysTool, RequestSecretsTask, SecretRequestDocument } from '@loopstack/secrets-module';
 ```
 
 ## `@loopstack/sandbox-tool` / `@loopstack/sandbox-filesystem`
