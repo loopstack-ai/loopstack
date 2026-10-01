@@ -56,8 +56,6 @@
       "@loopstack/chat-example-workflow": ["./registry/examples/chat-example-workflow/src"],
       "@loopstack/custom-tool-example-module": ["./registry/examples/custom-tool-example-module/src"],
       "@loopstack/dynamic-routing-example-workflow": ["./registry/examples/dynamic-routing-example-workflow/src"],
-      "@loopstack/github-oauth-example": ["./registry/examples/github-oauth-example/src"],
-      "@loopstack/google-oauth-example": ["./registry/examples/google-oauth-example/src"],
       "@loopstack/meeting-notes-example-workflow": ["./registry/examples/meeting-notes-example-workflow/src"],
       "@loopstack/prompt-example-workflow": ["./registry/examples/prompt-example-workflow/src"],
       "@loopstack/prompt-structured-output-example-workflow": [

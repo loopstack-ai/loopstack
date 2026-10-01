@@ -48,7 +48,7 @@ const TOOLS = [
 ];
 
 @Workflow({
-  title: 'OAuth - Google Workspace Agent Example',
+  title: 'Google Workspace - Agent Example',
   description:
     'An interactive chat agent with access to Google Calendar, Gmail, and Google Drive. Handles OAuth automatically — the agent detects unauthorized errors and launches authentication on its own.',
   name: 'google_workspace_agent_example',
