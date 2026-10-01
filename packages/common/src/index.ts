@@ -11,4 +11,3 @@ export * from './constants/index.js';
 export * from './documents/index.js';
 export * from './dtos/index.js';
 export * from './tokens.js';
-export * from './schema/index.js';
