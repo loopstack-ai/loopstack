@@ -5,7 +5,6 @@ import { createQueries } from '@loopstack/client';
 import type {
   AuthResource,
   ConfigResource,
-  DashboardResource,
   DocumentsResource,
   LoopstackClient,
   WorkflowsResource,
@@ -43,7 +42,6 @@ export function createStudioTestClient(documentConfigs: StudioDocumentConfig[] =
       documents: {} as DocumentsResource,
       workspaces: {} as WorkspacesResource,
       config: config as unknown as ConfigResource,
-      dashboard: {} as DashboardResource,
       auth: {} as AuthResource,
     }),
   } as unknown as LoopstackClient;

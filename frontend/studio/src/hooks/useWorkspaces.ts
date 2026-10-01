@@ -15,7 +15,7 @@ export {
  */
 export function useFilterWorkspaces(
   searchTerm: string | undefined,
-  filter: Record<string, string>,
+  filter: Record<string, string | string[]>,
   sortBy: string = 'id',
   order: string = 'DESC',
   page: number = 0,

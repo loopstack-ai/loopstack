@@ -1,4 +1,4 @@
-import { Boxes, LayoutGrid, Moon, MoreHorizontal, PanelLeftIcon, Play, Star, Sun } from 'lucide-react';
+import { Boxes, LayoutDashboard, LayoutGrid, Moon, MoreHorizontal, PanelLeftIcon, Play, Star, Sun } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -93,6 +93,7 @@ const MainNav = () => {
   const location = useLocation();
   const { router } = useStudio();
   const dashboardPath = router.getDashboard();
+  const applicationsPath = router.getApplications();
   const workspacesPath = router.getWorkspaces();
   const runsPath = router.getRuns();
 
@@ -101,8 +102,16 @@ const MainNav = () => {
       <SidebarGroupContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={location.pathname === dashboardPath} tooltip="Applications">
+            <SidebarMenuButton asChild isActive={location.pathname === dashboardPath} tooltip="Dashboard">
               <Link to={dashboardPath}>
+                <LayoutDashboard />
+                <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={location.pathname === applicationsPath} tooltip="Applications">
+              <Link to={applicationsPath}>
                 <Boxes />
                 <span>Applications</span>
               </Link>

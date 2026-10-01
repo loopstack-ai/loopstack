@@ -10,6 +10,7 @@ export * from './components';
 
 export { default as DebugPage } from './pages/DebugPage';
 export { default as DashboardPage } from './pages/DashboardPage';
+export { default as ApplicationsPage } from './pages/ApplicationsPage';
 export { default as WorkspacesPage } from './pages/WorkspacesPage';
 export { default as WorkspacePage } from './pages/WorkspacePage';
 export { default as WorkspaceRunsPage } from './pages/WorkspaceRunsPage';
@@ -18,7 +19,6 @@ export { default as WorkflowDebugPage } from './pages/WorkflowDebugPage';
 export { default as DebugWorkflowsPage } from './pages/DebugWorkflowsPage';
 export { default as DebugWorkflowDetailsPage } from './pages/DebugWorkflowDetailsPage';
 export { default as PreviewWorkbenchPage } from './pages/PreviewWorkbenchPage';
-export { default as RunsPage } from './pages/RunsPage';
 export { default as RunsListPage } from './pages/RunsListPage';
 export { default as StudioLandingPage } from './pages/StudioLandingPage';
 export { default as EnvironmentEmbedRoot } from './app/EnvironmentEmbedRoot';

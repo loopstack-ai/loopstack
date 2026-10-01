@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { DataTable } from '../data-table/DataTable';
-import type { BatchAction, DataTableColumn, FilterOption, RowAction } from '../data-table/data-table';
+import type { BatchAction, DataTableColumn, FilterSpec, FilterValue, RowAction } from '../data-table/data-table';
 
 export interface Item {
   id: string;
@@ -39,7 +39,7 @@ interface ListViewProps<T extends Item = Item> {
   items: T[];
   totalItems: number;
   columns: Column[];
-  filterConfig: Record<string, FilterOption[]>;
+  filterConfig: Record<string, FilterSpec>;
   deleteItem?: (id: string) => void;
   onClick?: (id: string) => void;
   handleNew?: () => void;
@@ -49,11 +49,11 @@ interface ListViewProps<T extends Item = Item> {
   setOrderBy: (field: string) => void;
   setOrder: (order: 'ASC' | 'DESC') => void;
   setSearchTerm: (search: string) => void;
-  setFilters: (filters: Record<string, string>) => void;
+  setFilters: (filters: Record<string, FilterValue>) => void;
   orderBy: string;
   order: 'ASC' | 'DESC';
   searchTerm: string | undefined;
-  filters: Record<string, string>;
+  filters: Record<string, FilterValue>;
   page: number;
   rowsPerPage: number;
   batchActions?: OriginalBatchAction[];
@@ -164,7 +164,7 @@ const ListView = <T extends Item>({
   );
 
   const handleFiltersChange = useCallback(
-    (newFilters: Record<string, string>) => {
+    (newFilters: Record<string, FilterValue>) => {
       setFilters(newFilters);
       setPage(0);
     },

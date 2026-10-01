@@ -1,7 +1,6 @@
 import type {
   AuthUserInterface,
   AvailableEnvironmentInterface,
-  DashboardStatsInterface,
   DocumentFilterInterface,
   DocumentItemInterface,
   PaginatedInterface,
@@ -19,7 +18,6 @@ import type {
 import { SortOrder } from '@loopstack/contracts/enums';
 import type { AuthResource } from '../resources/auth.js';
 import type { ConfigResource } from '../resources/config.js';
-import type { DashboardResource } from '../resources/dashboard.js';
 import type { DocumentsResource } from '../resources/documents.js';
 import type { WorkflowListParams, WorkflowsResource } from '../resources/workflows.js';
 import type { WorkspaceListParams, WorkspacesResource } from '../resources/workspaces.js';
@@ -31,7 +29,6 @@ interface QueryResources {
   documents: DocumentsResource;
   workspaces: WorkspacesResource;
   config: ConfigResource;
-  dashboard: DashboardResource;
   auth: AuthResource;
 }
 
@@ -125,7 +122,6 @@ export interface LoopstackQueries {
   toolConfigs: () => QueryDescriptor<ToolConfigItemInterface[]>;
   toolConfig: (toolName: string) => QueryDescriptor<ToolConfigItemInterface>;
   availableEnvironments: () => QueryDescriptor<AvailableEnvironmentInterface[]>;
-  dashboardStats: () => QueryDescriptor<DashboardStatsInterface>;
   me: () => QueryDescriptor<AuthUserInterface>;
   workerHealth: () => QueryDescriptor<WorkerInfoInterface>;
 }
@@ -140,7 +136,6 @@ export function createQueries({
   documents,
   workspaces,
   config,
-  dashboard,
   auth,
 }: QueryResources): LoopstackQueries {
   return {
@@ -223,11 +218,6 @@ export function createQueries({
     availableEnvironments: () => ({
       queryKey: queryKeys.availableEnvironments(envKey),
       queryFn: () => config.availableEnvironments(),
-    }),
-
-    dashboardStats: () => ({
-      queryKey: queryKeys.dashboardStats(envKey),
-      queryFn: () => dashboard.stats(),
     }),
 
     me: () => ({

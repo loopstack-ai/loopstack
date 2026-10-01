@@ -8,6 +8,7 @@ import { SidebarInset, SidebarProvider } from './components/ui/sidebar.tsx';
 import config from './config.ts';
 import { LocalHealthCheck } from './features/health';
 import { OAuthCallbackPage } from './features/oauth';
+import ApplicationsPage from './pages/ApplicationsPage.tsx';
 import DashboardPage from './pages/DashboardPage.tsx';
 import DebugPage from './pages/DebugPage.tsx';
 import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
@@ -17,7 +18,6 @@ import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
 import RouteErrorPage from './pages/RouteErrorPage.tsx';
 import RunPage from './pages/RunPage.tsx';
 import RunsListPage from './pages/RunsListPage.tsx';
-import RunsPage from './pages/RunsPage.tsx';
 import WorkflowDebugPage from './pages/WorkflowDebugPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspaceRunsPage from './pages/WorkspaceRunsPage.tsx';
@@ -101,23 +101,23 @@ const router: DataRouter = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/applications" replace />,
+        element: <Navigate to="/dashboard" replace />,
       },
       {
         path: 'info',
         element: <DebugPage />,
       },
       {
-        path: 'applications',
+        path: 'dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: 'applications',
+        element: <ApplicationsPage />,
       },
       {
         path: 'runs',
         element: <RunsListPage />,
-      },
-      {
-        path: 'runs/action-required',
-        element: <RunsPage />,
       },
       {
         path: 'runs/:workflowId',

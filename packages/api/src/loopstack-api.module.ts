@@ -8,7 +8,6 @@ import { AdminRoleController } from './controllers/admin-role.controller.js';
 import { AdminSystemController } from './controllers/admin-system.controller.js';
 import { AdminUserController } from './controllers/admin-user.controller.js';
 import { ConfigController } from './controllers/config.controller.js';
-import { DashboardController } from './controllers/dashboard.controller.js';
 import { DocumentController } from './controllers/document.controller.js';
 import { ProcessorController } from './controllers/processor.controller.js';
 import { SseController } from './controllers/sse.controller.js';
@@ -18,7 +17,6 @@ import { CORS_OPTIONS, ModuleOptionsInterface, SSE_STREAM_OPTIONS } from './inte
 import { AdminRoleApiService } from './services/admin-role-api.service.js';
 import { AdminSystemApiService } from './services/admin-system-api.service.js';
 import { AdminUserApiService } from './services/admin-user-api.service.js';
-import { DashboardService } from './services/dashboard.service.js';
 import { DocumentApiService } from './services/document-api.service.js';
 import { UserService } from './services/index.js';
 import { ProcessorApiService } from './services/processor-api.service.js';
@@ -39,7 +37,6 @@ const CONTROLLERS = [
   WorkflowController,
   DocumentController,
   ConfigController,
-  DashboardController,
   SseController,
 ];
 
@@ -61,18 +58,10 @@ const PROVIDERS = [
   ReadOnlyValidationService,
   WorkflowApiService,
   DocumentApiService,
-  DashboardService,
   UserService,
 ];
 
-const EXPORTS = [
-  WorkflowApiService,
-  WorkspaceApiService,
-  ProcessorApiService,
-  DashboardService,
-  UserService,
-  SseEventService,
-];
+const EXPORTS = [WorkflowApiService, WorkspaceApiService, ProcessorApiService, UserService, SseEventService];
 
 @Module({})
 export class LoopstackApiModule implements NestModule {

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import type { StudioEnvironmentSlot } from '../../api/types.ts';
+import type { FilterValue } from '../../components/data-table/data-table.ts';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column, OriginalRowAction } from '../../components/lists/ListView.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
@@ -33,7 +34,7 @@ const Workspaces = () => {
   const [orderBy, setOrderBy] = useState<string>('createdAt');
   const [order, setOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState<string | undefined>();
-  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [filters, setFilters] = useState<Record<string, FilterValue>>({});
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const [open, setOpen] = useState(false);

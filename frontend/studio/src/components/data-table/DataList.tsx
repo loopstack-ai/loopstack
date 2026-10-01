@@ -10,6 +10,7 @@ import DataTablePagination from './DataTablePagination';
 import DataTableToolbar from './DataTableToolbar';
 import type { DataListProps } from './data-list.ts';
 import type { BatchAction, RowAction } from './data-table.ts';
+import { hasFilterValue } from './data-table.ts';
 
 export function DataList<T extends { id: string }>({
   data,
@@ -98,7 +99,7 @@ export function DataList<T extends { id: string }>({
     }
   };
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const activeFilterCount = Object.values(filters).filter(hasFilterValue).length;
 
   // Build the list of default actions
   const defaultActions: RowAction<T>[] = [];

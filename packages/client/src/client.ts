@@ -6,8 +6,6 @@ import { createAuthResource } from './resources/auth.js';
 import type { AuthResource } from './resources/auth.js';
 import { createConfigResource } from './resources/config.js';
 import type { ConfigResource } from './resources/config.js';
-import { createDashboardResource } from './resources/dashboard.js';
-import type { DashboardResource } from './resources/dashboard.js';
 import { createDocumentsResource } from './resources/documents.js';
 import type { DocumentsResource } from './resources/documents.js';
 import { createProcessorResource } from './resources/processor.js';
@@ -27,7 +25,6 @@ export interface LoopstackClient {
   processor: ProcessorResource;
   workspaces: WorkspacesResource;
   config: ConfigResource;
-  dashboard: DashboardResource;
   auth: AuthResource;
   queries: LoopstackQueries;
   /**
@@ -45,7 +42,6 @@ export function createClient(config: LoopstackClientConfig): LoopstackClient {
   const processor = createProcessorResource(http);
   const workspaces = createWorkspacesResource(http);
   const configResource = createConfigResource(http);
-  const dashboard = createDashboardResource(http);
   const auth = createAuthResource(http);
 
   return {
@@ -56,9 +52,8 @@ export function createClient(config: LoopstackClientConfig): LoopstackClient {
     processor,
     workspaces,
     config: configResource,
-    dashboard,
     auth,
-    queries: createQueries({ envKey, workflows, documents, workspaces, config: configResource, dashboard, auth }),
+    queries: createQueries({ envKey, workflows, documents, workspaces, config: configResource, auth }),
     stream: new LoopstackStream(config),
   };
 }

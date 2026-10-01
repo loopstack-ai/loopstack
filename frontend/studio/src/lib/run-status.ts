@@ -44,3 +44,26 @@ export function getWorkflowStateColor(status: WorkflowState): string {
 export function needsInput(item: Pick<WorkflowItemInterface, 'status' | 'activeChildren'>): boolean {
   return item.status === WorkflowState.Waiting && item.activeChildren === 0;
 }
+
+/**
+ * The states a run has not finished in — what "a workspace is busy" is made of. `paused` is absent
+ * because the engine never assigns it: a run that parks is `waiting`.
+ */
+export const ACTIVE_RUN_STATES: readonly WorkflowState[] = [
+  WorkflowState.Running,
+  WorkflowState.Waiting,
+  WorkflowState.Pending,
+];
+
+/** What a single active run is doing, as the dashboard reports it. */
+export type RunActivity = 'waiting' | 'working' | 'queued';
+
+/**
+ * Classifies one active run. `waiting` means waiting on a *person* ({@link needsInput}); a run parked on
+ * its children is still `working`, because the machinery has not handed back yet.
+ */
+export function runActivity(item: Pick<WorkflowItemInterface, 'status' | 'activeChildren'>): RunActivity {
+  if (needsInput(item)) return 'waiting';
+  if (item.status === WorkflowState.Pending) return 'queued';
+  return 'working';
+}

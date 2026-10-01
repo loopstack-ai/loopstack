@@ -156,7 +156,7 @@ describe('query descriptors', () => {
   });
 });
 
-describe('config and dashboard resources', () => {
+describe('config resource', () => {
   it('URL-encodes workflow and tool names', async () => {
     const { calls, fetchFn } = createMockFetch();
     const client = createClient({ url: URL_BASE, fetch: fetchFn });
@@ -168,13 +168,12 @@ describe('config and dashboard resources', () => {
     expect(new URL(calls[1].url).pathname).toBe('/api/v1/config/tools/a%2Fb');
   });
 
-  it('exposes envKey-scoped descriptors for config and dashboard', () => {
+  it('exposes envKey-scoped descriptors for config', () => {
     const { fetchFn } = createMockFetch();
     const client = createClient({ url: URL_BASE, envKey: 'local', fetch: fetchFn });
 
     expect(client.queries.apps().queryKey).toEqual(['apps', 'local']);
     expect(client.queries.workflowSource('wf').queryKey).toEqual(['workflowSource', 'local', 'wf']);
-    expect(client.queries.dashboardStats().queryKey).toEqual(['dashboardStats', 'local']);
   });
 });
 

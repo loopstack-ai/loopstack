@@ -6,7 +6,6 @@ import type { WorkflowListParams, WorkspaceListParams } from '@loopstack/client'
 import type {
   AuthUserInterface,
   AvailableEnvironmentInterface,
-  DashboardStatsInterface,
   DocumentItemInterface,
   PaginatedInterface,
   StudioAppConfig,
@@ -269,17 +268,6 @@ export function useAvailableEnvironments<TData = AvailableEnvironmentInterface[]
   const client = useLoopstackClient();
   return useQuery({
     ...client.queries.availableEnvironments(),
-    ...options,
-  });
-}
-
-/** Fetch aggregated run statistics across all workspaces. */
-export function useDashboardStats<TData = DashboardStatsInterface>(
-  options?: QueryHookOptions<DashboardStatsInterface, TData>,
-): UseQueryResult<TData> {
-  const client = useLoopstackClient();
-  return useQuery({
-    ...client.queries.dashboardStats(),
     ...options,
   });
 }

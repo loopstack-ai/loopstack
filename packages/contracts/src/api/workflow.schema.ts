@@ -73,10 +73,19 @@ export const WorkflowUpdateSchema = z.object({
 });
 export type WorkflowUpdateInterface = z.infer<typeof WorkflowUpdateSchema>;
 
+/**
+ * A column filter that matches one value or any of several — `status: 'waiting'` and
+ * `status: ['waiting', 'running']` are both valid, the latter reading as SQL `IN`.
+ */
+function oneOrMany<T extends z.ZodType>(value: T) {
+  return z.union([value, z.array(value).min(1)]);
+}
+
 export const WorkflowFilterSchema = z.object({
-  workspaceId: z.uuid().optional(),
+  workspaceId: oneOrMany(z.uuid()).optional(),
   parentId: z.uuid().nullable().optional(),
-  status: z.string().optional(),
+  status: oneOrMany(z.string()).optional(),
+  workflowName: oneOrMany(z.string()).optional(),
   /**
    * Only runs that **start** where you are looking: no parent, or a parent in another workspace.
    *

@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { TEST_ENV_KEY, createTestClient, createWrapper } from '../testing/test-utils.js';
 import {
   useChildWorkflows,
-  useDashboardStats,
   useWorkflow,
   useWorkflowConfig,
   useWorkflowDocuments,
@@ -142,15 +141,5 @@ describe('query hooks', () => {
     const { result } = renderHook(() => useWorkflowConfig('hello'), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(config.workflowConfig).toHaveBeenCalledWith('hello');
-  });
-
-  it('useDashboardStats caches under the SDK query key', async () => {
-    const { client, dashboard } = createTestClient();
-    const { wrapper, queryClient } = createWrapper(client);
-
-    const { result } = renderHook(() => useDashboardStats(), { wrapper });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(dashboard.stats).toHaveBeenCalled();
-    expect(queryClient.getQueryData(['dashboardStats', TEST_ENV_KEY])).toEqual(result.current.data);
   });
 });

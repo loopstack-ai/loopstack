@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import type { WorkflowItemInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
-import type { FilterOption } from '../../components/data-table/data-table.ts';
+import type { FilterOption, FilterValue } from '../../components/data-table/data-table.ts';
+import { filterValues } from '../../components/data-table/data-table.ts';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column } from '../../components/lists/ListView.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
@@ -12,7 +13,7 @@ import { getWorkflowStateColor, needsInput } from '../../lib/run-status.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 
 interface RunsProps {
-  defaultFilters?: Record<string, string>;
+  defaultFilters?: Record<string, FilterValue>;
 }
 
 const Runs = ({ defaultFilters = {} }: RunsProps) => {
@@ -25,12 +26,12 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
   const [searchTerm, setSearchTerm] = useState<string | undefined>();
   // Scoped to top-level runs by default, as a *visible* filter rather than a hidden default: the chip says
   // why sub-executions are missing, and clearing it is how you find a gate buried three levels down.
-  const [filters, setFilters] = useState<Record<string, string>>({ runs: 'top', ...defaultFilters });
+  const [filters, setFilters] = useState<Record<string, FilterValue>>({ runs: 'top', ...defaultFilters });
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // `runs` is the view's own control, not a column — it becomes the API's `topLevel` question.
   const { runs: runScope, ...columnFilters } = filters;
-  const mergedFilters: Record<string, string | boolean | null> = {
+  const mergedFilters: Record<string, FilterValue | boolean | null> = {
     ...columnFilters,
     ...(runScope === 'top' ? { topLevel: true } : {}),
   };
@@ -74,6 +75,18 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
 
   const handleRunClick = (id: string) => {
     void router.navigateToWorkflow(id);
+  };
+
+  /**
+   * Clicking a cell's badge adds that value to its filter rather than replacing it, so clicking two
+   * workflow names asks for either — the same question the multi-select dropdown asks.
+   */
+  const addFilterValue = (key: string, value: string) => {
+    setFilters((current) => {
+      const selected = filterValues(current[key]);
+      if (selected.includes(value)) return current;
+      return { ...current, [key]: [...selected, value] };
+    });
   };
 
   return (
@@ -122,7 +135,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
                   className="hover:bg-primary/10 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setFilters((curr) => ({ ...curr, workspaceId: wsId }));
+                    addFilterValue('workspaceId', wsId);
                   }}
                 >
                   {ws?.title ?? wsId.slice(0, 8)}
@@ -153,7 +166,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
                   className="hover:bg-primary/10 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setFilters((curr) => ({ ...curr, workflowName: name }));
+                    addFilterValue('workflowName', name);
                   }}
                 >
                   {name}
@@ -190,9 +203,12 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
         // "All runs" clears it, and clearing it is what includes every sub-execution at any depth.
         runs: [{ label: 'Top-level only', value: 'top' }],
         // `paused` is not offered: the engine never assigns it — a run that parks is `waiting`.
-        status: ['pending', 'running', 'waiting', 'completed', 'failed', 'canceled'],
-        workspaceId: workspaceFilterOptions,
-        workflowName: workflowNameFilterOptions,
+        status: {
+          multiple: true,
+          options: ['pending', 'running', 'waiting', 'completed', 'failed', 'canceled'],
+        },
+        workspaceId: { multiple: true, options: workspaceFilterOptions },
+        workflowName: { multiple: true, options: workflowNameFilterOptions },
       }}
     />
   );

@@ -10,6 +10,7 @@ import { Card, CardContent } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import type { BatchAction, DataTableProps, RowAction } from './data-table.ts';
+import { hasFilterValue } from './data-table.ts';
 
 /** Safely converts a value to string, handling objects and primitives */
 const safeToString = (value: unknown): string => {
@@ -128,7 +129,7 @@ export function DataTable<T extends { id: string }>({
     return sortOrder === 'ASC' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
   };
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const activeFilterCount = Object.values(filters).filter(hasFilterValue).length;
 
   // Build the list of default actions
   const defaultActions: RowAction<T>[] = [

@@ -64,6 +64,17 @@ describe('WorkflowFilterSchema', () => {
     expect(WorkflowFilterSchema.safeParse({ workspaceId: 'nope' }).success).toBe(false);
     expect(WorkflowFilterSchema.safeParse({ parentId: 'nope' }).success).toBe(false);
   });
+
+  it('accepts one value or several per column, and validates every member', () => {
+    expect(WorkflowFilterSchema.safeParse({ status: 'waiting' }).success).toBe(true);
+    expect(WorkflowFilterSchema.safeParse({ status: ['waiting', 'running'] }).success).toBe(true);
+    expect(WorkflowFilterSchema.safeParse({ workspaceId: [UUID] }).success).toBe(true);
+    expect(WorkflowFilterSchema.safeParse({ workflowName: ['A', 'B'] }).success).toBe(true);
+    expect(WorkflowFilterSchema.safeParse({ workspaceId: [UUID, 'nope'] }).success).toBe(false);
+    // An empty list is not "match nothing", it is a caller bug — a filter that silently matched
+    // everything would be worse than a rejection.
+    expect(WorkflowFilterSchema.safeParse({ status: [] }).success).toBe(false);
+  });
 });
 
 describe('SortBySchema', () => {

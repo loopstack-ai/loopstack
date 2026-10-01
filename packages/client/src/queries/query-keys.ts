@@ -34,7 +34,6 @@ export const queryKeys = {
   toolConfigs: (envKey: string) => ['toolConfigs', envKey] as const,
   toolConfig: (envKey: string, toolName: string) => ['toolConfig', envKey, toolName] as const,
   availableEnvironments: (envKey: string) => ['availableEnvironments', envKey] as const,
-  dashboardStats: (envKey: string) => ['dashboardStats', envKey] as const,
   document: (envKey: string, id: string) => ['document', envKey, id] as const,
   // The scope (which documents the window holds) is part of the key: the transcript view includes
   // re-saved documents, the message view does not, so the two must not share one cache entry.
