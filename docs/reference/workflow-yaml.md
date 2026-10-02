@@ -125,7 +125,7 @@ The input stays on screen at every place and accepts messages only while the wor
 
 The button is only rendered while the workflow is at `awaiting_tools`.
 
-When a widget sets both, `showWhen` is checked first: outside its places the widget is hidden, and inside them `enabledWhen` decides whether it is enabled. A widget with neither is shown at every place. In all cases a visible widget is also disabled while its `transition` is not currently available.
+When a widget sets both, `showWhen` is checked first: outside its places the widget is hidden, and inside them `enabledWhen` decides whether it is enabled. A widget with neither is shown at every place. In all cases a visible widget is also disabled while its `transition` is not currently available. A widget that declares no transition submits to the workflow's only available transition, and is disabled while two or more are available. Only enabled widgets can become the prompt Studio and the CLI ask — see [Prompt Selection Rules](./prompt-selection.md#widget-state).
 
 ## Complete Example
 

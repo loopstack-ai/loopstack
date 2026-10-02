@@ -200,6 +200,8 @@ ui:
 
 The prompt input is always on screen and disabled while the agent works; the cancel button is only rendered while the workflow is at `awaiting_tools`. When a widget sets both keys, `showWhen` decides whether it is rendered and `enabledWhen` whether it is enabled. See [Workflow YAML Schema — `showWhen`](../../reference/workflow-yaml.md#showwhen).
 
+When a park has more than one enabled widget — a confirmation document from a sub-workflow and the parent's chat input, say — Studio, the CLI and `parkView()` all pick the same one as the prompt: in run-tree order, and within each workflow its document prompts before its workflow-level widgets. [Prompt Selection Rules](../../reference/prompt-selection.md) describes the full order.
+
 ## Using HITL as a Sub-Workflow
 
 The `wait: true` pattern above is for workflows that own their own UI. For generic prompts you don't want to design a form for, run `AskUserWorkflow` or `ConfirmUserWorkflow` from `@loopstack/hitl` as a sub-workflow and receive the answer through a callback.

@@ -13,7 +13,7 @@
   },
   "reference": {
     "title": "Reference",
-    "description": "API and configuration reference — module options, environment variables, YAML schemas for workflows and documents, and import paths."
+    "description": "API and configuration reference — module options, environment variables, YAML schemas for workflows and documents, the prompt selection rules for waiting runs, and import paths."
   },
   "skills": { "title": "Skills", "display": "hidden" }
 }

@@ -71,6 +71,8 @@ When a workflow reaches a `wait: true` transition, the UI activates the correspo
 
 Widgets are gated on the current workflow place in the YAML config: `showWhen` shows or hides a widget, while `enabledWhen` keeps it visible but disables it outside the listed places.
 
+When several widgets could answer the park, Studio activates one prompt — the same one the CLI asks and `TestRun.parkView()` reports — and draws the run's other enabled workflow-level widgets, such as a chat input, beside it. [Prompt Selection Rules](../reference/prompt-selection.md) describes how the prompt is picked.
+
 ### Toolbar
 
 The top bar of the Workbench shows:
