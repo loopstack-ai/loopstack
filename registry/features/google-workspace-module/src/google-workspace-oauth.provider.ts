@@ -105,12 +105,14 @@ export class GoogleWorkspaceOAuthProvider implements OAuthProviderInterface, OnM
 
     const data = (await response.json()) as {
       access_token: string;
+      refresh_token?: string;
       expires_in: number;
       scope: string;
     };
 
     return {
       accessToken: data.access_token,
+      refreshToken: data.refresh_token,
       expiresIn: data.expires_in,
       scope: data.scope,
     };

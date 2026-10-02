@@ -11,12 +11,17 @@ import { OAuthProviderRegistry } from './oauth-provider-registry.js';
 export interface StoredTokens {
   accessToken: string;
   refreshToken?: string;
-  expiresAt: number;
+  /** Epoch milliseconds when the access token expires; absent when the provider reported no expiry. */
+  expiresAt?: number;
   scope: string;
 }
 
 const KEY_PREFIX = 'oauth:';
 const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
+
+function expiresAtFrom(expiresIn: number | undefined): number | undefined {
+  return typeof expiresIn === 'number' && Number.isFinite(expiresIn) ? Date.now() + expiresIn * 1000 : undefined;
+}
 
 /**
  * Service that stores and retrieves per-user OAuth tokens (Redis-backed, with in-memory fallback) and
@@ -63,9 +68,10 @@ export class OAuthTokenStore implements OnModuleDestroy {
   async storeTokens(userId: string, providerId: string, tokens: StoredTokens): Promise<void> {
     if (this.redis) {
       const key = this.redisKey(userId, providerId);
-      const ttl = tokens.refreshToken
-        ? THIRTY_DAYS_IN_SECONDS
-        : Math.max(Math.ceil((tokens.expiresAt - Date.now()) / 1000), 1);
+      const ttl =
+        tokens.refreshToken || tokens.expiresAt == null
+          ? THIRTY_DAYS_IN_SECONDS
+          : Math.max(Math.ceil((tokens.expiresAt - Date.now()) / 1000), 1);
       await this.redis.set(key, JSON.stringify(tokens), 'EX', ttl);
       this.logger.log(`Stored ${providerId} tokens for user ${userId} in Redis (TTL: ${ttl}s)`);
     } else {
@@ -78,7 +84,7 @@ export class OAuthTokenStore implements OnModuleDestroy {
     await this.storeTokens(userId, providerId, {
       accessToken: tokenSet.accessToken,
       refreshToken: tokenSet.refreshToken,
-      expiresAt: Date.now() + tokenSet.expiresIn * 1000,
+      expiresAt: expiresAtFrom(tokenSet.expiresIn),
       scope: tokenSet.scope,
     });
   }
@@ -96,7 +102,8 @@ export class OAuthTokenStore implements OnModuleDestroy {
     const stored = await this.getTokens(userId, providerId);
     if (!stored) return undefined;
 
-    if (Date.now() < stored.expiresAt - 60_000) {
+    // `null` covers records serialised to Redis without an expiry.
+    if (stored.expiresAt == null || Date.now() < stored.expiresAt - 60_000) {
       return stored.accessToken;
     }
 
@@ -105,9 +112,10 @@ export class OAuthTokenStore implements OnModuleDestroy {
         const provider = this.providerRegistry.get(providerId);
         const refreshed = await provider.refreshToken(stored.refreshToken);
         const updated: StoredTokens = {
-          ...stored,
           accessToken: refreshed.accessToken,
-          expiresAt: Date.now() + refreshed.expiresIn * 1000,
+          refreshToken: refreshed.refreshToken ?? stored.refreshToken,
+          expiresAt: expiresAtFrom(refreshed.expiresIn),
+          scope: refreshed.scope || stored.scope,
         };
         await this.storeTokens(userId, providerId, updated);
         this.logger.log(`Refreshed ${providerId} token for user ${userId}`);

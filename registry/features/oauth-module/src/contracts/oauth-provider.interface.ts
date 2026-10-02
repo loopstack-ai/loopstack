@@ -6,7 +6,8 @@
 export interface OAuthTokenSet {
   accessToken: string;
   refreshToken?: string;
-  expiresIn: number;
+  /** Seconds until the access token expires; omit when the provider reports no expiry. */
+  expiresIn?: number;
   scope: string;
 }
 
