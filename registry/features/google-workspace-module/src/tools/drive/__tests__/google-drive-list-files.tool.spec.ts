@@ -125,6 +125,15 @@ describe('GoogleDriveListFilesTool', () => {
       expect(url.searchParams.get('q')).toBe("'folder-1' in parents");
     });
 
+    it('escapes quotes and backslashes in the folder id', async () => {
+      fetchMock.mockResolvedValue(Response.json({ files: [] }));
+
+      await tool.call({ folderId: "x' in parents or 'root\\", maxResults: 20 });
+
+      const url = new URL(fetchMock.mock.calls[0][0] as string);
+      expect(url.searchParams.get('q')).toBe("'x\\' in parents or \\'root\\\\' in parents");
+    });
+
     it('returns unauthorized without calling the API when no token is available', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
 

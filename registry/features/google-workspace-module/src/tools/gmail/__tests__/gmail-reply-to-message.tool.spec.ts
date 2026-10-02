@@ -89,7 +89,7 @@ describe('GmailReplyToMessageTool', () => {
       expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'google');
       expect(fetchMock).toHaveBeenNthCalledWith(
         1,
-        'https://www.googleapis.com/gmail/v1/users/me/messages/m1?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Message-ID',
+        'https://www.googleapis.com/gmail/v1/users/me/messages/m1?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Message-ID&metadataHeaders=References',
         { headers: { Authorization: 'Bearer g-token' } },
       );
       expect(fetchMock).toHaveBeenNthCalledWith(2, 'https://www.googleapis.com/gmail/v1/users/me/messages/send', {
@@ -124,6 +124,69 @@ describe('GmailReplyToMessageTool', () => {
       const headers = decodedMessage().split('\r\n\r\n')[0].split('\r\n');
       expect(headers).toContain('To: Alice <alice@example.com>, me@example.com, bob@example.com');
       expect(headers).toContain('Cc: carol@example.com');
+    });
+
+    it('extends the original References chain with the parent Message-ID', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          original({ From: 'b@x.com', Subject: 'hello', 'Message-ID': '<3@x>', References: '<1@x> <2@x>' }),
+        )
+        .mockResolvedValueOnce(Response.json({ id: 'r1', threadId: 't1', labelIds: [] }));
+
+      await tool.call(baseArgs);
+
+      const headers = decodedMessage().split('\r\n\r\n')[0].split('\r\n');
+      expect(headers).toContain('In-Reply-To: <3@x>');
+      expect(headers).toContain('References: <1@x> <2@x> <3@x>');
+    });
+
+    it('treats a Re: prefix in any letter case as already present', async () => {
+      fetchMock
+        .mockResolvedValueOnce(original({ From: 'b@x.com', Subject: 'RE: hello', 'Message-ID': '<3@x>' }))
+        .mockResolvedValueOnce(Response.json({ id: 'r1', threadId: 't1', labelIds: [] }));
+
+      await tool.call(baseArgs);
+
+      expect(decodedMessage().split('\r\n')).toContain('Subject: RE: hello');
+    });
+
+    it('keeps header values copied from the original message on a single line', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          original({
+            From: 'b@x.com\r\nBcc: evil@x.com',
+            Subject: 'hello\r\nBcc: evil2@x.com',
+            'Message-ID': '<3@x>\nBcc: evil3@x.com',
+          }),
+        )
+        .mockResolvedValueOnce(Response.json({ id: 'r1', threadId: 't1', labelIds: [] }));
+
+      await tool.call(baseArgs);
+
+      const headers = decodedMessage().split('\r\n\r\n')[0].split('\r\n');
+      expect(headers).toEqual([
+        'To: b@x.com Bcc: evil@x.com',
+        'Subject: Re: hello Bcc: evil2@x.com',
+        'In-Reply-To: <3@x> Bcc: evil3@x.com',
+        'References: <3@x> Bcc: evil3@x.com',
+        'MIME-Version: 1.0',
+        'Content-Type: text/plain; charset="UTF-8"',
+      ]);
+    });
+
+    it('encodes a non-ASCII subject and the message id in the URL', async () => {
+      fetchMock
+        .mockResolvedValueOnce(original({ From: 'b@x.com', Subject: 'Grüße ✓', 'Message-ID': '<3@x>' }))
+        .mockResolvedValueOnce(Response.json({ id: 'r1', threadId: 't1', labelIds: [] }));
+
+      await tool.call({ ...baseArgs, messageId: '../../profile?x=' });
+
+      expect(fetchMock.mock.calls[0][0]).toMatch(
+        /^https:\/\/www\.googleapis\.com\/gmail\/v1\/users\/me\/messages\/\.\.%2F\.\.%2Fprofile%3Fx%3D\?format=metadata&/,
+      );
+      expect(decodedMessage().split('\r\n')).toContain(
+        `Subject: =?UTF-8?B?${Buffer.from('Re: Grüße ✓').toString('base64')}?=`,
+      );
     });
 
     it('does not repeat an existing Re: prefix and matches headers case-insensitively', async () => {

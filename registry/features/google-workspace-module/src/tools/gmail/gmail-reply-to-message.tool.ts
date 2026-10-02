@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
+import { encodeHeaderText, sanitizeHeaderValue } from './mime-headers.js';
 
 const inputSchema = z
   .object({
@@ -82,7 +83,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
 
     // Fetch original message headers
     const originalResponse = await fetch(
-      `https://www.googleapis.com/gmail/v1/users/me/messages/${args.messageId}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Message-ID`,
+      `https://www.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(args.messageId)}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Message-ID&metadataHeaders=References`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
@@ -114,16 +115,20 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
       };
     };
 
+    // Header values come from the original sender, so they are kept on a single line.
     const getHeader = (name: string): string =>
-      originalData.payload.headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? '';
+      sanitizeHeaderValue(
+        originalData.payload.headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? '',
+      ).trim();
 
     const originalFrom = getHeader('From');
     const originalTo = getHeader('To');
     const originalCc = getHeader('Cc');
     const originalSubject = getHeader('Subject');
     const originalMessageId = getHeader('Message-ID');
+    const originalReferences = getHeader('References');
 
-    const subject = originalSubject.startsWith('Re:') ? originalSubject : `Re: ${originalSubject}`;
+    const subject = /^re:/i.test(originalSubject) ? originalSubject : `Re: ${originalSubject}`;
 
     const replyTo = args.replyAll ? [originalFrom, originalTo].filter(Boolean).join(', ') : originalFrom;
 
@@ -132,7 +137,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
       cc: args.replyAll ? originalCc : undefined,
       subject,
       inReplyTo: originalMessageId,
-      references: originalMessageId,
+      references: [originalReferences, originalMessageId].filter(Boolean).join(' '),
       body: args.body,
       htmlBody: args.htmlBody,
     });
@@ -204,7 +209,7 @@ export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, o
   }): string {
     const headers = [
       `To: ${params.to}`,
-      `Subject: ${params.subject}`,
+      `Subject: ${encodeHeaderText(params.subject)}`,
       `In-Reply-To: ${params.inReplyTo}`,
       `References: ${params.references}`,
       'MIME-Version: 1.0',

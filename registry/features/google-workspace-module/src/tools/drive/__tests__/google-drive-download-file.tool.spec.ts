@@ -97,6 +97,40 @@ describe('GoogleDriveDownloadFileTool', () => {
       });
     });
 
+    it('ignores exportMimeType for files that are not Google Docs', async () => {
+      const bytes = new Uint8Array([0x25, 0x50, 0xff, 0xfe, 0x00]);
+      fetchMock
+        .mockResolvedValueOnce(Response.json({ mimeType: 'application/pdf', name: 'a.pdf' }))
+        .mockResolvedValueOnce(new Response(bytes));
+
+      const result = await tool.call({ fileId: 'f1', exportMimeType: 'text/plain' });
+
+      expect(fetchMock.mock.calls[1][0]).toBe('https://www.googleapis.com/drive/v3/files/f1?alt=media');
+      expect(result.data).toEqual({
+        content: Buffer.from(bytes).toString('base64'),
+        mimeType: 'application/pdf',
+        encoding: 'base64',
+      });
+    });
+
+    it('encodes the file id as a single path segment', async () => {
+      fetchMock
+        .mockResolvedValueOnce(Response.json({ mimeType: 'application/vnd.google-apps.document', name: 'doc' }))
+        .mockResolvedValueOnce(new Response('exported'))
+        .mockResolvedValueOnce(Response.json({ mimeType: 'text/plain', name: 'a.txt' }))
+        .mockResolvedValueOnce(new Response('raw'));
+
+      await tool.call({ fileId: 'abc?x=1#' });
+      await tool.call({ fileId: 'abc?x=1#' });
+
+      expect(fetchMock.mock.calls.map((call) => call[0] as string)).toEqual([
+        'https://www.googleapis.com/drive/v3/files/abc%3Fx%3D1%23?fields=mimeType,name',
+        'https://www.googleapis.com/drive/v3/files/abc%3Fx%3D1%23/export?mimeType=text%2Fplain',
+        'https://www.googleapis.com/drive/v3/files/abc%3Fx%3D1%23?fields=mimeType,name',
+        'https://www.googleapis.com/drive/v3/files/abc%3Fx%3D1%23?alt=media',
+      ]);
+    });
+
     it.each([
       ['application/vnd.google-apps.document', 'text/plain'],
       ['application/vnd.google-apps.spreadsheet', 'text/csv'],

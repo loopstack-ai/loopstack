@@ -51,7 +51,8 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
  * Tool that downloads or exports a file from Google Drive. Takes a `fileId` and optional
  * `exportMimeType`, automatically handles Google Docs/Sheets/Slides export, and returns text or
  * base64-encoded content with its mime type, or `{ error: 'unauthorized' }` when no valid Google
- * token is available.
+ * token is available. `exportMimeType` applies to Google Docs/Sheets/Slides only; other files are
+ * returned as stored, with their own mime type.
  *
  * @providedBy GoogleWorkspaceModule
  * @public
@@ -59,7 +60,7 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
 @Tool({
   name: 'google_drive_download_file',
   description:
-    'Downloads or exports a file from Google Drive. Automatically handles Google Docs/Sheets/Slides export. Returns { error: "unauthorized" } if no valid token is available.',
+    'Downloads or exports a file from Google Drive. Automatically handles Google Docs/Sheets/Slides export; exportMimeType applies to those only, other files are returned as stored. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
   resultSchema: GoogleDriveDownloadFileResultSchema,
   effects: 'none',
@@ -91,11 +92,10 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
     }
 
     const headers = { Authorization: `Bearer ${accessToken}` };
+    const fileUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(args.fileId)}`;
 
     // First, get file metadata to determine the mime type
-    const metaResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${args.fileId}?fields=mimeType,name`, {
-      headers,
-    });
+    const metaResponse = await fetch(`${fileUrl}?fields=mimeType,name`, { headers });
 
     if (metaResponse.status === 401 || metaResponse.status === 403) {
       return {
@@ -128,13 +128,11 @@ export class GoogleDriveDownloadFileTool extends BaseTool<
     if (isGoogleDoc) {
       resultMimeType = args.exportMimeType || GOOGLE_DOCS_EXPORT_DEFAULTS[meta.mimeType];
       const params = new URLSearchParams({ mimeType: resultMimeType });
-      downloadResponse = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${args.fileId}/export?${params.toString()}`,
-        { headers },
-      );
+      downloadResponse = await fetch(`${fileUrl}/export?${params.toString()}`, { headers });
     } else {
-      resultMimeType = args.exportMimeType || meta.mimeType;
-      downloadResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${args.fileId}?alt=media`, { headers });
+      // Only Google Docs/Sheets/Slides can be exported; other files are downloaded as stored.
+      resultMimeType = meta.mimeType;
+      downloadResponse = await fetch(`${fileUrl}?alt=media`, { headers });
     }
 
     if (downloadResponse.status === 401 || downloadResponse.status === 403) {

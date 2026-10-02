@@ -102,9 +102,12 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool<
 
     const fields =
       'id,name,mimeType,size,modifiedTime,createdTime,owners,webViewLink,parents,description,shared,permissions';
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${args.fileId}?fields=${fields}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(args.fileId)}?fields=${fields}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
 
     if (response.status === 401 || response.status === 403) {
       this.logger.warn(`Google Drive API returned ${response.status} for user ${ctx.userId}`);
