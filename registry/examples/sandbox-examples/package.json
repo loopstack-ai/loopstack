@@ -1,16 +1,16 @@
 {
-  "name": "@loopstack/filesystem-examples",
-  "displayName": "Loopstack Filesystem Examples",
-  "description": "Workflow examples for filesystem operations in Loopstack — Docker sandbox, remote file browsing, remote command execution, and local file tree.",
+  "name": "@loopstack/sandbox-examples",
+  "displayName": "Loopstack Sandbox Examples",
+  "description": "Docker sandbox workflow example for Loopstack — init a container, run file operations inside it with the sandbox filesystem tools, and destroy it.",
   "keywords": [
     "loopstack",
     "example",
-    "filesystem",
     "sandbox",
-    "remote",
+    "docker",
+    "filesystem",
     "workflow"
   ],
-  "version": "0.1.3",
+  "version": "0.1.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,9 +32,6 @@
   },
   "dependencies": {
     "@loopstack/common": "*",
-    "@loopstack/local-file-explorer-module": "*",
-    "@loopstack/remote-client": "*",
-    "@loopstack/remote-file-explorer-module": "*",
     "@loopstack/sandbox-filesystem": "*",
     "@loopstack/sandbox-tool": "*",
     "@nestjs/common": "^12.0.1",

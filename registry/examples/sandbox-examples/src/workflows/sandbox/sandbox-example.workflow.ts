@@ -32,7 +32,7 @@ const SandboxExampleArgsSchema = z.object({
 type SandboxExampleArgs = z.infer<typeof SandboxExampleArgsSchema>;
 
 @Workflow({
-  title: 'Filesystem - Sandbox Example',
+  title: 'Sandbox - Filesystem Example',
   description:
     'Demonstrates the full Docker sandbox lifecycle: init a container, perform file operations (write, read, list, delete), and destroy the sandbox. Useful for isolated execution of untrusted code.',
   schema: SandboxExampleArgsSchema,

@@ -6,7 +6,7 @@ interface RemoteFileExplorerState {
 }
 
 @Workflow({
-  title: 'Filesystem - Remote File Explorer Example',
+  title: 'Remote Client - File Explorer Example',
   description:
     'Browses a remote workspace via @loopstack/remote-client GlobTool + ReadTool — finds Markdown files, reads the first match.',
 })
