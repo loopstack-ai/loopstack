@@ -124,6 +124,25 @@ describe('GitHubListDirectoryTool', () => {
       expect(fetchMock.mock.calls[0][0]).toBe('https://api.github.com/repos/a%2Fb/c%20d/contents/src');
     });
 
+    it('URL-encodes each segment of the path', async () => {
+      fetchMock.mockResolvedValue(Response.json([]));
+
+      await execute({ owner: 'octo', repo: 'hello', path: 'docs/a#b', ref: 'main' });
+
+      expect(fetchMock.mock.calls[0][0]).toBe('https://api.github.com/repos/octo/hello/contents/docs/a%23b?ref=main');
+    });
+
+    it('reports not_a_directory when the path points to a file', async () => {
+      fetchMock.mockResolvedValue(
+        Response.json({ type: 'file', name: 'README.md', path: 'README.md', sha: 'blob1', size: 12 }),
+      );
+
+      const result = await execute({ owner: 'octo', repo: 'hello', path: 'README.md' });
+
+      expect(result.data).toEqual({ error: 'not_a_directory', message: "'README.md' is not a directory." });
+      expect(result.error).toBe("'README.md' is not a directory.");
+    });
+
     it('returns unauthorized without calling the API when no token is available', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
 

@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
+import { TOOL_PIPELINE, getBlockArgsSchema, parseToolResult } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 import { createToolTest } from '@loopstack/testing';
@@ -104,6 +104,36 @@ describe('GitHubListPrReviewsTool', () => {
             state: 'CHANGES_REQUESTED',
             submittedAt: '2026-01-03T00:00:00Z',
             htmlUrl: 'https://github.com/octo/hello/pull/21#pullrequestreview-902',
+          },
+        ],
+      });
+    });
+
+    it('accepts a pending review without a submission time', async () => {
+      fetchMock.mockResolvedValue(
+        Response.json([
+          {
+            id: 903,
+            user: { login: 'dave' },
+            body: '',
+            state: 'PENDING',
+            html_url: 'https://github.com/octo/hello/pull/21#pullrequestreview-903',
+            commit_id: 'abc123',
+          },
+        ]),
+      );
+
+      const result = parseToolResult(tool, await execute(args));
+
+      expect(result.data).toEqual({
+        reviews: [
+          {
+            id: 903,
+            user: 'dave',
+            body: '',
+            state: 'PENDING',
+            submittedAt: undefined,
+            htmlUrl: 'https://github.com/octo/hello/pull/21#pullrequestreview-903',
           },
         ],
       });

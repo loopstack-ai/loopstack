@@ -21,7 +21,7 @@ export type GitHubListPrReviewsArgs = z.infer<typeof inputSchema>;
 
 /**
  * Result for `GitHubListPrReviewsTool`: a `reviews` array with reviewer, body, state
- * and submission time, or an `error`.
+ * and submission time (absent for a pending review), or an `error`.
  *
  * @public
  */
@@ -32,7 +32,7 @@ export type GitHubListPrReviewsResult =
         user: string;
         body: string;
         state: string;
-        submittedAt: string;
+        submittedAt?: string;
         htmlUrl: string;
       }>;
     }
@@ -50,7 +50,7 @@ export const GitHubListPrReviewsResultSchema = z.strictObject({
       user: z.string(),
       body: z.string(),
       state: z.string(),
-      submittedAt: z.string(),
+      submittedAt: z.string().optional(),
       htmlUrl: z.string(),
     }),
   ),
@@ -129,7 +129,7 @@ export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, o
       user: { login: string };
       body: string;
       state: string;
-      submitted_at: string;
+      submitted_at?: string;
       html_url: string;
     }>;
 

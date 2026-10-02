@@ -66,11 +66,20 @@ export class GitHubOAuthProvider implements OAuthProviderInterface, OnModuleInit
       throw new Error(`GitHub token exchange failed: ${response.statusText}`);
     }
 
+    // GitHub reports a rejected exchange (bad code, wrong secret, redirect mismatch) with HTTP 200 and an error body.
     const tokens = (await response.json()) as {
-      access_token: string;
-      token_type: string;
+      access_token?: string;
+      token_type?: string;
       scope: string;
+      error?: string;
+      error_description?: string;
     };
+
+    if (tokens.error || !tokens.access_token) {
+      const reason = tokens.error_description ?? tokens.error ?? 'no access token returned';
+      this.logger.error(`Token exchange failed: ${tokens.error ?? 'missing access_token'} ${reason}`);
+      throw new Error(`GitHub token exchange failed: ${reason}`);
+    }
 
     return {
       accessToken: tokens.access_token,
