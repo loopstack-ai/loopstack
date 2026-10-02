@@ -129,7 +129,25 @@ describe('response schemas', () => {
     parentId: null,
     hasChildren: 0,
     activeChildren: 0,
+    availableTransitions: null,
   };
+
+  it('defaults the fields a list adds, so an older response still parses', () => {
+    const { activeChildren: _count, availableTransitions: _transitions, ...withoutListFields } = workflowItem;
+    expect(WorkflowItemSchema.parse(withoutListFields)).toEqual({
+      ...withoutListFields,
+      activeChildren: 0,
+      availableTransitions: null,
+    });
+  });
+
+  it('keeps the trigger that marks a transition as awaiting a payload', () => {
+    const parsed = WorkflowItemSchema.parse({
+      ...workflowItem,
+      availableTransitions: [{ id: 'submit', from: 'ask', to: 'end', trigger: 'manual' }],
+    });
+    expect(parsed.availableTransitions?.[0]?.trigger).toBe('manual');
+  });
 
   it('parses a workflow item and rejects non-ISO dates', () => {
     expect(WorkflowItemSchema.parse(workflowItem)).toEqual(workflowItem);

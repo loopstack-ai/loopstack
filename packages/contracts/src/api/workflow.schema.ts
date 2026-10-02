@@ -34,6 +34,16 @@ export const WorkflowItemSchema = z.object({
    * predates it should still parse.
    */
   activeChildren: z.number().default(0),
+  /**
+   * The transitions currently offered on this run, each marked `trigger: 'manual'` when it was declared
+   * `wait: true` — the engine holding it for a submitted payload.
+   *
+   * This is what separates a run parked on a person from one parked on machinery: `waiting` says only
+   * "stopped, not finished", and the engine assigns it to a human gate, a pending child callback and a
+   * retry signal alike. On the row rather than only on the full read, because a list is where a view asks
+   * the question about many runs at once.
+   */
+  availableTransitions: z.array(z.custom<WorkflowTransitionType>()).nullable().default(null),
 });
 export type WorkflowItemInterface = z.infer<typeof WorkflowItemSchema>;
 
@@ -47,7 +57,6 @@ export type WorkflowStatusInterface = z.infer<typeof WorkflowStatusSchema>;
 
 export const WorkflowFullSchema = WorkflowItemSchema.extend({
   errorMessage: z.string().nullable(),
-  availableTransitions: z.array(z.custom<WorkflowTransitionType>()).nullable(),
   args: z.any(),
   context: z.record(z.string(), z.unknown()),
   callbackTransition: z.string().nullable(),

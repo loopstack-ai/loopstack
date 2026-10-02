@@ -34,6 +34,7 @@ export function toWorkflowItem(entity: WorkflowEntity): WorkflowItemInterface {
     // Absent on the single-entity reads, which do not load the counts; zero there means "not counted",
     // and only the list view reads it.
     activeChildren: (entity as WorkflowEntityWithChildCount).activeChildren ?? 0,
+    availableTransitions: entity.availableTransitions ?? null,
   });
 }
 
@@ -41,7 +42,6 @@ export function toWorkflowFull(entity: WorkflowEntity): WorkflowFullInterface {
   return assertResponse(WorkflowFullSchema, {
     ...toWorkflowItem(entity),
     errorMessage: entity.errorMessage ?? null,
-    availableTransitions: entity.availableTransitions ?? null,
     args: entity.args,
     context: entity.context ?? {},
     callbackTransition: entity.callbackTransition ?? null,
