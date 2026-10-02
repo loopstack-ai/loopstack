@@ -63,10 +63,10 @@ export class WorkflowEntity {
   @Column('jsonb', { default: {}, transformer: jsonbTransformer })
   context!: Record<string, any>;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
 
   @Column({ type: 'varchar', default: 'start' })
