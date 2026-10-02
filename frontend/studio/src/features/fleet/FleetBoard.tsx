@@ -1,5 +1,5 @@
 import { formatDistanceToNowStrict } from 'date-fns';
-import { LayoutGrid, List, Play } from 'lucide-react';
+import { GripVertical, LayoutGrid, List, Play } from 'lucide-react';
 import { type HTMLAttributes, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
@@ -9,7 +9,7 @@ import { NewRunDialog } from '@/features/workbench/components/NewRunDialog.tsx';
 import { cn } from '@/lib/utils.ts';
 import { useStudioPreferences } from '@/providers/StudioPreferencesProvider.tsx';
 import { useStudio } from '@/providers/StudioProvider.tsx';
-import AttentionStrip from './AttentionStrip.tsx';
+import NewWorkspaceTile from './NewWorkspaceTile.tsx';
 import WorkspaceCard from './WorkspaceCard.tsx';
 import type { FleetCounts, FleetEntry } from './fleet-model.ts';
 import { STATE_ICON, STATE_LABEL, STATE_TEXT, runAge } from './fleet-presentation.ts';
@@ -30,12 +30,13 @@ function summary(counts: FleetCounts): string {
 
 interface FleetRowProps {
   entry: FleetEntry;
-  dragHandlers: HTMLAttributes<HTMLElement> & { draggable: boolean };
+  handleProps: HTMLAttributes<HTMLElement> & { draggable: boolean };
+  dropProps: HTMLAttributes<HTMLElement>;
   isDragging: boolean;
   isDropTarget: boolean;
 }
 
-function FleetRow({ entry, dragHandlers, isDragging, isDropTarget }: FleetRowProps) {
+function FleetRow({ entry, handleProps, dropProps, isDragging, isDropTarget }: FleetRowProps) {
   const { router } = useStudio();
   const { workspace, state, run } = entry;
 
@@ -68,19 +69,34 @@ function FleetRow({ entry, dragHandlers, isDragging, isDropTarget }: FleetRowPro
 
   // Only a row with a run leads somewhere; an idle one is not a link to nowhere.
   return (
-    <li {...dragHandlers} className={cn(isDragging && 'opacity-40', isDropTarget && 'ring-primary rounded-sm ring-2')}>
+    <li
+      {...dropProps}
+      className={cn(
+        'group/row flex items-stretch',
+        isDragging && 'opacity-40',
+        isDropTarget && 'ring-primary rounded-sm ring-2',
+      )}
+    >
+      {/* Same grip as the cards, running the row's full height. */}
+      <span
+        {...handleProps}
+        aria-label={`Reorder ${workspace.title}`}
+        className="bg-muted/30 hover:bg-muted flex w-5 shrink-0 cursor-grab items-center justify-center transition-colors active:cursor-grabbing"
+      >
+        <GripVertical className="text-muted-foreground/30 group-hover/row:text-muted-foreground/70 size-3.5 transition-colors" />
+      </span>
       {run ? (
         <Link
           to={router.getWorkflow(run.id)}
           target="_blank"
           rel="noopener noreferrer"
           draggable={false}
-          className="hover:bg-muted/50 flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+          className="hover:bg-muted/50 flex min-w-0 flex-1 items-center gap-3 px-4 py-2 text-sm transition-colors"
         >
           {row}
         </Link>
       ) : (
-        <div className="flex items-center gap-3 px-4 py-2 text-sm">{row}</div>
+        <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-2 text-sm">{row}</div>
       )}
     </li>
   );
@@ -89,13 +105,13 @@ function FleetRow({ entry, dragHandlers, isDragging, isDropTarget }: FleetRowPro
 /**
  * The workspace dashboard: what every workspace is doing right now.
  *
- * The grid never reorders on a state change — a card stays where it was, and urgency is carried by the
- * attention strip and the counter line instead. A board whose cards move while you read it is unusable
- * exactly when the fleet is busy.
+ * The grid never reorders on a state change — a card stays where it was, and urgency is carried by its own
+ * state marker and the counter line instead. A board whose cards move while you read it is unusable exactly
+ * when the fleet is busy.
  */
 export default function FleetBoard() {
   const { preferences, setPreference } = useStudioPreferences();
-  const { entries, attention, counts, total, isLoading, error } = useFleet();
+  const { entries, counts, total, isLoading, error } = useFleet();
   const [newRunOpen, setNewRunOpen] = useState(false);
   const { router } = useStudio();
   const drag = useFleetDrag(entries.map((entry) => entry.workspace.id));
@@ -158,28 +174,19 @@ export default function FleetBoard() {
         </div>
       </div>
 
-      <AttentionStrip rows={attention} />
-
-      {entries.length === 0 ? (
-        <p className="text-muted-foreground">
-          No workspaces yet.{' '}
-          <Link to={router.getWorkspaces()} className="text-primary hover:underline">
-            Create one
-          </Link>{' '}
-          to get started.
-        </p>
-      ) : density === 'grid' ? (
+      {density === 'grid' ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {entries.map((entry) => (
             <WorkspaceCard
               key={entry.workspace.id}
               entry={entry}
-              dragHandlers={drag.handlers(entry.workspace.id)}
+              handleProps={drag.handleProps(entry.workspace.id)}
+              dropProps={drag.dropProps(entry.workspace.id)}
               isDragging={drag.draggingId === entry.workspace.id}
               isDropTarget={drag.overId === entry.workspace.id}
-              onMove={(direction) => drag.move(entry.workspace.id, direction)}
             />
           ))}
+          <NewWorkspaceTile variant="card" />
         </div>
       ) : (
         <ul className="border-border bg-card divide-y overflow-hidden rounded-lg border">
@@ -187,11 +194,15 @@ export default function FleetBoard() {
             <FleetRow
               key={entry.workspace.id}
               entry={entry}
-              dragHandlers={drag.handlers(entry.workspace.id)}
+              handleProps={drag.handleProps(entry.workspace.id)}
+              dropProps={drag.dropProps(entry.workspace.id)}
               isDragging={drag.draggingId === entry.workspace.id}
               isDropTarget={drag.overId === entry.workspace.id}
             />
           ))}
+          <li>
+            <NewWorkspaceTile variant="row" />
+          </li>
         </ul>
       )}
 

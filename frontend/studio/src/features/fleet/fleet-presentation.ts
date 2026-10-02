@@ -21,6 +21,17 @@ export const STATE_ICON: Record<FleetState, LucideIcon | null> = {
   idle: null,
 };
 
+/**
+ * The dot beside a workspace's name. It repeats what {@link STATE_ICON} says next to the run, on purpose:
+ * the dots sit in one column down the board, so a glance reads the fleet without reading any card.
+ */
+export const STATE_DOT: Record<FleetState, string> = {
+  waiting: 'bg-yellow-500',
+  working: 'bg-blue-500 animate-pulse',
+  queued: 'bg-muted-foreground/50',
+  idle: 'bg-muted-foreground/25',
+};
+
 export const STATE_TEXT: Record<FleetState, string> = {
   waiting: 'text-yellow-600 dark:text-yellow-400',
   working: 'text-blue-600 dark:text-blue-400',
@@ -28,23 +39,13 @@ export const STATE_TEXT: Record<FleetState, string> = {
   idle: 'text-muted-foreground',
 };
 
+/**
+ * How tall a board tile stands. Every card carries it, idle ones included, so the grid tiles evenly
+ * whatever each workspace happens to be doing — and the new-workspace placeholder matches.
+ */
+export const TILE_MIN_HEIGHT = 'min-h-56';
+
 /** How old the run is — `createdAt`, so it keeps counting no matter what the run does. */
 export function runAge(distance: string): string {
   return `started ${distance} ago`;
-}
-
-/**
- * How long the run has been in its current state, from `updatedAt` — the attention strip's number, and what
- * it sorts on. A run parked since Tuesday is only visible as such here; its age would say the same for a run
- * that has been working the whole time.
- */
-export function timeInState(state: FleetState, distance: string): string {
-  switch (state) {
-    case 'waiting':
-      return `waiting ${distance}`;
-    case 'queued':
-      return `queued ${distance}`;
-    default:
-      return `active ${distance}`;
-  }
 }

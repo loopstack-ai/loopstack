@@ -3,14 +3,14 @@ import { useStudioPreferences } from '@/providers/StudioPreferencesProvider.tsx'
 import { reorderIds } from './fleet-model.ts';
 
 export interface FleetDrag {
-  /** Props to spread on a draggable tile — the whole card or row. */
-  handlers: (workspaceId: string) => HTMLAttributes<HTMLElement> & { draggable: boolean };
+  /** Props for the grip: the only part that starts a drag, so text and links stay selectable. */
+  handleProps: (workspaceId: string) => HTMLAttributes<HTMLElement> & { draggable: boolean };
+  /** Props for the tile itself, which accepts a drop anywhere on its surface. */
+  dropProps: (workspaceId: string) => HTMLAttributes<HTMLElement>;
   /** The tile being dragged right now, if any. */
   draggingId: string | null;
   /** The tile the pointer is currently over, if it is a valid drop target. */
   overId: string | null;
-  /** Moves a workspace one place earlier or later — the keyboard's way in, from the card menu. */
-  move: (workspaceId: string, direction: -1 | 1) => void;
   /** Whether a hand-arranged order exists to clear. */
   hasManualOrder: boolean;
   resetOrder: () => void;
@@ -45,13 +45,7 @@ export function useFleetDrag(visibleIds: string[]): FleetDrag {
     hasManualOrder: preferences.fleetOrder.length > 0,
     resetOrder: () => setPreference('fleetOrder', []),
 
-    move: (workspaceId, direction) => {
-      const index = visibleIds.indexOf(workspaceId);
-      const target = visibleIds[index + direction];
-      if (target) commit(workspaceId, target);
-    },
-
-    handlers: (workspaceId) => ({
+    handleProps: (workspaceId) => ({
       draggable: true,
       onDragStart: (event: DragEvent<HTMLElement>) => {
         setDraggingId(workspaceId);
@@ -60,6 +54,9 @@ export function useFleetDrag(visibleIds: string[]): FleetDrag {
         event.dataTransfer.setData('text/plain', workspaceId);
       },
       onDragEnd: clear,
+    }),
+
+    dropProps: (workspaceId) => ({
       onDragOver: (event: DragEvent<HTMLElement>) => {
         if (!draggingId || draggingId === workspaceId) return;
         event.preventDefault();

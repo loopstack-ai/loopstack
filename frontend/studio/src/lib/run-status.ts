@@ -29,20 +29,28 @@ export function getWorkflowStateColor(status: WorkflowState): string {
 }
 
 /**
- * Whether a run is most likely waiting on a **person** — what the "Needs input" badge reports.
+ * Whether a run is waiting on a **person** — what the "Needs input" badge reports.
  *
  * `waiting` on its own does not say who is being waited on: every run that parks without finishing carries
  * it, so a parent sitting on a child's callback looks exactly like a run holding an unanswered question.
- * What separates them is whether anything below is still working — a waiting run with no active children
- * has nobody left to wait for but you.
+ * Two fields on the row separate them:
  *
- * It is a **proxy**, and deliberately a cheap one: it reads two fields already on the row. The exact answer
- * is `evaluateWorkflowPrompts` in `@loopstack/contracts` (what the CLI's inbox uses), which needs every
- * run's documents — far too much to fetch for a list. The proxy's known blind spot is a run parked between
- * automatic retries: nothing is running under it, but nobody is being asked anything either.
+ * - a transition marked `trigger: 'manual'` is one the engine declared `wait: true` and is holding for a
+ *   submitted payload — somebody has to act. A run parked between automatic retries offers none, and so
+ *   stops claiming to need you;
+ * - no active children, because a run that can take input *while* its children work is not blocked on you.
+ *   You may interject; nothing waits for it.
+ *
+ * It remains cheaper than the exact answer, `evaluateWorkflowPrompts` in `@loopstack/contracts/park-view`
+ * (what the CLI's inbox uses), which needs every run's documents and widget configs. The difference shows
+ * on a run parked with a manual transition but nothing renderable: the rules call that a bare wait, this
+ * calls it waiting for you.
  */
-export function needsInput(item: Pick<WorkflowItemInterface, 'status' | 'activeChildren'>): boolean {
-  return item.status === WorkflowState.Waiting && item.activeChildren === 0;
+export function needsInput(
+  item: Pick<WorkflowItemInterface, 'status' | 'activeChildren' | 'availableTransitions'>,
+): boolean {
+  if (item.status !== WorkflowState.Waiting || item.activeChildren !== 0) return false;
+  return (item.availableTransitions ?? []).some((transition) => transition.trigger === 'manual');
 }
 
 /**
@@ -60,9 +68,12 @@ export type RunActivity = 'waiting' | 'working' | 'queued';
 
 /**
  * Classifies one active run. `waiting` means waiting on a *person* ({@link needsInput}); a run parked on
- * its children is still `working`, because the machinery has not handed back yet.
+ * its children is still `working`, because the machinery has not handed back yet — as is one parked
+ * between automatic retries, which nobody is being asked about and the engine will pick up again.
  */
-export function runActivity(item: Pick<WorkflowItemInterface, 'status' | 'activeChildren'>): RunActivity {
+export function runActivity(
+  item: Pick<WorkflowItemInterface, 'status' | 'activeChildren' | 'availableTransitions'>,
+): RunActivity {
   if (needsInput(item)) return 'waiting';
   if (item.status === WorkflowState.Pending) return 'queued';
   return 'working';
