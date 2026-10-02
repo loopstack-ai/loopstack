@@ -68,25 +68,46 @@ describe('GoogleDriveUploadFileTool', () => {
       const result = await tool.call({ name: 'a.txt', content: 'hello\nworld', mimeType: 'text/plain' });
 
       expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'google');
-      expect(fetchMock).toHaveBeenCalledWith('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer g-token',
-          'Content-Type': `multipart/related; boundary="${boundary}"`,
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,webViewLink',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer g-token',
+            'Content-Type': `multipart/related; boundary="${boundary}"`,
+          },
+          body: [
+            `--${boundary}`,
+            'Content-Type: application/json; charset=UTF-8',
+            '',
+            '{"name":"a.txt"}',
+            `--${boundary}`,
+            'Content-Type: text/plain',
+            '',
+            'hello\nworld',
+            `--${boundary}--`,
+          ].join('\r\n'),
         },
-        body: [
-          `--${boundary}`,
-          'Content-Type: application/json; charset=UTF-8',
-          '',
-          '{"name":"a.txt"}',
-          `--${boundary}`,
-          'Content-Type: text/plain',
-          '',
-          'hello\nworld',
-          `--${boundary}--`,
-        ].join('\r\n'),
-      });
+      );
       expect(result.data).toEqual({ id: 'f1', name: 'a.txt', mimeType: 'text/plain' });
+    });
+
+    it('returns the webViewLink of the created file', async () => {
+      fetchMock.mockResolvedValue(
+        Response.json({ id: 'f1', name: 'a.txt', mimeType: 'text/plain', webViewLink: 'https://drive.google.com/f1' }),
+      );
+
+      const result = await tool.call({ name: 'a.txt', content: 'x', mimeType: 'text/plain' });
+
+      expect(new URL(fetchMock.mock.calls[0][0] as string).searchParams.get('fields')).toBe(
+        'id,name,mimeType,webViewLink',
+      );
+      expect(result.data).toEqual({
+        id: 'f1',
+        name: 'a.txt',
+        mimeType: 'text/plain',
+        webViewLink: 'https://drive.google.com/f1',
+      });
     });
 
     it('adds parents and description to the metadata part and uses the given mime type', async () => {

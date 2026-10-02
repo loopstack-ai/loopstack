@@ -169,6 +169,36 @@ describe('GmailGetMessageTool', () => {
       expect(result.data).toMatchObject({ subject: 'Meta', body: '' });
     });
 
+    it('returns empty headers, body and attachments for a minimal message without payload', async () => {
+      fetchMock.mockResolvedValue(Response.json({ id: 'm1', threadId: 't1', snippet: 'Hi', labelIds: ['INBOX'] }));
+
+      const result = await tool.call({ messageId: 'm1', format: 'minimal' });
+
+      expect(result.data).toEqual({
+        id: 'm1',
+        threadId: 't1',
+        from: '',
+        to: '',
+        cc: '',
+        subject: '',
+        date: '',
+        body: '',
+        snippet: 'Hi',
+        labelIds: ['INBOX'],
+        attachments: [],
+      });
+    });
+
+    it('encodes the message id as a single path segment', async () => {
+      fetchMock.mockResolvedValue(message({ mimeType: 'text/plain', body: { size: 0 } }));
+
+      await tool.call({ messageId: '../../profile?x=', format: 'full' });
+
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        'https://www.googleapis.com/gmail/v1/users/me/messages/..%2F..%2Fprofile%3Fx%3D?format=full',
+      );
+    });
+
     it('returns unauthorized without calling the API when no token is available', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
 

@@ -105,7 +105,7 @@ export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs,
 
     const queryParts: string[] = [];
     if (args.query) queryParts.push(args.query);
-    if (args.folderId) queryParts.push(`'${args.folderId}' in parents`);
+    if (args.folderId) queryParts.push(`'${args.folderId.replace(/[\\']/g, '\\$&')}' in parents`);
 
     const params = new URLSearchParams({
       pageSize: String(args.maxResults ?? 20),

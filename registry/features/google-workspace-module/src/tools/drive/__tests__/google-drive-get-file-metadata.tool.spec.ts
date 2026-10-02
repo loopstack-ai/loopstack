@@ -92,6 +92,18 @@ describe('GoogleDriveGetFileMetadataTool', () => {
       });
     });
 
+    it('encodes the file id as a single path segment', async () => {
+      fetchMock.mockResolvedValue(
+        Response.json({ id: 'f2', name: 'F', mimeType: 'text/plain', modifiedTime: 'm', createdTime: 'c' }),
+      );
+
+      await tool.call({ fileId: 'abc?x=1#' });
+
+      expect(fetchMock.mock.calls[0][0]).toMatch(
+        /^https:\/\/www\.googleapis\.com\/drive\/v3\/files\/abc%3Fx%3D1%23\?fields=/,
+      );
+    });
+
     it('leaves absent optional fields undefined', async () => {
       fetchMock.mockResolvedValue(
         Response.json({

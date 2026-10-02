@@ -112,7 +112,7 @@ export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, G
 
     const format = args.format || 'full';
     const response = await fetch(
-      `https://www.googleapis.com/gmail/v1/users/me/messages/${args.messageId}?format=${format}`,
+      `https://www.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(args.messageId)}?format=${format}`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
@@ -144,14 +144,16 @@ export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, G
       threadId: string;
       snippet: string;
       labelIds: string[];
-      payload: GmailMessagePart;
+      // Absent for `format: 'minimal'`.
+      payload?: GmailMessagePart;
     };
 
+    const { payload } = msgData;
     const getHeader = (name: string): string =>
-      msgData.payload.headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? '';
+      payload?.headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? '';
 
-    const body = this.extractBody(msgData.payload);
-    const attachments = this.extractAttachments(msgData.payload);
+    const body = payload ? this.extractBody(payload) : '';
+    const attachments = payload ? this.extractAttachments(payload) : [];
 
     return {
       data: {
