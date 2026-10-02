@@ -6,7 +6,7 @@ interface RemoteClientState {
 }
 
 @Workflow({
-  title: 'Filesystem - Remote Client Example',
+  title: 'Remote Client - Command Example',
   description:
     'Demonstrates @loopstack/remote-client tools beyond file browsing: write a file, run a shell command on the remote machine via BashTool, read the result. Useful when you need command execution against a remote workspace.',
 })

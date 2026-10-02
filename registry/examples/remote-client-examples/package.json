@@ -1,0 +1,48 @@
+{
+  "name": "@loopstack/remote-client-examples",
+  "displayName": "Loopstack Remote Client Examples",
+  "description": "Remote agent workflow examples for Loopstack — run shell commands and edit files on a remote workspace, and browse its files, with the @loopstack/remote-client tools.",
+  "keywords": [
+    "loopstack",
+    "example",
+    "remote",
+    "remote-client",
+    "workflow"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "*",
+    "@loopstack/remote-client": "*",
+    "@loopstack/remote-file-explorer-module": "*",
+    "@nestjs/common": "^12.0.1"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "@loopstack/testing": "*",
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
+  }
+}
