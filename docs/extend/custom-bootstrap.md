@@ -17,7 +17,7 @@ It registers these modules with sensible defaults:
 - `TypeOrmModule.forRoot({ type: 'postgres', autoLoadEntities: true, synchronize: true, ... })` — skipped when `database.reuseExistingConnection` is `true` (you register the default connection yourself)
 - `EventEmitterModule.forRoot()`
 - `LoopCoreModule.forRoot({ redis })` — the workflow engine
-- `LoopstackApiModule.register({ cors })` — the REST API and controllers
+- `LoopstackApiModule.register({ cors, corsOrigins, sse })` — the REST API and controllers
 
 See `loopstack/packages/loopstack-module/src/loopstack.module.ts` for the exact wiring.
 
@@ -45,11 +45,13 @@ import { LoopCoreModule } from '@loopstack/core';
         /* ... */
       },
     }),
-    LoopstackApiModule.register({ cors: { origin: true, credentials: true } }),
+    LoopstackApiModule.register({ corsOrigins: ['https://studio.example.com'] }),
   ],
 })
 export class AppModule {}
 ```
+
+`LoopstackApiModule.register()` takes the same `cors` and `corsOrigins` options as `LoopstackModule.forRoot()`. Leave `cors` unset to keep the default policy — localhost plus `corsOrigins` — as described under [`cors`](../reference/configuration.md#cors) and [`corsOrigins`](../reference/configuration.md#corsorigins).
 
 The app and auth configs that `LoopstackModule` loads (`app`, `auth` namespaces with the keys documented in [Configuration](../reference/configuration.md)) must also be provided — feed them in via your own `ConfigModule.forRoot({ load: [...] })`.
 

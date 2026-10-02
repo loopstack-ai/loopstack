@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { RemoteClientModule } from '@loopstack/remote-client';
 import { type TestRun, coverage, replay, runWorkflow } from '@loopstack/testing';
-import { FilesystemExamplesModule } from '../../../filesystem-examples.module';
+import { RemoteClientExamplesModule } from '../../../remote-client-examples.module';
 import { RemoteFileExplorerExampleWorkflow } from '../remote-file-explorer-example.workflow';
 
 /**
@@ -12,7 +12,7 @@ import { RemoteFileExplorerExampleWorkflow } from '../remote-file-explorer-examp
  */
 describe('RemoteFileExplorerExampleWorkflow', () => {
   const runs: TestRun[] = [];
-  const imports = [RemoteClientModule.forRoot(), FilesystemExamplesModule];
+  const imports = [RemoteClientModule.forRoot(), RemoteClientExamplesModule];
 
   it('reads the first match when markdown files exist', async () => {
     const run = await runWorkflow(RemoteFileExplorerExampleWorkflow, undefined, {

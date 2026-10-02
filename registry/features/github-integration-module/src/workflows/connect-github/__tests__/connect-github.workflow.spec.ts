@@ -88,9 +88,10 @@ describe('ConnectGitHubWorkflow', () => {
       },
     );
 
-  const linkExisting = (divergence: string, syncAnswer?: string) => {
+  // `check` is the divergence check's output: "<behind>\t<ahead>" from git rev-list, or no_remote.
+  const linkExisting = (check: string, syncAnswer?: string) => {
     listRepos.call.mockResolvedValue({ data: { repos: [{ fullName: 'acme/app' }, { fullName: 'acme/web' }] } });
-    bash.call.mockResolvedValueOnce({ data: { output: `${divergence}\n`, exitCode: 0 } });
+    bash.call.mockResolvedValueOnce({ data: { output: `${check}\n`, exitCode: 0 } });
     return run({
       choiceReceived: { answer: 'Connect existing repository' },
       repoSelected: { answer: 'acme/app' },
@@ -178,7 +179,7 @@ describe('ConnectGitHubWorkflow', () => {
   });
 
   it('links an existing repository that is already in sync', async () => {
-    const result = await linkExisting('same');
+    const result = await linkExisting('0\t0');
 
     expect(result.status).toBe('completed');
     expect(listRepos.call).toHaveBeenCalledWith({ visibility: 'all', sort: 'updated', perPage: 30 });
@@ -194,16 +195,30 @@ describe('ConnectGitHubWorkflow', () => {
     expect(result.result).toEqual({ repo: 'acme/app', url: 'https://github.com/acme/app' });
   });
 
-  it('treats a missing remote branch as in sync', async () => {
+  it('pushes the branch when the remote does not have it yet', async () => {
     const result = await linkExisting('no_remote');
 
     expect(result.status).toBe('completed');
     expect(result.path).toContain('pushDirectly');
+    expect(bash.call).toHaveBeenCalledWith({
+      command:
+        'if git rev-parse --verify --quiet refs/remotes/origin/feature >/dev/null; ' +
+        'then git rev-list --left-right --count origin/feature...feature; else echo no_remote; fi',
+    });
+    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'feature', token: 'gh-token' });
+  });
+
+  it('fails when the divergence check output cannot be classified', async () => {
+    const result = await linkExisting('fatal: bad revision');
+
+    expect(result.status).toBe('failed');
+    expect(result.error).toContain('Could not compare branch "feature"');
+    expect(askUser.run).toHaveBeenCalledTimes(2);
     expect(push.call).not.toHaveBeenCalled();
   });
 
   it('pushes directly when the workspace is ahead of the remote', async () => {
-    const result = await linkExisting('local_ahead');
+    const result = await linkExisting('0\t3');
 
     expect(result.status).toBe('completed');
     expect(result.path).toContain('pushDirectly');
@@ -212,7 +227,7 @@ describe('ConnectGitHubWorkflow', () => {
   });
 
   it('offers pull/push/cancel when the remote is ahead and force-pushes on request', async () => {
-    const result = await linkExisting('remote_ahead', 'Push workspace code (overwrite remote)');
+    const result = await linkExisting('2\t0', 'Push workspace code (overwrite remote)');
 
     expect(result.status).toBe('completed');
     expect(askUser.run).toHaveBeenLastCalledWith(
@@ -231,7 +246,7 @@ describe('ConnectGitHubWorkflow', () => {
   });
 
   it('merges remote changes and pushes when pulling', async () => {
-    const result = await linkExisting('remote_ahead', 'Pull remote changes into workspace');
+    const result = await linkExisting('2\t0', 'Pull remote changes into workspace');
 
     expect(result.status).toBe('completed');
     expect(bash.call).toHaveBeenLastCalledWith({
@@ -241,7 +256,7 @@ describe('ConnectGitHubWorkflow', () => {
   });
 
   it('replaces local files with the remote on diverged history', async () => {
-    const result = await linkExisting('diverged', 'Use remote code (replace local files with remote)');
+    const result = await linkExisting('2\t3', 'Use remote code (replace local files with remote)');
 
     expect(result.status).toBe('completed');
     expect(askUser.run).toHaveBeenLastCalledWith(
@@ -258,7 +273,7 @@ describe('ConnectGitHubWorkflow', () => {
   });
 
   it('disconnects the remote when syncing is cancelled', async () => {
-    const result = await linkExisting('diverged', 'Cancel (disconnect remote)');
+    const result = await linkExisting('2\t3', 'Cancel (disconnect remote)');
 
     expect(result.status).toBe('completed');
     expect(bash.call).toHaveBeenLastCalledWith({ command: 'git remote remove origin' });

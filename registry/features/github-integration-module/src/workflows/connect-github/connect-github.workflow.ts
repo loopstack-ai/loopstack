@@ -16,13 +16,36 @@ import { BashTool } from '@loopstack/remote-client';
 
 const AnswerSchema = z.object({ answer: z.string() });
 
+/** Branch names safe to interpolate into a shell command. */
+const BRANCH_NAME = /^(?!-)(?!.*\.\.)(?!.*\/\/)[A-Za-z0-9._/-]+(?<![./])$/;
+
+type DivergenceState = 'none' | 'local_ahead' | 'remote_ahead' | 'diverged';
+
 interface ConnectGitHubState {
   requiresAuth?: boolean;
   user?: { login: string; name: string | null; email: string | null };
-  repo?: { fullName: string; name: string; htmlUrl: string; private: boolean; defaultBranch: string };
+  repo?: { fullName: string; name: string; htmlUrl: string; private: boolean; defaultBranch?: string };
   isNewRepo?: boolean;
-  divergenceState?: 'none' | 'local_ahead' | 'remote_ahead' | 'diverged';
+  branch?: string;
+  divergenceState?: DivergenceState;
   hasUncommittedChanges?: boolean;
+}
+
+/**
+ * Classifies the last line of the divergence check: `no_remote` when `origin/<branch>` does not exist,
+ * otherwise the `<behind> <ahead>` counts of `git rev-list --left-right --count origin/<branch>...<branch>`.
+ */
+function parseDivergence(output: string): DivergenceState | undefined {
+  const line = output.trim().split('\n').pop()?.trim() ?? '';
+  if (line === 'no_remote') return 'local_ahead';
+  const match = /^(\d+)\s+(\d+)$/.exec(line);
+  if (!match) return undefined;
+  const behind = Number(match[1]);
+  const ahead = Number(match[2]);
+  if (behind === 0 && ahead === 0) return 'none';
+  if (ahead === 0) return 'remote_ahead';
+  if (behind === 0) return 'local_ahead';
+  return 'diverged';
 }
 
 /**
@@ -61,6 +84,16 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
   private async getGitHubToken(ctx: RunContext): Promise<string | undefined> {
     return (await this.tokenStore.getValidAccessToken(ctx.userId, 'github')) ?? undefined;
+  }
+
+  /** Runs a shell command in the workspace and throws when it exits non-zero. */
+  private async runBash(command: string): Promise<string> {
+    const result = await this.bash.call({ command });
+    const { output, exitCode } = result.data;
+    if (exitCode !== 0) {
+      throw new Error(`\`${command}\` failed with exit code ${exitCode}: ${output.trim()}`);
+    }
+    return output;
   }
 
   // ── Step 1: Check if already authenticated ──────────────────────────
@@ -168,7 +201,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
         name,
         htmlUrl: `https://github.com/${fullName}`,
         private: false,
-        defaultBranch: 'main',
       },
       isNewRepo: false,
     });
@@ -229,8 +261,8 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       return;
     }
 
-    await this.bash.call({ command: 'git add -A' });
-    await this.bash.call({ command: 'git commit -m "Auto-commit before connecting to GitHub"' });
+    await this.runBash('git add -A');
+    await this.runBash('git commit -m "Auto-commit before connecting to GitHub"');
   }
 
   // ── Step 4b: Configure remote and check for divergence ──────────────
@@ -253,29 +285,27 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     const token = await this.getGitHubToken(ctx);
     await this.gitFetch.call({ remote: 'origin', token });
 
-    // Determine relationship between local and remote branches
-    if (!state.isNewRepo) {
-      const checkResult = await this.bash.call({
-        command: [
-          'REMOTE_EXISTS=$(git rev-parse --verify origin/main 2>/dev/null && echo yes || echo no)',
-          'if [ "$REMOTE_EXISTS" = "no" ]; then echo "no_remote"; exit 0; fi',
-          'LOCAL=$(git rev-parse main)',
-          'REMOTE=$(git rev-parse origin/main)',
-          'if [ "$LOCAL" = "$REMOTE" ]; then echo "same"; exit 0; fi',
-          'git merge-base --is-ancestor main origin/main && echo "remote_ahead" && exit 0',
-          'git merge-base --is-ancestor origin/main main && echo "local_ahead" && exit 0',
-          'echo "diverged"',
-        ].join(' && '),
-      });
-      const divergeState = checkResult.data.output.trim().split('\n').pop()!.trim();
-      if (divergeState === 'same' || divergeState === 'no_remote') {
-        this.assignState({ divergenceState: 'none' });
-      } else {
-        this.assignState({ divergenceState: divergeState as 'local_ahead' | 'remote_ahead' | 'diverged' });
-      }
-    } else {
+    if (state.isNewRepo) {
       this.assignState({ divergenceState: 'none' });
+      return;
     }
+
+    // Compare the checked-out branch with the same branch on the remote
+    const statusResult = await this.gitStatus.call();
+    const branch = statusResult.data.branch;
+    if (!BRANCH_NAME.test(branch)) {
+      throw new Error(`Cannot connect the workspace: no usable branch is checked out (git reports "${branch}").`);
+    }
+
+    const output = await this.runBash(
+      `if git rev-parse --verify --quiet refs/remotes/origin/${branch} >/dev/null; ` +
+        `then git rev-list --left-right --count origin/${branch}...${branch}; else echo no_remote; fi`,
+    );
+    const divergenceState = parseDivergence(output);
+    if (!divergenceState) {
+      throw new Error(`Could not compare branch "${branch}" with origin/${branch}: ${output.trim()}`);
+    }
+    this.assignState({ branch, divergenceState });
   }
 
   // ── Step 5a: No divergence or local ahead — just push ────────────────
@@ -287,11 +317,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       // Already in sync — nothing to push
       return;
     }
-    // local_ahead — fast-forward push
-    const statusResult = await this.gitStatus.call();
-    const branch = statusResult.data.branch ?? 'main';
+    // local_ahead — fast-forward push (creates the remote branch if it does not exist yet)
     const token = await this.getGitHubToken(ctx);
-    await this.gitPush.call({ remote: 'origin', branch, token });
+    await this.gitPush.call({ remote: 'origin', branch: state.branch, token });
   }
 
   private canPushDirectly(state: ConnectGitHubState): boolean {
@@ -325,20 +353,19 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   @Transition({ from: 'awaiting_sync_choice', to: 'done', wait: true, schema: AnswerSchema })
   async syncStrategyChosen(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>, ctx: RunContext) {
     const answer = input.data.answer;
-    const statusResult = await this.gitStatus.call();
-    const branch = statusResult.data.branch ?? 'main';
+    const branch = state.branch;
 
     const token = await this.getGitHubToken(ctx);
 
     if (answer.startsWith('Use remote code')) {
-      await this.bash.call({ command: `git reset --hard origin/${branch}` });
+      await this.runBash(`git reset --hard origin/${branch}`);
     } else if (answer.startsWith('Pull remote changes') || answer.startsWith('Merge remote changes')) {
-      await this.bash.call({ command: `git merge origin/${branch} --allow-unrelated-histories --no-edit` });
+      await this.runBash(`git merge origin/${branch} --allow-unrelated-histories --no-edit`);
       await this.gitPush.call({ remote: 'origin', branch, token });
     } else if (answer.startsWith('Push workspace code')) {
       await this.gitPush.call({ remote: 'origin', branch, force: true, token });
     } else {
-      await this.bash.call({ command: 'git remote remove origin' });
+      await this.runBash('git remote remove origin');
       this.assignState({ repo: undefined });
     }
   }

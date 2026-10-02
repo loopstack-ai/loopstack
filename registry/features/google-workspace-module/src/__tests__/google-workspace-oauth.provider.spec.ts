@@ -158,6 +158,16 @@ describe('GoogleWorkspaceOAuthProvider', () => {
       expect(result).toEqual({ accessToken: 'access-2', expiresIn: 3599, scope: 'openid' });
     });
 
+    it('returns a rotated refresh token from the refresh response', async () => {
+      fetchMock.mockResolvedValue(
+        Response.json({ access_token: 'access-2', refresh_token: 'refresh-2', expires_in: 3599, scope: 'openid' }),
+      );
+
+      const result = await provider.refreshToken('refresh-1');
+
+      expect(result).toEqual({ accessToken: 'access-2', refreshToken: 'refresh-2', expiresIn: 3599, scope: 'openid' });
+    });
+
     it('throws with the status and body when the refresh fails', async () => {
       fetchMock.mockResolvedValue(new Response('{"error":"invalid_grant"}', { status: 400 }));
 

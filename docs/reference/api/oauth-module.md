@@ -259,7 +259,7 @@ import { OAuthTokenSet } from '@loopstack/oauth-module';
 export interface OAuthTokenSet {
   accessToken: string;
   refreshToken?: string;
-  expiresIn: number;
+  expiresIn?: number;
   scope: string;
 }
 ```
@@ -276,7 +276,7 @@ import { StoredTokens } from '@loopstack/oauth-module';
 export interface StoredTokens {
   accessToken: string;
   refreshToken?: string;
-  expiresAt: number;
+  expiresAt?: number;
   scope: string;
 }
 ```

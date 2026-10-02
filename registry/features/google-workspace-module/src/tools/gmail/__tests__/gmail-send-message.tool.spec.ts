@@ -52,9 +52,47 @@ describe('GmailSendMessageTool', () => {
       const schema = getBlockArgsSchema(tool)!;
       expect(() => schema.parse({ to: ['a@example.com'], subject: 'Hi', body: 'x', extra: true })).toThrow();
     });
+
+    it('rejects line breaks in header fields', () => {
+      const schema = getBlockArgsSchema(tool)!;
+      const valid = { to: ['a@example.com'], subject: 'Hi', body: 'line 1\r\nline 2' };
+      expect(() => schema.parse(valid)).not.toThrow();
+      expect(() => schema.parse({ ...valid, subject: 'Hi\r\nBcc: evil@x.com' })).toThrow(/line breaks/);
+      expect(() => schema.parse({ ...valid, to: ['a@x.com\r\nBcc: evil@x.com'] })).toThrow(/line breaks/);
+      expect(() => schema.parse({ ...valid, cc: ['c@x.com\nBcc: evil@x.com'] })).toThrow(/line breaks/);
+      expect(() => schema.parse({ ...valid, bcc: ['d@x.com\rX: y'] })).toThrow(/line breaks/);
+    });
   });
 
   describe('execution', () => {
+    it('sends a non-ASCII subject as RFC 2047 encoded-words', async () => {
+      fetchMock.mockResolvedValue(Response.json({ id: 'm1', threadId: 't1', labelIds: ['SENT'] }));
+
+      await tool.call({ to: ['a@example.com'], subject: 'Grüße ✓', body: 'x' });
+
+      expect(decodedMessage().split('\r\n')).toContain(
+        `Subject: =?UTF-8?B?${Buffer.from('Grüße ✓').toString('base64')}?=`,
+      );
+    });
+
+    it('splits a long non-ASCII subject into encoded-words of at most 75 characters', async () => {
+      fetchMock.mockResolvedValue(Response.json({ id: 'm1', threadId: 't1', labelIds: ['SENT'] }));
+      const subject = 'Überprüfung der Änderungen ✓ '.repeat(4).trim();
+
+      await tool.call({ to: ['a@example.com'], subject, body: 'x' });
+
+      const headerBlock = decodedMessage().split('\r\n\r\n')[0];
+      const subjectHeader = /^Subject: (.*(?:\r\n .*)*)$/m.exec(headerBlock)![1];
+      const words = subjectHeader.split('\r\n ');
+      expect(words.length).toBeGreaterThan(1);
+      for (const word of words) {
+        expect(word).toMatch(/^=\?UTF-8\?B\?[A-Za-z0-9+/=]+\?=$/);
+        expect(word.length).toBeLessThanOrEqual(75);
+      }
+      const decoded = words.map((word) => Buffer.from(word.slice(10, -2), 'base64').toString('utf8')).join('');
+      expect(decoded).toBe(subject);
+    });
+
     it('sends a base64url-encoded plain-text RFC 2822 message', async () => {
       fetchMock.mockResolvedValue(Response.json({ id: 'm1', threadId: 't1', labelIds: ['SENT'] }));
 

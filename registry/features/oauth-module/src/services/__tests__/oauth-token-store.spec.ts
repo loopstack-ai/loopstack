@@ -103,6 +103,95 @@ describe('OAuthTokenStore', () => {
         );
       });
 
+      it('stores a rotated refresh token and uses it for the next refresh', async () => {
+        await store.storeTokens('user-1', 'acme', tokens({ expiresAt: NOW - 1000 }));
+        provider.refreshToken.mockResolvedValueOnce({
+          accessToken: 'at-2',
+          refreshToken: 'rt-2',
+          expiresIn: 1800,
+          scope: 'profile',
+        });
+
+        expect(await store.getValidAccessToken('user-1', 'acme')).toBe('at-2');
+        expect(await store.getTokens('user-1', 'acme')).toEqual(
+          tokens({ accessToken: 'at-2', refreshToken: 'rt-2', expiresAt: NOW + 1800_000 }),
+        );
+
+        vi.setSystemTime(NOW + 1800_000);
+        provider.refreshToken.mockResolvedValueOnce({
+          accessToken: 'at-3',
+          refreshToken: 'rt-3',
+          expiresIn: 1800,
+          scope: 'profile',
+        });
+
+        expect(await store.getValidAccessToken('user-1', 'acme')).toBe('at-3');
+        expect(provider.refreshToken.mock.calls).toEqual([['rt-1'], ['rt-2']]);
+      });
+
+      it('keeps the stored refresh token when the refresh returns none', async () => {
+        await store.storeTokens('user-1', 'acme', tokens({ expiresAt: NOW - 1000 }));
+        provider.refreshToken.mockResolvedValue({ accessToken: 'at-new', expiresIn: 1800, scope: 'profile' });
+
+        await store.getValidAccessToken('user-1', 'acme');
+
+        expect((await store.getTokens('user-1', 'acme'))?.refreshToken).toBe('rt-1');
+      });
+
+      it('stores the scope returned by the refresh', async () => {
+        await store.storeTokens('user-1', 'acme', tokens({ expiresAt: NOW - 1000 }));
+        provider.refreshToken.mockResolvedValue({ accessToken: 'at-new', expiresIn: 1800, scope: 'profile email' });
+
+        await store.getValidAccessToken('user-1', 'acme');
+
+        expect((await store.getTokens('user-1', 'acme'))?.scope).toBe('profile email');
+      });
+
+      it('keeps the stored scope when the refresh returns none', async () => {
+        await store.storeTokens('user-1', 'acme', tokens({ expiresAt: NOW - 1000 }));
+        provider.refreshToken.mockResolvedValue({ accessToken: 'at-new', expiresIn: 1800, scope: '' });
+
+        await store.getValidAccessToken('user-1', 'acme');
+
+        expect((await store.getTokens('user-1', 'acme'))?.scope).toBe('profile');
+      });
+
+      it('treats a token set without expiresIn as not expiring', async () => {
+        await store.storeFromTokenSet('user-1', 'acme', {
+          accessToken: 'at-1',
+          refreshToken: 'rt-1',
+          scope: 'profile',
+        });
+
+        expect(await store.getTokens('user-1', 'acme')).toEqual({
+          accessToken: 'at-1',
+          refreshToken: 'rt-1',
+          expiresAt: undefined,
+          scope: 'profile',
+        });
+
+        vi.setSystemTime(NOW + 365 * 24 * 3600_000);
+
+        expect(await store.getValidAccessToken('user-1', 'acme')).toBe('at-1');
+        expect(provider.refreshToken).not.toHaveBeenCalled();
+      });
+
+      it('keeps a token without expiresIn or refresh token', async () => {
+        await store.storeFromTokenSet('user-1', 'acme', { accessToken: 'at-1', scope: 'profile' });
+
+        expect(await store.getValidAccessToken('user-1', 'acme')).toBe('at-1');
+        expect(await store.getTokens('user-1', 'acme')).toBeDefined();
+      });
+
+      it('stores no expiry when the refresh returns no expiresIn', async () => {
+        await store.storeTokens('user-1', 'acme', tokens({ expiresAt: NOW - 1000 }));
+        provider.refreshToken.mockResolvedValue({ accessToken: 'at-new', scope: 'profile' });
+
+        expect(await store.getValidAccessToken('user-1', 'acme')).toBe('at-new');
+        expect(await store.getValidAccessToken('user-1', 'acme')).toBe('at-new');
+        expect(provider.refreshToken).toHaveBeenCalledTimes(1);
+      });
+
       it('refreshes an already expired token', async () => {
         await store.storeTokens('user-1', 'acme', tokens({ expiresAt: NOW - 1000 }));
         provider.refreshToken.mockResolvedValue({ accessToken: 'at-new', expiresIn: 3600, scope: 'profile' });
@@ -167,6 +256,21 @@ describe('OAuthTokenStore', () => {
       await store.storeTokens('user-1', 'acme', tokens({ refreshToken: undefined, expiresAt: NOW - 5000 }));
 
       expect(redis.set).toHaveBeenCalledWith('oauth:user-1:acme', expect.any(String), 'EX', 1);
+    });
+
+    it('keeps tokens without expiry or refresh token for 30 days', async () => {
+      await store.storeFromTokenSet('user-1', 'acme', { accessToken: 'at-1', scope: 'profile' });
+
+      expect(redis.set).toHaveBeenCalledWith('oauth:user-1:acme', expect.any(String), 'EX', 30 * 24 * 60 * 60);
+    });
+
+    it('treats a stored null expiry as not expiring', async () => {
+      redis.get.mockResolvedValueOnce(
+        JSON.stringify({ accessToken: 'at-1', refreshToken: 'rt-1', expiresAt: null, scope: 'profile' }),
+      );
+
+      expect(await store.getValidAccessToken('user-1', 'acme')).toBe('at-1');
+      expect(provider.refreshToken).not.toHaveBeenCalled();
     });
 
     it('reads and parses stored tokens', async () => {

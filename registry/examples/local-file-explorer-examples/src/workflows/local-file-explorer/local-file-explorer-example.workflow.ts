@@ -2,7 +2,7 @@ import { BaseWorkflow, MarkdownDocument, Transition, Workflow } from '@loopstack
 import { FileSystemService } from '@loopstack/local-file-explorer-module';
 
 @Workflow({
-  title: 'Filesystem - Local File Explorer Example',
+  title: 'Local File Explorer - File Tree Example',
   description:
     'Demonstrates @loopstack/local-file-explorer-module — uses FileSystemService to build a file tree of the workspace root and render it as markdown. The module also exposes a REST API for the Studio file panel.',
 })

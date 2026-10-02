@@ -104,7 +104,9 @@ export class GoogleDriveUploadFileTool extends BaseTool<
       `--${boundary}--`,
     ].join('\r\n');
 
-    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    const url =
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,webViewLink';
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,

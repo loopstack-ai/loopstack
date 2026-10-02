@@ -1,6 +1,6 @@
 ---
 title: Configuration Reference
-description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS, run trace persistence (trace / LOOPSTACK_TRACE), and default settings.
+description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS (cors, corsOrigins / CORS_ORIGINS / FRONTEND_URL allowlist), run trace persistence (trace / LOOPSTACK_TRACE), and default settings.
 ---
 
 # Configuration
@@ -19,7 +19,8 @@ LoopstackModule.forRoot({
   database: { ... },        // PostgreSQL connection
   redis: { ... },           // Redis connection
   auth: { ... },            // JWT and hub auth settings
-  cors: { ... },            // CORS configuration
+  cors: { ... },            // full CORS override
+  corsOrigins: [ ... ],     // extra allowed origins for the default CORS policy
 })
 ```
 
@@ -92,7 +93,39 @@ When `enableAuth` is `true`, `JWT_SECRET` (and `JWT_REFRESH_SECRET`) must be set
 
 ### `cors`
 
-Standard NestJS/Express CORS options (the [`cors`](https://github.com/expressjs/cors#configuration-options) package). Defaults to `{ origin: true, credentials: true }`. Set to `false` to disable CORS.
+Full CORS override, passed straight to the [`cors`](https://github.com/expressjs/cors#configuration-options) middleware. When set it is used verbatim and `corsOrigins` is ignored. Set to `false` to disable CORS.
+
+When `cors` is not set, a default policy with `credentials: true` is used. It allows:
+
+- requests without an `Origin` header (same-origin navigations and non-browser clients such as `curl` or server-to-server calls);
+- any `http://` or `https://` origin on `localhost`, `127.0.0.1` or `[::1]`, on any port;
+- the origins listed in [`corsOrigins`](#corsorigins).
+
+Every other origin is rejected, so the browser blocks the response. Local development works without configuration; a deployment that serves Studio or another browser client from its own domain must add that origin to `corsOrigins`.
+
+> Do not set `cors: { origin: true, credentials: true }`. It reflects any origin with credentials, letting every website make authenticated requests to your API on behalf of a signed-in user. Use `corsOrigins` to allow specific origins instead.
+
+### `corsOrigins`
+
+Extra origins allowed by the default CORS policy, in addition to localhost. Ignored when `cors` is set.
+
+| Option        | Env var                                        | Default               |
+| ------------- | ---------------------------------------------- | --------------------- |
+| `corsOrigins` | `CORS_ORIGINS`, falling back to `FRONTEND_URL` | none (localhost only) |
+
+The env vars are read only when `corsOrigins` is not set or empty, and take a comma-separated list. `FRONTEND_URL` is used only when `CORS_ORIGINS` is not set at all.
+
+Origins are compared exactly against the browser's `Origin` header — scheme, host and port, with no path or trailing slash:
+
+```typescript
+LoopstackModule.forRoot({
+  corsOrigins: ['https://studio.example.com', 'https://app.example.com:8443'],
+});
+```
+
+```dotenv
+CORS_ORIGINS=https://studio.example.com,https://app.example.com:8443
+```
 
 ### `trace`
 

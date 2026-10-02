@@ -133,6 +133,19 @@ describe('GitHubGetFileContentTool', () => {
       expect(fetchMock.mock.calls[0][0]).toBe('https://api.github.com/repos/a%2Fb/c%20d/contents/src/index.ts');
     });
 
+    it.each([
+      ['docs/a#b.md', 'docs/a%23b.md'],
+      ['docs/what?.md', 'docs/what%3F.md'],
+      ['docs/100%.md', 'docs/100%25.md'],
+      ['docs/50%25.md', 'docs/50%2525.md'],
+    ])('URL-encodes each segment of the path %s', async (path, encoded) => {
+      fetchMock.mockResolvedValue(new Response('nope', { status: 404, statusText: 'Not Found' }));
+
+      await execute({ owner: 'octo', repo: 'hello', path, ref: 'main' });
+
+      expect(fetchMock.mock.calls[0][0]).toBe(`https://api.github.com/repos/octo/hello/contents/${encoded}?ref=main`);
+    });
+
     it('returns unauthorized without calling the API when no token is available', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
 
