@@ -50,8 +50,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response): AuthMessageInterface {
-    res.clearCookie(this.tokenService.getCookieName('access'));
-    res.clearCookie(this.tokenService.getCookieName('refresh'));
+    // A clearing cookie only replaces the stored one when domain, secure and sameSite match how it was set.
+    res.clearCookie(this.tokenService.getCookieName('access'), this.tokenService.createAccessTokenCookieOptions());
+    res.clearCookie(this.tokenService.getCookieName('refresh'), this.tokenService.createRefreshTokenCookieOptions());
     return { message: 'Logout successful' };
   }
 
