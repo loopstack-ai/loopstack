@@ -77,7 +77,7 @@ Two helpers turn traces into answers. `coverage(runs, WorkflowClass)` reports st
 
 ## Asserting the park view
 
-A workflow can park at the right place and still show the user nothing answerable — a document saved at the wrong place, a widget whose transition isn't available, a prompt hidden by `hideAtPlaces`. `run.status` and `run.place` cannot catch that class of bug; `run.parkView()` can. It answers "what would the human actually see?" using the **same canonical rules** the CLI's interactive prompts run on (shared via `@loopstack/contracts/park-view`), walking the whole run tree — HITL prompts usually live on a sub-workflow:
+A workflow can park at the right place and still show the user nothing answerable — a document saved at the wrong place, a widget whose transition isn't available, a prompt hidden by `hideAtPlaces`. `run.status` and `run.place` cannot catch that class of bug; `run.parkView()` can. It answers "what would the human actually see?" using the **same canonical rules** Studio and the CLI use to pick the prompt (shared via `@loopstack/contracts/park-view`), walking the whole run tree — HITL prompts usually live on a sub-workflow:
 
 ```ts
 const run = await runWorkflow(AskUserTextExampleWorkflow, undefined, {
@@ -94,7 +94,7 @@ expect(view).toMatchObject({
 });
 ```
 
-The view carries the prompting workflow, the widget type, the prompt `content`, the answer-payload `schema`, widget `options`, the available `transitions`, the `defaultTransition`, and — for multi-action forms — the currently submittable action labels in `actions`. The rules honor visibility (`hideAtPlaces`, internal documents), place activity (`enableAtPlaces` included), and answered-ness (`answer: false` is an answer — presence counts, not truthiness). A run failed at an error place with recovery transitions is a prompt source too, so recovery screens are assertable like any other park.
+The view carries the prompting workflow, the widget type, the prompt `content`, the answer-payload `schema`, widget `options`, the available `transitions`, the `defaultTransition`, and — for multi-action forms — the currently submittable action labels in `actions`. The rules honor visibility (`hideAtPlaces`, internal documents), place activity (`enableAtPlaces` included), and answered-ness (`answer: false` is an answer — presence counts, not truthiness). A run failed at an error place with recovery transitions is a prompt source too, so recovery screens are assertable like any other park. When a park offers several candidates, the view is the one the rules pick — in run-tree order, and within each workflow its document prompts before its workflow-level widgets; [Prompt Selection Rules](../reference/prompt-selection.md) describes the full order and the lone-transition rule for widgets that declare no transition.
 
 Two degenerate results are themselves meaningful assertions: a park with nothing renderable returns a view **without** `widget`/`documentName` (the user would see a bare waiting run — often the bug), and a terminal run returns `undefined`.
 
