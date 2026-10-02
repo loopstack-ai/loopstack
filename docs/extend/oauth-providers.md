@@ -61,7 +61,7 @@ The return type for `exchangeCode` and `refreshToken`:
 interface OAuthTokenSet {
   accessToken: string;
   refreshToken?: string;
-  expiresIn: number; // seconds until expiry
+  expiresIn?: number; // seconds until expiry; omit when the provider reports none (never expires)
   scope: string;
 }
 ```
