@@ -110,6 +110,27 @@ describe('GitHubOAuthProvider', () => {
       await expect(provider.exchangeCode('code-xyz')).rejects.toThrow('GitHub token exchange failed: Bad Request');
     });
 
+    it("throws with GitHub's error description when the exchange is rejected with HTTP 200", async () => {
+      fetchMock.mockResolvedValue(
+        Response.json({
+          error: 'bad_verification_code',
+          error_description: 'The code passed is incorrect or expired.',
+        }),
+      );
+
+      await expect(provider.exchangeCode('code-xyz')).rejects.toThrow(
+        'GitHub token exchange failed: The code passed is incorrect or expired.',
+      );
+    });
+
+    it('throws when the response carries no access token', async () => {
+      fetchMock.mockResolvedValue(Response.json({}));
+
+      await expect(provider.exchangeCode('code-xyz')).rejects.toThrow(
+        'GitHub token exchange failed: no access token returned',
+      );
+    });
+
     it.each(['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET'])(
       'throws without calling GitHub when %s is not configured',
       async (key) => {

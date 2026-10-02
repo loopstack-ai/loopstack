@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
+import { encodeContentPath } from './encode-content-path.js';
 
 const inputSchema = z
   .object({
@@ -97,7 +98,7 @@ export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, o
     if (args.ref) params.set('ref', args.ref);
 
     const dirPath = args.path ?? '';
-    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/contents/${dirPath}${params.toString() ? `?${params.toString()}` : ''}`;
+    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/contents/${encodeContentPath(dirPath)}${params.toString() ? `?${params.toString()}` : ''}`;
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -129,14 +130,25 @@ export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, o
       };
     }
 
-    const data = (await response.json()) as Array<{
-      name: string;
-      path: string;
-      sha: string;
-      size: number;
-      type: string;
-      html_url: string;
-    }>;
+    const data = (await response.json()) as
+      | Array<{
+          name: string;
+          path: string;
+          sha: string;
+          size: number;
+          type: string;
+          html_url: string;
+        }>
+      | { type: string };
+
+    // For a file, symlink or submodule path GitHub returns a single object instead of a listing.
+    if (!Array.isArray(data)) {
+      const message = `'${dirPath}' is not a directory.`;
+      return {
+        data: { error: 'not_a_directory', message },
+        error: message,
+      };
+    }
 
     const entries = data.map((entry) => ({
       name: entry.name,

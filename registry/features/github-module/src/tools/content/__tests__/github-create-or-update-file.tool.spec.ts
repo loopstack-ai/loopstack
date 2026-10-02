@@ -126,6 +126,14 @@ describe('GitHubCreateOrUpdateFileTool', () => {
       expect(request()[0]).toBe('https://api.github.com/repos/a%2Fb/c%20d/contents/docs/readme.md');
     });
 
+    it('URL-encodes each segment of the path', async () => {
+      fetchMock.mockResolvedValue(new Response('nope', { status: 404, statusText: 'Not Found' }));
+
+      await execute({ ...args, path: 'docs/a#b?.md' });
+
+      expect(request()[0]).toBe('https://api.github.com/repos/octo/hello/contents/docs/a%23b%3F.md');
+    });
+
     it('returns unauthorized without calling the API when no token is available', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
 

@@ -69,6 +69,13 @@ describe('ExchangeOAuthTokenTool', () => {
       });
     });
 
+    it('throws without storing anything when the provider returns no access token', async () => {
+      provider.exchangeCode.mockResolvedValue({ expiresIn: 3600 });
+
+      await expect(tool.call(args)).rejects.toThrow("OAuth token exchange with 'acme' returned no access token.");
+      expect(mockTokenStore.storeFromTokenSet).not.toHaveBeenCalled();
+    });
+
     it('rejects a state mismatch without exchanging the code', async () => {
       await expect(tool.call({ ...args, state: 'forged' })).rejects.toThrow(
         'OAuth state mismatch. Possible CSRF attack.',

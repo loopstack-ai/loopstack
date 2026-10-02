@@ -1146,7 +1146,7 @@ export type GitHubListPrReviewsArgs = z.infer<typeof inputSchema>;
 ### GitHubListPrReviewsResult
 
 Result for `GitHubListPrReviewsTool`: a `reviews` array with reviewer, body, state
-and submission time, or an `error`.
+and submission time (absent for a pending review), or an `error`.
 
 ```ts
 import { GitHubListPrReviewsResult } from '@loopstack/github-module';
@@ -1160,7 +1160,7 @@ export type GitHubListPrReviewsResult =
         user: string;
         body: string;
         state: string;
-        submittedAt: string;
+        submittedAt?: string;
         htmlUrl: string;
       }>;
     }
@@ -2035,7 +2035,7 @@ GitHubListPrReviewsResultSchema: z.ZodObject<
           user: z.ZodString;
           body: z.ZodString;
           state: z.ZodString;
-          submittedAt: z.ZodString;
+          submittedAt: z.ZodOptional<z.ZodString>;
           htmlUrl: z.ZodString;
         },
         z.core.$strict
