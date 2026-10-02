@@ -79,17 +79,20 @@ Alternatively, set a single **`REDIS_URL`** (e.g. `redis://host:6379`) — commo
 
 JWT and hub authentication settings. Only relevant when `enableAuth` is `true`.
 
-| Option                      | Env var                  | Default                         |
-| --------------------------- | ------------------------ | ------------------------------- |
-| `auth.jwt.secret`           | `JWT_SECRET`             | _required when auth is enabled_ |
-| `auth.jwt.expiresIn`        | `JWT_EXPIRES_IN`         | `1h`                            |
-| `auth.jwt.refreshSecret`    | `JWT_REFRESH_SECRET`     | value of `JWT_SECRET`           |
-| `auth.jwt.refreshExpiresIn` | `JWT_REFRESH_EXPIRES_IN` | `7d`                            |
+| Option                      | Env var                  | Default                                          |
+| --------------------------- | ------------------------ | ------------------------------------------------ |
+| `auth.jwt.secret`           | `JWT_SECRET`             | _required when auth is enabled_                  |
+| `auth.jwt.expiresIn`        | `JWT_EXPIRES_IN`         | `1h`                                             |
+| `auth.jwt.refreshSecret`    | `JWT_REFRESH_SECRET`     | value of `JWT_SECRET`                            |
+| `auth.jwt.refreshExpiresIn` | `JWT_REFRESH_EXPIRES_IN` | `7d`                                             |
+| `auth.jwt.cookieDomain`     | `JWT_COOKIE_DOMAIN`      | _unset (host-only cookies)_                      |
+| `auth.clientId`             | `CLIENT_ID`              | `local`                                          |
+| `auth.hub.issuer`           | `HUB_ISSUER`             | `https://hub.loopstack.ai`                       |
+| `auth.hub.jwksUri`          | `HUB_JWKS_URI`           | `https://hub.loopstack.ai/.well-known/jwks.json` |
 
 When `enableAuth` is `true`, `JWT_SECRET` (and `JWT_REFRESH_SECRET`) must be set to a strong, unique value of at least 32 characters — the server refuses to start otherwise, and known/default values are rejected. When auth is disabled, an insecure development secret is used automatically (it never signs trusted tokens, since the local-user shortcut bypasses JWT verification).
-| `auth.clientId` | `CLIENT_ID` | `local` |
-| `auth.hub.issuer` | `HUB_ISSUER` | `https://hub.loopstack.ai` |
-| `auth.hub.jwksUri` | `HUB_JWKS_URI` | `https://hub.loopstack.ai/.well-known/jwks.json` |
+
+`auth.jwt.cookieDomain` sets the `Domain` attribute of the access and refresh cookies. Leave it unset unless a host other than the API must receive them — for example `.example.com` to share them across subdomains. The Studio sends cookies with every API request, so it works with host-only cookies on the API host.
 
 ### `cors`
 
