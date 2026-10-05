@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { CurrentUser, CurrentUserInterface, Public, User, ZodValidationPipe } from '@loopstack/common';
 import {
   AuthMessageInterface,

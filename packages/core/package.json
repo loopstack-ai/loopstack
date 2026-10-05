@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.42.0",
+    "@loopstack/contracts": "^0.42.0",
     "@nestjs/bullmq": "^12.0.0",
     "@nestjs/config": "^12.0.0",
     "@nestjs/event-emitter": "^12.0.0",
@@ -48,10 +49,13 @@
   "devDependencies": {
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
+    "@nestjs/typeorm": "^12.0.1",
     "@swc/core": "^1.15.33",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
+    "typeorm": "^0.3.28",
     "unplugin-swc": "^1.5.9",
     "vitest": "^4.1.6",
     "zod": "^4.3.6"
@@ -59,9 +63,12 @@
   "peerDependencies": {
     "@nestjs/common": "^11.0.0 || ^12.0.0",
     "@nestjs/core": "^11.0.0 || ^12.0.0",
+    "@nestjs/typeorm": "^11.0.0 || ^12.0.0",
     "class-transformer": "^0.5.0",
     "class-validator": "^0.15.0",
+    "reflect-metadata": "^0.2.0",
     "rxjs": "^7.0.0",
+    "typeorm": "^0.3.0",
     "zod": "^4.0.0"
   },
   "files": [

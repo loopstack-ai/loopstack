@@ -35,6 +35,7 @@
     "@loopstack/agent": "^0.6.2",
     "@loopstack/common": "^0.42.0",
     "@loopstack/core": "^0.43.0",
+    "@loopstack/llm-provider-module": "^0.10.2",
     "@loopstack/remote-client": "^0.28.3"
   },
   "devDependencies": {

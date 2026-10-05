@@ -1,7 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { JWTVerifyGetKey, createRemoteJWKSet, jwtVerify } from 'jose';
 import { Strategy } from 'passport-custom';
 import { UserTypeEnum } from '@loopstack/common';

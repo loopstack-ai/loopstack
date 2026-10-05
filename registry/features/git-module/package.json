@@ -38,6 +38,7 @@
   "devDependencies": {
     "@loopstack/testing": "^0.43.0",
     "@nestjs/common": "^12.0.1",
+    "@nestjs/testing": "^12.0.1",
     "@nestjs/typeorm": "^12.0.1",
     "@swc/core": "^1.15.33",
     "typeorm": "^0.3.28",
