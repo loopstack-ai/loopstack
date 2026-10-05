@@ -1,4 +1,5 @@
 import { registerAs } from '@nestjs/config';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AuthConfig } from '@loopstack/auth';
 import { AppConfig } from '@loopstack/core';
 import { LoopstackModuleOptions } from './interfaces/index.js';
@@ -50,4 +51,27 @@ export function buildAuthConfig(options: LoopstackModuleOptions) {
       },
     };
   });
+}
+
+export function buildDatabaseOptions(options: LoopstackModuleOptions): TypeOrmModuleOptions {
+  const db = options.database ?? {};
+  // A single DATABASE_URL is honored (managed/hosted environments, PaaS) when no programmatic
+  // database options are given; otherwise fall back to the discrete DATABASE_* vars + defaults.
+  const databaseUrl = !options.database ? process.env.DATABASE_URL : undefined;
+
+  return {
+    type: 'postgres',
+    ...(databaseUrl
+      ? { url: databaseUrl }
+      : {
+          host: db.host ?? process.env.DATABASE_HOST ?? 'localhost',
+          port: db.port ?? (Number(process.env.DATABASE_PORT) || 5432),
+          username: db.username ?? process.env.DATABASE_USERNAME ?? 'postgres',
+          database: db.database ?? process.env.DATABASE_NAME ?? 'postgres',
+          password: db.password ?? process.env.DATABASE_PASSWORD ?? 'admin',
+        }),
+    autoLoadEntities: true,
+    synchronize: true,
+    migrationsRun: false,
+  };
 }
