@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@nestjs/common": "^12.0.1",
+    "@nestjs/testing": "^12.0.1",
     "@swc/core": "^1.15.33",
     "@types/dockerode": "^4.0.1",
     "unplugin-swc": "^1.5.9",

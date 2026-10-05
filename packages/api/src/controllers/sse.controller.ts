@@ -1,5 +1,5 @@
 import { Controller, Get, MessageEvent, Query, Req, Sse, UsePipes, ValidationPipe } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { Observable, concat, from, interval, merge } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CurrentUser, CurrentUserInterface, RoleName, Roles } from '@loopstack/common';

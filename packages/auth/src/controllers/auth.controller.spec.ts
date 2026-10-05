@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthService, TokenService } from '../services/index.js';
 import { AuthController } from './auth.controller.js';

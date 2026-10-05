@@ -2,7 +2,7 @@ import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/com
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { API_TOKEN_PREFIX, CurrentUserInterface, IS_PUBLIC_KEY } from '@loopstack/common';
 import { UserTypeEnum } from '@loopstack/common';
 import { UserRepository } from '../repositories/index.js';

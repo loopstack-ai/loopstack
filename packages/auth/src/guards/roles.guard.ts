@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { CurrentUserInterface, ROLES_KEY, RoleName } from '@loopstack/common';
 
 @Injectable()

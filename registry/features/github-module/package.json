@@ -33,10 +33,12 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.42.0",
-    "@loopstack/oauth-module": "^0.5.4"
+    "@loopstack/oauth-module": "^0.5.4",
+    "@nestjs/config": "^12.0.0"
   },
   "devDependencies": {
     "@loopstack/testing": "^0.43.0",
+    "@nestjs/common": "^12.0.1",
     "@nestjs/testing": "^12.0.1",
     "@swc/core": "^1.15.33",
     "unplugin-swc": "^1.5.9",
@@ -44,6 +46,7 @@
     "zod": "^4.3.6"
   },
   "peerDependencies": {
+    "@nestjs/common": "^11.0.0 || ^12.0.0",
     "zod": "^4.0.0"
   },
   "files": [

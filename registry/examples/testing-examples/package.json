@@ -41,6 +41,7 @@
     "@loopstack/testing": "*",
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",
-    "unplugin-swc": "^1.5.9"
+    "unplugin-swc": "^1.5.9",
+    "@nestjs/testing": "^12.0.1"
   }
 }
