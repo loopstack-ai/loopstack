@@ -1,28 +1,57 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ClaudeClientService } from '@loopstack/claude-module';
+import { LLM_MODULE_CONFIG, LlmProviderRegistry } from '@loopstack/llm-provider-module';
+import type { LlmGenerateTextArgs, LlmModuleConfig } from '@loopstack/llm-provider-module';
 import { MAX_MARKDOWN_LENGTH } from '../../constants.js';
 import { WebFetchSummarizerService } from '../webfetch-summarizer.service.js';
+
+const fakeProvider = (providerId: string) => ({
+  providerId,
+  generateText: vi.fn(),
+  generateObject: vi.fn(),
+  extractUsage: vi.fn(),
+  toProviderMessage: vi.fn(),
+});
 
 describe('WebFetchSummarizerService', () => {
   let module: TestingModule;
   let service: WebFetchSummarizerService;
 
-  const create = vi.fn();
-  const mockClaudeClient = { getClient: vi.fn(() => ({ messages: { create } })) };
+  const claude = fakeProvider('claude');
+  const openai = fakeProvider('openai');
 
-  const promptSent = () => (create.mock.calls[0][0] as { messages: { content: string }[] }).messages[0].content;
+  const textResult = (text: string) => ({
+    message: { role: 'assistant', text, blocks: text ? [{ type: 'text', text }] : [] },
+    response: { raw: true },
+  });
+
+  const argsSent = (provider = claude) => provider.generateText.mock.calls[0][0] as LlmGenerateTextArgs;
+  const promptSent = () => argsSent().prompt!;
+
+  const compile = async (moduleConfig: LlmModuleConfig = {}) => {
+    const registry = new LlmProviderRegistry();
+    registry.register(claude);
+    registry.register(openai);
+
+    module = await Test.createTestingModule({
+      providers: [
+        WebFetchSummarizerService,
+        { provide: LlmProviderRegistry, useValue: registry },
+        { provide: LLM_MODULE_CONFIG, useValue: moduleConfig },
+      ],
+    }).compile();
+
+    service = module.get(WebFetchSummarizerService);
+  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubEnv('CLAUDE_WEB_FETCH_MODEL', undefined);
-    create.mockResolvedValue({ content: [{ type: 'text', text: 'A summary' }] });
-
-    module = await Test.createTestingModule({
-      providers: [WebFetchSummarizerService, { provide: ClaudeClientService, useValue: mockClaudeClient }],
-    }).compile();
-
-    service = module.get(WebFetchSummarizerService);
+    claude.generateText.mockResolvedValue(textResult('A summary'));
+    openai.generateText.mockResolvedValue(textResult('An OpenAI summary'));
+    claude.extractUsage.mockReturnValue({ inputTokens: 1200, outputTokens: 80 });
+    openai.extractUsage.mockReturnValue({ inputTokens: 900, outputTokens: 60 });
+    await compile();
   });
 
   afterEach(async () => {
@@ -30,17 +59,76 @@ describe('WebFetchSummarizerService', () => {
     await module.close();
   });
 
-  it('asks the default model to apply the prompt to the content', async () => {
+  it('asks the default provider and model to apply the prompt to the content', async () => {
     const result = await service.summarize('https://example.com/', '# Page', 'What is this?');
 
-    expect(result).toEqual({ summary: 'A summary', truncated: false });
-    expect(mockClaudeClient.getClient).toHaveBeenCalledWith({ envApiKey: undefined });
-    expect(create).toHaveBeenCalledWith({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: expect.any(String) as string }],
+    expect(result).toEqual({
+      summary: 'A summary',
+      truncated: false,
+      meta: {
+        provider: 'claude',
+        model: 'claude-haiku-4-5-20251001',
+        usage: { inputTokens: 1200, outputTokens: 80 },
+      },
     });
+    expect(claude.generateText).toHaveBeenCalledWith(
+      {
+        prompt: expect.any(String) as string,
+        model: 'claude-haiku-4-5-20251001',
+        providerConfig: { envApiKey: undefined, maxTokens: 1024 },
+      },
+      { documents: [], signal: undefined },
+    );
     expect(promptSent()).toContain('---\n# Page\n---\n\nWhat is this?');
+  });
+
+  it('returns usage from the provider extractUsage', async () => {
+    const result = await service.summarize('https://example.com/', 'md', 'q');
+
+    expect(claude.extractUsage).toHaveBeenCalledWith({ raw: true });
+    expect(result.meta.usage).toEqual({ inputTokens: 1200, outputTokens: 80 });
+  });
+
+  it('omits usage when the provider reports none', async () => {
+    claude.extractUsage.mockReturnValue(undefined);
+
+    const result = await service.summarize('https://example.com/', 'md', 'q');
+
+    expect(result.meta).toEqual({ provider: 'claude', model: 'claude-haiku-4-5-20251001' });
+  });
+
+  it('uses the module-configured provider', async () => {
+    await module.close();
+    await compile({ provider: 'openai' });
+
+    const result = await service.summarize('https://example.com/', 'md', 'q', { model: 'gpt-4o-mini' });
+
+    expect(claude.generateText).not.toHaveBeenCalled();
+    expect(argsSent(openai).model).toBe('gpt-4o-mini');
+    expect(result).toEqual({
+      summary: 'An OpenAI summary',
+      truncated: false,
+      meta: { provider: 'openai', model: 'gpt-4o-mini', usage: { inputTokens: 900, outputTokens: 60 } },
+    });
+  });
+
+  it('prefers the per-call provider over the module config', async () => {
+    await module.close();
+    await compile({ provider: 'claude' });
+
+    await service.summarize('https://example.com/', 'md', 'q', { provider: 'openai' });
+
+    expect(openai.generateText).toHaveBeenCalled();
+    expect(claude.generateText).not.toHaveBeenCalled();
+  });
+
+  it('keeps the default model over the module-configured model', async () => {
+    await module.close();
+    await compile({ provider: 'claude', model: 'claude-sonnet-4-6' });
+
+    await service.summarize('https://example.com/', 'md', 'q');
+
+    expect(argsSent().model).toBe('claude-haiku-4-5-20251001');
   });
 
   it('passes the api key, model and max tokens from the options', async () => {
@@ -50,8 +138,20 @@ describe('WebFetchSummarizerService', () => {
       maxTokens: 256,
     });
 
-    expect(mockClaudeClient.getClient).toHaveBeenCalledWith({ envApiKey: 'MY_KEY' });
-    expect(create).toHaveBeenCalledWith(expect.objectContaining({ model: 'claude-custom', max_tokens: 256 }));
+    expect(argsSent()).toEqual(
+      expect.objectContaining({ model: 'claude-custom', providerConfig: { envApiKey: 'MY_KEY', maxTokens: 256 } }),
+    );
+  });
+
+  it('forwards the abort signal to the provider', async () => {
+    const controller = new AbortController();
+
+    await service.summarize('https://example.com/', 'md', 'q', { signal: controller.signal });
+
+    expect(claude.generateText).toHaveBeenCalledWith(expect.anything(), {
+      documents: [],
+      signal: controller.signal,
+    });
   });
 
   it('falls back to CLAUDE_WEB_FETCH_MODEL when no model is given', async () => {
@@ -59,7 +159,7 @@ describe('WebFetchSummarizerService', () => {
 
     await service.summarize('https://example.com/', 'md', 'q');
 
-    expect(create).toHaveBeenCalledWith(expect.objectContaining({ model: 'claude-from-env' }));
+    expect(argsSent().model).toBe('claude-from-env');
   });
 
   it('prefers the explicit model over CLAUDE_WEB_FETCH_MODEL', async () => {
@@ -67,7 +167,7 @@ describe('WebFetchSummarizerService', () => {
 
     await service.summarize('https://example.com/', 'md', 'q', { model: 'claude-explicit' });
 
-    expect(create).toHaveBeenCalledWith(expect.objectContaining({ model: 'claude-explicit' }));
+    expect(argsSent().model).toBe('claude-explicit');
   });
 
   it('truncates markdown longer than the limit', async () => {
@@ -100,25 +200,17 @@ describe('WebFetchSummarizerService', () => {
     expect(promptSent()).not.toContain('strict 125-character maximum');
   });
 
-  it('returns an empty summary when the response has no text block', async () => {
-    create.mockResolvedValue({ content: [{ type: 'tool_use', id: 't1', name: 'x', input: {} }] });
+  it('returns an empty summary when the response has no text', async () => {
+    claude.generateText.mockResolvedValue(textResult(''));
 
-    expect(await service.summarize('https://example.com/', 'md', 'q')).toEqual({ summary: '', truncated: false });
+    const result = await service.summarize('https://example.com/', 'md', 'q');
+
+    expect(result.summary).toBe('');
   });
 
-  it('returns an empty summary when the response is empty', async () => {
-    create.mockResolvedValue({ content: [] });
-
-    expect(await service.summarize('https://example.com/', 'md', 'q')).toEqual({ summary: '', truncated: false });
-  });
-
-  it('throws the abort reason when the signal was aborted', async () => {
-    const controller = new AbortController();
-    const reason = new Error('cancelled by user');
-    controller.abort(reason);
-
-    await expect(service.summarize('https://example.com/', 'md', 'q', { signal: controller.signal })).rejects.toBe(
-      reason,
+  it('throws when the provider is not registered', async () => {
+    await expect(service.summarize('https://example.com/', 'md', 'q', { provider: 'missing' })).rejects.toThrow(
+      'LLM provider "missing" is not registered',
     );
   });
 });
