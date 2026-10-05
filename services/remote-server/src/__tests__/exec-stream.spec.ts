@@ -3,6 +3,7 @@ import type { Server } from 'http';
 import type { AddressInfo } from 'net';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 interface ExecStatus {
   id: string;
