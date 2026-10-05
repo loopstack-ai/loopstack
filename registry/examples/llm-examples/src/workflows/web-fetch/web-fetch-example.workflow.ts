@@ -22,7 +22,7 @@ type WebFetchArgs = z.infer<typeof WebFetchArgsSchema>;
 @Workflow({
   title: 'LLM - Web Fetch Example',
   description:
-    'Fetches a URL, converts HTML to Markdown, and summarizes it with Claude using a user-provided prompt. Demonstrates the WebFetchTool from @loopstack/web-module.',
+    'Fetches a URL, converts HTML to Markdown, and summarizes it with the configured LLM provider using a user-provided prompt. Demonstrates the WebFetchTool from @loopstack/web-module.',
   schema: WebFetchArgsSchema,
 })
 export class WebFetchExampleWorkflow extends BaseWorkflow<WebFetchArgs> {

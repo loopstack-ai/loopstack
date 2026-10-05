@@ -227,14 +227,14 @@ Set these when using OAuth modules for third-party integrations.
 
 Set these when using the corresponding feature modules.
 
-| Env var                  | Module                                  | Default                     | Description                                                                            |
-| ------------------------ | --------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------- |
-| `WORKSPACE_BASE_PATH`    | `@loopstack/local-file-explorer-module` | `process.cwd()`             | Root directory the file explorer lists and reads; paths outside it are rejected        |
-| `CLAUDE_WEB_FETCH_MODEL` | `@loopstack/web-module`                 | `claude-haiku-4-5-20251001` | Model `WebFetchTool` summarizes with when called with a `prompt`; its `model` arg wins |
-| `QUOTA_ENABLED`          | `@loopstack/quota`                      | `false`                     | Set to `true` to enable quota tracking                                                 |
-| `QUOTA_REDIS_HOST`       | `@loopstack/quota`                      | value of `REDIS_HOST`       | Redis host for quota counters                                                          |
-| `QUOTA_REDIS_PORT`       | `@loopstack/quota`                      | value of `REDIS_PORT`       | Redis port for quota counters                                                          |
-| `QUOTA_REDIS_PASSWORD`   | `@loopstack/quota`                      | value of `REDIS_PASSWORD`   | Redis password for quota counters                                                      |
+| Env var                  | Module                                  | Default                     | Description                                                                                                         |
+| ------------------------ | --------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `WORKSPACE_BASE_PATH`    | `@loopstack/local-file-explorer-module` | `process.cwd()`             | Root directory the file explorer lists and reads; paths outside it are rejected                                     |
+| `CLAUDE_WEB_FETCH_MODEL` | `@loopstack/web-module`                 | `claude-haiku-4-5-20251001` | Model `WebFetchTool` summarizes with when called with a `prompt` and the provider is `claude`; its `model` arg wins |
+| `QUOTA_ENABLED`          | `@loopstack/quota`                      | `false`                     | Set to `true` to enable quota tracking                                                                              |
+| `QUOTA_REDIS_HOST`       | `@loopstack/quota`                      | value of `REDIS_HOST`       | Redis host for quota counters                                                                                       |
+| `QUOTA_REDIS_PORT`       | `@loopstack/quota`                      | value of `REDIS_PORT`       | Redis port for quota counters                                                                                       |
+| `QUOTA_REDIS_PASSWORD`   | `@loopstack/quota`                      | value of `REDIS_PASSWORD`   | Redis password for quota counters                                                                                   |
 
 The `QUOTA_*` variables are read only when the module is registered with `QuotaModule.forRootAsync()` — see [`@loopstack/quota`](api/quota.md#quotamodule).
 

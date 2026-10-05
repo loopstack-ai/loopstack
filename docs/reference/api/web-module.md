@@ -10,7 +10,8 @@ includeInLlmsFullTxt: false
 
 ### WebFetchTool
 
-Tool that fetches a URL, converts HTML to Markdown, and optionally summarizes the content with a small Claude model.
+Tool that fetches a URL, converts HTML to Markdown, and optionally summarizes the content through the configured
+LLM provider (model `claude-haiku-4-5-20251001` by default). A summarized result carries the provider, model and token usage as `LlmResultMeta`.
 
 ```ts
 import { WebFetchTool } from '@loopstack/web-module';
@@ -19,25 +20,27 @@ import { WebFetchTool } from '@loopstack/web-module';
 **Provided by:** `WebModule`
 
 ```ts
-export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult> {
-  protected handle(args: WebFetchArgs): Promise<ToolEnvelope<WebFetchResult>>;
+export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult, Partial<LlmResultMeta>> {
+  protected handle(args: WebFetchArgs, ctx: RunContext): Promise<ToolEnvelope<WebFetchResult, Partial<LlmResultMeta>>>;
 }
 ```
 
 ### WebModule
 
 NestJS module that provides the `web_fetch` tool (`WebFetchTool`) and its supporting services —
-fetches a URL, converts HTML to Markdown, and optionally summarizes the content with Claude.
+fetches a URL, converts HTML to Markdown, and optionally summarizes the content with the configured LLM provider.
 
 Registration:
 
 - `WebModule` — bare import; registers the `WebFetchTool` and the fetcher, Markdown, and summarizer
   services. There are no static configuration methods.
 
-Requires: nothing beyond importing the module for plain fetch-and-convert use. The optional
-summarization step (triggered when a `prompt` arg is passed) runs through the co-imported
-`ClaudeModule` and needs an Anthropic API key — read from `ANTHROPIC_API_KEY` by default, overridable
-per call via the tool's `envApiKey` arg.
+Requires: `LlmProviderModule` imported alongside it (the summarizer resolves its provider from the
+global `LlmProviderRegistry`). The optional summarization step (triggered when a `prompt` arg is
+passed) also needs a provider module such as `ClaudeModule` or `OpenAiModule` and its API key. It
+uses the tool's `provider` arg, else the `LlmProviderModule` default provider, else `claude`, and
+the tool's `model` arg, else `CLAUDE_WEB_FETCH_MODEL`, else `claude-haiku-4-5-20251001` — pass `model`
+when summarizing with a provider other than `claude`.
 
 ```ts
 import { WebModule } from '@loopstack/web-module';
@@ -140,6 +143,7 @@ WebFetchSchema: z.ZodObject<
   {
     url: z.ZodURL;
     prompt: z.ZodOptional<z.ZodString>;
+    provider: z.ZodOptional<z.ZodString>;
     model: z.ZodOptional<z.ZodString>;
     envApiKey: z.ZodOptional<z.ZodString>;
     maxTokens: z.ZodOptional<z.ZodNumber>;

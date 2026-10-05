@@ -15,6 +15,11 @@ describe('WebFetchTool', () => {
 
   const mockFetcher = { fetch: vi.fn(), htmlToMarkdown: vi.fn() };
   const mockSummarizer = { summarize: vi.fn() };
+  const summaryMeta = {
+    provider: 'openai',
+    model: 'gpt-custom',
+    usage: { inputTokens: 1000, outputTokens: 50 },
+  };
 
   const htmlContent: FetchedContent = {
     content: '<h1>Hello</h1>',
@@ -57,7 +62,14 @@ describe('WebFetchTool', () => {
     it('accepts the optional summarization args', () => {
       const schema = getBlockArgsSchema(tool)!;
       expect(() =>
-        schema.parse({ url: 'https://example.com', prompt: 'p', model: 'm', envApiKey: 'K', maxTokens: 100 }),
+        schema.parse({
+          url: 'https://example.com',
+          prompt: 'p',
+          provider: 'openai',
+          model: 'm',
+          envApiKey: 'K',
+          maxTokens: 100,
+        }),
       ).not.toThrow();
     });
 
@@ -114,28 +126,54 @@ describe('WebFetchTool', () => {
     it('summarizes the markdown when a prompt is given', async () => {
       mockFetcher.fetch.mockResolvedValue(contentOutcome(htmlContent));
       mockFetcher.htmlToMarkdown.mockResolvedValue('# Hello');
-      mockSummarizer.summarize.mockResolvedValue({ summary: 'It greets.', truncated: true });
+      mockSummarizer.summarize.mockResolvedValue({ summary: 'It greets.', truncated: true, meta: summaryMeta });
 
       const result = await tool.call({
         url: 'https://example.com/',
         prompt: 'What does it say?',
-        model: 'claude-custom',
+        provider: 'openai',
+        model: 'gpt-custom',
         envApiKey: 'MY_KEY',
         maxTokens: 200,
       });
 
       expect(mockSummarizer.summarize).toHaveBeenCalledWith('https://example.com/', '# Hello', 'What does it say?', {
-        model: 'claude-custom',
+        provider: 'openai',
+        model: 'gpt-custom',
         envApiKey: 'MY_KEY',
         maxTokens: 200,
+        signal: expect.any(AbortSignal) as AbortSignal,
       });
       expect(result.data).toMatchObject({ result: 'It greets.', truncated: true, code: 200 });
+    });
+
+    it('returns provider/model/usage metadata when summarizing', async () => {
+      mockFetcher.fetch.mockResolvedValue(contentOutcome(htmlContent));
+      mockFetcher.htmlToMarkdown.mockResolvedValue('# Hello');
+      mockSummarizer.summarize.mockResolvedValue({ summary: 'It greets.', truncated: false, meta: summaryMeta });
+
+      const result = await tool.call({ url: 'https://example.com/', prompt: 'p' });
+
+      expect(result.metadata).toEqual(summaryMeta);
+    });
+
+    it('returns no metadata without a prompt', async () => {
+      mockFetcher.fetch.mockResolvedValue(contentOutcome(htmlContent));
+      mockFetcher.htmlToMarkdown.mockResolvedValue('# Hello');
+
+      const result = await tool.call({ url: 'https://example.com/' });
+
+      expect(result.metadata).toEqual({});
     });
 
     it('caps an oversized summary', async () => {
       mockFetcher.fetch.mockResolvedValue(contentOutcome(htmlContent));
       mockFetcher.htmlToMarkdown.mockResolvedValue('# Hello');
-      mockSummarizer.summarize.mockResolvedValue({ summary: 'b'.repeat(MAX_RESULT_SIZE_CHARS + 1), truncated: false });
+      mockSummarizer.summarize.mockResolvedValue({
+        summary: 'b'.repeat(MAX_RESULT_SIZE_CHARS + 1),
+        truncated: false,
+        meta: summaryMeta,
+      });
 
       const result = await tool.call({ url: 'https://example.com/', prompt: 'p' });
 
