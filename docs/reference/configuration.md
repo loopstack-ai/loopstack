@@ -1,6 +1,6 @@
 ---
 title: Configuration Reference
-description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS (cors, corsOrigins / CORS_ORIGINS / FRONTEND_URL allowlist), run trace persistence (trace / LOOPSTACK_TRACE), and default settings.
+description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS (cors, corsOrigins / CORS_ORIGINS / FRONTEND_URL allowlist), event stream tuning (sse.bufferSize / bufferTtlMs / heartbeatIntervalMs), run trace persistence (trace / LOOPSTACK_TRACE), API list page sizes (*_DEFAULT_LIMIT, DOCUMENT_MAX_LIMIT), scheduler concurrency (TASK_CONCURRENCY), LLM provider keys and models (CLAUDE_MODEL, OPENAI_MODEL), feature module settings (WORKSPACE_BASE_PATH, CLAUDE_WEB_FETCH_MODEL, QUOTA_*), and default settings.
 ---
 
 # Configuration
@@ -21,6 +21,8 @@ LoopstackModule.forRoot({
   auth: { ... },            // JWT and hub auth settings
   cors: { ... },            // full CORS override
   corsOrigins: [ ... ],     // extra allowed origins for the default CORS policy
+  sse: { ... },             // event stream replay buffer and heartbeat
+  trace: false,             // default: false (no run trace persistence)
 })
 ```
 
@@ -130,6 +132,26 @@ LoopstackModule.forRoot({
 CORS_ORIGINS=https://studio.example.com,https://app.example.com:8443
 ```
 
+### `sse`
+
+Tuning for the server-sent-events stream at `GET /api/v1/sse`, which Studio and the [TypeScript SDK](client.md#live-events) subscribe to for live updates.
+
+| Option                    | Env var | Default              |
+| ------------------------- | ------- | -------------------- |
+| `sse.bufferSize`          | —       | `1000`               |
+| `sse.bufferTtlMs`         | —       | `300000` (5 minutes) |
+| `sse.heartbeatIntervalMs` | —       | `25000` (25 seconds) |
+
+```typescript
+LoopstackModule.forRoot({
+  sse: { bufferSize: 5000, bufferTtlMs: 15 * 60 * 1000, heartbeatIntervalMs: 15 * 1000 },
+});
+```
+
+The server keeps recent events in a replay buffer per user and worker. A client that reconnects with a `Last-Event-ID` header (or `lastEventId` query parameter) receives the events it missed. `bufferSize` caps how many events are kept and `bufferTtlMs` how long. When the events after the client's last ID are no longer buffered — evicted, or lost in a server restart — the client receives a single `stream.reset` event instead and has to refetch its state. Raise both if clients reconnect after long gaps.
+
+Every `heartbeatIntervalMs`, the server sends a named `ping` event, which `EventSource.onmessage` consumers never see. It lets non-browser clients detect a dead connection and keeps the stream from looking idle to a reverse proxy — set it below any proxy idle timeout.
+
 ### `trace`
 
 Persist every run's [trace](/docs/build/fundamentals/workflows#the-run-trace) — transitions, tool calls with args and result envelopes, documents — as queryable rows, powering `loopstack runs <id> --record` for deriving replay fixtures.
@@ -151,14 +173,42 @@ These are read directly from the environment and are not part of `LoopstackModul
 | `NODE_ENV`                   | `development` | Node.js environment                                     |
 | `DEFAULT_TRANSITION_TIMEOUT` | `300000`      | Workflow transition timeout in milliseconds (5 minutes) |
 
+### API List Pagination
+
+Page sizes for the list endpoints of the REST API, used when a request omits `limit`.
+
+| Env var                    | Default | Description                                                                     |
+| -------------------------- | ------- | ------------------------------------------------------------------------------- |
+| `WORKFLOW_DEFAULT_LIMIT`   | `100`   | Default page size of `GET /api/v1/workflows`                                    |
+| `WORKSPACE_DEFAULT_LIMIT`  | `100`   | Default page size of `GET /api/v1/workspaces`                                   |
+| `DOCUMENT_DEFAULT_LIMIT`   | `100`   | Default page size of `GET /api/v1/documents`                                    |
+| `DOCUMENT_MAX_LIMIT`       | `500`   | Largest page `GET /api/v1/documents` serves; a larger `limit` is capped to this |
+| `ADMIN_USER_DEFAULT_LIMIT` | `100`   | Default page size of `GET /api/v1/admin/users`                                  |
+
+Only the document list has an upper bound. The workflow, workspace and admin user lists serve whatever `limit` a request asks for.
+
+### Scheduler
+
+| Env var            | Default | Description                                                          |
+| ------------------ | ------- | -------------------------------------------------------------------- |
+| `TASK_CONCURRENCY` | `10`    | How many scheduler tasks one process runs at once (positive integer) |
+
+A workflow that occupies a task for its whole lifetime — a long-running agent session, for example — holds one of these slots, so leave headroom when running several. The value is exported from `@loopstack/core` as `TASK_CONCURRENCY` for apps that need to plan against it.
+
+`TASK_CONCURRENCY` is read once, when `@loopstack/core` is imported — before `LoopstackModule.forRoot()` loads `.env`. A value in `.env` is therefore ignored. Set it in the process environment instead: in your shell, container or process manager, or with `node --env-file=.env`.
+
 ### LLM Providers (examples)
 
 Set these when using the corresponding LLM provider modules.
 
-| Env var             | Module                     | Description       |
-| ------------------- | -------------------------- | ----------------- |
-| `ANTHROPIC_API_KEY` | `@loopstack/claude-module` | Anthropic API key |
-| `OPENAI_API_KEY`    | `@loopstack/openai-module` | OpenAI API key    |
+| Env var             | Module                     | Description            |
+| ------------------- | -------------------------- | ---------------------- |
+| `ANTHROPIC_API_KEY` | `@loopstack/claude-module` | Anthropic API key      |
+| `OPENAI_API_KEY`    | `@loopstack/openai-module` | OpenAI API key         |
+| `CLAUDE_MODEL`      | `@loopstack/claude-module` | Default model fallback |
+| `OPENAI_MODEL`      | `@loopstack/openai-module` | Default model fallback |
+
+See [LLM Providers](../build/ai/llm-providers.md#environment-variables) for how these combine with module-level and per-call models.
 
 ### OAuth Providers (examples)
 
@@ -172,6 +222,21 @@ Set these when using OAuth modules for third-party integrations.
 | `GOOGLE_CLIENT_ID`          | `@loopstack/google-workspace-module` | Google OAuth client ID         |
 | `GOOGLE_CLIENT_SECRET`      | `@loopstack/google-workspace-module` | Google OAuth client secret     |
 | `GOOGLE_OAUTH_REDIRECT_URI` | `@loopstack/google-workspace-module` | Google OAuth redirect URI      |
+
+### Feature Modules
+
+Set these when using the corresponding feature modules.
+
+| Env var                  | Module                                  | Default                     | Description                                                                            |
+| ------------------------ | --------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| `WORKSPACE_BASE_PATH`    | `@loopstack/local-file-explorer-module` | `process.cwd()`             | Root directory the file explorer lists and reads; paths outside it are rejected        |
+| `CLAUDE_WEB_FETCH_MODEL` | `@loopstack/web-module`                 | `claude-haiku-4-5-20251001` | Model `WebFetchTool` summarizes with when called with a `prompt`; its `model` arg wins |
+| `QUOTA_ENABLED`          | `@loopstack/quota`                      | `false`                     | Set to `true` to enable quota tracking                                                 |
+| `QUOTA_REDIS_HOST`       | `@loopstack/quota`                      | value of `REDIS_HOST`       | Redis host for quota counters                                                          |
+| `QUOTA_REDIS_PORT`       | `@loopstack/quota`                      | value of `REDIS_PORT`       | Redis port for quota counters                                                          |
+| `QUOTA_REDIS_PASSWORD`   | `@loopstack/quota`                      | value of `REDIS_PASSWORD`   | Redis password for quota counters                                                      |
+
+The `QUOTA_*` variables are read only when the module is registered with `QuotaModule.forRootAsync()` — see [`@loopstack/quota`](api/quota.md#quotamodule).
 
 ## Docker Compose
 
