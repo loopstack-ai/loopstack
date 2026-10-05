@@ -2,7 +2,6 @@ export * from './advanced-workflows-examples.module';
 export * from './workflows/workflow-state/workflow-state-example.workflow';
 export * from './workflows/workflow-state/tool-results-example.workflow';
 export * from './workflows/dynamic-routing/dynamic-routing-example.workflow';
-export * from './workflows/error-retry/error-retry-example.workflow';
 export * from './workflows/sub-workflow/sub-workflow-parent.workflow';
 export * from './workflows/sub-workflow/sub-workflow-sub.workflow';
 export * from './workflows/sub-workflow/sub-workflow-failing-sub.workflow';
