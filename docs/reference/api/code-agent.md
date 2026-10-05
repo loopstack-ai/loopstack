@@ -17,7 +17,10 @@ Registration:
 - `CodeAgentModule` — bare import registers `ExploreTask` and re-exports `AgentModule`; use this when the agent's default LLM configuration is fine.
 - `CodeAgentModule.forFeature(config?: { llm?: LlmModuleConfig })` — use to override the LLM provider/model for the code agent; it imports `AgentModule.forFeature(config)`.
 
-Requires: imports `AgentModule`, which in turn requires `LlmProviderModule` (with a registered LLM provider) and `RemoteClientModule` (which supplies the `glob`/`grep`/`read` tools) to be configured in your app.
+Requires, configured in your app:
+
+- `LlmProviderModule` with a registered LLM provider — needed by the imported `AgentModule`.
+- `RemoteClientModule` (bare or `forRoot`) — supplies the `glob`/`grep`/`read` tools the `explore_task` sub-agent uses. Without it the app fails at boot with an error naming `RemoteClientModule`.
 
 ```ts
 import { CodeAgentModule } from '@loopstack/code-agent';
@@ -32,6 +35,8 @@ export class CodeAgentModule {
 ### ExploreTask
 
 Tool that launches an `AgentWorkflow` sub-agent to explore and analyze a codebase with the `glob`/`grep`/`read` tools and return a synthesized summary.
+
+Those tools come from `RemoteClientModule`. Constructing `ExploreTask` without them throws, so an app that has not wired the remote client fails at boot instead of on the first `explore_task` call.
 
 ```ts
 import { ExploreTask } from '@loopstack/code-agent';

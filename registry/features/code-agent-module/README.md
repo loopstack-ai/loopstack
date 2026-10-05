@@ -34,7 +34,10 @@ import { CodeAgentModule } from '@loopstack/code-agent';
 export class AppModule {}
 ```
 
-`CodeAgentModule` imports `AgentModule` from `@loopstack/agent`, which in turn requires `LlmProviderModule` and `RemoteClientModule` to be configured in your app.
+Your app must also configure:
+
+- `LlmProviderModule` with a registered LLM provider — `CodeAgentModule` imports `AgentModule` from `@loopstack/agent`, which needs it.
+- `RemoteClientModule` from `@loopstack/remote-client` (bare or `forRoot`) — it supplies the `glob`, `grep` and `read` tools the `explore_task` sub-agent uses. Without it the app fails at boot with an error naming `RemoteClientModule`.
 
 To override the LLM provider or model for this module specifically:
 
