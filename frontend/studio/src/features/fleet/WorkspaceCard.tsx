@@ -20,8 +20,67 @@ import { useDeleteWorkspace, useSetFavouriteWorkspace } from '@/hooks/useWorkspa
 import { cn } from '@/lib/utils.ts';
 import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
 import { useStudio } from '@/providers/StudioProvider.tsx';
-import type { FleetEntry } from './fleet-model.ts';
+import type { FleetEntry, FleetRunLine } from './fleet-model.ts';
 import { STATE_DOT, STATE_ICON, STATE_LABEL, STATE_TEXT, TILE_MIN_HEIGHT, runAge } from './fleet-presentation.ts';
+
+function RunLine({ line }: { line: FleetRunLine }) {
+  const { router } = useStudio();
+  const { root, active, state } = line;
+  const StateIcon = STATE_ICON[state];
+  const detailed = active ?? root;
+
+  const details = (
+    <span className="min-w-0 flex-1">
+      <span className="block truncate">
+        <span className="text-muted-foreground">#{detailed.run}</span> {detailed.workflowName}
+      </span>
+      <span className="text-muted-foreground block truncate text-xs">
+        {state === 'waiting' ? 'parked at' : 'at'} <code className="font-mono">{detailed.place}</code> ·{' '}
+        {runAge(formatDistanceToNowStrict(new Date(detailed.createdAt)))}
+      </span>
+    </span>
+  );
+
+  return (
+    <div>
+      {/* What the sub-workflow is part of. Its own link, so you can open the run that was started
+          rather than the gate three levels inside it. */}
+      {active && (
+        <Link
+          to={router.getWorkflow(root.id)}
+          target="_blank"
+          rel="noopener noreferrer"
+          draggable={false}
+          className="hover:bg-muted/40 block truncate px-3 py-0.5 transition-colors"
+        >
+          <span className="text-muted-foreground">#{root.run}</span> {root.workflowName}
+        </Link>
+      )}
+
+      {/* The run that carries the state — a real anchor, so cmd-click and middle-click keep working
+          and the board stays open behind the tab it opens. */}
+      <Link
+        to={router.getWorkflow(detailed.id)}
+        target="_blank"
+        rel="noopener noreferrer"
+        draggable={false}
+        className={cn(
+          'hover:bg-muted/40 flex gap-2 px-3 py-0.5 transition-colors',
+          active && 'border-border ml-5 border-l pl-2',
+        )}
+      >
+        {active && <CornerDownRight className="text-muted-foreground/60 mt-0.5 size-3.5 shrink-0" />}
+        {StateIcon && (
+          <StateIcon
+            className={cn('mt-0.5 size-4 shrink-0', STATE_TEXT[state], state === 'working' && 'animate-spin')}
+            aria-label={STATE_LABEL[state]}
+          />
+        )}
+        {details}
+      </Link>
+    </div>
+  );
+}
 
 interface WorkspaceCardProps {
   entry: FleetEntry;
@@ -44,9 +103,7 @@ export default function WorkspaceCard({ entry, handleProps, dropProps, isDraggin
   const setFavourite = useSetFavouriteWorkspace();
   const deleteWorkspace = useDeleteWorkspace();
 
-  const { workspace, state, run, rootRun, moreRuns } = entry;
-
-  const StateIcon = STATE_ICON[state];
+  const { workspace, state, runs } = entry;
 
   return (
     // The Card primitive ships its own padding and gaps; this card lays out its own rows instead. The
@@ -123,52 +180,11 @@ export default function WorkspaceCard({ entry, handleProps, dropProps, isDraggin
           </DropdownMenu>
         </div>
 
-        {run && (
-          <div className="mt-1 pb-3 text-sm">
-            {/* What the sub-workflow is part of. Its own link, so you can open the run that was started
-                rather than the gate three levels inside it. */}
-            {rootRun && (
-              <Link
-                to={router.getWorkflow(rootRun.id)}
-                target="_blank"
-                rel="noopener noreferrer"
-                draggable={false}
-                className="hover:bg-muted/40 block truncate px-3 py-0.5 transition-colors"
-              >
-                <span className="text-muted-foreground">#{rootRun.run}</span> {rootRun.workflowName}
-              </Link>
-            )}
-
-            {/* The run that carries the state — a real anchor, so cmd-click and middle-click keep working
-                and the board stays open behind the tab it opens. */}
-            <Link
-              to={router.getWorkflow(run.id)}
-              target="_blank"
-              rel="noopener noreferrer"
-              draggable={false}
-              className={cn(
-                'hover:bg-muted/40 flex gap-2 px-3 py-0.5 transition-colors',
-                rootRun && 'border-border ml-5 border-l pl-2',
-              )}
-            >
-              {rootRun && <CornerDownRight className="text-muted-foreground/60 mt-0.5 size-3.5 shrink-0" />}
-              {StateIcon && (
-                <StateIcon
-                  className={cn('mt-0.5 size-4 shrink-0', STATE_TEXT[state], state === 'working' && 'animate-spin')}
-                  aria-label={STATE_LABEL[state]}
-                />
-              )}
-              <span className="min-w-0 flex-1">
-                <span className="block truncate">
-                  <span className="text-muted-foreground">#{run.run}</span> {run.workflowName}
-                </span>
-                <span className="text-muted-foreground block truncate text-xs">
-                  {state === 'waiting' ? 'parked at' : 'at'} <code className="font-mono">{run.place}</code> ·{' '}
-                  {runAge(formatDistanceToNowStrict(new Date(run.createdAt)))}
-                  {moreRuns > 0 && ` · ${moreRuns + 1} active runs`}
-                </span>
-              </span>
-            </Link>
+        {runs.length > 0 && (
+          <div className="mt-1 space-y-1.5 pb-3 text-sm">
+            {runs.map((line) => (
+              <RunLine key={line.root.id} line={line} />
+            ))}
           </div>
         )}
       </div>

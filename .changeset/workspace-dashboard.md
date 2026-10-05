@@ -9,10 +9,12 @@
 
 A dashboard that says what every workspace is doing right now.
 
-Studio's landing page is a board with one card per workspace — the run it is on, the `place` that run is
-parked or working at, and how old the run is — so "where is everyone, who is free, who is waiting on me" is
-one glance rather than a tour of workspace pages. Runs waiting on a person are pulled into a strip at the
-top, longest wait first; each entry opens that run in the workbench in a new tab, so the board stays put.
+Studio's landing page is a board with one card per workspace — one line per run it has going, each with the
+`place` that run is parked or working at and how old it is, the one waiting on a person first — so "where is
+everyone, who is free, who is waiting on me" is one glance rather than a tour of workspace pages. A line
+shows the run that was started and, under it, the sub-workflow actually holding the state, each openable on
+its own. Runs waiting on a person are pulled into a strip at the top, longest wait first; each entry opens
+that run in the workbench in a new tab, so the board stays put.
 Cards keep their position when state changes and can be dragged into any order, saved per browser.
 
 - `@loopstack/loopstack-studio`: the board at `/dashboard` (`getDashboard()`), with the app launcher moving

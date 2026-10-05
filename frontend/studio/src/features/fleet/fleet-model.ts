@@ -7,19 +7,25 @@ import { type RunActivity, runActivity } from '@/lib/run-status.ts';
  */
 export type FleetState = 'waiting' | 'working' | 'queued' | 'idle';
 
-/** One card's worth of data: a workspace, the run it headlines, and how many others are active. */
+/**
+ * One active run on a card: the run that was started, and — when the state is held further down — the
+ * descendant actually holding it. A prompt three levels in says nothing about what it is part of, so the
+ * card shows both and lets either be opened.
+ */
+export interface FleetRunLine {
+  root: WorkflowItemInterface;
+  /** The descendant carrying `state`, absent when that is the root itself. */
+  active?: WorkflowItemInterface;
+  state: RunActivity;
+}
+
+/** One card's worth of data: a workspace and everything active in it. */
 export interface FleetEntry {
   workspace: WorkspaceInterface;
+  /** The workspace's own verdict — the most urgent of its runs, or `idle` with none. */
   state: FleetState;
-  /** The run the card shows — the most urgent one, by {@link ACTIVITY_PRECEDENCE}. */
-  run?: WorkflowItemInterface;
-  /**
-   * The run `run` descends from, when it is a sub-workflow — the thing that was actually started.
-   * A prompt three levels down says nothing about what it is part of, so the card shows both.
-   */
-  rootRun?: WorkflowItemInterface;
-  /** Active runs beyond the headlined one. */
-  moreRuns: number;
+  /** Every run started here that has not finished, most urgent first. */
+  runs: FleetRunLine[];
   /** The workspace's active runs are still loading. */
   isLoading: boolean;
 }
@@ -32,8 +38,8 @@ export interface FleetCounts {
 }
 
 /**
- * Which activity a card headlines when a workspace has several active runs: the one a person must act on
- * wins over the one a machine is handling, and a queued run is the least interesting of the three.
+ * Which activity speaks for a run, and which run leads a card, when several compete: the one a person must
+ * act on wins over the one a machine is handling, and a queued run is the least interesting of the three.
  */
 const ACTIVITY_PRECEDENCE: RunActivity[] = ['waiting', 'working', 'queued'];
 
@@ -78,49 +84,61 @@ export function rootOf(runs: WorkflowItemInterface[], item: WorkflowItemInterfac
 }
 
 /**
+ * The run that speaks for a set: the most urgent by {@link ACTIVITY_PRECEDENCE}, and within that the one
+ * whose time means the most — for a run waiting on a person the longest wait, for a working one the most
+ * recent write, which is where the work actually is.
+ */
+function leadRun(runs: WorkflowItemInterface[]): { run: WorkflowItemInterface; state: RunActivity } | undefined {
+  for (const activity of ACTIVITY_PRECEDENCE) {
+    const bucket = runs.filter((run) => runActivity(run) === activity);
+    if (bucket.length === 0) continue;
+    const sorted = [...bucket].sort(activity === 'working' ? newerFirst : olderFirst);
+    return { run: sorted[0], state: activity };
+  }
+  return undefined;
+}
+
+/**
  * Builds one workspace's card from its active runs, sub-workflows included.
  *
- * A question is usually held by a child several levels down, while its root sits there `waiting` with
- * children active — indistinguishable from real work if only roots are read. So the state is decided over
- * the whole set, and when something waits on a person the card headlines *that* run: its place is the one
- * worth reading (`awaiting_approval`, not the root's `running`).
- *
- * Within the headlined activity the pick is time-based, and the direction differs by what the time means:
- * for a run waiting on a person, the longest wait is the one worth surfacing; for a working run, the most
- * recent write is the one that says where the workspace actually is.
+ * Grouped by the run each descends from, because that is the unit a person started and thinks in: a root
+ * with four sub-workflows is one piece of work, not five. Within a group the state comes from whichever
+ * run holds it — usually a child, since a root parked on one sits there `waiting` with children active and
+ * would otherwise read as plain work.
  */
 export function classifyWorkspace(
   workspace: WorkspaceInterface,
   runs: WorkflowItemInterface[],
   isLoading = false,
 ): FleetEntry {
-  // Counted over roots, so a run with four sub-workflows does not read as five.
-  const moreRuns = Math.max(rootRuns(runs).length - 1, 0);
+  const lines: FleetRunLine[] = [];
 
-  const byActivity = new Map<RunActivity, WorkflowItemInterface[]>();
-  for (const run of runs) {
-    const activity = runActivity(run);
-    const bucket = byActivity.get(activity);
-    if (bucket) bucket.push(run);
-    else byActivity.set(activity, [run]);
+  for (const root of rootRuns(runs)) {
+    const subtree = runs.filter((run) => run.id === root.id || rootOf(runs, run)?.id === root.id);
+    const lead = leadRun(subtree);
+    if (!lead) continue;
+    lines.push({
+      root,
+      active: lead.run.id === root.id ? undefined : lead.run,
+      state: lead.state,
+    });
   }
 
-  for (const activity of ACTIVITY_PRECEDENCE) {
-    const bucket = byActivity.get(activity);
-    if (!bucket || bucket.length === 0) continue;
-    const sorted = [...bucket].sort(activity === 'working' ? newerFirst : olderFirst);
-    const run = sorted[0];
-    return {
-      workspace,
-      state: activity,
-      run,
-      rootRun: rootOf(runs, run),
-      moreRuns,
-      isLoading,
-    };
-  }
+  // Precedence first, then the same time rule the lead run follows — otherwise two parked pieces of work
+  // would sit in fetch order and the one forgotten since Tuesday could land below today's.
+  lines.sort((a, b) => {
+    const byState = ACTIVITY_PRECEDENCE.indexOf(a.state) - ACTIVITY_PRECEDENCE.indexOf(b.state);
+    if (byState !== 0) return byState;
+    const [left, right] = [a.active ?? a.root, b.active ?? b.root];
+    return a.state === 'working' ? newerFirst(left, right) : olderFirst(left, right);
+  });
 
-  return { workspace, state: 'idle', moreRuns: 0, isLoading };
+  return {
+    workspace,
+    state: lines[0]?.state ?? 'idle',
+    runs: lines,
+    isLoading,
+  };
 }
 
 /**

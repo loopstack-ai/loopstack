@@ -38,8 +38,11 @@ interface FleetRowProps {
 
 function FleetRow({ entry, handleProps, dropProps, isDragging, isDropTarget }: FleetRowProps) {
   const { router } = useStudio();
-  const { workspace, state, run } = entry;
+  const { workspace, state, runs } = entry;
 
+  // A row has one line to spend, so it shows the run that speaks for the workspace and counts the rest.
+  const lead = runs[0];
+  const run = lead?.active ?? lead?.root;
   const StateIcon = STATE_ICON[state];
 
   const row = (
@@ -59,6 +62,7 @@ function FleetRow({ entry, handleProps, dropProps, isDragging, isDropTarget }: F
             <span className="text-muted-foreground">#{run.run}</span> {run.workflowName}
           </span>
           <code className="text-muted-foreground hidden shrink-0 font-mono text-xs sm:inline">{run.place}</code>
+          {runs.length > 1 && <span className="text-muted-foreground shrink-0 text-xs">+{runs.length - 1}</span>}
           <span className="text-muted-foreground ml-auto shrink-0 text-xs">
             {runAge(formatDistanceToNowStrict(new Date(run.createdAt)))}
           </span>

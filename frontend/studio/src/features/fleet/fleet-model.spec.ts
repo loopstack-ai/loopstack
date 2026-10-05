@@ -49,8 +49,7 @@ describe('classifyWorkspace', () => {
   it('reports idle when nothing is active', () => {
     const entry = classifyWorkspace(workspace('ws-1'), []);
     expect(entry.state).toBe('idle');
-    expect(entry.run).toBeUndefined();
-    expect(entry.moreRuns).toBe(0);
+    expect(entry.runs).toEqual([]);
   });
 
   it('treats a run parked on its children as working, not as waiting on a person', () => {
@@ -92,14 +91,14 @@ describe('classifyWorkspace', () => {
     const entry = classifyWorkspace(workspace('ws-1'), [root, child]);
 
     expect(entry.state).toBe('waiting');
-    expect(entry.run?.id).toBe('child');
-    // The place worth reading is the child's, not the root's.
-    expect(entry.run?.place).toBe('awaiting_approval');
-    // ...and the card still says what it is part of, so the root can be opened instead.
-    expect(entry.rootRun?.id).toBe('root');
+    // One line for the piece of work, with the child that holds the question under the run that was started.
+    expect(entry.runs).toHaveLength(1);
+    expect(entry.runs[0].root.id).toBe('root');
+    expect(entry.runs[0].active?.id).toBe('child');
+    expect(entry.runs[0].active?.place).toBe('awaiting_approval');
   });
 
-  it('counts roots, not the sub-workflows under them', () => {
+  it('lists one line per started run, not one per sub-workflow', () => {
     const root = run({ id: 'root', status: WorkflowState.Running, updatedAt: '2026-10-01T10:00:00.000Z' });
     const child = run({
       id: 'child',
@@ -109,32 +108,54 @@ describe('classifyWorkspace', () => {
     });
     const other = run({ id: 'other', status: WorkflowState.Running, updatedAt: '2026-10-01T09:00:00.000Z' });
 
-    expect(classifyWorkspace(workspace('ws-1'), [root, child, other]).moreRuns).toBe(1);
+    const entry = classifyWorkspace(workspace('ws-1'), [root, child, other]);
+
+    expect(entry.runs.map((line) => line.root.id)).toEqual(['root', 'other']);
   });
 
-  it('headlines the run a person must act on over one a machine is handling', () => {
+  it("keeps each root's own state when a workspace runs several at once", () => {
+    const busyRoot = run({ id: 'busy', status: WorkflowState.Running, updatedAt: '2026-10-01T10:00:00.000Z' });
+    const parkedRoot = run({
+      id: 'parked-root',
+      status: WorkflowState.Waiting,
+      activeChildren: 1,
+      updatedAt: '2026-10-01T10:00:00.000Z',
+    });
+    const parkedChild = waiting('2026-10-01T08:00:00.000Z', { id: 'gate', parentId: 'parked-root' });
+
+    const entry = classifyWorkspace(workspace('ws-1'), [busyRoot, parkedRoot, parkedChild]);
+
+    expect(entry.runs).toHaveLength(2);
+    // The waiting piece of work leads, and the busy one keeps its own state rather than borrowing it.
+    expect(entry.runs[0].root.id).toBe('parked-root');
+    expect(entry.runs[0].active?.id).toBe('gate');
+    expect(entry.runs[1].root.id).toBe('busy');
+    expect(entry.runs[1].state).toBe('working');
+  });
+
+  it('lists every active run, the one a person must act on first', () => {
     const entry = classifyWorkspace(workspace('ws-1'), [
       working('2026-10-01T10:00:00.000Z', { id: 'busy' }),
       waiting('2026-10-01T09:00:00.000Z', { id: 'parked' }),
       queued('2026-10-01T10:30:00.000Z', { id: 'queued' }),
     ]);
     expect(entry.state).toBe('waiting');
-    expect(entry.run?.id).toBe('parked');
-    expect(entry.moreRuns).toBe(2);
+    expect(entry.runs.map((line) => line.root.id)).toEqual(['parked', 'busy', 'queued']);
+    expect(entry.runs.map((line) => line.state)).toEqual(['waiting', 'working', 'queued']);
   });
 
-  it('picks the longest wait among waiting runs, and the latest write among working ones', () => {
+  it('orders a tie by what its time means: longest wait first, latest work first', () => {
     const parked = classifyWorkspace(workspace('ws-1'), [
       waiting('2026-10-01T09:00:00.000Z', { id: 'recent' }),
       waiting('2026-09-29T09:00:00.000Z', { id: 'forgotten' }),
     ]);
-    expect(parked.run?.id).toBe('forgotten');
+    expect(parked.runs[0].root.id).toBe('forgotten');
 
     const busy = classifyWorkspace(workspace('ws-1'), [
       working('2026-10-01T09:00:00.000Z', { id: 'older' }),
       working('2026-10-01T11:00:00.000Z', { id: 'latest' }),
     ]);
-    expect(busy.run?.id).toBe('latest');
+    expect(busy.runs[0].root.id).toBe('latest');
   });
 
   it('falls back to queued only when nothing else is active', () => {
