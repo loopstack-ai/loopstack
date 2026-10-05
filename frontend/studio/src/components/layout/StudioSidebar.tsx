@@ -148,7 +148,7 @@ const FavouritesNav = () => {
   const { router } = useStudio();
   const workspacesPath = router.getWorkspaces();
 
-  const fetchFavourites = useFilterWorkspaces(undefined, { isFavourite: 'true' }, 'createdAt', 'ASC', 0, 10);
+  const fetchFavourites = useFilterWorkspaces(undefined, { isFavourite: true }, 'createdAt', 'ASC', 0, 10);
 
   const favourites = fetchFavourites.data?.data ?? [];
 

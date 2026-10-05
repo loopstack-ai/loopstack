@@ -1,5 +1,5 @@
 import { Star } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import type { FilterValue } from '../../components/data-table/data-table.ts';
@@ -51,7 +51,12 @@ const Workspaces = () => {
 
   const { types: appTypes, isPending: appsPending } = useAppTypes();
 
-  const fetchWorkspaces = useFilterWorkspaces(debouncedSearchTerm, filters, orderBy, order, page, rowsPerPage);
+  // The table's filters are free-form column values; the API's filter is typed — only the app name crosses over.
+  const workspaceFilter = useMemo(
+    () => (typeof filters.appName === 'string' ? { appName: filters.appName } : {}),
+    [filters],
+  );
+  const fetchWorkspaces = useFilterWorkspaces(debouncedSearchTerm, workspaceFilter, orderBy, order, page, rowsPerPage);
 
   const deleteWorkspace = useDeleteWorkspace();
   const batchDeleteWorkspaces = useBatchDeleteWorkspaces();

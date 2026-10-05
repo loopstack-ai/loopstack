@@ -15,14 +15,14 @@ export {
  */
 export function useFilterWorkspaces(
   searchTerm: string | undefined,
-  filter: Record<string, string | string[]>,
+  filter: WorkspaceFilterInterface,
   sortBy: string = 'id',
   order: string = 'DESC',
   page: number = 0,
   limit: number = 10,
 ) {
   return useWorkspaceList({
-    ...(Object.keys(filter).length > 0 && { filter: filter as WorkspaceFilterInterface }),
+    ...(Object.keys(filter).length > 0 && { filter }),
     sortBy: [{ field: sortBy, order } as WorkspaceSortByInterface],
     page,
     limit,

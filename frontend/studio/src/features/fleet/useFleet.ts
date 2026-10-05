@@ -1,6 +1,6 @@
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { type UseQueryResult, useQueries, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import type { WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { PaginatedInterface, WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import { SortOrder } from '@loopstack/contracts/enums';
 import { useLoopstackClient } from '@loopstack/react';
 import { ACTIVE_RUN_STATES } from '@/lib/run-status.ts';
@@ -12,6 +12,27 @@ import { type FleetCounts, type FleetEntry, classifyWorkspace, countStates, orde
  * the page is the whole fleet.
  */
 export const FLEET_PAGE_SIZE = 100;
+
+const NO_WORKSPACES: WorkspaceInterface[] = [];
+const NO_RUNS: WorkflowItemInterface[] = [];
+
+/** What the board needs from every workspace's run query, as two parallel arrays. */
+interface FleetRuns {
+  data: WorkflowItemInterface[][];
+  isPending: boolean[];
+}
+
+/**
+ * Folds the per-workspace query results into {@link FleetRuns}. Declared once, outside the hook: TanStack
+ * re-runs `combine` only when a result or the function's reference changes, and structurally shares what it
+ * returns, so the fold is stable across renders that change nothing.
+ */
+function combineRuns(results: UseQueryResult<PaginatedInterface<WorkflowItemInterface>>[]): FleetRuns {
+  return {
+    data: results.map((result) => result.data?.data ?? NO_RUNS),
+    isPending: results.map((result) => result.isPending),
+  };
+}
 
 export interface Fleet {
   entries: FleetEntry[];
@@ -48,34 +69,38 @@ export function useFleet(): Fleet {
     }),
   });
 
-  const workspaces = workspacesQuery.data?.data ?? [];
+  const workspaces = workspacesQuery.data?.data ?? NO_WORKSPACES;
 
-  const runQueries = useQueries({
+  // One query per workspace, folded into two arrays by `combine`. The fold is a module-level function so
+  // TanStack can keep its result referentially stable between renders: a memo below can then depend on the
+  // fold itself rather than on a dependency list that grows and shrinks with the number of workspaces.
+  const runs = useQueries({
     queries: workspaces.map((workspace) => ({
       ...client.queries.workflowList({
         filter: { workspaceId: workspace.id, status: [...ACTIVE_RUN_STATES] },
         sortBy: [{ field: 'updatedAt', order: SortOrder.DESC }],
       }),
     })),
+    combine: combineRuns,
   });
 
   const runsByWorkspace = useMemo(() => {
     const map = new Map<string, WorkflowItemInterface[]>();
     workspaces.forEach((workspace, index) => {
-      map.set(workspace.id, runQueries[index]?.data?.data ?? []);
+      map.set(workspace.id, runs.data[index] ?? NO_RUNS);
     });
     return map;
-  }, [workspaces, ...runQueries.map((query) => query.data)]);
+  }, [workspaces, runs.data]);
 
   const entries = useMemo(
     () =>
       orderEntries(
         workspaces.map((workspace, index) =>
-          classifyWorkspace(workspace, runsByWorkspace.get(workspace.id) ?? [], runQueries[index]?.isPending ?? false),
+          classifyWorkspace(workspace, runsByWorkspace.get(workspace.id) ?? NO_RUNS, runs.isPending[index] ?? false),
         ),
         preferences.fleetOrder,
       ),
-    [workspaces, runsByWorkspace, preferences.fleetOrder, ...runQueries.map((query) => query.isPending)],
+    [workspaces, runsByWorkspace, preferences.fleetOrder, runs.isPending],
   );
 
   return {
