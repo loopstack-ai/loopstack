@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentWorkflow } from '@loopstack/agent';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolCallOptions, ToolPipeline } from '@loopstack/common';
+import { GlobTool, GrepTool, ReadTool } from '@loopstack/remote-client';
 import { createToolTest } from '@loopstack/testing';
 import { ExploreTask, ExploreTaskInput } from '../explore-task.tool.js';
 
@@ -22,7 +23,13 @@ describe('ExploreTask', () => {
     vi.clearAllMocks();
     mockAgentWorkflow.run.mockResolvedValue({ workflowId: 'wf-explore' });
 
-    module = await createToolTest().forTool(ExploreTask).withMock(AgentWorkflow, mockAgentWorkflow).compile();
+    module = await createToolTest()
+      .forTool(ExploreTask)
+      .withMock(AgentWorkflow, mockAgentWorkflow)
+      .withMock(GlobTool, {})
+      .withMock(GrepTool, {})
+      .withMock(ReadTool, {})
+      .compile();
 
     tool = module.get(ExploreTask);
   });

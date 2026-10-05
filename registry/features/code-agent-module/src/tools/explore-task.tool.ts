@@ -1,7 +1,9 @@
+import { Optional } from '@nestjs/common';
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
 import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
+import { GlobTool, GrepTool, ReadTool } from '@loopstack/remote-client';
 
 const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
 source code to answer the user's question thoroughly.
@@ -52,6 +54,9 @@ export const ExploreTaskResultSchema = z.union([z.string(), z.record(z.string(),
 /**
  * Tool that launches an `AgentWorkflow` sub-agent to explore and analyze a codebase with the `glob`/`grep`/`read` tools and return a synthesized summary.
  *
+ * Those tools come from `RemoteClientModule`. Constructing `ExploreTask` without them throws, so an app
+ * that has not wired the remote client fails at boot instead of on the first `explore_task` call.
+ *
  * @providedBy CodeAgentModule
  * @public
  */
@@ -68,8 +73,19 @@ export const ExploreTaskResultSchema = z.union([z.string(), z.record(z.string(),
   effects: 'none',
 })
 export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskResult> {
-  constructor(private readonly agentWorkflow: AgentWorkflow) {
+  constructor(
+    private readonly agentWorkflow: AgentWorkflow,
+    @Optional() globTool?: GlobTool,
+    @Optional() grepTool?: GrepTool,
+    @Optional() readTool?: ReadTool,
+  ) {
     super();
+    if (!globTool || !grepTool || !readTool) {
+      throw new Error(
+        'explore_task requires the glob, grep and read tools from RemoteClientModule. ' +
+          'Import RemoteClientModule (or RemoteClientModule.forRoot()) in your app module.',
+      );
+    }
   }
 
   private readonly tools = ['glob', 'grep', 'read'];
