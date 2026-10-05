@@ -1,0 +1,7 @@
+widgets:
+  - widget: button
+    showWhen:
+      - service_failed
+    options:
+      transition: recover
+      label: Recover

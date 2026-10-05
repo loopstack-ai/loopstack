@@ -39,6 +39,7 @@
     "@loopstack/secrets-module": "*",
     "@loopstack/advanced-workflows-examples": "*",
     "@loopstack/agent-examples": "*",
+    "@loopstack/error-handling-examples": "*",
     "@loopstack/git-examples": "*",
     "@loopstack/github-examples": "*",
     "@loopstack/google-workspace-examples": "*",

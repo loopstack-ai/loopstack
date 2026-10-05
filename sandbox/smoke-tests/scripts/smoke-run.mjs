@@ -33,8 +33,13 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'run_sub_workflow_example_show_modes', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_fan_out', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_sequence', expect: 'completed' },
-  // Auto-retries with queue backoff succeed, then the manual-retry step fails as designed
-  { workflow: 'error_retry', expect: 'failed', error: 'Simulated external service error' },
+  // Error handling — auto-retries run on the queue backoff and succeed; the other modes end failed as designed
+  { workflow: 'auto_retry_example', expect: 'completed' },
+  { workflow: 'retry_target_example', expect: 'completed' },
+  { workflow: 'error_place_example', expect: 'failed', error: 'Simulated external service error' },
+  { workflow: 'manual_retry_example', expect: 'failed', error: 'Simulated external service error' },
+  { workflow: 'transition_timeout_example', expect: 'failed', error: 'timed out after 2000ms' },
+  { workflow: 'sub_workflow_error_place_example', expect: 'failed', error: 'Child workflow failed' },
   // Scheduling
   { workflow: 'call_webhook', expect: 'completed' },
   { workflow: 'call_signup', expect: 'completed' },

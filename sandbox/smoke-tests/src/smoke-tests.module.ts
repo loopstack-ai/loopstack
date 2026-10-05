@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AdvancedWorkflowsExamplesModule } from '@loopstack/advanced-workflows-examples';
 import { AgentExamplesModule } from '@loopstack/agent-examples';
+import { ErrorHandlingExamplesModule } from '@loopstack/error-handling-examples';
 import { GitExamplesModule } from '@loopstack/git-examples';
 import { GitHubExamplesModule } from '@loopstack/github-examples';
 import { GoogleWorkspaceExamplesModule } from '@loopstack/google-workspace-examples';
@@ -30,6 +31,7 @@ import { SmokeTestsController } from './smoke-tests.controller';
     LocalFileExplorerExamplesModule,
     ObservabilityExamplesModule,
     AdvancedWorkflowsExamplesModule,
+    ErrorHandlingExamplesModule,
 
     SchedulingExamplesModule,
     TestingExamplesModule,

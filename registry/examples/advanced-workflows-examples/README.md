@@ -1,6 +1,6 @@
 ---
 title: Advanced Workflows Examples
-description: In-depth examples of advanced Loopstack workflow patterns — state, dynamic routing, error retry, sub-workflows (parent, fan-out, sequence, show modes, error handling), batch processing, custom tools, configurable modules, and built-in UI documents.
+description: In-depth examples of advanced Loopstack workflow patterns — state, dynamic routing, sub-workflows (parent, fan-out, sequence, show modes, error handling), batch processing, custom tools, configurable modules, and built-in UI documents.
 ---
 
 # @loopstack/advanced-workflows-examples
@@ -58,7 +58,7 @@ import { LoopstackModule } from '@loopstack/loopstack-module';
 export class AppModule {}
 ```
 
-`AdvancedWorkflowsExamplesModule` already re-imports `ClaudeModule` to register the Claude provider; `LlmProviderModule.forRoot(...)` sets the default model the tools dispatch to. Pure pattern demos that don't call an LLM (Workflow State, Dynamic Routing, Error Retry, UI Documents) work without it.
+`AdvancedWorkflowsExamplesModule` already re-imports `ClaudeModule` to register the Claude provider; `LlmProviderModule.forRoot(...)` sets the default model the tools dispatch to. Pure pattern demos that don't call an LLM (Workflow State, Dynamic Routing, UI Documents) work without it.
 
 Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
 
@@ -68,7 +68,6 @@ Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
 | ------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------- |
 | [Workflow State](#workflow-state)     | `Advanced - Workflow State Example`             | Persist typed state across transitions via `assignState()`                              |
 | [Dynamic Routing](#dynamic-routing)   | `Advanced - Dynamic Routing Example`            | Conditional routing with `@Guard` decorators and transition priorities                  |
-| [Error Retry](#error-retry)           | `Advanced - Error Retry Example`                | Auto-retry, manual retry, custom error places, timeouts, hybrid                         |
 | [Sub-Workflow](#sub-workflow)         | `Advanced - Sub-Workflow Example`               | Launch a child workflow via `.run()` and resume on callback                             |
 | [Fan-Out](#fan-out)                   | `Advanced - Fan-Out Example`                    | Parallel sub-workflows with single aggregated callback (`FanOutWorkflow`)               |
 | [Sequence](#sequence)                 | `Advanced - Sequence Example`                   | Sequential sub-workflows with single aggregated callback (`SequenceWorkflow`)           |
@@ -98,22 +97,6 @@ Demonstrates `@Guard`-based conditional routing — multiple transitions out of 
 ### Files
 
 - `dynamic-routing-example.workflow.ts`
-
-## Error Retry
-
-Demonstrates every retry/error mode in one workflow:
-
-1. **Auto-retry** with exponential backoff
-2. **Manual retry** via Retry button
-3. **Custom error place** with recovery transition
-4. **Timeout** with manual retry
-5. **Hybrid** (auto-retry + custom error place)
-
-### Files
-
-- `error-retry-example.workflow.ts`
-- `error-retry-example.ui.yaml`
-- `tools/{step1,step2,slow}.tool.ts`
 
 ## Sub-Workflow
 
