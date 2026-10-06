@@ -23,9 +23,8 @@ Every package declares the packages its code imports, so it loads under installs
 - `@loopstack/api`: peer dependencies `typeorm`, `@nestjs/typeorm` and `zod`.
 - `@loopstack/auth`: peer dependencies `typeorm` and `@nestjs/typeorm`.
 - `@loopstack/testing`: peer dependency `typeorm`.
-- `@loopstack/google-workspace-module`: depends on `@loopstack/common` and `@nestjs/config`; peer dependency
-  `@nestjs/common`.
-- `@loopstack/github-module`: depends on `@nestjs/config`; peer dependency `@nestjs/common`.
+- `@loopstack/google-workspace-module`: depends on `@loopstack/common`; peer dependency `@nestjs/common`.
+- `@loopstack/github-module`: peer dependency `@nestjs/common`.
 - `@loopstack/oauth-module`, `@loopstack/openai-module`, `@loopstack/llm-provider-module`: peer dependency
   `@nestjs/common`.
 - `@loopstack/remote-client`: peer dependencies `@nestjs/core`, `class-transformer` and `class-validator`.
