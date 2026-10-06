@@ -1,6 +1,6 @@
 ---
 title: Secrets Module
-description: Workspace-scoped secrets storage for Loopstack workflows — SecretEntity, SecretService, SecretController REST API, GetSecretKeysTool (get_secret_keys), RequestSecretsTool (request_secrets), RequestSecretsTask (request_secrets_task), SecretsRequestWorkflow, SecretRequestDocument. CRUD service, upsert, request secrets from users at runtime.
+description: Workspace-scoped secrets storage for Loopstack workflows — SecretEntity, SecretService, SecretController REST API, GetSecretKeysTool (get_secret_keys), RequestSecretsTask (request_secrets_task), SecretsRequestWorkflow, SecretRequestDocument. CRUD service, upsert, request secrets from users at runtime.
 ---
 
 # @loopstack/secrets-module
@@ -13,7 +13,7 @@ Provides workspace-scoped storage for API keys, tokens, and other credentials. W
 
 - **Your workflow needs credentials at runtime** -- an API key, OAuth token, or webhook secret that isn't known until the user provides it.
 - **You want to check whether secrets exist before branching** -- use `GetSecretKeysTool` to inspect available keys without reading values.
-- **You need a secure input form in the Studio** -- `RequestSecretsTool` and `RequestSecretsTask` render a form where users enter secrets that are stored server-side, never sent to the LLM.
+- **You need a secure input form in the Studio** -- `SecretRequestDocument` renders a form where users enter secrets that are stored server-side, never sent to the LLM. Scripted workflows save it themselves; agents call `RequestSecretsTask`.
 - **You need CRUD access to secrets from backend code** -- inject `SecretService` directly for programmatic reads, writes, and upserts.
 
 ## Installation
@@ -45,11 +45,11 @@ export class AppModule {}
 
 ## Quick Start
 
-Inject `RequestSecretsTool` into a workflow to ask the user for secrets, then use `GetSecretKeysTool` to verify they were stored:
+Save a `SecretRequestDocument` to ask the user for secrets, wait for the submission, then use `GetSecretKeysTool` to verify they were stored:
 
 ```ts
 import { BaseWorkflow, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
-import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
+import { GetSecretKeysTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
 interface SecretsState {
   secretKeys?: Array<{ key: string; hasValue: boolean }>;
@@ -60,19 +60,12 @@ interface SecretsState {
   description: 'Requests secrets from the user and verifies they were stored.',
 })
 export class SecretsExampleWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly requestSecrets: RequestSecretsTool,
-    private readonly getSecretKeys: GetSecretKeysTool,
-  ) {
+  constructor(private readonly getSecretKeys: GetSecretKeysTool) {
     super();
   }
 
   @Transition({ to: 'requesting_secrets' })
   async requestSecretsFromUser(state: SecretsState) {
-    await this.requestSecrets.call({
-      variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
-    });
-
     await this.documentStore.save(SecretRequestDocument, {
       variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
     });
@@ -99,17 +92,17 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
 
 ### Requesting secrets from a user
 
-`RequestSecretsTool` tells the framework which secrets are needed and renders a `SecretRequestDocument` form in the Studio. The workflow pauses on a `wait: true` transition until the user submits the form. Values are stored on `SecretEntity` and never returned to the LLM.
+Saving a `SecretRequestDocument` renders the secure form in the Studio. The workflow pauses on a `wait: true` transition named `secretsSubmitted` -- the transition the form fires -- until the user submits it. Values are stored on `SecretEntity` and never returned to the LLM.
 
 ```
 start ──> requesting_secrets ──(wait)──> verifying ──> end
-           show form + call        user submits       check keys
-           RequestSecretsTool      secrets             & continue
+           save                    user submits       check keys
+           SecretRequestDocument   secrets             & continue
 ```
 
 ### Using RequestSecretsTask in agent workflows
 
-`RequestSecretsTask` is the agent-friendly variant. It launches `SecretsRequestWorkflow` as a sub-workflow with a callback (rendered inline in the parent's view via the default `show: 'inline'`), and resolves when the user completes the form. Use this when an LLM agent decides at runtime which secrets to request.
+`RequestSecretsTask` is the tool for agents. It launches `SecretsRequestWorkflow` as a sub-workflow with a callback (rendered inline in the parent's view via the default `show: 'inline'`), and resolves when the user completes the form. Use this when an LLM agent decides at runtime which secrets to request.
 
 ```ts
 import { RequestSecretsTask, GetSecretKeysTool, SecretsRequestWorkflow } from '@loopstack/secrets-module';
@@ -170,19 +163,9 @@ Returns the list of secret keys available in the current workspace. Does not ret
 
 **Returns:** `Array<{ key: string; hasValue: boolean }>`
 
-### `request_secrets`
-
-Requests secret values from the user. Shows a secure input form in the Studio. Values are stored securely and never exposed to the workflow or LLM. Returns the key names after the user provides the values. Must be the only tool call in the response.
-
-| Arg         | Type                     | Required | Description                                  |
-| ----------- | ------------------------ | -------- | -------------------------------------------- |
-| `variables` | `Array<{ key: string }>` | Yes      | List of secret keys to request from the user |
-
-**Returns:** `{ variables: Array<{ key: string }> }`
-
 ### `request_secrets_task`
 
-Agent-friendly task variant of `request_secrets`. Launches `SecretsRequestWorkflow` as a sub-workflow, displays an embedded link document, and completes via callback when the user submits secrets. Must be the only tool call in the response.
+Requests secret values from the user. Launches `SecretsRequestWorkflow` as a sub-workflow, displays an embedded link document, and completes via callback when the user submits secrets. Must be the only tool call in the response.
 
 | Arg         | Type                     | Required | Description                                  |
 | ----------- | ------------------------ | -------- | -------------------------------------------- |
@@ -208,10 +191,10 @@ SecretsModule.forFeature({ enabled: true });
 - **Entity:** `SecretEntity`
 - **Service:** `SecretService` -- `findAllByWorkspace`, `create`, `update`, `upsert`, `delete`
 - **Controller:** `SecretController` -- REST CRUD under `/api/v1/workspaces/:workspaceId/secrets`
-- **Tools:** `GetSecretKeysTool`, `RequestSecretsTool`, `RequestSecretsTask`
+- **Tools:** `GetSecretKeysTool`, `RequestSecretsTask`
 - **Workflow:** `SecretsRequestWorkflow`
 - **Document:** `SecretRequestDocument`
-- **Types:** `GetSecretKeysResult`, `RequestSecretsResult`, `RequestSecretsTaskResult`
+- **Types:** `GetSecretKeysResult`, `RequestSecretsTaskResult`
 
 ## Dependencies
 

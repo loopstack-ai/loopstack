@@ -1,0 +1,50 @@
+{
+  "name": "@loopstack/sandbox-examples",
+  "displayName": "Loopstack Sandbox Examples",
+  "description": "Docker sandbox workflow example for Loopstack — init a container, run file operations inside it with the sandbox filesystem tools, and destroy it.",
+  "keywords": [
+    "loopstack",
+    "example",
+    "sandbox",
+    "docker",
+    "filesystem",
+    "workflow"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "*",
+    "@loopstack/sandbox-filesystem": "*",
+    "@loopstack/sandbox-tool": "*",
+    "@nestjs/common": "^12.0.1",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "@loopstack/testing": "*",
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
+  }
+}

@@ -84,6 +84,11 @@ export class ExchangeOAuthTokenTool extends BaseTool<ExchangeOAuthTokenArgs, obj
     const provider = this.providerRegistry.get(args.provider);
     const tokenSet = await provider.exchangeCode(args.code);
 
+    // Never overwrite a user's stored token with a token set that cannot authenticate.
+    if (!tokenSet.accessToken) {
+      throw new Error(`OAuth token exchange with '${args.provider}' returned no access token.`);
+    }
+
     await this.tokenStore.storeFromTokenSet(ctx.userId, args.provider, tokenSet);
 
     return {

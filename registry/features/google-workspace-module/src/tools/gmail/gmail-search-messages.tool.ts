@@ -153,7 +153,7 @@ export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, o
     const messages = await Promise.all(
       listData.messages.map(async (msg) => {
         const msgResponse = await fetch(
-          `https://www.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Subject&metadataHeaders=Date`,
+          `https://www.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(msg.id)}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Subject&metadataHeaders=Date`,
           { headers: { Authorization: `Bearer ${accessToken}` } },
         );
 

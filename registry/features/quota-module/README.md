@@ -59,7 +59,7 @@ When `enabled` is `false` (the default), the Redis connection is skipped and the
 
 Once the module is registered, the `QuotaInterceptor` is automatically discovered via `@UseToolInterceptor()` and runs on every tool call. No additional wiring is needed for the built-in calculators.
 
-The module auto-registers `AiGenerateTextQuotaCalculator` for `LlmGenerateTextTool` and `LlmGenerateObjectTool` on startup.
+The module auto-registers `AiGenerateTextQuotaCalculator` for `LlmGenerateTextTool`, `LlmGenerateObjectTool` and `WebFetchTool` (`@loopstack/web-module`, metered when it summarizes with a `prompt`) on startup.
 
 To read or manipulate quota counters directly, inject `QuotaClientService`:
 

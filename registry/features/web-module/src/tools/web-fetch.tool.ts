@@ -1,6 +1,8 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import type { LlmResultMeta } from '@loopstack/llm-provider-module';
 import { MAX_MARKDOWN_LENGTH, MAX_RESULT_SIZE_CHARS } from '../constants.js';
 import { WebFetchFetcherService, WebFetchSummarizerService } from '../services/index.js';
 import { WebFetchResult, WebFetchResultSchema } from '../types/index.js';
@@ -17,10 +19,21 @@ export const WebFetchSchema = z
       .string()
       .optional()
       .describe(
-        'Optional instruction applied to the fetched content by a small model. ' +
+        'Optional instruction applied to the fetched content by a small model via the configured LLM provider. ' +
           'When omitted, the raw Markdown is returned (truncated if very long).',
       ),
-    model: z.string().optional().describe('Model for the summarization step. Only used when `prompt` is provided.'),
+    provider: z
+      .string()
+      .optional()
+      .describe(
+        'LLM provider for the summarization step (e.g. "claude", "openai"). Defaults to the LlmProviderModule provider. Only used when `prompt` is provided.',
+      ),
+    model: z
+      .string()
+      .optional()
+      .describe(
+        'Model for the summarization step (default `claude-haiku-4-5-20251001`). Only used when `prompt` is provided.',
+      ),
     envApiKey: z.string().optional(),
     maxTokens: z.number().optional(),
   })
@@ -34,7 +47,8 @@ export const WebFetchSchema = z
 export type WebFetchArgs = z.infer<typeof WebFetchSchema>;
 
 /**
- * Tool that fetches a URL, converts HTML to Markdown, and optionally summarizes the content with a small Claude model.
+ * Tool that fetches a URL, converts HTML to Markdown, and optionally summarizes the content through the configured
+ * LLM provider (model `claude-haiku-4-5-20251001` by default). A summarized result carries the provider, model and token usage as {@link LlmResultMeta}.
  *
  * @providedBy WebModule
  * @public
@@ -42,17 +56,20 @@ export type WebFetchArgs = z.infer<typeof WebFetchSchema>;
 @Tool({
   name: 'web_fetch',
   description:
-    'Fetches content from a URL, converts HTML to Markdown, and optionally summarizes it with a small Claude model against a user-provided prompt. ' +
+    'Fetches content from a URL, converts HTML to Markdown, and optionally summarizes it with a small model via the configured LLM provider against a user-provided prompt. ' +
     'Supports HTTPS upgrade, same-origin redirect following with cross-host report, a 15-minute in-memory cache, size and redirect caps, and a preapproved-host allowlist.',
   schema: WebFetchSchema,
   resultSchema: WebFetchResultSchema,
   effects: 'none',
 })
-export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult> {
+export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult, Partial<LlmResultMeta>> {
   @Inject() private readonly fetcher: WebFetchFetcherService;
   @Inject() private readonly summarizer: WebFetchSummarizerService;
 
-  protected async handle(args: WebFetchArgs): Promise<ToolEnvelope<WebFetchResult>> {
+  protected async handle(
+    args: WebFetchArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<WebFetchResult, Partial<LlmResultMeta>>> {
     const start = performance.now();
     const outcome = await this.fetcher.fetch(args.url);
 
@@ -99,15 +116,19 @@ export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult>
 
     let result: string;
     let truncated = false;
+    let metadata: LlmResultMeta | undefined;
 
     if (args.prompt) {
       const summary = await this.summarizer.summarize(args.url, markdown, args.prompt, {
+        provider: args.provider,
         model: args.model,
         envApiKey: args.envApiKey,
         maxTokens: args.maxTokens,
+        signal: ctx.signal,
       });
       result = summary.summary;
       truncated = summary.truncated;
+      metadata = summary.meta;
     } else {
       if (markdown.length > MAX_MARKDOWN_LENGTH) {
         result = markdown.slice(0, MAX_MARKDOWN_LENGTH) + '\n\n[Content truncated due to length...]';
@@ -131,6 +152,7 @@ export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult>
         cached,
         durationMs: performance.now() - start,
       },
+      ...(metadata && { metadata }),
     };
   }
 }

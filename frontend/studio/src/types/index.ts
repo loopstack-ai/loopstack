@@ -10,9 +10,10 @@ export interface StudioRouter {
   getEnvironmentInfo(): string;
   navigateToEnvironmentInfo(): Promise<void>;
   getRuns(): string;
-  getRunsActionRequired(): string;
   getDashboard(): string;
   navigateToDashboard(): Promise<void>;
+  getApplications(): string;
+  navigateToApplications(): Promise<void>;
   getWorkspaces(): string;
   getDebugWorkflows(): string;
   getDebugWorkflow(workflowId: string): string;

@@ -28,12 +28,16 @@ export class LocalRouter implements StudioRouter {
     return '/runs';
   }
 
-  getRunsActionRequired() {
-    return '/runs/action-required';
+  getDashboard() {
+    return '/dashboard';
   }
 
-  getDashboard() {
+  getApplications() {
     return '/applications';
+  }
+
+  async navigateToApplications() {
+    await this.navigate(this.getApplications());
   }
 
   async navigateToDashboard() {

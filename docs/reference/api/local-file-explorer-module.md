@@ -79,6 +79,7 @@ export class FileSystemService {
   constructor(configService: ConfigService);
   getWorkspaceRootPath(): string;
   validatePath(basePath: string, targetPath: string): boolean;
+  resolveContainedPath(basePath: string, relativePath: string): Promise<string | null>;
   buildFileTree(rootPath: string, relativePath?: string): Promise<FileExplorerNodeDto[]>;
   readFileContent(filePath: string, maxSize?: number): Promise<string | null>;
   exists(filePath: string): Promise<boolean>;

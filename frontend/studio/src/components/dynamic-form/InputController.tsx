@@ -6,8 +6,12 @@ import { CheckboxField } from './fields/CheckboxField';
 import type { CheckboxFieldSchema } from './fields/CheckboxField';
 import { CodeViewField } from './fields/CodeViewField';
 import type { CodeFieldSchema } from './fields/CodeViewField';
+import { MarkdownCollapsedField } from './fields/MarkdownCollapsedField';
+import type { MarkdownCollapsedFieldSchema } from './fields/MarkdownCollapsedField';
 import { MarkdownViewField } from './fields/MarkdownViewField';
 import type { MarkdownFieldSchema } from './fields/MarkdownViewField';
+import { OptionPickerField } from './fields/OptionPickerField';
+import type { OptionPickerFieldSchema } from './fields/OptionPickerField';
 import { RadioField } from './fields/RadioField';
 import type { RadioFieldSchema } from './fields/RadioField';
 import { SelectField } from './fields/SelectField';
@@ -27,6 +31,8 @@ type WidgetType =
   | 'text'
   | 'code-view'
   | 'markdown-view'
+  | 'markdown-collapsed'
+  | 'option-picker'
   | 'textarea';
 
 type FieldSchema =
@@ -38,7 +44,9 @@ type FieldSchema =
   | InputFieldSchema
   | TextareaFieldSchema
   | CodeFieldSchema
-  | MarkdownFieldSchema;
+  | MarkdownFieldSchema
+  | MarkdownCollapsedFieldSchema
+  | OptionPickerFieldSchema;
 
 const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { schema: any }>> = {
   checkbox: CheckboxField,
@@ -50,9 +58,15 @@ const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { sch
   textarea: TextareaField,
   'code-view': CodeViewField,
   'markdown-view': MarkdownViewField,
+  'markdown-collapsed': MarkdownCollapsedField,
+  'option-picker': OptionPickerField,
 } as const;
 
 const WIDGET_NAMES = Object.keys(WIDGET_REGISTRY) as WidgetType[];
+
+/** Whether a declared widget name is one this form can draw. */
+export const isRegisteredWidget = (widget: unknown): widget is WidgetType =>
+  typeof widget === 'string' && WIDGET_NAMES.includes(widget as WidgetType);
 
 interface SchemaWithTypeAndEnum {
   type?: string;

@@ -34,13 +34,15 @@ The same widget format is used in document and workflow YAML configs under `ui.w
 
 ## Available Features
 
-Some registry modules light up additional Studio surfaces when imported by your app — sidebars, panels, or richer document widgets. They register themselves at bootstrap and appear under `StudioAppConfig.features`, which Studio reads to decide what UI to expose. You don't have to wire anything up beyond importing the module.
+Some registry modules light up additional Studio surfaces when imported by your app — sidebars, panels, or richer document widgets. Importing a module through its `forFeature()` (or `forRoot()`) registers its feature at bootstrap, and the feature then appears under `StudioAppConfig.features`, which Studio reads to decide what UI to expose. A bare import of the module class does not register the feature.
 
-| Feature        | Registered by                                                                     | What it adds to Studio                           |
-| -------------- | --------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `git`          | `@loopstack/git-module` (`GitModule.forFeature(config)`)                          | Git status panel and version-control affordances |
-| `fileExplorer` | `@loopstack/local-file-explorer-module`, `@loopstack/remote-file-explorer-module` | File-tree browser sidebar                        |
-| `secrets`      | `@loopstack/secrets-module` (`SecretsModule.forFeature(config)`)                  | Workspace secrets management UI                  |
+| Feature              | Registered by                                                                            | What it adds to Studio                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `git`                | `@loopstack/git-module` (`GitModule.forFeature(config)`)                                 | Git status panel and version-control affordances                                             |
+| `localFileExplorer`  | `@loopstack/local-file-explorer-module` (`LocalFileExplorerModule.forFeature(config)`)   | "Files" sidebar panel for browsing the local workspace filesystem                            |
+| `remoteFileExplorer` | `@loopstack/remote-file-explorer-module` (`RemoteFileExplorerModule.forFeature(config)`) | "Remote Files" sidebar panel for browsing a remote workspace (requires `RemoteClientModule`) |
+| `secrets`            | `@loopstack/secrets-module` (`SecretsModule.forFeature(config)`)                         | Workspace secrets management UI                                                              |
+| `handoff`            | `@loopstack/handoff-module` (`HandoffModule.forFeature(config)`)                         | Handoff panel and the `handoff` / `changed-files` document widgets                           |
 
 To enable a feature, import the corresponding module's `forFeature()` (or `forRoot()`) in your app's module graph. Features that aren't imported simply don't appear — Studio degrades gracefully and never assumes a feature is present.
 

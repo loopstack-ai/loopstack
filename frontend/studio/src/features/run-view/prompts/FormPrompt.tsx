@@ -1,133 +1,101 @@
 import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
+import Form from '@/components/dynamic-form/Form.tsx';
+import { describeFormErrors } from '@/components/dynamic-form/form-errors.ts';
 import { Button } from '@/components/ui/button.tsx';
-import { Checkbox } from '@/components/ui/checkbox.tsx';
-import { Input } from '@/components/ui/input.tsx';
-import { Label } from '@/components/ui/label.tsx';
+import { buttonVariant } from './button-variant.ts';
 import type { RunPromptProps } from './types.ts';
 
 interface FormAction {
   transition?: string;
   label?: string;
+  variant?: string;
 }
 
 interface SchemaProperty {
-  type?: string;
-  readonly?: boolean;
-  title?: string;
   default?: unknown;
 }
 
 /**
- * `form`: schema-driven fields initialized from the document content, submitted via one
- * of the widget's declared actions — mirroring the CLI's `collectForm` (content skeleton,
- * read-only fields locked, action picks the transition).
+ * `form`: the document's fields, drawn as the document declared them, submitted through one of the widget's
+ * actions.
+ *
+ * The fields come from `components/dynamic-form/Form`, the same renderer the document tree uses — so a
+ * textarea has its rows, an enum is a select, a collapsed block is collapsed, and a widget added there works
+ * here without a second registry. What this component owns is what the run view needs to own: the values
+ * seeded from the document content, the actions filtered to the transitions the run offers, and the submit.
+ *
+ * A `markdown` field with no declared widget is the form's heading. The CLI prints it that way, and every
+ * surface should read the same document the same way.
  */
 export function FormPrompt({ view, submit, isSubmitting }: RunPromptProps) {
-  const schema = view.schema as { properties?: Record<string, SchemaProperty> } | undefined;
-  const properties = useMemo(() => schema?.properties ?? {}, [schema]);
-  const uiProperties = (view.options?.properties ?? {}) as Record<string, { readonly?: boolean } | undefined>;
+  const schema = (view.schema ?? {}) as { properties?: Record<string, SchemaProperty> };
   const content = (view.content ?? {}) as Record<string, unknown>;
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [values, setValues] = useState<Record<string, unknown>>(() => {
+  // Read once: `useForm` takes its defaults on the first render only, as the legacy renderer does.
+  const [defaultValues] = useState(() => {
     const initial: Record<string, unknown> = { ...content };
-    for (const [key, property] of Object.entries(properties)) {
+    for (const [key, property] of Object.entries(schema.properties ?? {})) {
       if (initial[key] === undefined && property.default !== undefined) initial[key] = property.default;
     }
     return initial;
   });
+  const form = useForm<Record<string, unknown>>({ defaultValues, mode: 'onChange' });
+
+  const ui = useMemo(() => {
+    const declared = (view.options?.properties ?? {}) as Record<string, Record<string, unknown> | undefined>;
+    const properties = { ...declared };
+    if ('markdown' in (schema.properties ?? {}) && !declared.markdown?.widget) {
+      properties.markdown = { ...declared.markdown, widget: 'markdown-view' };
+    }
+    return { form: { properties, order: view.options?.order } } as UiFormType;
+  }, [view.options, schema.properties]);
 
   const actions = ((view.options?.actions as FormAction[] | undefined) ?? []).filter(
     (action) => action.transition && view.transitions.includes(action.transition),
   );
   if (actions.length === 0) return null;
 
-  const isReadOnly = (key: string) => (uiProperties[key]?.readonly ?? properties[key]?.readonly) === true;
-  const setValue = (key: string, value: unknown) => setValues((current) => ({ ...current, [key]: value }));
-
-  const markdown = typeof content.markdown === 'string' ? content.markdown : undefined;
-  const fieldKeys = Object.keys(properties).filter((key) => key !== 'markdown');
+  const act = (transition: string) =>
+    void form.handleSubmit(
+      (values) => {
+        setSubmitError(null);
+        submit(values, transition);
+      },
+      (errors) => setSubmitError(describeFormErrors(errors)),
+    )();
 
   return (
-    <div className="space-y-3">
-      {markdown && <p className="text-sm whitespace-pre-wrap">{markdown}</p>}
-      {fieldKeys.map((key) => {
-        const property = properties[key];
-        const value = values[key];
-        const disabled = isSubmitting || isReadOnly(key);
-        const label = property.title ?? key;
-        if (property.type === 'boolean') {
-          return (
-            <div key={key} className="flex items-center gap-2">
-              <Checkbox
-                id={`form-${key}`}
-                checked={value === true}
-                onCheckedChange={(checked) => setValue(key, checked === true)}
-                disabled={disabled}
-              />
-              <Label htmlFor={`form-${key}`}>{label}</Label>
-            </div>
-          );
-        }
-        if (property.type === 'number' || property.type === 'integer') {
-          return (
-            <div key={key} className="space-y-1">
-              <Label htmlFor={`form-${key}`}>{label}</Label>
-              <Input
-                id={`form-${key}`}
-                type="number"
-                value={typeof value === 'number' ? value : ''}
-                onChange={(event) => setValue(key, event.target.value === '' ? undefined : Number(event.target.value))}
-                disabled={disabled}
-              />
-            </div>
-          );
-        }
-        if (property.type === 'string' || value === undefined || typeof value === 'string') {
-          return (
-            <div key={key} className="space-y-1">
-              <Label htmlFor={`form-${key}`}>{label}</Label>
-              <Input
-                id={`form-${key}`}
-                value={typeof value === 'string' ? value : ''}
-                onChange={(event) => setValue(key, event.target.value)}
-                disabled={disabled}
-              />
-            </div>
-          );
-        }
-        // Structured field — edited as JSON, kept honest by parse-on-submit.
-        return (
-          <div key={key} className="space-y-1">
-            <Label htmlFor={`form-${key}`}>{label} (JSON)</Label>
-            <textarea
-              id={`form-${key}`}
-              className="border-input w-full rounded-md border bg-transparent p-2 font-mono text-sm"
-              rows={4}
-              defaultValue={JSON.stringify(value, null, 2)}
-              onChange={(event) => {
-                try {
-                  setValue(key, JSON.parse(event.target.value));
-                } catch {
-                  // keep last valid value until the JSON parses
-                }
-              }}
-              disabled={disabled}
-            />
+    <Form
+      form={form}
+      schema={schema as JSONSchemaConfigType}
+      ui={ui}
+      disabled={isSubmitting}
+      viewOnly={false}
+      actions={
+        <div className="flex w-full flex-col items-end gap-2">
+          {submitError && (
+            <p className="text-destructive w-full text-right text-sm" role="alert">
+              {submitError}
+            </p>
+          )}
+          <div className="flex gap-2">
+            {actions.map((action) => (
+              <Button
+                key={action.transition}
+                type="button"
+                variant={buttonVariant(action.variant) ?? 'default'}
+                onClick={() => act(action.transition!)}
+                disabled={isSubmitting}
+              >
+                {action.label ?? action.transition}
+              </Button>
+            ))}
           </div>
-        );
-      })}
-      <div className="flex gap-2">
-        {actions.map((action) => (
-          <Button
-            key={action.transition}
-            onClick={() => submit(values, action.transition)}
-            disabled={isSubmitting}
-            variant={action === actions[0] ? 'default' : 'outline'}
-          >
-            {action.label ?? action.transition}
-          </Button>
-        ))}
-      </div>
-    </div>
+        </div>
+      }
+    />
   );
 }

@@ -14,6 +14,15 @@ import { renderRunTrail } from '../run/trail.js';
 
 const IDLE_STATES: readonly WorkflowState[] = [WorkflowState.Waiting, WorkflowState.Paused];
 
+/** `--status waiting,failed` → the two statuses; a single value stays a single value. */
+function parseStatuses(status: string): string | string[] {
+  const values = status
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return values.length > 1 ? values : values[0];
+}
+
 interface RunsOptions {
   limit: string;
   workspace?: string;
@@ -38,7 +47,7 @@ export function registerRunsCommand(program: Command): void {
     .option('--limit <n>', 'maximum number of runs to list', '20')
     .option('--workspace <id>', 'filter by workspace id')
     .option('--search <text>', 'search runs')
-    .option('--status <status>', 'filter by status (e.g. waiting, completed, failed)')
+    .option('--status <status>', 'filter by status, comma-separated for several (e.g. waiting,failed)')
     .option('--open', 'open the run in Studio (requires a run id)')
     .option('--record <file>', 'write the run’s recorded tool calls as a replay fixture (JSON)')
     .option('--tools <names>', 'comma-separated tool names to include in the fixture (default: all)')
@@ -128,7 +137,8 @@ async function listRuns(
 ): Promise<void> {
   const filter = {
     ...(options.workspace && { workspaceId: options.workspace }),
-    ...(options.status && { status: options.status }),
+    // Several statuses ask for any of them — the API filter takes a list.
+    ...(options.status && { status: parseStatuses(options.status) }),
   };
   const page = await client.workflows.list({
     ...(Object.keys(filter).length > 0 && { filter }),

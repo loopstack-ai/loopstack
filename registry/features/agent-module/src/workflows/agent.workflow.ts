@@ -23,10 +23,12 @@ import {
  *
  * Runs a standard agent loop: LLM → tool calls → loop until done.
  *
- * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`
- * - **Config** (per-injection via `@InjectWorkflow()`): `provider`, `model`, `providerConfig`
+ * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`, `provider`, `model`
  *
- * Tools are resolved from the current workflow first, then from the workspace.
+ * `provider` and `model` default to the `LlmProviderModule` config in scope — the one passed to
+ * `AgentModule.forFeature({ llm })`, or the app-wide one.
+ *
+ * Tool names in `tools` are resolved by their `@Tool({ name })` value from the app-wide tool registry.
  */
 /**
  * Zod schema for `AgentWorkflow` args (what callers pass to `run()`).
@@ -38,12 +40,14 @@ export const AgentArgsSchema = z.object({
   tools: z.array(z.string()),
   userMessage: z.string(),
   context: z.string().optional(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
 });
 
 /**
  * Args for `AgentWorkflow` (passed to `run()`).
  *
- * Holds `system`, `tools`, `userMessage`, and optional `context`.
+ * Holds `system`, `tools`, `userMessage`, and optional `context`, `provider` and `model`.
  *
  * @public
  */
@@ -72,6 +76,8 @@ interface AgentState {
   tools: string[];
   userMessage: string;
   context?: string;
+  provider?: string;
+  model?: string;
   llmResult?: LlmGenerateTextResult;
   delegateResult?: LlmDelegateResult;
 }
@@ -80,8 +86,8 @@ interface AgentState {
  * Workflow that runs a generic LLM agent loop: prompt the LLM, delegate any tool
  * calls, feed their results back, and repeat until the model returns `end_turn`.
  *
- * Args (per `run()`): `system`, `tools`, `userMessage`, and optional `context`.
- * Tools are resolved from the current workflow first, then from the workspace.
+ * Args (per `run()`): `system`, `tools`, `userMessage`, and optional `context`, `provider` and `model`.
+ * Tool names in `tools` are resolved by their `@Tool({ name })` value from the app-wide tool registry.
  * On completion it publishes an {@link AgentResult} with the final assistant `response`.
  *
  * @public
@@ -124,7 +130,8 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
       {},
       {
         config: {
-          provider: 'claude',
+          provider: state.provider,
+          model: state.model,
           system: state.system,
           tools: state.tools,
         },
@@ -139,6 +146,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   async executeToolCalls(state: AgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: state.tools,
       callback: { transition: 'toolResultReceived' },
     });
 

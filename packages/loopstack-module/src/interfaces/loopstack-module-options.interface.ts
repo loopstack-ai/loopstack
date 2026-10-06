@@ -24,6 +24,11 @@ export interface LoopstackAuthOptions {
     expiresIn?: string;
     refreshSecret?: string;
     refreshExpiresIn?: string;
+    /**
+     * `Domain` attribute of the access and refresh cookies, e.g. `.example.com` to share them across
+     * subdomains. Unset means host-only cookies on the API host. Falls back to `JWT_COOKIE_DOMAIN`.
+     */
+    cookieDomain?: string;
   };
   clientId?: string;
   hub?: {

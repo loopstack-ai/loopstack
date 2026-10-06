@@ -51,6 +51,7 @@ export class QuotaModule implements OnModuleInit {
     const aiTokenCalculator = new AiGenerateTextQuotaCalculator();
     this.calculatorRegistry.register('LlmGenerateTextTool', aiTokenCalculator);
     this.calculatorRegistry.register('LlmGenerateObjectTool', aiTokenCalculator);
+    this.calculatorRegistry.register('WebFetchTool', aiTokenCalculator);
   }
 
   static forRoot(options?: QuotaModuleOptions): DynamicModule {

@@ -6,7 +6,7 @@ import { SecretRequestDocument } from './documents/index.js';
 import { SecretEntity } from './entities/index.js';
 import { SECRETS_MODULE_CONFIG, type SecretsModuleConfig } from './secrets.constants.js';
 import { SecretService } from './services/index.js';
-import { GetSecretKeysTool, RequestSecretsTask, RequestSecretsTool, SecretsRequestWorkflow } from './tools/index.js';
+import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from './tools/index.js';
 
 const DEFAULT_CONFIG: SecretsModuleConfig = {};
 
@@ -18,7 +18,7 @@ const DEFAULT_CONFIG: SecretsModuleConfig = {};
 const SCOPED = [SecretService, GetSecretKeysTool];
 
 /** Shared providers with no per-module config — provided once in the global root. */
-const SHARED = [RequestSecretsTool, RequestSecretsTask, SecretsRequestWorkflow, SecretRequestDocument];
+const SHARED = [RequestSecretsTask, SecretsRequestWorkflow, SecretRequestDocument];
 
 /**
  * Internal global root — provides the entity/repo, the REST controller, and the shared services/tools once,
@@ -37,7 +37,7 @@ class SecretsRootModule {}
 
 /**
  * NestJS module that provides workspace-scoped secrets storage — the `SecretEntity`, `SecretService`,
- * `SecretController` REST API, the `get_secret_keys` / `request_secrets` / `request_secrets_task` tools,
+ * `SecretController` REST API, the `get_secret_keys` / `request_secrets_task` tools,
  * `SecretsRequestWorkflow`, and `SecretRequestDocument`.
  *
  * Registration:

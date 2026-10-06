@@ -25,7 +25,11 @@ import { AgentFinishTool } from '../tools/agent-finish.tool.js';
  * Runs an agent loop like AgentWorkflow, but instead of exiting on end_turn,
  * it waits for user input. The user can chat with the agent between LLM turns.
  *
- * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`, `taskMode`
+ * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`, `taskMode`, `provider`,
+ *   `model`
+ *
+ * `provider` and `model` default to the `LlmProviderModule` config in scope — the one passed to
+ * `AgentModule.forFeature({ llm })`, or the app-wide one.
  *
  * Exit behavior is controlled by `taskMode` arg:
  * - When true, the AgentFinishTool is added to the tool list. The agent exits
@@ -33,7 +37,7 @@ import { AgentFinishTool } from '../tools/agent-finish.tool.js';
  * - When false (default), the agent never finishes on its own. The parent
  *   workflow controls the lifecycle.
  *
- * Tools are resolved from the current workflow first, then from the workspace.
+ * Tool names in `tools` are resolved by their `@Tool({ name })` value from the app-wide tool registry.
  */
 /**
  * Zod schema for `ChatAgentWorkflow` args (what callers pass to `run()`).
@@ -46,12 +50,14 @@ export const ChatAgentArgsSchema = z.object({
   userMessage: z.string(),
   context: z.string().optional(),
   taskMode: z.boolean().optional(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
 });
 
 /**
  * Args for `ChatAgentWorkflow` (passed to `run()`).
  *
- * Holds `system`, `tools`, `userMessage`, optional `context`, and optional `taskMode`.
+ * Holds `system`, `tools`, `userMessage`, and optional `context`, `taskMode`, `provider` and `model`.
  *
  * @public
  */
@@ -63,6 +69,8 @@ interface ChatAgentState {
   userMessage: string;
   context?: string;
   taskMode?: boolean;
+  provider?: string;
+  model?: string;
   llmResult?: LlmGenerateTextResult;
   delegateResult?: LlmDelegateResult;
   finishResult?: unknown;
@@ -110,15 +118,14 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
   async llmTurn(state: ChatAgentState) {
-    const tools = state.taskMode ? [...state.tools, 'agent_finish'] : state.tools;
-
     const result = await this.llmGenerateText.call(
       {},
       {
         config: {
-          provider: 'claude',
+          provider: state.provider,
+          model: state.model,
           system: state.system,
-          tools,
+          tools: this.offeredTools(state),
         },
       },
     );
@@ -131,6 +138,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   async executeToolCalls(state: ChatAgentState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: this.offeredTools(state),
       callback: { transition: 'toolResultReceived' },
     });
 
@@ -176,6 +184,11 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(state: ChatAgentState, input: TransitionInput<string>) {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
+  }
+
+  /** The tools the LLM is offered — and the only ones its tool calls may execute. */
+  private offeredTools(state: ChatAgentState): string[] {
+    return state.taskMode ? [...state.tools, 'agent_finish'] : state.tools;
   }
 
   private hasToolCalls(state: ChatAgentState): boolean {

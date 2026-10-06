@@ -1,5 +1,6 @@
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import type { ParkView } from '@loopstack/contracts/park-view';
+import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
 import { Button } from '@/components/ui/button.tsx';
 
 /** A picked prompt the run view has no component for — inert, no handoff. */
@@ -64,7 +65,7 @@ export function InertPromptEntry({ document }: { document: { content: unknown } 
   const answered = content.answer !== undefined;
   return (
     <div className="rounded-md border p-3 text-sm">
-      {question && <p className="font-medium">{question}</p>}
+      {question && <MarkdownContent content={question} className="text-sm" />}
       {answered && <p className="text-muted-foreground mt-1">Answered: {formatAnswer(content.answer)}</p>}
     </div>
   );

@@ -28,17 +28,23 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
     "@loopstack/agent": "^0.6.2",
     "@loopstack/common": "^0.42.0",
     "@loopstack/core": "^0.43.0",
+    "@loopstack/llm-provider-module": "^0.10.2",
     "@loopstack/remote-client": "^0.28.3"
   },
   "devDependencies": {
+    "@loopstack/testing": "^0.43.0",
     "@nestjs/common": "^12.0.1",
+    "@nestjs/testing": "^12.0.1",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
@@ -48,23 +54,5 @@
   "files": [
     "dist"
   ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "maxWorkers": 1
-  },
   "type": "module"
 }

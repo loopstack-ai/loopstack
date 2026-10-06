@@ -179,12 +179,14 @@ export class ReportDocument {
 }
 ```
 
-| Property         | Type                                        | Description                                                                     |
-| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
-| `mimeType`       | `string`                                    | MIME type hint used by Studio for rendering/downloads (see below for the list). |
-| `level`          | `'debug' \| 'info' \| 'warning' \| 'error'` | Severity tag. Studio may style documents based on this.                         |
-| `enableAtPlaces` | `string[]`                                  | Only render this document type when the workflow is at one of these places.     |
-| `hideAtPlaces`   | `string[]`                                  | Hide this document type when the workflow is at one of these places.            |
+| Property         | Type                                        | Description                                                                                        |
+| ---------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `mimeType`       | `string`                                    | MIME type hint used by Studio for rendering/downloads (see below for the list).                    |
+| `level`          | `'debug' \| 'info' \| 'warning' \| 'error'` | Severity tag. Studio may style documents based on this.                                            |
+| `enableAtPlaces` | `string[]`                                  | Extra places where documents of this type stay active, in addition to the place each was saved at. |
+| `hideAtPlaces`   | `string[]`                                  | Hide this document type when the workflow is at one of these places.                               |
+
+A document is active at the place it was saved at — its transition's target place — and at every place in `enableAtPlaces`. Only active, visible documents are candidates for the prompt a waiting run shows; see [Prompt Selection Rules](./prompt-selection.md#document-prompts).
 
 ### Dynamic Meta — `documentStore.save(…, { meta })`
 

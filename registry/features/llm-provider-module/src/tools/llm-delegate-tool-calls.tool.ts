@@ -9,13 +9,14 @@ import { LlmDelegateResultSchema, LlmNormalizedMessageSchema } from '../types/in
 import type { LlmContentBlock, LlmDelegateResult, LlmNormalizedMessage } from '../types/index.js';
 
 /**
- * Zod schema for `llm_delegate_tool_calls` tool args (the LLM `message` and the
- * `callback.transition` to fire on completion).
+ * Zod schema for `llm_delegate_tool_calls` tool args (the LLM `message`, the `tools` the LLM
+ * was offered, and the `callback.transition` to fire on completion).
  *
  * @public
  */
 export const LlmDelegateToolCallsToolSchema = z.object({
   message: LlmNormalizedMessageSchema,
+  tools: z.array(z.string()),
   callback: z.object({
     transition: z.string(),
   }),
@@ -39,7 +40,8 @@ type LlmDelegateToolCallsConfig = z.infer<typeof LlmDelegateToolCallsConfigSchem
  *
  * Extracts tool-use blocks from the normalized `message`, resolves them via the ToolRegistry,
  * and runs them through {@link LlmDelegateService}, scheduling async completions against the
- * provided `callback.transition`. Returns an {@link LlmDelegateResult} summarizing completed,
+ * provided `callback.transition`. Only names listed in `tools` — the tools the LLM was offered —
+ * are executed; any other call becomes an error tool result. Returns an {@link LlmDelegateResult} summarizing completed,
  * pending, and errored tool calls, and saves the results as an {@link LlmMessageDocument}
  * unless `config.save` is `false`.
  *
@@ -68,7 +70,7 @@ export class LlmDelegateToolCallsTool extends BaseTool<
   ): Promise<ToolEnvelope<LlmDelegateResult>> {
     const message = args.message as LlmNormalizedMessage;
     const toolCalls = this.extractToolCalls(message);
-    const result = await this.delegateService.delegateToolCalls(toolCalls, args.callback);
+    const result = await this.delegateService.delegateToolCalls(toolCalls, args.tools, args.callback);
 
     const config = options?.config;
     const saveResults = config?.save !== false && result.allCompleted && result.toolResults.length > 0;

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
+import { encodeContentPath } from './encode-content-path.js';
 
 const inputSchema = z
   .object({
@@ -98,7 +99,7 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
     const params = new URLSearchParams();
     if (args.ref) params.set('ref', args.ref);
 
-    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/contents/${args.path}${params.toString() ? `?${params.toString()}` : ''}`;
+    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/contents/${encodeContentPath(args.path)}${params.toString() ? `?${params.toString()}` : ''}`;
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,

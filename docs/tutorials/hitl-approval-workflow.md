@@ -39,7 +39,7 @@ npm install @loopstack/claude-module @loopstack/llm-provider-module
 
 ## 2. Create the Module
 
-Create the folder and module file. The module wires everything together — you'll add the workflow and documents to it as you build them.
+Create the folder and module file. The module registers the workflow and makes it available in Studio.
 
 Create `src/meeting-notes/meeting-notes.module.ts`:
 
@@ -100,6 +100,8 @@ export class MeetingNotesDocument {
   text: string;
 }
 ```
+
+> **Documents are plain DTOs, not NestJS providers.** Don't add document classes to the module's `providers` array — the workflow references the class directly when it calls `documentStore.save()`. See [Documents](../build/fundamentals/documents.md).
 
 Create `src/meeting-notes/documents/meeting-notes-document.yaml`:
 
@@ -300,33 +302,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
 
 ---
 
-## 7. Add Documents to the Module
-
-Documents are registered as providers so NestJS can resolve their `@Document` metadata. Update the module to include them:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
-import { StudioApp } from '@loopstack/common';
-import { MeetingNotesDocument } from './documents/meeting-notes-document';
-import { OptimizedNotesDocument } from './documents/optimized-notes-document';
-import { MeetingNotesWorkflow } from './meeting-notes.workflow';
-
-@StudioApp({
-  title: 'Meeting Notes',
-  workflows: [MeetingNotesWorkflow],
-})
-@Module({
-  imports: [ClaudeModule],
-  providers: [MeetingNotesWorkflow, MeetingNotesDocument, OptimizedNotesDocument],
-  exports: [MeetingNotesWorkflow],
-})
-export class MeetingNotesModule {}
-```
-
----
-
-## 8. Add Your API Key and Run
+## 7. Add Your API Key and Run
 
 Add your Anthropic API key to `.env`:
 
@@ -342,7 +318,7 @@ npm run start:dev
 
 ---
 
-## 9. Try It in Studio
+## 8. Try It in Studio
 
 Open Studio at `http://localhost:5173`.
 

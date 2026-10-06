@@ -15,7 +15,7 @@ function invalidated(item: DocumentItemInterface, updatedAt: string): DocumentIt
 
 /**
  * A retrospective round: the overview and the open problem card, then the delta once the card is decided —
- * both superseded by keyed re-saves (which inherit their index), plus the next card.
+ * both superseded by keyed re-saves (`position: 'keep'`, so they inherit their index), plus the next card.
  */
 function keyedResaveRound() {
   const overview = doc('o0', 0, 't1');

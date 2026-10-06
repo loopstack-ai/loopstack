@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/advanced-workflows-examples",
   "displayName": "Loopstack Advanced Workflows Examples",
-  "description": "In-depth workflow examples for advanced Loopstack patterns — state, dynamic routing, error retry, sub-workflows (parent, fan-out, sequence), batch processing, custom tools, module configuration, UI documents, agent tool-error handling.",
+  "description": "In-depth workflow examples for advanced Loopstack patterns — state, dynamic routing, sub-workflows (parent, fan-out, sequence), batch processing, custom tools, module configuration, UI documents, agent tool-error handling.",
   "keywords": [
     "loopstack",
     "example",
@@ -9,7 +9,6 @@
     "workflow",
     "state",
     "routing",
-    "retry",
     "sub-workflow",
     "fan-out",
     "batch",
@@ -52,6 +51,8 @@
     "@loopstack/testing": "*",
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",
-    "unplugin-swc": "^1.5.9"
+    "unplugin-swc": "^1.5.9",
+    "@nestjs/testing": "^12.0.1",
+    "@loopstack/contracts": "*"
   }
 }

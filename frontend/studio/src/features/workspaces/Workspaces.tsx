@@ -2,13 +2,12 @@ import { Star } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
-import type { StudioEnvironmentSlot } from '../../api/types.ts';
+import type { FilterValue } from '../../components/data-table/data-table.ts';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column, OriginalRowAction } from '../../components/lists/ListView.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
 import { Dialog, DialogContent } from '../../components/ui/dialog.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip.tsx';
-import { useAppsConfig } from '../../hooks/useConfig.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import {
   useBatchDeleteWorkspaces,
@@ -19,6 +18,7 @@ import {
 import { useComponentOverrides } from '../../providers/ComponentOverridesProvider.tsx';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 import DefaultCreateWorkspace from './components/CreateWorkspace.tsx';
+import { useAppTypes } from './useAppTypes.ts';
 
 const Workspaces = () => {
   const { CreateWorkspace: CreateWorkspaceOverride, EditWorkspace: EditWorkspaceOverride } = useComponentOverrides();
@@ -33,7 +33,7 @@ const Workspaces = () => {
   const [orderBy, setOrderBy] = useState<string>('createdAt');
   const [order, setOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState<string | undefined>();
-  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [filters, setFilters] = useState<Record<string, FilterValue>>({});
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const [open, setOpen] = useState(false);
@@ -49,18 +49,14 @@ const Workspaces = () => {
     }
   }, [searchParams]);
 
-  const fetchAppsConfig = useAppsConfig();
-  const appTypes = useMemo(
-    () =>
-      (fetchAppsConfig.data ?? []).map((a) => ({
-        appName: a.appName,
-        title: a.title,
-        environments: (a.extensions?.['environments'] as StudioEnvironmentSlot[]) ?? [],
-      })),
-    [fetchAppsConfig.data],
-  );
+  const { types: appTypes, isPending: appsPending } = useAppTypes();
 
-  const fetchWorkspaces = useFilterWorkspaces(debouncedSearchTerm, filters, orderBy, order, page, rowsPerPage);
+  // The table's filters are free-form column values; the API's filter is typed — only the app name crosses over.
+  const workspaceFilter = useMemo(
+    () => (typeof filters.appName === 'string' ? { appName: filters.appName } : {}),
+    [filters],
+  );
+  const fetchWorkspaces = useFilterWorkspaces(debouncedSearchTerm, workspaceFilter, orderBy, order, page, rowsPerPage);
 
   const deleteWorkspace = useDeleteWorkspace();
   const batchDeleteWorkspaces = useBatchDeleteWorkspaces();
@@ -98,8 +94,8 @@ const Workspaces = () => {
   return (
     <>
       <ItemListView
-        loading={fetchAppsConfig.isPending || fetchWorkspaces.isPending}
-        error={fetchWorkspaces.error ?? fetchAppsConfig.error ?? null}
+        loading={appsPending || fetchWorkspaces.isPending}
+        error={fetchWorkspaces.error ?? null}
         items={fetchWorkspaces.data?.data ?? []}
         totalItems={fetchWorkspaces.data?.total ?? 0}
         setPage={setPage}

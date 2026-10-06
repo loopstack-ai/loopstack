@@ -11,22 +11,17 @@ const KEYS = [
 ];
 
 /**
- * The secrets tools are backed by the secrets store (a DB service), so they run inside the
- * replay boundary: `request_secrets` and `get_secret_keys` are scripted. The workflow's own
- * HITL wait and verification logic run for real.
+ * `get_secret_keys` is backed by the secrets store (a DB service), so it runs inside the replay
+ * boundary and is scripted. The workflow's own HITL wait and verification logic run for real.
  */
 describe('DeterministicExampleWorkflow', () => {
   const runs: TestRun[] = [];
-  const requestSecrets = {
-    tool: 'request_secrets',
-    envelope: { data: { variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }] } },
-  };
   const imports = [LlmProviderModule, SecretsModule.forFeature(), SecretsExamplesModule];
 
   it('parks on the secrets request form', async () => {
     const run = await runWorkflow(DeterministicExampleWorkflow, undefined, {
       imports,
-      replay: replay({ version: 3, recordings: [requestSecrets] }),
+      replay: replay({ version: 3, recordings: [] }),
     });
     runs.push(run);
 
@@ -48,7 +43,7 @@ describe('DeterministicExampleWorkflow', () => {
       answers: { secretsSubmitted: {} },
       replay: replay({
         version: 3,
-        recordings: [requestSecrets, { tool: 'get_secret_keys', envelope: { data: KEYS } }],
+        recordings: [{ tool: 'get_secret_keys', envelope: { data: KEYS } }],
       }),
     });
     runs.push(run);

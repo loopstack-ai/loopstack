@@ -38,8 +38,8 @@ interface AiPromptInputProps {
  * next one. Nothing is re-rendered to ask again, so a run that collects many entries accumulates only what
  * it produced.
  *
- * With `fields` declared it submits `{ text, ...values }` and renders each as a select beside the button —
- * for an entry that needs a choice or two alongside the text. Without them it submits the text alone, which
+ * With `fields` declared it submits `{ text, ...values }` and renders each as a select beside the button,
+ * its label in front of the chosen value — for an entry that needs a choice or two alongside the text. Without them it submits the text alone, which
  * is what every existing caller receives.
  */
 function AiPromptInput({ onSubmit, disabled, isLoading = false, ui }: AiPromptInputProps) {
@@ -82,7 +82,9 @@ function AiPromptInput({ onSubmit, disabled, isLoading = false, ui }: AiPromptIn
               disabled={disabled || isLoading}
             >
               <SelectTrigger size="sm" className="h-7 min-w-28" aria-label={field.label ?? field.name}>
-                <SelectValue placeholder={field.label ?? field.name} />
+                {/* Always shown: every field holds a value from the start, so a placeholder never would be. */}
+                <span className="text-muted-foreground">{field.label ?? field.name}</span>
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {field.options.map((option) => (

@@ -1,5 +1,32 @@
 export type FilterOption = string | { label: string; value: string };
 
+/** What one filter holds: a single choice, or several when its config declares `multiple`. */
+export type FilterValue = string | string[];
+
+/**
+ * A filter's options, optionally multi-select. The bare array stays the common form — a filter
+ * is single-select unless it says otherwise.
+ */
+export type FilterSpec = FilterOption[] | { options: FilterOption[]; multiple?: boolean };
+
+export function filterOptions(spec: FilterSpec): FilterOption[] {
+  return Array.isArray(spec) ? spec : spec.options;
+}
+
+export function isMultiSelect(spec: FilterSpec): boolean {
+  return !Array.isArray(spec) && spec.multiple === true;
+}
+
+/** Whether a filter is actually narrowing anything — an empty list selects nothing, so it is not set. */
+export function hasFilterValue(value: FilterValue | undefined): boolean {
+  return Array.isArray(value) ? value.length > 0 : !!value;
+}
+
+export function filterValues(value: FilterValue | undefined): string[] {
+  if (value === undefined) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
 export interface DataTableColumn<T = any> {
   id: string;
   label: string;
@@ -50,9 +77,9 @@ export interface DataTableProps<T = any> {
   // Search & Filters
   searchTerm?: string;
   onSearchChange: (term: string) => void;
-  filters?: Record<string, string>;
-  filterConfig?: Record<string, FilterOption[]>;
-  onFiltersChange: (filters: Record<string, string>) => void;
+  filters?: Record<string, FilterValue>;
+  filterConfig?: Record<string, FilterSpec>;
+  onFiltersChange: (filters: Record<string, FilterValue>) => void;
 
   // Actions
   onRowClick?: (item: T) => void;

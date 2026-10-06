@@ -10,7 +10,7 @@ includeInLlmsFullTxt: false
 
 ### ClaudeToolsModule
 
-NestJS module that provides Claude-specific workflow tools that consume the LLM provider — currently the `ClaudeWebSearch` tool (`claude_web_search`), which runs a web search through the `claude` provider's built-in `web_search` server tool.
+NestJS module that provides Claude-specific workflow tools that consume the LLM provider — currently the `ClaudeWebSearchStepTool` workflow step (`claude_web_search_step`), which runs a web search as its own Claude request through `claude_native_web_search`.
 
 Registration:
 
@@ -29,22 +29,26 @@ export class ClaudeToolsModule {
 }
 ```
 
-### ClaudeWebSearch
+### ClaudeWebSearchStepTool
 
-Tool that runs a web search through the Claude provider's built-in `web_search` server tool, returning search hits and model commentary.
+Workflow step that runs a web search as its own Claude request, returning search hits and model commentary. The request uses `claude_native_web_search`, and its reply is not saved to the conversation. To give an agent web search, list `claude_native_web_search` in its `tools` instead — attaching this tool to an agent costs a second LLM call per search.
 
 ```ts
-import { ClaudeWebSearch } from '@loopstack/claude-tools-module';
+import { ClaudeWebSearchStepTool } from '@loopstack/claude-tools-module';
 ```
 
 **Provided by:** `ClaudeToolsModule`
 
 ```ts
-export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSearchConfig, WebSearchResult> {
+export class ClaudeWebSearchStepTool extends BaseTool<
+  ClaudeWebSearchStepArgs,
+  ClaudeWebSearchStepConfig,
+  WebSearchResult
+> {
   protected handle(
-    args: ClaudeWebSearchArgs,
+    args: ClaudeWebSearchStepArgs,
     ctx: RunContext,
-    options?: ToolCallOptions<ClaudeWebSearchConfig>,
+    options?: ToolCallOptions<ClaudeWebSearchStepConfig>,
   ): Promise<ToolEnvelope<WebSearchResult>>;
 }
 ```
@@ -53,7 +57,7 @@ export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSear
 
 ### WebSearchHit
 
-A single web search hit (title + URL) returned by `ClaudeWebSearch`.
+A single web search hit (title + URL) returned by `ClaudeWebSearchStepTool`.
 
 ```ts
 import { WebSearchHit } from '@loopstack/claude-tools-module';
@@ -68,7 +72,7 @@ export interface WebSearchHit {
 
 ### WebSearchResult
 
-Result for `ClaudeWebSearch` — the query, interleaved hit blocks and text commentary, a sources reminder, and timing.
+Result for `ClaudeWebSearchStepTool` — the query, interleaved hit blocks and text commentary, a sources reminder, and timing.
 
 ```ts
 import { WebSearchResult } from '@loopstack/claude-tools-module';
@@ -85,7 +89,7 @@ export interface WebSearchResult {
 
 ### WebSearchResultBlock
 
-A block of web search hits tied to a single server tool use, returned by `ClaudeWebSearch`.
+A block of web search hits tied to a single server tool use, returned by `ClaudeWebSearchStepTool`.
 
 ```ts
 import { WebSearchResultBlock } from '@loopstack/claude-tools-module';
@@ -100,42 +104,42 @@ export interface WebSearchResultBlock {
 
 ## Type Aliases
 
-### ClaudeWebSearchArgs
+### ClaudeWebSearchStepArgs
 
-Args for `ClaudeWebSearch`.
+Args for `ClaudeWebSearchStepTool`.
 
 ```ts
-import { ClaudeWebSearchArgs } from '@loopstack/claude-tools-module';
+import { ClaudeWebSearchStepArgs } from '@loopstack/claude-tools-module';
 ```
 
 ```ts
-export type ClaudeWebSearchArgs = z.infer<typeof ClaudeWebSearchArgsSchema>;
+export type ClaudeWebSearchStepArgs = z.infer<typeof ClaudeWebSearchStepArgsSchema>;
 ```
 
-### ClaudeWebSearchConfig
+### ClaudeWebSearchStepConfig
 
-Config for `ClaudeWebSearch`.
+Config for `ClaudeWebSearchStepTool`.
 
 ```ts
-import { ClaudeWebSearchConfig } from '@loopstack/claude-tools-module';
+import { ClaudeWebSearchStepConfig } from '@loopstack/claude-tools-module';
 ```
 
 ```ts
-export type ClaudeWebSearchConfig = z.infer<typeof ClaudeWebSearchConfigSchema>;
+export type ClaudeWebSearchStepConfig = z.infer<typeof ClaudeWebSearchStepConfigSchema>;
 ```
 
 ## Variables
 
-### ClaudeWebSearchArgsSchema
+### ClaudeWebSearchStepArgsSchema
 
-Zod schema for `ClaudeWebSearch` arguments.
+Zod schema for `ClaudeWebSearchStepTool` arguments.
 
 ```ts
-import { ClaudeWebSearchArgsSchema } from '@loopstack/claude-tools-module';
+import { ClaudeWebSearchStepArgsSchema } from '@loopstack/claude-tools-module';
 ```
 
 ```ts
-ClaudeWebSearchArgsSchema: z.ZodObject<
+ClaudeWebSearchStepArgsSchema: z.ZodObject<
   {
     query: z.ZodString;
   },
@@ -143,16 +147,16 @@ ClaudeWebSearchArgsSchema: z.ZodObject<
 >;
 ```
 
-### ClaudeWebSearchConfigSchema
+### ClaudeWebSearchStepConfigSchema
 
-Zod schema for `ClaudeWebSearch` configuration.
+Zod schema for `ClaudeWebSearchStepTool` configuration.
 
 ```ts
-import { ClaudeWebSearchConfigSchema } from '@loopstack/claude-tools-module';
+import { ClaudeWebSearchStepConfigSchema } from '@loopstack/claude-tools-module';
 ```
 
 ```ts
-ClaudeWebSearchConfigSchema: z.ZodObject<
+ClaudeWebSearchStepConfigSchema: z.ZodObject<
   {
     model: z.ZodOptional<z.ZodString>;
     maxTokens: z.ZodOptional<z.ZodNumber>;
@@ -209,7 +213,7 @@ WebSearchResultBlockSchema: z.ZodObject<
 
 ### WebSearchResultSchema
 
-Zod schema for `WebSearchResult` — the `resultSchema` of `claude_web_search`.
+Zod schema for `WebSearchResult` — the `resultSchema` of `claude_web_search_step`.
 
 ```ts
 import { WebSearchResultSchema } from '@loopstack/claude-tools-module';

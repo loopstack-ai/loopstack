@@ -6,11 +6,10 @@ import type { WorkflowListParams, WorkspaceListParams } from '@loopstack/client'
 import type {
   AuthUserInterface,
   AvailableEnvironmentInterface,
-  DashboardStatsInterface,
   DocumentItemInterface,
   PaginatedInterface,
   StudioAppConfig,
-  ToolConfigInterface,
+  ToolConfigItemInterface,
   WorkerInfoInterface,
   WorkflowCheckpointInterface,
   WorkflowConfigInterface,
@@ -239,8 +238,8 @@ export function useWorkflowSource<TData = WorkflowSourceInterface>(
 }
 
 /** Fetch the configs of all registered tools. */
-export function useToolConfigs<TData = ToolConfigInterface[]>(
-  options?: QueryHookOptions<ToolConfigInterface[], TData>,
+export function useToolConfigs<TData = ToolConfigItemInterface[]>(
+  options?: QueryHookOptions<ToolConfigItemInterface[], TData>,
 ): UseQueryResult<TData> {
   const client = useLoopstackClient();
   return useQuery({
@@ -250,9 +249,9 @@ export function useToolConfigs<TData = ToolConfigInterface[]>(
 }
 
 /** Fetch a single tool config by name. */
-export function useToolConfig<TData = ToolConfigInterface>(
+export function useToolConfig<TData = ToolConfigItemInterface>(
   toolName: string | undefined,
-  options?: QueryHookOptions<ToolConfigInterface, TData>,
+  options?: QueryHookOptions<ToolConfigItemInterface, TData>,
 ): UseQueryResult<TData> {
   const client = useLoopstackClient();
   return useQuery({
@@ -269,17 +268,6 @@ export function useAvailableEnvironments<TData = AvailableEnvironmentInterface[]
   const client = useLoopstackClient();
   return useQuery({
     ...client.queries.availableEnvironments(),
-    ...options,
-  });
-}
-
-/** Fetch aggregated run statistics across all workspaces. */
-export function useDashboardStats<TData = DashboardStatsInterface>(
-  options?: QueryHookOptions<DashboardStatsInterface, TData>,
-): UseQueryResult<TData> {
-  const client = useLoopstackClient();
-  return useQuery({
-    ...client.queries.dashboardStats(),
     ...options,
   });
 }

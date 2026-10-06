@@ -7,7 +7,6 @@ export * from './resources/workspaces.js';
 export * from './resources/documents.js';
 export * from './resources/auth.js';
 export * from './resources/config.js';
-export * from './resources/dashboard.js';
 export * from './resources/processor.js';
 export * from './stream/stream.js';
 export * from './stream/sse-parser.js';

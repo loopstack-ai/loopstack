@@ -84,7 +84,7 @@ export class DocumentPersistenceService {
     });
 
     // Set index and update in-memory cache first (handles invalidation of previous versions)
-    await this.addToCache(scope, entity);
+    await this.addToCache(scope, entity, options?.position ?? 'end');
 
     // Stateless workflows have no persistence
     if (scope.options?.stateless) {
@@ -92,30 +92,52 @@ export class DocumentPersistenceService {
     }
 
     // Persist within the active transaction, or directly if called outside one (e.g. error documents after rollback)
-    return scope.queryRunner
-      ? scope.queryRunner.manager.save(DocumentEntity, entity)
-      : this.documentRepository.save(entity);
+    try {
+      return await (scope.queryRunner
+        ? scope.queryRunner.manager.save(DocumentEntity, entity)
+        : this.documentRepository.save(entity));
+    } catch (error) {
+      // A rejected write reports the column it violated and never the row, while the transition it takes
+      // down is retried with the same content — so without the document named here, the only thing left to
+      // read afterwards is a constraint message against a run of thousands of documents.
+      this.logger.error(
+        `Failed to persist ${documentName}(key=${key}) in transition '${transition.id}' of workflow ` +
+          `${scope.workflowId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
   }
 
   /**
    * Updates the in-memory document cache. Handles invalidation of previous
-   * versions (by key) and index inheritance. Persists invalidation
+   * versions (by key) and the new version's index: appended (`end`), or in the
+   * place of the latest previous version (`keep`). Persists invalidation
    * changes to DB when a queryRunner is available.
    */
-  private async addToCache(scope: ExecutionScopeData, document: DocumentEntity): Promise<void> {
+  private async addToCache(
+    scope: ExecutionScopeData,
+    document: DocumentEntity,
+    position: NonNullable<DocumentSaveOptions['position']>,
+  ): Promise<void> {
     const { documents, queryRunner } = scope;
 
-    const existingIndex = document.key ? documents.findIndex((d) => d.key === document.key) : -1;
+    // The latest previous version — the one a `keep` save takes the place of. Not the first: a revision
+    // that moved to the end and is then updated in place stays where it moved to.
+    let previous = -1;
+    for (let i = documents.length - 1; i >= 0; i--) {
+      if (documents[i].key === document.key) {
+        previous = i;
+        break;
+      }
+    }
 
     // Collect all existing documents with the same key that need invalidation
     const invalidated: DocumentEntity[] = [];
-    let inheritedIndex: number | undefined;
+    let supersedes = false;
 
     for (const doc of documents) {
       if (doc.key === document.key && doc.meta?.invalidate !== false) {
-        if (inheritedIndex === undefined) {
-          inheritedIndex = doc.index;
-        }
+        supersedes = true;
         doc.isInvalidated = true;
         if (doc.id) {
           invalidated.push(doc);
@@ -140,13 +162,15 @@ export class DocumentPersistenceService {
       }
     }
 
-    if (existingIndex !== -1) {
-      document.index = documents[existingIndex].index;
-      documents[existingIndex] = document;
+    if (position === 'keep' && previous !== -1) {
+      document.index = documents[previous].index;
+      documents[previous] = document;
     } else {
-      document.index = inheritedIndex ?? documents.length;
+      // The cache is loaded with every stored row, invalidated ones included, and never shrinks; an index is
+      // only ever handed out below its length. So the length is an index no document of the workflow has.
+      document.index = documents.length;
       this.logger.debug(
-        `addDocument: ${document.documentName}(key=${document.key}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
+        `addDocument: ${document.documentName}(key=${document.key}) → index=${document.index} (supersedes=${supersedes}, docCount=${documents.length})`,
       );
       documents.push(document);
     }
@@ -157,7 +181,7 @@ export class DocumentPersistenceService {
       ...(document.id ? { documentId: document.id } : {}),
       ...(document.key ? { key: document.key } : {}),
       documentName: document.documentName,
-      ...(invalidated.length > 0 || inheritedIndex !== undefined ? { invalidatedKey: document.key } : {}),
+      ...(supersedes ? { invalidatedKey: document.key } : {}),
     });
 
     scope.persistenceState = { documentsUpdated: true };

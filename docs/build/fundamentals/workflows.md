@@ -195,6 +195,7 @@ When multiple transitions share the same `from` state, attach `@Guard('methodNam
 async executeToolCalls(state: MyState) {
   const result = await this.llmDelegateToolCalls.call({
     message: state.llmResult!.message,
+    tools: TOOLS, // the tool names given to llmGenerateText
     callback: { transition: 'toolResultReceived' },
   });
   this.assignState({ delegateResult: result.data });
@@ -292,11 +293,11 @@ await this.documentStore.save(LlmMessageDocument, {
   text: 'Hello!',
 });
 
-// Update an existing document by key (upsert in place)
+// Update an existing document by key, in place
 await this.documentStore.save(
   LlmMessageDocument,
   { role: 'assistant', text: 'Updated response' },
-  { key: 'response-1' },
+  { key: 'response-1', position: 'keep' },
 );
 
 // Hidden context (not shown in UI — LLM still sees it as conversation history)
@@ -372,15 +373,30 @@ The `transition` values must match **method names** of `wait: true` transitions.
 
 ### `enabledWhen`
 
-Controls when a widget is visible based on the current workflow place:
+Controls when a widget is interactive based on the current workflow place. Outside the listed places the widget stays on screen but is disabled:
 
 ```yaml
 - widget: prompt-input
   enabledWhen:
-    - waiting_for_user # Only show at this place
+    - waiting_for_user # Only enabled at this place
   options:
     transition: userMessage
 ```
+
+### `showWhen`
+
+Controls when a widget is visible. Outside the listed places the widget is not rendered at all — use it for widgets that only make sense at one step, such as a cancel or recover button:
+
+```yaml
+- widget: button
+  showWhen:
+    - awaiting_tools # Only rendered at this place
+  options:
+    transition: cancelPendingTools
+    label: Cancel pending tools
+```
+
+When a widget sets both, `showWhen` decides whether it is rendered and `enabledWhen` whether it is enabled. See [Workflow YAML Schema — `showWhen`](/docs/reference/workflow-yaml#showwhen).
 
 ### Form Actions
 

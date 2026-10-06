@@ -60,7 +60,7 @@ import { LoopstackModule } from '@loopstack/loopstack-module';
 export class AppModule {}
 ```
 
-`LlmExamplesModule` already re-imports `ClaudeModule`, `ClaudeToolsModule`, `OpenAiModule`, and `WebModule` — both providers register themselves with the LLM registry so the Multi-Provider example can dispatch to either. `LlmProviderModule.forRoot(...)` sets the default model the tools fall back to when a call doesn't override `{ config: { provider, model } }` explicitly.
+`LlmExamplesModule` already re-imports `ClaudeModule`, `OpenAiModule`, and `WebModule` — the Claude and OpenAI providers register themselves with the LLM registry so the Multi-Provider example can dispatch to either. `LlmProviderModule.forRoot(...)` sets the default model the tools fall back to when a call doesn't override `{ config: { provider, model } }` explicitly.
 
 ## Environment
 
@@ -78,7 +78,7 @@ OPENAI_API_KEY=sk-...          # required for the multi-provider example
 | [Prompt](#prompt)                       | `LLM - Prompt Example (Write a haiku)`                 | Single-shot LLM call with a Handlebars-rendered prompt template        |
 | [Structured Output](#structured-output) | `LLM - Structured Output Example (Hello World Script)` | Generate Zod-validated structured output with a custom document widget |
 | [Multi-Provider](#multi-provider)       | `LLM - Multi-Provider Example`                         | Run the same prompt through Claude and OpenAI side by side             |
-| [Web Fetch](#web-fetch)                 | `LLM - Web Fetch Example`                              | Fetch a URL, convert HTML to Markdown, summarize with Claude           |
+| [Web Fetch](#web-fetch)                 | `LLM - Web Fetch Example`                              | Fetch a URL, convert HTML to Markdown, summarize with an LLM           |
 
 ---
 
@@ -185,7 +185,7 @@ The `save: false` opt-out lets us prefix each response with the provider name so
 
 ## Web Fetch
 
-Fetches a URL, converts HTML to Markdown, and optionally summarizes it against a user-provided prompt using a small Claude model.
+Fetches a URL, converts HTML to Markdown, and optionally summarizes it against a user-provided prompt using a small model via the configured LLM provider.
 
 ### What it demonstrates
 
@@ -204,7 +204,7 @@ const result = await this.webFetch.call({
 this.assignState({ summary: result.data.result });
 ```
 
-When `prompt` is omitted, `WebFetchTool` returns the raw Markdown (truncated if very long). When provided, the tool summarizes the content with a small Claude model.
+When `prompt` is omitted, `WebFetchTool` returns the raw Markdown (truncated if very long). When provided, the tool summarizes the content through the configured LLM provider (model `claude-haiku-4-5-20251001` by default) and returns the provider, model and token usage as result metadata.
 
 ### Files
 
@@ -213,7 +213,7 @@ When `prompt` is omitted, `WebFetchTool` returns the raw Markdown (truncated if 
 ### Related modules
 
 - `@loopstack/web-module` — fetch + Markdown conversion + summarization
-- `@loopstack/claude-tools-module` — Claude server-side web search (alternative when you want the LLM to search rather than fetch a specific URL)
+- `@loopstack/claude-module` — `claude_native_web_search`, Claude's server-side web search tool (alternative when you want the LLM to search rather than fetch a specific URL)
 
 ## About
 

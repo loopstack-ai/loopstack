@@ -3,13 +3,14 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
+import { encodeHeaderText, headerValue } from './mime-headers.js';
 
 const inputSchema = z
   .object({
-    to: z.array(z.string()),
-    cc: z.array(z.string()).optional(),
-    bcc: z.array(z.string()).optional(),
-    subject: z.string(),
+    to: z.array(headerValue),
+    cc: z.array(headerValue).optional(),
+    bcc: z.array(headerValue).optional(),
+    subject: headerValue,
     body: z.string(),
     htmlBody: z.string().optional(),
   })
@@ -132,7 +133,7 @@ export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object,
   }
 
   private buildMimeMessage(args: GmailSendMessageArgs): string {
-    const headers = [`To: ${args.to.join(', ')}`, `Subject: ${args.subject}`, 'MIME-Version: 1.0'];
+    const headers = [`To: ${args.to.join(', ')}`, `Subject: ${encodeHeaderText(args.subject)}`, 'MIME-Version: 1.0'];
 
     if (args.cc?.length) headers.push(`Cc: ${args.cc.join(', ')}`);
     if (args.bcc?.length) headers.push(`Bcc: ${args.bcc.join(', ')}`);

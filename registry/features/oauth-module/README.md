@@ -246,7 +246,9 @@ Exchanges an OAuth 2.0 authorization code for access and refresh tokens, validat
 | `REDIS_PORT`     | `6379`      | Redis port     |
 | `REDIS_PASSWORD` | —           | Redis password |
 
-Tokens with refresh tokens are stored with a 30-day TTL. Access-only tokens expire based on their `expiresIn` value.
+Tokens with refresh tokens are stored with a 30-day TTL. Access-only tokens expire based on their `expiresIn` value; a token set without `expiresIn` is treated as never expiring and stored with a 30-day TTL.
+
+When a refresh returns a new refresh token (rotation) or scope, the store replaces the stored one; otherwise it keeps the previous value.
 
 ## Service Reference
 
@@ -288,7 +290,7 @@ interface OAuthProviderInterface {
 interface OAuthTokenSet {
   accessToken: string;
   refreshToken?: string;
-  expiresIn: number; // Seconds until expiry
+  expiresIn?: number; // Seconds until expiry; omit when the provider reports none (never expires)
   scope: string;
 }
 ```
@@ -400,8 +402,8 @@ Rendered by the `oauth-prompt` widget. Used internally by the `OAuthWorkflow` to
 
 - [OAuth Authentication](https://loopstack.ai/docs/build/integrations/oauth) — guide for integrating OAuth into workflows, using tokens in tools, and the try-then-authenticate pattern
 - [Creating OAuth Providers](https://loopstack.ai/docs/extend/oauth-providers) — step-by-step guide for implementing `OAuthProviderInterface`
-- [google-oauth-example](https://loopstack.ai/registry/loopstack-google-oauth-example) — Google Calendar fetch with OAuth sub-workflow and Google Workspace agent
-- [github-oauth-example](https://loopstack.ai/registry/loopstack-github-oauth-example) — GitHub OAuth with repos overview workflow and 25+ GitHub tools
+- [google-workspace-examples](https://loopstack.ai/registry/loopstack-google-workspace-examples) — Google Calendar fetch with OAuth sub-workflow and Google Workspace agent
+- [github-examples](https://loopstack.ai/registry/loopstack-github-examples) — GitHub OAuth with repos overview workflow and 25+ GitHub tools
 
 ## About
 

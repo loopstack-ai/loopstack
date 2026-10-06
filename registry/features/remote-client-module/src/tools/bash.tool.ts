@@ -76,7 +76,7 @@ export class BashTool extends BaseTool<BashArgs, object, BashResult> {
         await this.documentStore.save(
           MessageDocument,
           { role: 'system', text: `**\`${args.command}\`**\n\n\`\`\`\n${tail(buffer)}\n\`\`\`` },
-          { key },
+          { key, position: 'keep' },
         );
       },
     });

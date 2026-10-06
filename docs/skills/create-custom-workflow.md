@@ -224,8 +224,13 @@ await this.documentStore.save(LlmMessageDocument, {
   text: 'Hello!',
 });
 
-// Save with a stable upsert key — saving twice with the same key replaces the previous row in place
-await this.documentStore.save(LlmMessageDocument, { role: 'assistant', text: 'Hi!' }, { key: 'greeting' });
+// Save with a stable key and `position: 'keep'` — saving again updates the document in place
+// (without `position`, the new revision is placed at the end and the previous one invalidated)
+await this.documentStore.save(
+  LlmMessageDocument,
+  { role: 'assistant', text: 'Hi!' },
+  { key: 'greeting', position: 'keep' },
+);
 
 // To hide a message from the UI (still picked up by the LLM as conversation history),
 // use LlmContextDocument — its @Document decorator declares { internal: true, tags: ['message'] }
@@ -541,6 +546,7 @@ export class ChatWorkflow extends BaseWorkflow<ChatArgs> {
   async executeToolCalls(state: ChatState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: ['get_weather'],
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });

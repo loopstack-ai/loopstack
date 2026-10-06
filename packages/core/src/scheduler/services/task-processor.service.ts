@@ -5,8 +5,18 @@ import type { ScheduledTask } from '@loopstack/contracts/types';
 import { RunWorkflowTaskProcessorService } from './task-processor/run-workflow-task-processor.service.js';
 import { WorkspaceLockService } from './workspace-lock.service.js';
 
+/**
+ * How many tasks this process runs at once, from `TASK_CONCURRENCY`.
+ *
+ * Exported because it is a budget an application has to plan against, not an internal detail: a workflow
+ * that occupies a task for its whole lifetime — a long-running agent session, say — holds one of these
+ * slots, so an app running several of them concurrently needs to know how many exist and leave headroom
+ * for everything else in the process.
+ */
+export const TASK_CONCURRENCY = Math.max(1, parseInt(process.env.TASK_CONCURRENCY ?? '', 10) || 10);
+
 @Processor('task-queue', {
-  concurrency: 10,
+  concurrency: TASK_CONCURRENCY,
   autorun: false,
   // A job stalls when its process dies mid-transition (crash or non-graceful
   // deploy). Allow a few stalls before BullMQ fails the job permanently —

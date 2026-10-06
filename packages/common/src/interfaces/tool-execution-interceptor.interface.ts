@@ -65,18 +65,3 @@ export function UseToolInterceptor(options?: { priority?: number }): ClassDecora
     SetMetadata(TOOL_INTERCEPTOR_METADATA_KEY, { priority: options?.priority ?? 100 })(target);
   };
 }
-
-/**
- * @deprecated Use `ToolInterceptor` with `@UseToolInterceptor()` instead.
- */
-export type ToolExecutionInterceptor = ToolInterceptor;
-
-/**
- * @deprecated Use `@UseToolInterceptor()` decorator instead of manual token registration.
- */
-export const TOOL_INTERCEPTORS = 'TOOL_INTERCEPTORS';
-
-/**
- * @deprecated Use `@UseToolInterceptor()` decorator instead.
- */
-export const TOOL_EXECUTION_INTERCEPTORS = TOOL_INTERCEPTORS;

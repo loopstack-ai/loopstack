@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
+import { type ButtonVariant, buttonVariant } from './button-variant.ts';
 import type { RunPromptProps } from './types.ts';
 
+/** The question as written: Markdown, so a list of options or a line break survives the way to the screen. */
 function question(view: RunPromptProps['view']): string {
   const content = view.content as { question?: unknown } | undefined;
   return typeof content?.question === 'string' ? content.question : 'Input required';
@@ -16,7 +19,7 @@ export function TextPrompt({ view, submit, isSubmitting }: RunPromptProps) {
   };
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium">{question(view)}</p>
+      <MarkdownContent content={question(view)} className="text-sm" />
       <div className="flex gap-2">
         <Input
           value={answer}
@@ -38,7 +41,7 @@ export function TextPrompt({ view, submit, isSubmitting }: RunPromptProps) {
 export function ConfirmPrompt({ view, submit, isSubmitting }: RunPromptProps) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium">{question(view)}</p>
+      <MarkdownContent content={question(view)} className="text-sm" />
       <div className="flex gap-2">
         <Button className="flex-1" onClick={() => submit({ answer: 'yes' })} disabled={isSubmitting}>
           Yes
@@ -58,7 +61,7 @@ export function ChoicesPrompt({ view, submit, isSubmitting }: RunPromptProps) {
   const [custom, setCustom] = useState('');
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium">{question(view)}</p>
+      <MarkdownContent content={question(view)} className="text-sm" />
       <div className="flex flex-col gap-2">
         {options.map((option) => (
           <Button
@@ -117,11 +120,16 @@ export function PromptInput({ view, submit, isSubmitting }: RunPromptProps) {
   );
 }
 
+/** The style a workflow-level button asked for. */
+function variant(view: RunPromptProps['view']): ButtonVariant | undefined {
+  return buttonVariant(view.options?.variant);
+}
+
 /** Workflow-level `button`: a single action firing its transition with an empty payload. */
 export function ActionButton({ view, submit, isSubmitting }: RunPromptProps) {
   const label = typeof view.options?.label === 'string' ? view.options.label : (view.defaultTransition ?? 'Continue');
   return (
-    <Button onClick={() => submit({})} disabled={isSubmitting}>
+    <Button variant={variant(view)} onClick={() => submit({})} disabled={isSubmitting}>
       {label}
     </Button>
   );
@@ -131,7 +139,7 @@ export function ActionButton({ view, submit, isSubmitting }: RunPromptProps) {
 export function FullWidthActionButton({ view, submit, isSubmitting }: RunPromptProps) {
   const label = typeof view.options?.label === 'string' ? view.options.label : (view.defaultTransition ?? 'Continue');
   return (
-    <Button className="w-full" onClick={() => submit({})} disabled={isSubmitting}>
+    <Button variant={variant(view)} className="w-full" onClick={() => submit({})} disabled={isSubmitting}>
       {label}
     </Button>
   );

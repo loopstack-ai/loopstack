@@ -1,0 +1,7 @@
+widgets:
+  - widget: button
+    showWhen:
+      - child_failed
+    options:
+      transition: recover
+      label: Recover

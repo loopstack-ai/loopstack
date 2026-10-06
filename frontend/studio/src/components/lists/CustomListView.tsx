@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import type { ReactElement } from 'react';
 import { DataList } from '../data-table/DataList.tsx';
-import type { BatchAction, RowAction } from '../data-table/data-table.ts';
+import type { BatchAction, FilterSpec, FilterValue, RowAction } from '../data-table/data-table.ts';
 
 export interface Item {
   id: string;
@@ -39,15 +39,15 @@ interface ListViewProps<T extends Item = Item> {
   error: Error | null;
   items: T[];
   totalItems: number;
-  filterConfig?: Record<string, string[]>;
+  filterConfig?: Record<string, FilterSpec>;
   onClick: (id: string) => void;
   handleNew: () => void;
   setPage: (page: number) => void;
   setRowsPerPage: (rows: number) => void;
   setSearchTerm?: (search: string) => void;
-  setFilters?: (filters: Record<string, string>) => void;
+  setFilters?: (filters: Record<string, FilterValue>) => void;
   searchTerm?: string | undefined;
-  filters?: Record<string, string>;
+  filters?: Record<string, FilterValue>;
   page: number;
   rowsPerPage: number;
   batchActions?: OriginalBatchAction[];
@@ -124,7 +124,7 @@ const ListView = <T extends Item>({
   );
 
   const handleFiltersChange = useCallback(
-    (newFilters: Record<string, string>) => {
+    (newFilters: Record<string, FilterValue>) => {
       setFilters?.(newFilters);
       setPage(0);
     },

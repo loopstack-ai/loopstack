@@ -77,7 +77,7 @@ Two helpers turn traces into answers. `coverage(runs, WorkflowClass)` reports st
 
 ## Asserting the park view
 
-A workflow can park at the right place and still show the user nothing answerable — a document saved at the wrong place, a widget whose transition isn't available, a prompt hidden by `hideAtPlaces`. `run.status` and `run.place` cannot catch that class of bug; `run.parkView()` can. It answers "what would the human actually see?" using the **same canonical rules** the CLI's interactive prompts run on (shared via `@loopstack/contracts/park-view`), walking the whole run tree — HITL prompts usually live on a sub-workflow:
+A workflow can park at the right place and still show the user nothing answerable — a document saved at the wrong place, a widget whose transition isn't available, a prompt hidden by `hideAtPlaces`. `run.status` and `run.place` cannot catch that class of bug; `run.parkView()` can. It answers "what would the human actually see?" using the **same canonical rules** Studio and the CLI use to pick the prompt (shared via `@loopstack/contracts/park-view`), walking the whole run tree — HITL prompts usually live on a sub-workflow:
 
 ```ts
 const run = await runWorkflow(AskUserTextExampleWorkflow, undefined, {
@@ -94,7 +94,7 @@ expect(view).toMatchObject({
 });
 ```
 
-The view carries the prompting workflow, the widget type, the prompt `content`, the answer-payload `schema`, widget `options`, the available `transitions`, the `defaultTransition`, and — for multi-action forms — the currently submittable action labels in `actions`. The rules honor visibility (`hideAtPlaces`, internal documents), place activity (`enableAtPlaces` included), and answered-ness (`answer: false` is an answer — presence counts, not truthiness). A run failed at an error place with recovery transitions is a prompt source too, so recovery screens are assertable like any other park.
+The view carries the prompting workflow, the widget type, the prompt `content`, the answer-payload `schema`, widget `options`, the available `transitions`, the `defaultTransition`, and — for multi-action forms — the currently submittable action labels in `actions`. The rules honor visibility (`hideAtPlaces`, internal documents), place activity (`enableAtPlaces` included), and answered-ness (`answer: false` is an answer — presence counts, not truthiness). A run failed at an error place with recovery transitions is a prompt source too, so recovery screens are assertable like any other park. When a park offers several candidates, the view is the one the rules pick — in run-tree order, and within each workflow its document prompts before its workflow-level widgets; [Prompt Selection Rules](../reference/prompt-selection.md) describes the full order and the lone-transition rule for widgets that declare no transition.
 
 Two degenerate results are themselves meaningful assertions: a park with nothing renderable returns a view **without** `widget`/`documentName` (the user would see a bare waiting run — often the bug), and a terminal run returns `undefined`.
 
@@ -157,7 +157,7 @@ Replayed envelopes are also **contract-validated**: when a tool declares a `resu
 ### Replay boundaries
 
 - **Declared documents replay.** Tools produce documents by declaring them on the result envelope (`documents: [{ documentName, content, options }]`), and the pipeline applies declarations _after_ the replay boundary — so a replayed run materializes the same documents a live run would (the LLM message documents of `llm_generate_text` included) and you can assert on them directly.
-- **Pending envelopes cannot enter a fixture.** When an async tool (`ask_clarification`, `ask_for_approval`, `request_secrets`, `explore_task`) launches a sub-workflow, its `pending` envelope is a _reference_ to that live child, not a result — replaying it would hand the workflow a claim ticket for a child that was never launched, and the run would wait forever. So the guard is loud everywhere: in-process recording **fails** when a boundary tool returns a pending envelope (narrow `replayTools` to leave the async tool out), `loopstack runs --record` skips pending envelopes and reports how many, and `replay()` refuses to load a fixture containing one. The consequence: **async tools always execute for real in a replayed run.** How to control their answers is covered in the next section.
+- **Pending envelopes cannot enter a fixture.** When an async tool (`ask_clarification`, `ask_for_approval`, `request_secrets_task`, `explore_task`) launches a sub-workflow, its `pending` envelope is a _reference_ to that live child, not a result — replaying it would hand the workflow a claim ticket for a child that was never launched, and the run would wait forever. So the guard is loud everywhere: in-process recording **fails** when a boundary tool returns a pending envelope (narrow `replayTools` to leave the async tool out), `loopstack runs --record` skips pending envelopes and reports how many, and `replay()` refuses to load a fixture containing one. The consequence: **async tools always execute for real in a replayed run.** How to control their answers is covered in the next section.
 - **Agent flows declare the LLM as the boundary.** The delegation machinery (`llm_delegate_tool_calls`, `llm_update_tool_result`) returns plain data envelopes that are entangled with live pending-tool state — its response is a _receipt for work performed_, and replaying a receipt doesn't perform the work: the agent parks forever. The LLM is the only genuine data source, so it is the boundary:
 
 ```ts
@@ -174,7 +174,7 @@ The replayed LLM turn returns the `ask_clarification` tool_use → delegation ru
 
 An async tool's answer is never replayed from the fixture — it always comes from one of three sources, and each one is scriptable. Pick the strategy by where the answer originates:
 
-1. **A human answers** (`ask_clarification`, `ask_for_approval`, `request_secrets`) → script the human with `answers`. The tool runs live and launches its ask-user child inline; the child parks; your scripted answer resumes it; the tool's `complete()` transforms the child result into the tool result — the entire HITL machinery is exercised for real, and the answer is whatever the test scripts:
+1. **A human answers** (`ask_clarification`, `ask_for_approval`, `request_secrets_task`) → script the human with `answers`. The tool runs live and launches its ask-user child inline; the child parks; your scripted answer resumes it; the tool's `complete()` transforms the child result into the tool result — the entire HITL machinery is exercised for real, and the answer is whatever the test scripts:
 
    ```ts
    answers: {

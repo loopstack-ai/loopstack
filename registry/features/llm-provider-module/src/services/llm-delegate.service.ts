@@ -20,18 +20,28 @@ export class LlmDelegateService {
 
   /**
    * Execute tool calls from an LLM response.
-   * Resolves tool names to instances via ToolRegistry.
+   * Resolves tool names to instances via ToolRegistry. A call to a tool outside `tools` (the names the
+   * LLM was offered) is not executed — it becomes an error tool result.
    */
-  async delegateToolCalls(toolCalls: LlmToolCall[], callback: { transition: string }): Promise<LlmDelegateResult> {
+  async delegateToolCalls(
+    toolCalls: LlmToolCall[],
+    tools: string[],
+    callback: { transition: string },
+  ): Promise<LlmDelegateResult> {
     if (toolCalls.length === 0) {
       return { allCompleted: true, toolResults: [], pendingCount: 0, errorCount: 0, hasErrors: false, errors: [] };
     }
 
     const results = await Promise.all(
       toolCalls.map((toolCall) =>
-        this.executeTool(toolCall, {
-          callback: { transition: callback.transition, metadata: { toolUseId: toolCall.id, toolName: toolCall.name } },
-        }),
+        tools.includes(toolCall.name)
+          ? this.executeTool(toolCall, {
+              callback: {
+                transition: callback.transition,
+                metadata: { toolUseId: toolCall.id, toolName: toolCall.name },
+              },
+            })
+          : this.rejectTool(toolCall, tools),
       ),
     );
 
@@ -113,6 +123,15 @@ export class LlmDelegateService {
       hasErrors: errors.length > 0,
       errors,
     };
+  }
+
+  /**
+   * Error envelope for a tool call the LLM was not offered — the tool is never resolved or executed.
+   */
+  private rejectTool(toolCall: LlmToolCall, tools: string[]): Promise<ToolEnvelope> {
+    const errorMessage = `Tool "${toolCall.name}" is not available to this agent. Available: ${tools.join(', ') || 'none'}`;
+    this.logger.warn(errorMessage);
+    return Promise.resolve({ data: errorMessage, error: errorMessage });
   }
 
   /**

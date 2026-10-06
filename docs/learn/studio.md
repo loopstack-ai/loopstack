@@ -69,7 +69,9 @@ When a workflow reaches a `wait: true` transition, the UI activates the correspo
 - A **form with action buttons** becomes editable — fill in fields and click a button (e.g. Confirm, Reject) to trigger the transition
 - The workflow resumes immediately after the trigger
 
-Widgets are shown or hidden based on the current workflow place via `enabledWhen` in the YAML config.
+Widgets are gated on the current workflow place in the YAML config: `showWhen` shows or hides a widget, while `enabledWhen` keeps it visible but disables it outside the listed places.
+
+When several widgets could answer the park, Studio activates one prompt — the same one the CLI asks and `TestRun.parkView()` reports — and draws the run's other enabled workflow-level widgets, such as a chat input, beside it. [Prompt Selection Rules](../reference/prompt-selection.md) describes how the prompt is picked.
 
 ### Toolbar
 

@@ -33,7 +33,6 @@
     "@loopstack/common": "*",
     "@loopstack/core": "*",
     "@nestjs/common": "^12.0.1",
-    "@nestjs/config": "^12.0.0",
     "@nestjs/schedule": "^12.0.1",
     "@nestjs/typeorm": "^12.0.1",
     "typeorm": "^0.3.28",
@@ -47,6 +46,10 @@
     "@loopstack/testing": "*",
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",
-    "unplugin-swc": "^1.5.9"
+    "unplugin-swc": "^1.5.9",
+    "@nestjs/config": "^12.0.0"
+  },
+  "peerDependencies": {
+    "@nestjs/config": "^4.0.0 || ^12.0.0"
   }
 }

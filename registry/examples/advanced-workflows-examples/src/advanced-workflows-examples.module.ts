@@ -12,11 +12,6 @@ import { MathService } from './workflows/custom-tool/services/math.service';
 import { CounterTool } from './workflows/custom-tool/tools/counter.tool';
 import { MathSumTool } from './workflows/custom-tool/tools/math-sum.tool';
 import { DynamicRoutingExampleWorkflow } from './workflows/dynamic-routing/dynamic-routing-example.workflow';
-import { ErrorRetryWorkflow } from './workflows/error-retry/error-retry-example.workflow';
-import { ErrorRetryFailingChildWorkflow } from './workflows/error-retry/failing-child.workflow';
-import { SlowTool } from './workflows/error-retry/tools/slow.tool';
-import { Step1Tool } from './workflows/error-retry/tools/step1.tool';
-import { Step2Tool } from './workflows/error-retry/tools/step2.tool';
 import { RunSubWorkflowExampleFanOutWorkflow } from './workflows/fan-out/fan-out-example.workflow';
 import { DefaultGreetingModule } from './workflows/module-config/consumers/default-greeting.module';
 import { FrenchGreetingModule } from './workflows/module-config/consumers/french-greeting.module';
@@ -37,7 +32,6 @@ const WORKFLOWS = [
   WorkflowStateWorkflow,
   WorkflowToolResultsWorkflow,
   DynamicRoutingExampleWorkflow,
-  ErrorRetryWorkflow,
   RunSubWorkflowExampleParentWorkflow,
   RunSubWorkflowExampleErrorHandlingWorkflow,
   RunSubWorkflowExampleShowModesWorkflow,
@@ -66,13 +60,9 @@ const WORKFLOWS = [
     MathService,
     MathSumTool,
     CounterTool,
-    Step1Tool,
-    Step2Tool,
-    SlowTool,
     StrictSchemaTool,
     RuntimeErrorTool,
     FailingSubWorkflowTool,
-    ErrorRetryFailingChildWorkflow,
     RunSubWorkflowExampleSubWorkflow,
     RunSubWorkflowExampleFailingSubWorkflow,
     AgentErrorHandlingFailingSubWorkflow,

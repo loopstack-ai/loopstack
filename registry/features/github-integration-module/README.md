@@ -130,7 +130,7 @@ awaiting_choice ──[callback]──► route_choice
 4. **Create or select** -- either calls `GitHubCreateRepoTool` or `GitHubListReposTool` followed by a second HITL prompt to pick from the list.
 5. **Uncommitted changes** -- checks `GitStatusTool` for uncommitted work. If dirty, asks the user whether to auto-commit or cancel.
 6. **Remote setup** -- configures the git remote URL via `GitRemoteConfigureTool`, sets the user identity via `GitConfigUserTool`, and fetches remote refs.
-7. **Divergence resolution** -- compares local and remote branches. If diverged, asks the user to choose: pull, merge, force-push, or cancel.
+7. **Divergence resolution** -- for a linked repo, compares the checked-out branch with the same branch on `origin`. If the workspace is ahead, or the remote does not have that branch yet, it is pushed directly. If the remote is ahead or the histories differ, asks the user to choose: pull, merge, force-push, or cancel. A detached HEAD or a failing git command fails the run.
 8. **Push** -- calls `GitPushTool` to finalize the connection.
 9. **Result** -- saves a `MarkdownDocument` summarizing the outcome and dispatches a `git.updated` workspace event.
 

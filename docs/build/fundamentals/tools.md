@@ -268,11 +268,11 @@ const ConfigSchema = z.object({
 type Config = z.infer<typeof ConfigSchema>;
 
 @Tool({
-  name: 'claude_web_search_server',
-  description: "Search the web using Claude's built-in server-side web search.",
+  name: 'claude_native_web_search',
+  description: "Claude's provider-native web search. Attach it to an LLM call by listing it in `tools`.",
   configSchema: ConfigSchema,
 })
-export class ClaudeWebSearchServerTool extends ServerTool<Config> {
+export class ClaudeNativeWebSearchTool extends ServerTool<Config> {
   toServerToolConfig(config?: Config): unknown {
     return {
       type: 'web_search_20260209',
@@ -293,11 +293,13 @@ await this.llmGenerateText.call(
     config: {
       provider: 'claude',
       model: 'claude-sonnet-4-6',
-      tools: ['claude_web_search_server'],
+      tools: ['claude_native_web_search'],
     },
   },
 );
 ```
+
+A server tool and a regular tool can wrap the same provider feature, and they are used differently. `@loopstack/claude-module` ships `claude_native_web_search`, the server tool above: list it in an agent's or LLM call's `tools`, and Claude searches inside that call. `@loopstack/claude-tools-module` ships `claude_web_search_step`, a `BaseTool` you call from workflow code: it makes its own Claude request with `claude_native_web_search` and returns the hits. To give an agent web search, list `claude_native_web_search` — listing `claude_web_search_step` works too, but every search then costs a second LLM call.
 
 ## Using Tools in Workflows
 

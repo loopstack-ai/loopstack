@@ -22,7 +22,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -31,7 +31,6 @@
     "@loopstack/common": "^0.42.0",
     "@loopstack/contracts": "^0.42.0",
     "@loopstack/core": "^0.43.0",
-    "@nestjs/config": "^12.0.0",
     "@nestjs/event-emitter": "^12.0.0",
     "@nestjs/typeorm": "^12.0.1",
     "pg": "^8.20.0",
@@ -39,32 +38,20 @@
   },
   "devDependencies": {
     "@nestjs/common": "^12.0.1",
-    "@nestjs/core": "^12.0.1"
+    "@nestjs/config": "^12.0.0",
+    "@nestjs/core": "^12.0.1",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0 || ^12.0.0",
+    "@nestjs/config": "^4.0.0 || ^12.0.0",
     "@nestjs/core": "^11.0.0 || ^12.0.0"
   },
   "files": [
     "dist",
     "docker-compose.yml",
     "docker-compose.studio.yml"
-  ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
-  }
+  ]
 }

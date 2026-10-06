@@ -34,6 +34,16 @@ export const WorkflowItemSchema = z.object({
    * predates it should still parse.
    */
   activeChildren: z.number().default(0),
+  /**
+   * The transitions currently offered on this run, each marked `trigger: 'manual'` when it was declared
+   * `wait: true` — the engine holding it for a submitted payload.
+   *
+   * This is what separates a run parked on a person from one parked on machinery: `waiting` says only
+   * "stopped, not finished", and the engine assigns it to a human gate, a pending child callback and a
+   * retry signal alike. On the row rather than only on the full read, because a list is where a view asks
+   * the question about many runs at once.
+   */
+  availableTransitions: z.array(z.custom<WorkflowTransitionType>()).nullable().default(null),
 });
 export type WorkflowItemInterface = z.infer<typeof WorkflowItemSchema>;
 
@@ -47,7 +57,6 @@ export type WorkflowStatusInterface = z.infer<typeof WorkflowStatusSchema>;
 
 export const WorkflowFullSchema = WorkflowItemSchema.extend({
   errorMessage: z.string().nullable(),
-  availableTransitions: z.array(z.custom<WorkflowTransitionType>()).nullable(),
   args: z.any(),
   context: z.record(z.string(), z.unknown()),
   callbackTransition: z.string().nullable(),
@@ -73,10 +82,19 @@ export const WorkflowUpdateSchema = z.object({
 });
 export type WorkflowUpdateInterface = z.infer<typeof WorkflowUpdateSchema>;
 
+/**
+ * A column filter that matches one value or any of several — `status: 'waiting'` and
+ * `status: ['waiting', 'running']` are both valid, the latter reading as SQL `IN`.
+ */
+function oneOrMany<T extends z.ZodType>(value: T) {
+  return z.union([value, z.array(value).min(1)]);
+}
+
 export const WorkflowFilterSchema = z.object({
-  workspaceId: z.uuid().optional(),
+  workspaceId: oneOrMany(z.uuid()).optional(),
   parentId: z.uuid().nullable().optional(),
-  status: z.string().optional(),
+  status: oneOrMany(z.string()).optional(),
+  workflowName: oneOrMany(z.string()).optional(),
   /**
    * Only runs that **start** where you are looking: no parent, or a parent in another workspace.
    *

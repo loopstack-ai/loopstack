@@ -183,6 +183,8 @@ If the agent is stuck at `awaiting_tools` (e.g. a sub-workflow hasn't returned),
 | `tools`       | `string[]` | yes      | Tool names available to the LLM (matched by `@Tool({ name })`)           |
 | `userMessage` | `string`   | yes      | Initial user message to start the conversation                           |
 | `context`     | `string`   | no       | Hidden context message saved before `userMessage` (e.g. pre-loaded docs) |
+| `provider`    | `string`   | no       | LLM provider for this run (defaults to the configured provider)          |
+| `model`       | `string`   | no       | LLM model for this run (defaults to the configured model)                |
 
 **Returns:** `{ response: string }` — the final LLM text response
 
@@ -195,6 +197,8 @@ If the agent is stuck at `awaiting_tools` (e.g. a sub-workflow hasn't returned),
 | `userMessage` | `string`   | yes      | Initial user message to start the conversation                                     |
 | `context`     | `string`   | no       | Hidden context message saved before `userMessage`                                  |
 | `taskMode`    | `boolean`  | no       | When `true`, adds `AgentFinishTool` so the agent can exit with a structured result |
+| `provider`    | `string`   | no       | LLM provider for this run (defaults to the configured provider)                    |
+| `model`       | `string`   | no       | LLM model for this run (defaults to the configured model)                          |
 
 **Returns (task mode):** the result passed to `AgentFinishTool`
 
@@ -233,6 +237,18 @@ import { AgentModule } from '@loopstack/agent';
   providers: [MyWorkflow],
 })
 export class MyModule {}
+```
+
+To use a different provider or model for a single run, pass `provider` / `model` as args:
+
+```typescript
+await this.agentWorkflow.run({
+  system: 'You are a helpful assistant.',
+  tools: [],
+  userMessage: 'Summarize this repository.',
+  provider: 'openai',
+  model: 'gpt-4o',
+});
 ```
 
 ## Public API

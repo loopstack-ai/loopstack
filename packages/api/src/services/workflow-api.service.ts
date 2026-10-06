@@ -66,10 +66,12 @@ export class WorkflowApiService {
 
     // `topLevel` is a question about the workspace, not a column, so it is applied separately below.
     const { topLevel, ...columnFilter } = filter ?? {};
+    // Any column filter may carry several values — `status: ['waiting', 'running']` asks for either.
+    // Applied generically rather than per column, so a schema that widens a field needs nothing here.
     const transformedFilter = Object.fromEntries(
       Object.entries(columnFilter)
         .filter(([, value]) => value !== undefined)
-        .map(([key, value]) => [key, value === null ? IsNull() : value]),
+        .map(([key, value]) => [key, value === null ? IsNull() : Array.isArray(value) ? In(value) : value]),
     );
 
     queryBuilder.where({
@@ -81,10 +83,14 @@ export class WorkflowApiService {
       // A run queued into this workspace from another one is top-level here: its parent is somewhere the
       // viewer is not looking, so this workspace is the only place anyone would find it.
       if (columnFilter.workspaceId) {
+        // The filter may name several workspaces, and "top-level here" then means a parent in none of them.
+        const workspaceIds = Array.isArray(columnFilter.workspaceId)
+          ? columnFilter.workspaceId
+          : [columnFilter.workspaceId];
         queryBuilder
           .leftJoin('workflow.parent', 'parent')
-          .andWhere('(workflow.parent_id IS NULL OR parent.workspace_id != :topLevelWorkspaceId)', {
-            topLevelWorkspaceId: columnFilter.workspaceId,
+          .andWhere('(workflow.parent_id IS NULL OR parent.workspace_id NOT IN (:...topLevelWorkspaceIds))', {
+            topLevelWorkspaceIds: workspaceIds,
           });
       } else {
         queryBuilder.andWhere('workflow.parent_id IS NULL');

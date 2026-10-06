@@ -1,0 +1,52 @@
+{
+  "name": "@loopstack/github-examples",
+  "displayName": "Loopstack GitHub Examples",
+  "description": "GitHub integration workflow examples for Loopstack — a scripted repo overview across the GitHub read tools, and an interactive Claude agent with 25 GitHub tools. Both sign in through the OAuth sub-workflow on demand.",
+  "keywords": [
+    "loopstack",
+    "example",
+    "github",
+    "oauth",
+    "agent",
+    "workflow"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/claude-module": "*",
+    "@loopstack/common": "*",
+    "@loopstack/github-module": "*",
+    "@loopstack/llm-provider-module": "*",
+    "@loopstack/oauth-module": "*",
+    "@nestjs/common": "^12.0.1",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "@loopstack/testing": "*",
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
+  }
+}

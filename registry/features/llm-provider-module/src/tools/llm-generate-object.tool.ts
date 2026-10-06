@@ -47,9 +47,6 @@ export const LlmGenerateObjectConfigSchema = z.object({
 type LlmGenerateObjectArgs = z.infer<typeof LlmGenerateObjectArgsSchema>;
 type LlmGenerateObjectConfig = z.infer<typeof LlmGenerateObjectConfigSchema>;
 
-/** @deprecated Use LlmGenerateObjectArgsSchema + LlmGenerateObjectConfigSchema instead */
-export const LlmGenerateObjectToolSchema = LlmGenerateObjectArgsSchema;
-
 /**
  * Tool that generates a structured object conforming to a Zod/JSON schema via the configured LLM provider.
  *

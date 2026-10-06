@@ -1,12 +1,11 @@
 import type {
   AuthUserInterface,
   AvailableEnvironmentInterface,
-  DashboardStatsInterface,
   DocumentFilterInterface,
   DocumentItemInterface,
   PaginatedInterface,
   StudioAppConfig,
-  ToolConfigInterface,
+  ToolConfigItemInterface,
   WorkerInfoInterface,
   WorkflowCheckpointInterface,
   WorkflowConfigInterface,
@@ -19,7 +18,6 @@ import type {
 import { SortOrder } from '@loopstack/contracts/enums';
 import type { AuthResource } from '../resources/auth.js';
 import type { ConfigResource } from '../resources/config.js';
-import type { DashboardResource } from '../resources/dashboard.js';
 import type { DocumentsResource } from '../resources/documents.js';
 import type { WorkflowListParams, WorkflowsResource } from '../resources/workflows.js';
 import type { WorkspaceListParams, WorkspacesResource } from '../resources/workspaces.js';
@@ -31,7 +29,6 @@ interface QueryResources {
   documents: DocumentsResource;
   workspaces: WorkspacesResource;
   config: ConfigResource;
-  dashboard: DashboardResource;
   auth: AuthResource;
 }
 
@@ -70,8 +67,8 @@ export async function fetchDocumentWindow(
 }
 
 /**
- * Documents written after `updatedAfter` — the live delta. Covers new documents, re-saved ones (a re-save
- * keeps its `index` but bumps `updatedAt`) and invalidated ones (a keyed save marks the documents it
+ * Documents written after `updatedAfter` — the live delta. Covers new documents, re-saved ones (a keyed
+ * re-save writes a new revision, at its own `index` or the superseded one's) and invalidated ones (a keyed save marks the documents it
  * supersedes, which bumps them too), so a caller merges the result by id and drops what a 'current' window
  * must no longer show. The delta is therefore the same for either scope.
  */
@@ -122,10 +119,9 @@ export interface LoopstackQueries {
   apps: () => QueryDescriptor<StudioAppConfig[]>;
   workflowConfig: (workflowName: string) => QueryDescriptor<WorkflowConfigInterface>;
   workflowSource: (workflowName: string) => QueryDescriptor<WorkflowSourceInterface>;
-  toolConfigs: () => QueryDescriptor<ToolConfigInterface[]>;
-  toolConfig: (toolName: string) => QueryDescriptor<ToolConfigInterface>;
+  toolConfigs: () => QueryDescriptor<ToolConfigItemInterface[]>;
+  toolConfig: (toolName: string) => QueryDescriptor<ToolConfigItemInterface>;
   availableEnvironments: () => QueryDescriptor<AvailableEnvironmentInterface[]>;
-  dashboardStats: () => QueryDescriptor<DashboardStatsInterface>;
   me: () => QueryDescriptor<AuthUserInterface>;
   workerHealth: () => QueryDescriptor<WorkerInfoInterface>;
 }
@@ -140,7 +136,6 @@ export function createQueries({
   documents,
   workspaces,
   config,
-  dashboard,
   auth,
 }: QueryResources): LoopstackQueries {
   return {
@@ -223,11 +218,6 @@ export function createQueries({
     availableEnvironments: () => ({
       queryKey: queryKeys.availableEnvironments(envKey),
       queryFn: () => config.availableEnvironments(),
-    }),
-
-    dashboardStats: () => ({
-      queryKey: queryKeys.dashboardStats(envKey),
-      queryFn: () => dashboard.stats(),
     }),
 
     me: () => ({

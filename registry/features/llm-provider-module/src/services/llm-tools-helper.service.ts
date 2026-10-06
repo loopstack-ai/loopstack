@@ -52,14 +52,4 @@ export class LlmToolsHelperService {
 
     return resolved;
   }
-
-  /**
-   * @deprecated Use getToolDefinitions() with BaseTool[] instead
-   */
-  getTools(_tools: string[], _parent: object, _workspace?: object): LlmResolvedTool[] {
-    // Legacy fallback — kept for backwards compat during migration
-    throw new Error(
-      'getTools() with string[] is no longer supported. Use getToolDefinitions() with BaseTool[] instances.',
-    );
-  }
 }

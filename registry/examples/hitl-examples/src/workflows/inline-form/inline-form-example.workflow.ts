@@ -20,7 +20,7 @@ export class InlineFormExampleWorkflow extends BaseWorkflow {
     await this.documentStore.save(
       FeedbackFormDocument,
       { subject: 'Loopstack HITL forms', rating: 3, comment: '' },
-      { key: 'feedback' },
+      { key: 'feedback', position: 'keep' },
     );
   }
 
@@ -32,7 +32,7 @@ export class InlineFormExampleWorkflow extends BaseWorkflow {
   })
   async submitFeedback(state: Record<string, unknown>, input: TransitionInput<FeedbackPayload>) {
     const payload = input.data;
-    await this.documentStore.save(FeedbackFormDocument, payload, { key: 'feedback' });
+    await this.documentStore.save(FeedbackFormDocument, payload, { key: 'feedback', position: 'keep' });
 
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

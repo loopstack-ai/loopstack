@@ -233,4 +233,9 @@ Multiple `ErrorDocument`s accumulate if retries fail repeatedly — giving a ful
 
 ## Registry References
 
-- [error-retry-example-workflow](https://loopstack.ai/registry/loopstack-advanced-workflows-examples#error-retry) — Demonstrates all seven retry modes: auto-retry, manual retry, custom error place, timeout, hybrid, `retryTarget`, and sub-workflow failure callback routed via `errorPlace`.
+- [auto-retry-example-workflow](https://loopstack.ai/registry/loopstack-error-handling-examples#auto-retry) — `retryAttempts` re-runs a failing service call with exponential backoff until the third attempt succeeds.
+- [retry-target-example-workflow](https://loopstack.ai/registry/loopstack-error-handling-examples#retry-target) — `retryTarget` routes each retry through a credential-refresh place before the call runs again.
+- [error-place-example-workflow](https://loopstack.ai/registry/loopstack-error-handling-examples#error-place) — `errorPlace` moves a failed workflow to a recovery place with a Recover button.
+- [manual-retry-example-workflow](https://loopstack.ai/registry/loopstack-error-handling-examples#manual-retry) — The default: the failed workflow stays at its place and offers a Retry button.
+- [transition-timeout-example-workflow](https://loopstack.ai/registry/loopstack-error-handling-examples#transition-timeout) — `timeout` fails a transition that runs too long; the tool stops its work via `ctx.signal`.
+- [sub-workflow-error-place-example-workflow](https://loopstack.ai/registry/loopstack-error-handling-examples#sub-workflow-error-place) — A failed child workflow callback is routed to a recovery place via `errorPlace`.

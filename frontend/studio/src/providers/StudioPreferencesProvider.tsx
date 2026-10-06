@@ -9,6 +9,10 @@ interface StudioPreferences {
   panelSizes: Partial<Record<PanelId, PanelSize>>;
   /** Workbench workflow area: legacy document tree or the canonical run view. */
   workbenchView: 'classic' | 'run';
+  /** Dashboard density: cards, or one compact row per workspace. */
+  fleetDensity: 'grid' | 'list';
+  /** Workspace ids in the order the dashboard was dragged into. Unlisted workspaces follow, by title. */
+  fleetOrder: string[];
 }
 
 const DEFAULTS: StudioPreferences = {
@@ -16,6 +20,8 @@ const DEFAULTS: StudioPreferences = {
   activePanel: null,
   panelSizes: {},
   workbenchView: 'classic',
+  fleetDensity: 'grid',
+  fleetOrder: [],
 };
 
 interface StudioPreferencesContextType {

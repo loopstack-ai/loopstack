@@ -34,7 +34,8 @@ Tool that executes the tool calls contained in an LLM response.
 
 Extracts tool-use blocks from the normalized `message`, resolves them via the ToolRegistry,
 and runs them through `LlmDelegateService `, scheduling async completions against the
-provided `callback.transition`. Returns an `LlmDelegateResult` summarizing completed,
+provided `callback.transition`. Only names listed in `tools` — the tools the LLM was offered —
+are executed; any other call becomes an error tool result. Returns an `LlmDelegateResult` summarizing completed,
 pending, and errored tool calls, and saves the results as an `LlmMessageDocument `
 unless `config.save` is `false`.
 
@@ -545,8 +546,8 @@ LlmDelegateToolCallsConfigSchema: z.ZodObject<
 
 ### LlmDelegateToolCallsToolSchema
 
-Zod schema for `llm_delegate_tool_calls` tool args (the LLM `message` and the
-`callback.transition` to fire on completion).
+Zod schema for `llm_delegate_tool_calls` tool args (the LLM `message`, the `tools` the LLM
+was offered, and the `callback.transition` to fire on completion).
 
 ```ts
 import { LlmDelegateToolCallsToolSchema } from '@loopstack/llm-provider-module';
@@ -655,6 +656,7 @@ LlmDelegateToolCallsToolSchema: z.ZodObject<
       },
       z.core.$strip
     >;
+    tools: z.ZodArray<z.ZodString>;
     callback: z.ZodObject<
       {
         transition: z.ZodString;

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
+import { encodeContentPath } from './encode-content-path.js';
 
 const inputSchema = z
   .object({
@@ -111,7 +112,7 @@ export class GitHubCreateOrUpdateFileTool extends BaseTool<
     if (args.sha) requestBody.sha = args.sha;
     if (args.branch) requestBody.branch = args.branch;
 
-    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/contents/${args.path}`;
+    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/contents/${encodeContentPath(args.path)}`;
     const response = await fetch(url, {
       method: 'PUT',
       headers: {

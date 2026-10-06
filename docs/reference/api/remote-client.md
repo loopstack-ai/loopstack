@@ -263,14 +263,6 @@ export class RemoteClient {
       token?: string;
     },
   ): Promise<GitCommandResult>;
-  gitClone(
-    connectionUrl: string,
-    url: string,
-    options?: {
-      branch?: string;
-      token?: string;
-    },
-  ): Promise<GitCommandResult>;
   gitCheckout(
     connectionUrl: string,
     branch: string,

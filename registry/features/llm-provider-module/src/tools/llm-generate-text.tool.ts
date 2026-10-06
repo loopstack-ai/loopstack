@@ -57,9 +57,6 @@ export const LlmGenerateTextConfigSchema = z.object({
 type LlmGenerateTextArgs = z.infer<typeof LlmGenerateTextArgsSchema>;
 type LlmGenerateTextConfig = z.infer<typeof LlmGenerateTextConfigSchema>;
 
-/** @deprecated Use LlmGenerateTextArgsSchema + LlmGenerateTextConfigSchema instead */
-export const LlmGenerateTextToolSchema = LlmGenerateTextArgsSchema;
-
 /**
  * Tool that generates text with the configured LLM provider.
  *

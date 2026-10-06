@@ -17,10 +17,13 @@ interface AgenticState {
   delegateResult?: LlmDelegateResult;
 }
 
+/** The tools offered to the LLM — and the only ones its tool calls may execute. */
+const TOOLS = ['get_secret_keys', 'request_secrets_task'];
+
 @Workflow({
   title: 'Secrets - Agentic Example',
   description:
-    'An agent workflow where the LLM autonomously manages secrets by calling getSecretKeys and requestSecrets tools. The user can send follow-up messages.',
+    'An agent workflow where the LLM autonomously manages secrets by calling the get_secret_keys and request_secrets_task tools. The user can send follow-up messages.',
   widget: './agentic-example.ui.yaml',
 })
 export class AgenticExampleWorkflow extends BaseWorkflow {
@@ -51,7 +54,7 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
         config: {
           provider: 'claude',
           model: 'claude-haiku-4-5-20251001',
-          tools: ['get_secret_keys', 'request_secrets_task'],
+          tools: TOOLS,
           system: this.render(join(__dirname, 'templates', 'system.md')),
         },
       },
@@ -64,6 +67,7 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
   async executeToolCalls(state: AgenticState) {
     const result = await this.llmDelegateToolCalls.call({
       message: state.llmResult!.message,
+      tools: TOOLS,
       callback: { transition: 'toolResultReceived' },
     });
     this.assignState({ delegateResult: result.data });

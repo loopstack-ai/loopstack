@@ -1,15 +1,15 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { LlmProviderModule } from '@loopstack/llm-provider-module';
 import type { LlmModuleConfig } from '@loopstack/llm-provider-module';
-import { ClaudeWebSearch } from './tools/index.js';
+import { ClaudeWebSearchStepTool } from './tools/index.js';
 
-const PROVIDERS = [ClaudeWebSearch];
+const PROVIDERS = [ClaudeWebSearchStepTool];
 
 @Module({})
 class ClaudeToolsRootModule {}
 
 /**
- * NestJS module that provides Claude-specific workflow tools that consume the LLM provider — currently the `ClaudeWebSearch` tool (`claude_web_search`), which runs a web search through the `claude` provider's built-in `web_search` server tool.
+ * NestJS module that provides Claude-specific workflow tools that consume the LLM provider — currently the `ClaudeWebSearchStepTool` workflow step (`claude_web_search_step`), which runs a web search as its own Claude request through `claude_native_web_search`.
  *
  * Registration:
  * - `ClaudeToolsModule` — bare import registers the tool providers; use this when `LlmProviderModule` is already configured elsewhere in the app and you just want the tools available.

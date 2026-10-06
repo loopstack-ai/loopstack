@@ -1,4 +1,1 @@
-export enum UserTypeEnum {
-  Local = 'local',
-  Cloud = 'cloud',
-}
+export { UserTypeEnum } from '@loopstack/contracts/enums';

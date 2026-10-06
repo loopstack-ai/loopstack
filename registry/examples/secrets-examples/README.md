@@ -85,9 +85,8 @@ A scripted workflow that requests two secrets from the user, waits for them to b
 
 ### What it demonstrates
 
-- Calling `RequestSecretsTool` with a list of expected keys
-- Persisting a `SecretRequestDocument` so the user sees the prompt in Studio
-- A `wait: true` transition that resumes once the user submits the secrets
+- Persisting a `SecretRequestDocument` with the expected keys so the user sees the prompt in Studio
+- A `wait: true` transition named `secretsSubmitted` (the transition the form fires) that resumes once the user submits the secrets
 - Reading current key availability via `GetSecretKeysTool`
 
 ### Key code
@@ -95,9 +94,6 @@ A scripted workflow that requests two secrets from the user, waits for them to b
 ```ts
 @Transition({ to: 'requesting_secrets' })
 async requestSecretsFromUser() {
-  await this.requestSecrets.call({
-    variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
-  });
   await this.documentStore.save(SecretRequestDocument, {
     variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
   });
@@ -122,7 +118,7 @@ An agent workflow where the LLM decides when to check for existing secrets and w
 ### What it demonstrates
 
 - Configuring an LLM call with allowed tools via `config: { tools: ['get_secret_keys', 'request_secrets_task'] }`
-- A delegate/tool-result loop using `LlmDelegateToolCallsTool` + `LlmUpdateToolResultTool`
+- A delegate/tool-result loop using `LlmDelegateToolCallsTool` + `LlmUpdateToolResultTool`, which executes only the tools the LLM was offered
 - Guard-based routing on `stopReason === 'tool_use'` vs end-of-turn
 - A `prompt-input` widget that lets the user inject messages while the agent runs
 
@@ -150,6 +146,7 @@ async llmTurn() {
 async executeToolCalls(state) {
   const result = await this.llmDelegateToolCalls.call({
     message: state.llmResult!.message,
+    tools: ['get_secret_keys', 'request_secrets_task'],
     callback: { transition: 'toolResultReceived' },
   });
   this.assignState({ delegateResult: result.data });

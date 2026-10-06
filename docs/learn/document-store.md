@@ -66,19 +66,31 @@ This is why document output is always consistent with workflow state: you can't 
 
 > **In stateless workflows** (e.g. `runSync({ stateless: true })`), documents are kept **in memory only** for the duration of the run. `save()`, `findAll()`, and `findByTag()` work normally within the run, but nothing is written to the database — the documents live as long as the call and are returned with the result.
 
-### Replacing a Document
+### Revising a Document
 
-By default, each `save()` call creates a new document row at the end of the feed. To replace an existing document at its current position, pass a stable `key`:
+Each `save()` call creates a new document row at the end of the feed. To make a save a new revision of an earlier document, pass a stable `key`:
 
 ```typescript
-// First save — creates document with key 'output-1'
-await this.documentStore.save(ResultDocument, { text: 'Draft...' }, { key: 'output-1' });
+// First save — creates document with key 'review'
+await this.documentStore.save(ReviewDocument, { verdict: 'needs work' }, { key: 'review' });
 
-// Later save — creates a new row with the same key, invalidates the old one
-await this.documentStore.save(ResultDocument, { text: 'Final version' }, { key: 'output-1' });
+// ... more work happens, more documents are saved ...
+
+// Later save — a new revision at the end of the feed; the old one is invalidated
+await this.documentStore.save(ReviewDocument, { verdict: 'approved' }, { key: 'review' });
 ```
 
-Under the hood: the old document row is marked `isInvalidated: true`, and a new row is inserted at the same display position. Studio shows only the latest version. The effect is that the document appears to update in place, while keeping an immutable document history.
+The old row is marked `isInvalidated: true` and Studio shows only the latest revision. By default the new revision is placed at the end, like any new document — right for a card shown again after more work has happened, so it sits below that work.
+
+For an entry that changes over time — a status ticker, a streamed message, terminal output, form state — pass `position: 'keep'`. The new revision then takes the place of the one it supersedes, so the document appears to update in place:
+
+```typescript
+await this.documentStore.save(StatusDocument, { text: 'Fetching...' }, { key: 'status' });
+// ...
+await this.documentStore.save(StatusDocument, { text: 'Done' }, { key: 'status', position: 'keep' });
+```
+
+Either way the document history stays immutable: every revision is a row of its own.
 
 ---
 

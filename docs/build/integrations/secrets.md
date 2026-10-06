@@ -1,6 +1,6 @@
 ---
 title: Secrets Management
-description: Requesting, storing, and retrieving secrets (API keys, tokens) at runtime using RequestSecretsTool, RequestSecretsTask, and GetSecretKeysTool from @loopstack/secrets-module.
+description: Requesting, storing, and retrieving secrets (API keys, tokens) at runtime using SecretRequestDocument, RequestSecretsTask, and GetSecretKeysTool from @loopstack/secrets-module.
 ---
 
 # Secrets Management
@@ -9,7 +9,7 @@ Loopstack provides built-in tools for requesting and retrieving secrets (API key
 
 ## Overview
 
-Secrets are requested from the user via `RequestSecretsTool` and persisted in the database via `SecretEntity`, scoped per workspace. Values are never exposed to the LLM — only key names and availability flags (`GetSecretKeysTool`) are returned to workflow code.
+Secrets are requested from the user via a `SecretRequestDocument` form (or `RequestSecretsTask` in agent loops) and persisted in the database via `SecretEntity`, scoped per workspace. Values are never exposed to the LLM — only key names and availability flags (`GetSecretKeysTool`) are returned to workflow code.
 
 ### Providing Secrets to Remote Environments
 
@@ -32,7 +32,6 @@ async pushSecrets(state: SecretsState) {
 
 | Tool                    | Source                      | Description                                              |
 | ----------------------- | --------------------------- | -------------------------------------------------------- |
-| `RequestSecretsTool`    | `@loopstack/secrets-module` | Request secrets from the user via a UI prompt            |
 | `RequestSecretsTask`    | `@loopstack/secrets-module` | Agent-friendly task that launches a secrets sub-workflow |
 | `GetSecretKeysTool`     | `@loopstack/secrets-module` | List stored secret keys and their availability           |
 | `SecretRequestDocument` | `@loopstack/secrets-module` | Document displaying the secret input form                |
@@ -42,7 +41,7 @@ async pushSecrets(state: SecretsState) {
 ```typescript
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { MarkdownDocument } from '@loopstack/common';
-import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
+import { GetSecretKeysTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
 interface SecretsState {
   secretKeys?: Array<{ key: string; hasValue: boolean }>;
@@ -50,19 +49,12 @@ interface SecretsState {
 
 @Workflow({ widget: './secrets-example.ui.yaml' })
 export class SecretsExampleWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly requestSecrets: RequestSecretsTool,
-    private readonly getSecretKeys: GetSecretKeysTool,
-  ) {
+  constructor(private readonly getSecretKeys: GetSecretKeysTool) {
     super();
   }
 
   @Transition({ to: 'requesting_secrets' })
   async requestSecretsFromUser(state: SecretsState) {
-    await this.requestSecrets.call({
-      variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
-    });
-
     await this.documentStore.save(SecretRequestDocument, {
       variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
     });
@@ -87,11 +79,10 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
 
 ## How It Works
 
-1. **Request** — `RequestSecretsTool` tells the framework which secrets are needed
-2. **Display** — `SecretRequestDocument` shows a secure input form in the UI
-3. **Wait** — The workflow pauses (`wait: true`) until the user submits the secrets
-4. **Verify** — `GetSecretKeysTool` checks which secrets are now stored
-5. **Use** — Secrets are available as environment variables in subsequent tool calls
+1. **Request** — saving a `SecretRequestDocument` with the needed keys shows a secure input form in the UI
+2. **Wait** — The workflow pauses on a `wait: true` transition named `secretsSubmitted` (the transition the form fires) until the user submits the secrets
+3. **Verify** — `GetSecretKeysTool` checks which secrets are now stored
+4. **Use** — Secrets are available as environment variables in subsequent tool calls
 
 ## Template Example
 

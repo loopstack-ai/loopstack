@@ -64,6 +64,17 @@ describe('WorkflowFilterSchema', () => {
     expect(WorkflowFilterSchema.safeParse({ workspaceId: 'nope' }).success).toBe(false);
     expect(WorkflowFilterSchema.safeParse({ parentId: 'nope' }).success).toBe(false);
   });
+
+  it('accepts one value or several per column, and validates every member', () => {
+    expect(WorkflowFilterSchema.safeParse({ status: 'waiting' }).success).toBe(true);
+    expect(WorkflowFilterSchema.safeParse({ status: ['waiting', 'running'] }).success).toBe(true);
+    expect(WorkflowFilterSchema.safeParse({ workspaceId: [UUID] }).success).toBe(true);
+    expect(WorkflowFilterSchema.safeParse({ workflowName: ['A', 'B'] }).success).toBe(true);
+    expect(WorkflowFilterSchema.safeParse({ workspaceId: [UUID, 'nope'] }).success).toBe(false);
+    // An empty list is not "match nothing", it is a caller bug — a filter that silently matched
+    // everything would be worse than a rejection.
+    expect(WorkflowFilterSchema.safeParse({ status: [] }).success).toBe(false);
+  });
 });
 
 describe('SortBySchema', () => {
@@ -118,7 +129,25 @@ describe('response schemas', () => {
     parentId: null,
     hasChildren: 0,
     activeChildren: 0,
+    availableTransitions: null,
   };
+
+  it('defaults the fields a list adds, so an older response still parses', () => {
+    const { activeChildren: _count, availableTransitions: _transitions, ...withoutListFields } = workflowItem;
+    expect(WorkflowItemSchema.parse(withoutListFields)).toEqual({
+      ...withoutListFields,
+      activeChildren: 0,
+      availableTransitions: null,
+    });
+  });
+
+  it('keeps the trigger that marks a transition as awaiting a payload', () => {
+    const parsed = WorkflowItemSchema.parse({
+      ...workflowItem,
+      availableTransitions: [{ id: 'submit', from: 'ask', to: 'end', trigger: 'manual' }],
+    });
+    expect(parsed.availableTransitions?.[0]?.trigger).toBe('manual');
+  });
 
   it('parses a workflow item and rejects non-ISO dates', () => {
     expect(WorkflowItemSchema.parse(workflowItem)).toEqual(workflowItem);

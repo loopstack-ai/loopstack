@@ -197,7 +197,7 @@ Searches file contents by regex pattern on a remote instance. Returns matching l
 
 #### `bash`
 
-Executes a shell command on a remote instance. Returns stdout, stderr, and exit code.
+Executes a shell command on a remote instance. Streams output live; returns the merged output (`output`) and exit code (`exitCode`).
 
 | Arg       | Type     | Required | Description                  |
 | --------- | -------- | -------- | ---------------------------- |

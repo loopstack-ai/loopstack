@@ -121,7 +121,7 @@ No events found.
 
 ## YAML UI Config
 
-YAML widget configuration uses `transition` values that reference method names and `enabledWhen` for conditional visibility. These are not template expressions — they are static configuration:
+YAML widget configuration uses `transition` values that reference method names and `enabledWhen` / `showWhen` to enable or show widgets only at certain places. These are not template expressions — they are static configuration:
 
 ```yaml
 ui:

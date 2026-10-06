@@ -29,7 +29,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -38,31 +38,18 @@
     "openai": "^4.103.0"
   },
   "devDependencies": {
+    "@nestjs/common": "^12.0.1",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
+    "@nestjs/common": "^11.0.0 || ^12.0.0",
     "zod": "^4.0.0"
   },
   "files": [
     "dist"
   ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "maxWorkers": 1
-  },
   "type": "module"
 }

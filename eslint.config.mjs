@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import importX, { createNodeResolver } from 'eslint-plugin-import-x';
 import prettier from 'eslint-plugin-prettier/recommended';
 // import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
@@ -152,6 +153,51 @@ export default tseslint.config(
               message: '@loopstack/contracts must stay free of server-only dependencies.',
             },
           ],
+        },
+      ],
+    },
+  },
+
+  // Every runtime import must be declared in the importing package's own package.json — the workspace
+  // hoists everything to the root node_modules, so an undeclared import resolves here but breaks consumers
+  // whose installs don't hoist. devDependencies are allowed only in test code.
+  {
+    files: ['packages/*/src/**/*.{ts,tsx}', 'registry/*/*/src/**/*.ts', 'frontend/*/src/**/*.{ts,tsx}'],
+    plugins: { 'import-x': importX },
+    settings: {
+      // Resolve as Node does at runtime: packages such as typeorm export only under the `node` condition,
+      // and the rule skips an import it cannot resolve instead of reporting it.
+      'import-x/resolver-next': [createNodeResolver({ conditionNames: ['node', 'import', 'require', 'default'] })],
+    },
+    rules: {
+      'import-x/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: [
+            '**/*.spec.{ts,tsx}',
+            '**/*.test.{ts,tsx}',
+            '**/__tests__/**',
+            '**/test-utils/**',
+            '**/setupTests.ts',
+            'packages/react/src/testing/**',
+          ],
+          includeInternal: true,
+        },
+      ],
+    },
+  },
+
+  // Studio's library build bundles every import its vite config doesn't mark external into dist, so a
+  // bundled package is rightly a devDependency.
+  {
+    files: ['frontend/studio/src/**/*.{ts,tsx}'],
+    rules: {
+      'import-x/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: ['**/*.spec.{ts,tsx}', '**/*.test.{ts,tsx}', '**/__tests__/**', '**/test-utils/**'],
+          includeInternal: true,
+          whitelist: ['@dagrejs/dagre'],
         },
       ],
     },
