@@ -5,7 +5,6 @@ import { createQueries } from '@loopstack/client';
 import type {
   AuthResource,
   ConfigResource,
-  DashboardResource,
   DocumentsResource,
   LoopstackClient,
   WorkflowsResource,
@@ -83,16 +82,6 @@ export function createTestClient() {
     tool: vi.fn(async (name: string) => ({ name })),
     availableEnvironments: vi.fn(async () => []),
   };
-  const dashboard = {
-    stats: vi.fn(async () => ({
-      totalAutomationRuns: 0,
-      completedRuns: 0,
-      errorRuns: 0,
-      inProgressRuns: 0,
-      recentErrors: [],
-      recentRuns: [],
-    })),
-  };
   const auth = {
     me: vi.fn(async () => ({ id: 'user-1', isActive: true, roles: ['admin'] })),
     workerHealth: vi.fn(async () => ({ isConfigured: true, timestamp: '2026-01-01T00:00:00.000Z' })),
@@ -110,7 +99,6 @@ export function createTestClient() {
     processor,
     workspaces,
     config,
-    dashboard,
     auth,
     queries: createQueries({
       envKey: TEST_ENV_KEY,
@@ -118,13 +106,12 @@ export function createTestClient() {
       documents: documents as unknown as DocumentsResource,
       workspaces: workspaces as unknown as WorkspacesResource,
       config: config as unknown as ConfigResource,
-      dashboard: dashboard as unknown as DashboardResource,
       auth: auth as unknown as AuthResource,
     }),
     stream,
   } as unknown as LoopstackClient;
 
-  return { client, stream, workflows, documents, processor, workspaces, config, dashboard, auth };
+  return { client, stream, workflows, documents, processor, workspaces, config, auth };
 }
 
 /** Wrapper mounting QueryClientProvider + LoopstackProvider around a hook under test. */
