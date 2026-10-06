@@ -1,5 +1,42 @@
 # @loopstack/github-module
 
+## 0.4.11
+
+### Patch Changes
+
+- [#407](https://github.com/loopstack-ai/loopstack/pull/407) [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every package declares the packages its code imports, so it loads under installs that don't hoist dependencies
+  (npm `--install-strategy=nested`, pnpm `hoist=false`, Yarn PnP).
+  - `@loopstack/common`: peer dependencies `@nestjs/common` and `typeorm`.
+  - `@loopstack/core`: depends on `@loopstack/contracts`; peer dependencies `typeorm`, `@nestjs/typeorm` and
+    `reflect-metadata`.
+  - `@loopstack/api`: peer dependencies `typeorm`, `@nestjs/typeorm` and `zod`.
+  - `@loopstack/auth`: peer dependencies `typeorm` and `@nestjs/typeorm`.
+  - `@loopstack/testing`: peer dependency `typeorm`.
+  - `@loopstack/google-workspace-module`: depends on `@loopstack/common`; peer dependency `@nestjs/common`.
+  - `@loopstack/github-module`: peer dependency `@nestjs/common`.
+  - `@loopstack/oauth-module`, `@loopstack/openai-module`, `@loopstack/llm-provider-module`: peer dependency
+    `@nestjs/common`.
+  - `@loopstack/remote-client`: peer dependencies `@nestjs/core`, `class-transformer` and `class-validator`.
+  - `@loopstack/code-agent`: depends on `@loopstack/llm-provider-module`, whose types its module config uses.
+  - `@loopstack/git-examples`: depends on `@loopstack/remote-client`.
+
+- [#393](https://github.com/loopstack-ai/loopstack/pull/393) [`aab81a6`](https://github.com/loopstack-ai/loopstack/commit/aab81a67c5f8fd6b301b5cd678aa0dee87501ace) Thanks [@jakobklippel](https://github.com/jakobklippel)! - GitHub sign-in reports GitHub's own error, and the content and review tools handle more of what GitHub returns.
+  - A rejected GitHub token exchange (bad or expired code, wrong client secret, redirect URI mismatch) fails with
+    GitHub's error description.
+  - `exchange_oauth_token` throws before storing anything when a provider returns no access token, so a failed
+    sign-in keeps the user's existing token.
+  - `github_get_file_content`, `github_create_or_update_file` and `github_list_directory` URL-encode each path
+    segment, so names containing `#`, `?` or `%` address the right file.
+  - `github_list_directory` returns `{ error: 'not_a_directory' }` when the path points to a file.
+  - `github_list_pr_reviews` accepts pending reviews; `submittedAt` is optional.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `@nestjs/config` is a peer dependency (`^4.0.0 || ^12.0.0`), so every package injects the app's own `ConfigService`.
+  A NestJS 11 app on `@nestjs/config` 4.x now boots with a single copy of `@nestjs/config`, the one its
+  `ConfigModule.forRoot()` registers.
+- Updated dependencies [[`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`aab81a6`](https://github.com/loopstack-ai/loopstack/commit/aab81a67c5f8fd6b301b5cd678aa0dee87501ace), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`04b54cf`](https://github.com/loopstack-ai/loopstack/commit/04b54cf47024fdfe5e5d86fdfa1930c919791f13), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9)]:
+  - @loopstack/common@0.44.0
+  - @loopstack/oauth-module@0.5.6
+
 ## 0.4.10
 
 ### Patch Changes

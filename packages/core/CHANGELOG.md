@@ -1,5 +1,71 @@
 # @loopstack/core
 
+## 0.44.0
+
+### Minor Changes
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`e683f2e`](https://github.com/loopstack-ai/loopstack/commit/e683f2e77230c0f9b71735d78155042c6ea18d37) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Read the task processor's concurrency from `TASK_CONCURRENCY`, and export the resolved value.
+
+  How many tasks a process runs at once is a budget applications have to plan against rather than an internal
+  detail: a workflow that occupies a task for its whole lifetime — a long-running agent session, say — holds
+  one of those slots for that long, so an application running several of them at once needs to know how many
+  exist and leave headroom for everything else in the process. The variable sets it, defaulting to 10, and
+  `TASK_CONCURRENCY` is exported from `@loopstack/core` so that headroom can be asserted at boot.
+
+### Patch Changes
+
+- [#407](https://github.com/loopstack-ai/loopstack/pull/407) [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every package declares the packages its code imports, so it loads under installs that don't hoist dependencies
+  (npm `--install-strategy=nested`, pnpm `hoist=false`, Yarn PnP).
+  - `@loopstack/common`: peer dependencies `@nestjs/common` and `typeorm`.
+  - `@loopstack/core`: depends on `@loopstack/contracts`; peer dependencies `typeorm`, `@nestjs/typeorm` and
+    `reflect-metadata`.
+  - `@loopstack/api`: peer dependencies `typeorm`, `@nestjs/typeorm` and `zod`.
+  - `@loopstack/auth`: peer dependencies `typeorm` and `@nestjs/typeorm`.
+  - `@loopstack/testing`: peer dependency `typeorm`.
+  - `@loopstack/google-workspace-module`: depends on `@loopstack/common`; peer dependency `@nestjs/common`.
+  - `@loopstack/github-module`: peer dependency `@nestjs/common`.
+  - `@loopstack/oauth-module`, `@loopstack/openai-module`, `@loopstack/llm-provider-module`: peer dependency
+    `@nestjs/common`.
+  - `@loopstack/remote-client`: peer dependencies `@nestjs/core`, `class-transformer` and `class-validator`.
+  - `@loopstack/code-agent`: depends on `@loopstack/llm-provider-module`, whose types its module config uses.
+  - `@loopstack/git-examples`: depends on `@loopstack/remote-client`.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every `jsonb` column scrubs what Postgres cannot store.
+
+  Postgres `jsonb` is backed by its text type, which can represent neither U+0000 nor an unpaired UTF-16
+  surrogate — an insert carrying either is rejected with `unsupported Unicode escape sequence`. Such a
+  character never comes from the engine itself; it arrives with the content a run handles, from a tool that
+  read a binary file, a subprocess whose output was not valid UTF-8, or an LLM transcript quoting either of
+  those. What it costs is a whole run rather than one document: the rejected insert fails the transition that
+  wrote it, and the retry replays the same content, so the run cannot get past it.
+  - `@loopstack/common`: `sanitizeForJsonb()` and `JsonbTransformer` drop U+0000 and replace a lone surrogate
+    with U+FFFD. The transformer is applied to every `jsonb` column — a document's `content`, `meta` and
+    validation error, a workflow's `args`, `context`, `result`, `callbackMetadata` and `availableTransitions`,
+    a checkpoint's `state`, and a run-trace event's `payload` — so neither a saved document nor the state a
+    transition assigns can carry one. A value with nothing to scrub reaches the driver untouched.
+  - `@loopstack/core`: a document whose write the database rejects is named in the log — document name, key,
+    transition and workflow — next to the error, which by itself reports only the column it violated.
+
+- [#372](https://github.com/loopstack-ai/loopstack/pull/372) [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A keyed save is placed at the end by default; `position: 'keep'` updates in place.
+
+  Saving again under a `key` writes a new revision and invalidates the previous ones. The new `position` save
+  option decides where it sits in the workflow's document list:
+  - `'end'` (default): appended, like any new document. A card shown again after more work has happened — a
+    decision gate re-presented after a reply — sits below that work, at the bottom where the user is.
+  - `'keep'`: in the place of the revision it supersedes, for an entry that changes over time (status
+    tickers, streamed messages, terminal output, form state, sub-workflow links).
+
+  Tool document declarations accept `position` too. The sub-workflow link document, the bash tool's live
+  output, the OAuth prompt, the ask-user question and the examples' status and form documents update in
+  place. The Studio run view draws nothing at the place a revision moved away from.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `@nestjs/config` is a peer dependency (`^4.0.0 || ^12.0.0`), so every package injects the app's own `ConfigService`.
+  A NestJS 11 app on `@nestjs/config` 4.x now boots with a single copy of `@nestjs/config`, the one its
+  `ConfigModule.forRoot()` registers.
+- Updated dependencies [[`d5093f6`](https://github.com/loopstack-ai/loopstack/commit/d5093f62686443e86906293cc97db58e90b4dfba), [`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`c2d9d3e`](https://github.com/loopstack-ai/loopstack/commit/c2d9d3e8aa032512de6207e0a3bd0c8afba629e4), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9), [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd)]:
+  - @loopstack/contracts@0.44.0
+  - @loopstack/common@0.44.0
+
 ## 0.43.0
 
 ### Minor Changes

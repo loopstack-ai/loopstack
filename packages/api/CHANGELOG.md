@@ -1,5 +1,81 @@
 # @loopstack/api
 
+## 0.44.0
+
+### Minor Changes
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`d5093f6`](https://github.com/loopstack-ai/loopstack/commit/d5093f62686443e86906293cc97db58e90b4dfba) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every run row says which transitions it is holding, and which of them await a payload.
+
+  `WorkflowItemInterface` gains `availableTransitions`, each entry marked `trigger: 'manual'` when the
+  transition was declared `wait: true`. It is what separates a run parked on a **person** from one parked on
+  machinery: `waiting` says only "stopped, not finished", and the engine assigns it to a human gate, a pending
+  child callback and a retry signal alike. The field was already on the single-run read and is a column the
+  list query loads anyway; a list is simply where a view asks that question about many runs at once.
+
+- [#356](https://github.com/loopstack-ai/loopstack/pull/356) [`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Give every shared type name a single meaning. `@loopstack/contracts` is the source for types shared with the
+  frontend; `@loopstack/common` re-exports them.
+  - `@loopstack/contracts/api`: the `GET config/tools` response schema is `ToolConfigItemSchema` /
+    `ToolConfigItemInterface`. `ToolConfigSchema` names only the tool block config in
+    `@loopstack/contracts/schemas`.
+  - `@loopstack/contracts/api`: the persisted document record is `DocumentItemSchema` / `DocumentItemInterface`.
+    `DocumentSchema` names only the document shape in `@loopstack/contracts/schemas`.
+  - `@loopstack/contracts/types`: `WorkflowStateType` is removed; use the `WorkflowState` enum from
+    `@loopstack/contracts/enums`.
+  - `@loopstack/common`: `UserTypeEnum`, `StudioUiConfig` and `StudioWidgetConfig` are re-exported from
+    `@loopstack/contracts`.
+  - `@loopstack/common`: the transition on `WorkflowPayload` is typed `TransitionRequest` (`{ id, payload? }`),
+    distinct from the queued `TransitionPayload` in `@loopstack/contracts`.
+  - `@loopstack/api`: `AuthConfig` is removed; the auth config type is `AuthConfig` from `@loopstack/auth`.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A dashboard that says what every workspace is doing right now.
+
+  Studio's landing page is a board with one card per workspace — one line per run it has going, each with the
+  `place` that run is parked or working at and how old it is, the one waiting on a person first — so "where is
+  everyone, who is free, who is waiting on me" is one glance rather than a tour of workspace pages. A line
+  shows the run that was started and, under it, the sub-workflow actually holding the state, each openable on
+  its own. Runs waiting on a person are pulled into a strip at the top, longest wait first; each entry opens
+  that run in the workbench in a new tab, so the board stays put.
+  Cards keep their position when state changes and can be dragged into any order, saved per browser.
+  - `@loopstack/loopstack-studio`: the board at `/dashboard` (`getDashboard()`), with the app launcher moving
+    to `/applications` (`getApplications()`). A workspace is `waiting | working | queued | idle`, where
+    `waiting` means waiting on a _person_ — a run parked on its own children is still working. The runs list
+    gains multi-select filters for status, workspace and workflow, and `getRunsActionRequired()` is gone with
+    the page it addressed, which filtered a `paused` state the engine never assigns.
+  - `@loopstack/contracts` and `@loopstack/api`: any workflow column filter takes one value or several —
+    `status: ['running', 'waiting']` reads as SQL `IN` — and `workflowName` joins the filter schema, which had
+    been silently dropped from every request that sent it.
+  - `@loopstack/cli`: `loopstack runs --status waiting,failed` filters on several states.
+  - `@loopstack/client` and `@loopstack/react`: the unused dashboard-statistics endpoint and its SDK surface
+    (`client.dashboard`, `queries.dashboardStats`, `useDashboardStats`) are removed; per-workspace rows answer
+    the question those counters did not.
+
+### Patch Changes
+
+- [#407](https://github.com/loopstack-ai/loopstack/pull/407) [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every package declares the packages its code imports, so it loads under installs that don't hoist dependencies
+  (npm `--install-strategy=nested`, pnpm `hoist=false`, Yarn PnP).
+  - `@loopstack/common`: peer dependencies `@nestjs/common` and `typeorm`.
+  - `@loopstack/core`: depends on `@loopstack/contracts`; peer dependencies `typeorm`, `@nestjs/typeorm` and
+    `reflect-metadata`.
+  - `@loopstack/api`: peer dependencies `typeorm`, `@nestjs/typeorm` and `zod`.
+  - `@loopstack/auth`: peer dependencies `typeorm` and `@nestjs/typeorm`.
+  - `@loopstack/testing`: peer dependency `typeorm`.
+  - `@loopstack/google-workspace-module`: depends on `@loopstack/common`; peer dependency `@nestjs/common`.
+  - `@loopstack/github-module`: peer dependency `@nestjs/common`.
+  - `@loopstack/oauth-module`, `@loopstack/openai-module`, `@loopstack/llm-provider-module`: peer dependency
+    `@nestjs/common`.
+  - `@loopstack/remote-client`: peer dependencies `@nestjs/core`, `class-transformer` and `class-validator`.
+  - `@loopstack/code-agent`: depends on `@loopstack/llm-provider-module`, whose types its module config uses.
+  - `@loopstack/git-examples`: depends on `@loopstack/remote-client`.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `@nestjs/config` is a peer dependency (`^4.0.0 || ^12.0.0`), so every package injects the app's own `ConfigService`.
+  A NestJS 11 app on `@nestjs/config` 4.x now boots with a single copy of `@nestjs/config`, the one its
+  `ConfigModule.forRoot()` registers.
+- Updated dependencies [[`440173e`](https://github.com/loopstack-ai/loopstack/commit/440173ece4a7250359ea80c4a1744be5a2541d8a), [`d5093f6`](https://github.com/loopstack-ai/loopstack/commit/d5093f62686443e86906293cc97db58e90b4dfba), [`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855), [`c2d9d3e`](https://github.com/loopstack-ai/loopstack/commit/c2d9d3e8aa032512de6207e0a3bd0c8afba629e4), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`e683f2e`](https://github.com/loopstack-ai/loopstack/commit/e683f2e77230c0f9b71735d78155042c6ea18d37), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9), [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd)]:
+  - @loopstack/auth@0.44.0
+  - @loopstack/contracts@0.44.0
+  - @loopstack/common@0.44.0
+  - @loopstack/core@0.44.0
+
 ## 0.43.0
 
 ### Patch Changes

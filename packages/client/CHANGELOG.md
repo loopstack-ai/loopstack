@@ -1,5 +1,36 @@
 # @loopstack/client
 
+## 0.44.0
+
+### Minor Changes
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A dashboard that says what every workspace is doing right now.
+
+  Studio's landing page is a board with one card per workspace — one line per run it has going, each with the
+  `place` that run is parked or working at and how old it is, the one waiting on a person first — so "where is
+  everyone, who is free, who is waiting on me" is one glance rather than a tour of workspace pages. A line
+  shows the run that was started and, under it, the sub-workflow actually holding the state, each openable on
+  its own. Runs waiting on a person are pulled into a strip at the top, longest wait first; each entry opens
+  that run in the workbench in a new tab, so the board stays put.
+  Cards keep their position when state changes and can be dragged into any order, saved per browser.
+  - `@loopstack/loopstack-studio`: the board at `/dashboard` (`getDashboard()`), with the app launcher moving
+    to `/applications` (`getApplications()`). A workspace is `waiting | working | queued | idle`, where
+    `waiting` means waiting on a _person_ — a run parked on its own children is still working. The runs list
+    gains multi-select filters for status, workspace and workflow, and `getRunsActionRequired()` is gone with
+    the page it addressed, which filtered a `paused` state the engine never assigns.
+  - `@loopstack/contracts` and `@loopstack/api`: any workflow column filter takes one value or several —
+    `status: ['running', 'waiting']` reads as SQL `IN` — and `workflowName` joins the filter schema, which had
+    been silently dropped from every request that sent it.
+  - `@loopstack/cli`: `loopstack runs --status waiting,failed` filters on several states.
+  - `@loopstack/client` and `@loopstack/react`: the unused dashboard-statistics endpoint and its SDK surface
+    (`client.dashboard`, `queries.dashboardStats`, `useDashboardStats`) are removed; per-workspace rows answer
+    the question those counters did not.
+
+### Patch Changes
+
+- Updated dependencies [[`d5093f6`](https://github.com/loopstack-ai/loopstack/commit/d5093f62686443e86906293cc97db58e90b4dfba), [`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`c2d9d3e`](https://github.com/loopstack-ai/loopstack/commit/c2d9d3e8aa032512de6207e0a3bd0c8afba629e4), [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd)]:
+  - @loopstack/contracts@0.44.0
+
 ## 0.42.0
 
 ### Minor Changes

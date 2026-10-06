@@ -1,5 +1,27 @@
 # @loopstack/agent
 
+## 0.6.3
+
+### Patch Changes
+
+- [#371](https://github.com/loopstack-ai/loopstack/pull/371) [`699d262`](https://github.com/loopstack-ai/loopstack/commit/699d2624894ade9808c2d9fc185140ac866788e1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `AgentWorkflow` and `ChatAgentWorkflow` use the configured LLM provider.
+  - Each LLM turn resolves the provider and model from the `LlmProviderModule` config in scope: the one passed to
+    `AgentModule.forFeature({ llm })` (or `CodeAgentModule.forFeature({ llm })`), else the app-wide one. With no
+    provider configured, `claude` is used.
+  - Both workflows accept optional `provider` and `model` args to override the configured ones for a single run.
+
+- [#367](https://github.com/loopstack-ai/loopstack/pull/367) [`e3c016e`](https://github.com/loopstack-ai/loopstack/commit/e3c016e73ed24178ec0a73b660fb496a787b3afe) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `llm_delegate_tool_calls` executes only the tools the LLM was offered.
+  - `@loopstack/llm-provider-module`: `LlmDelegateToolCallsToolSchema` requires `tools: string[]`, the same names passed
+    to `llm_generate_text` as `config.tools`. A tool call whose name is not in `tools` is never resolved or executed.
+    It comes back to the LLM as an error tool result: `Tool "x" is not available to this agent`.
+  - `@loopstack/agent`: `AgentWorkflow` and `ChatAgentWorkflow` pass their tools list to the delegate.
+    `ChatAgentWorkflow` includes `agent_finish` in task mode.
+
+- Updated dependencies [[`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`e3c016e`](https://github.com/loopstack-ai/loopstack/commit/e3c016e73ed24178ec0a73b660fb496a787b3afe), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`369767e`](https://github.com/loopstack-ai/loopstack/commit/369767e035baebb2878d8b2877031216e77d969b), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`e683f2e`](https://github.com/loopstack-ai/loopstack/commit/e683f2e77230c0f9b71735d78155042c6ea18d37), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9)]:
+  - @loopstack/common@0.44.0
+  - @loopstack/core@0.44.0
+  - @loopstack/llm-provider-module@0.11.0
+
 ## 0.6.2
 
 ### Patch Changes

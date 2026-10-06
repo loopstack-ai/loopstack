@@ -1,5 +1,47 @@
 # @loopstack/llm-provider-module
 
+## 0.11.0
+
+### Minor Changes
+
+- [#367](https://github.com/loopstack-ai/loopstack/pull/367) [`e3c016e`](https://github.com/loopstack-ai/loopstack/commit/e3c016e73ed24178ec0a73b660fb496a787b3afe) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `llm_delegate_tool_calls` executes only the tools the LLM was offered.
+  - `@loopstack/llm-provider-module`: `LlmDelegateToolCallsToolSchema` requires `tools: string[]`, the same names passed
+    to `llm_generate_text` as `config.tools`. A tool call whose name is not in `tools` is never resolved or executed.
+    It comes back to the LLM as an error tool result: `Tool "x" is not available to this agent`.
+  - `@loopstack/agent`: `AgentWorkflow` and `ChatAgentWorkflow` pass their tools list to the delegate.
+    `ChatAgentWorkflow` includes `agent_finish` in task mode.
+
+- [#416](https://github.com/loopstack-ai/loopstack/pull/416) [`369767e`](https://github.com/loopstack-ai/loopstack/commit/369767e035baebb2878d8b2877031216e77d969b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Remove `LlmGenerateTextToolSchema`, `LlmGenerateObjectToolSchema` and `LlmToolsHelperService.getTools()` from
+  `@loopstack/llm-provider-module`.
+
+  The args schemas of the generate tools are exported as `LlmGenerateTextArgsSchema` and
+  `LlmGenerateObjectArgsSchema`, with their config in `LlmGenerateTextConfigSchema` and
+  `LlmGenerateObjectConfigSchema`. Tool definitions for the LLM are built with
+  `LlmToolsHelperService.getToolDefinitions(tools: BaseTool[])`.
+
+### Patch Changes
+
+- [#407](https://github.com/loopstack-ai/loopstack/pull/407) [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every package declares the packages its code imports, so it loads under installs that don't hoist dependencies
+  (npm `--install-strategy=nested`, pnpm `hoist=false`, Yarn PnP).
+  - `@loopstack/common`: peer dependencies `@nestjs/common` and `typeorm`.
+  - `@loopstack/core`: depends on `@loopstack/contracts`; peer dependencies `typeorm`, `@nestjs/typeorm` and
+    `reflect-metadata`.
+  - `@loopstack/api`: peer dependencies `typeorm`, `@nestjs/typeorm` and `zod`.
+  - `@loopstack/auth`: peer dependencies `typeorm` and `@nestjs/typeorm`.
+  - `@loopstack/testing`: peer dependency `typeorm`.
+  - `@loopstack/google-workspace-module`: depends on `@loopstack/common`; peer dependency `@nestjs/common`.
+  - `@loopstack/github-module`: peer dependency `@nestjs/common`.
+  - `@loopstack/oauth-module`, `@loopstack/openai-module`, `@loopstack/llm-provider-module`: peer dependency
+    `@nestjs/common`.
+  - `@loopstack/remote-client`: peer dependencies `@nestjs/core`, `class-transformer` and `class-validator`.
+  - `@loopstack/code-agent`: depends on `@loopstack/llm-provider-module`, whose types its module config uses.
+  - `@loopstack/git-examples`: depends on `@loopstack/remote-client`.
+
+- Updated dependencies [[`d5093f6`](https://github.com/loopstack-ai/loopstack/commit/d5093f62686443e86906293cc97db58e90b4dfba), [`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855), [`c2d9d3e`](https://github.com/loopstack-ai/loopstack/commit/c2d9d3e8aa032512de6207e0a3bd0c8afba629e4), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`e683f2e`](https://github.com/loopstack-ai/loopstack/commit/e683f2e77230c0f9b71735d78155042c6ea18d37), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9), [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd)]:
+  - @loopstack/contracts@0.44.0
+  - @loopstack/common@0.44.0
+  - @loopstack/core@0.44.0
+
 ## 0.10.2
 
 ### Patch Changes

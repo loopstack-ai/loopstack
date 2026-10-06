@@ -2,7 +2,7 @@
   "name": "@loopstack/cli",
   "displayName": "Loopstack CLI",
   "description": "Run, trace, and watch Loopstack workflows from the terminal",
-  "version": "0.22.2",
+  "version": "0.23.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -26,13 +26,13 @@
     "watch": "tsc -p tsconfig.build.json --watch"
   },
   "dependencies": {
-    "@loopstack/client": "^0.42.0",
-    "@loopstack/contracts": "^0.42.0",
+    "@loopstack/client": "^0.44.0",
+    "@loopstack/contracts": "^0.44.0",
     "commander": "^15.0.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@loopstack/testing": "^0.43.0",
+    "@loopstack/testing": "^0.44.0",
     "vitest": "^4.1.6"
   },
   "files": [
