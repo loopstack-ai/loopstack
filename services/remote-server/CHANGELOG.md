@@ -1,5 +1,14 @@
 # @loopstack/remote-agent
 
+## 0.26.2
+
+### Patch Changes
+
+- [#355](https://github.com/loopstack-ai/loopstack/pull/355) [`280a315`](https://github.com/loopstack-ai/loopstack/commit/280a315698a502d4545a5c3ab23dc3adf2842000) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Serve the streamed command routes `@loopstack/remote-client` calls: `POST /exec/stream`, `GET /exec/stream/:id`,
+  `GET /exec/stream/:id/log?offset=` and `DELETE /exec/stream/:id`. The `bash` tool, `RemoteClient.streamCommand` and
+  `RemoteClient.purgeWorkspace` now work against this server. Each command runs in its own process group, so a timeout
+  or a kill stops the whole command tree, not just the `sh -c` wrapper.
+
 ## 0.26.1
 
 ### Patch Changes

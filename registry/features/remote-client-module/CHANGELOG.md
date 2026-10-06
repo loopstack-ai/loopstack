@@ -1,5 +1,57 @@
 # @loopstack/remote-client
 
+## 0.29.0
+
+### Minor Changes
+
+- [#353](https://github.com/loopstack-ai/loopstack/pull/353) [`1653b4e`](https://github.com/loopstack-ai/loopstack/commit/1653b4ecdedba892f08f58b75f5e8c63bcc155bf) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Remove `RemoteClient.gitClone`.
+
+  The method sent `POST /git/clone`, a route `@loopstack/remote-server` does not serve, so every call ended in a 404. `RemoteClient` now exposes only git operations the remote server implements; to clone a repository, run
+  `git clone` through `executeCommand`.
+
+- [#402](https://github.com/loopstack-ai/loopstack/pull/402) [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Store every `created_at` / `updated_at` column as `timestamptz`, so timestamps are correct regardless of the
+  timezones Node and Postgres run in.
+
+  On the first start after upgrading, schema synchronization recreates these columns: existing rows' created and
+  updated times are set to the upgrade time. Hosts that manage the schema themselves (`reuseExistingConnection`)
+  change the column types to `timestamptz` on their side.
+
+### Patch Changes
+
+- [#407](https://github.com/loopstack-ai/loopstack/pull/407) [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every package declares the packages its code imports, so it loads under installs that don't hoist dependencies
+  (npm `--install-strategy=nested`, pnpm `hoist=false`, Yarn PnP).
+  - `@loopstack/common`: peer dependencies `@nestjs/common` and `typeorm`.
+  - `@loopstack/core`: depends on `@loopstack/contracts`; peer dependencies `typeorm`, `@nestjs/typeorm` and
+    `reflect-metadata`.
+  - `@loopstack/api`: peer dependencies `typeorm`, `@nestjs/typeorm` and `zod`.
+  - `@loopstack/auth`: peer dependencies `typeorm` and `@nestjs/typeorm`.
+  - `@loopstack/testing`: peer dependency `typeorm`.
+  - `@loopstack/google-workspace-module`: depends on `@loopstack/common`; peer dependency `@nestjs/common`.
+  - `@loopstack/github-module`: peer dependency `@nestjs/common`.
+  - `@loopstack/oauth-module`, `@loopstack/openai-module`, `@loopstack/llm-provider-module`: peer dependency
+    `@nestjs/common`.
+  - `@loopstack/remote-client`: peer dependencies `@nestjs/core`, `class-transformer` and `class-validator`.
+  - `@loopstack/code-agent`: depends on `@loopstack/llm-provider-module`, whose types its module config uses.
+  - `@loopstack/git-examples`: depends on `@loopstack/remote-client`.
+
+- [#372](https://github.com/loopstack-ai/loopstack/pull/372) [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A keyed save is placed at the end by default; `position: 'keep'` updates in place.
+
+  Saving again under a `key` writes a new revision and invalidates the previous ones. The new `position` save
+  option decides where it sits in the workflow's document list:
+  - `'end'` (default): appended, like any new document. A card shown again after more work has happened — a
+    decision gate re-presented after a reply — sits below that work, at the bottom where the user is.
+  - `'keep'`: in the place of the revision it supersedes, for an entry that changes over time (status
+    tickers, streamed messages, terminal output, form state, sub-workflow links).
+
+  Tool document declarations accept `position` too. The sub-workflow link document, the bash tool's live
+  output, the OAuth prompt, the ask-user question and the examples' status and form documents update in
+  place. The Studio run view draws nothing at the place a revision moved away from.
+
+- Updated dependencies [[`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`e3c016e`](https://github.com/loopstack-ai/loopstack/commit/e3c016e73ed24178ec0a73b660fb496a787b3afe), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`e683f2e`](https://github.com/loopstack-ai/loopstack/commit/e683f2e77230c0f9b71735d78155042c6ea18d37), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9)]:
+  - @loopstack/common@0.44.0
+  - @loopstack/core@0.44.0
+  - @loopstack/secrets-module@0.29.0
+
 ## 0.28.3
 
 ### Patch Changes

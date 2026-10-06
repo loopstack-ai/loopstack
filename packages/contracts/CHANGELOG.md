@@ -1,5 +1,63 @@
 # @loopstack/contracts
 
+## 0.44.0
+
+### Minor Changes
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`d5093f6`](https://github.com/loopstack-ai/loopstack/commit/d5093f62686443e86906293cc97db58e90b4dfba) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every run row says which transitions it is holding, and which of them await a payload.
+
+  `WorkflowItemInterface` gains `availableTransitions`, each entry marked `trigger: 'manual'` when the
+  transition was declared `wait: true`. It is what separates a run parked on a **person** from one parked on
+  machinery: `waiting` says only "stopped, not finished", and the engine assigns it to a human gate, a pending
+  child callback and a retry signal alike. The field was already on the single-run read and is a column the
+  list query loads anyway; a list is simply where a view asks that question about many runs at once.
+
+- [#356](https://github.com/loopstack-ai/loopstack/pull/356) [`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Give every shared type name a single meaning. `@loopstack/contracts` is the source for types shared with the
+  frontend; `@loopstack/common` re-exports them.
+  - `@loopstack/contracts/api`: the `GET config/tools` response schema is `ToolConfigItemSchema` /
+    `ToolConfigItemInterface`. `ToolConfigSchema` names only the tool block config in
+    `@loopstack/contracts/schemas`.
+  - `@loopstack/contracts/api`: the persisted document record is `DocumentItemSchema` / `DocumentItemInterface`.
+    `DocumentSchema` names only the document shape in `@loopstack/contracts/schemas`.
+  - `@loopstack/contracts/types`: `WorkflowStateType` is removed; use the `WorkflowState` enum from
+    `@loopstack/contracts/enums`.
+  - `@loopstack/common`: `UserTypeEnum`, `StudioUiConfig` and `StudioWidgetConfig` are re-exported from
+    `@loopstack/contracts`.
+  - `@loopstack/common`: the transition on `WorkflowPayload` is typed `TransitionRequest` (`{ id, payload? }`),
+    distinct from the queued `TransitionPayload` in `@loopstack/contracts`.
+  - `@loopstack/api`: `AuthConfig` is removed; the auth config type is `AuthConfig` from `@loopstack/auth`.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`c2d9d3e`](https://github.com/loopstack-ai/loopstack/commit/c2d9d3e8aa032512de6207e0a3bd0c8afba629e4) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Drop the registry entry enums from `@loopstack/contracts/enums`.
+
+  `RegistryEntryStatus`, `RegistryEntryCategory`, `RegistryCategory` and `REGISTRY_CATEGORIES` describe the
+  package registry that loopstack.ai runs, not anything the framework itself understands: no package in this
+  repository reads them, and nothing in the workflow engine branches on whether an entry is pending or which
+  category it sits in. A contract is the vocabulary two sides have to agree on, so a registry's own data model
+  belongs to the application that stores and serves it, which is free to grow a status or a category without
+  that being a release of the framework.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A dashboard that says what every workspace is doing right now.
+
+  Studio's landing page is a board with one card per workspace — one line per run it has going, each with the
+  `place` that run is parked or working at and how old it is, the one waiting on a person first — so "where is
+  everyone, who is free, who is waiting on me" is one glance rather than a tour of workspace pages. A line
+  shows the run that was started and, under it, the sub-workflow actually holding the state, each openable on
+  its own. Runs waiting on a person are pulled into a strip at the top, longest wait first; each entry opens
+  that run in the workbench in a new tab, so the board stays put.
+  Cards keep their position when state changes and can be dragged into any order, saved per browser.
+  - `@loopstack/loopstack-studio`: the board at `/dashboard` (`getDashboard()`), with the app launcher moving
+    to `/applications` (`getApplications()`). A workspace is `waiting | working | queued | idle`, where
+    `waiting` means waiting on a _person_ — a run parked on its own children is still working. The runs list
+    gains multi-select filters for status, workspace and workflow, and `getRunsActionRequired()` is gone with
+    the page it addressed, which filtered a `paused` state the engine never assigns.
+  - `@loopstack/contracts` and `@loopstack/api`: any workflow column filter takes one value or several —
+    `status: ['running', 'waiting']` reads as SQL `IN` — and `workflowName` joins the filter schema, which had
+    been silently dropped from every request that sent it.
+  - `@loopstack/cli`: `loopstack runs --status waiting,failed` filters on several states.
+  - `@loopstack/client` and `@loopstack/react`: the unused dashboard-statistics endpoint and its SDK surface
+    (`client.dashboard`, `queries.dashboardStats`, `useDashboardStats`) are removed; per-workspace rows answer
+    the question those counters did not.
+
 ## 0.42.0
 
 ### Minor Changes

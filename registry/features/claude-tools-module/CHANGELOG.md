@@ -1,5 +1,32 @@
 # @loopstack/claude-tools-module
 
+## 0.4.0
+
+### Minor Changes
+
+- [#363](https://github.com/loopstack-ai/loopstack/pull/363) [`1097b0b`](https://github.com/loopstack-ai/loopstack/commit/1097b0bb92539ca6a3a97be27861cdbc31a8bdc5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Name the two Claude web search tools after how they are used.
+  - `@loopstack/claude-module` exports `ClaudeNativeWebSearchTool` (`claude_native_web_search`), with
+    `ClaudeNativeWebSearchToolConfig` and `ClaudeNativeWebSearchToolConfigSchema`. It is Claude's provider-native
+    web search: list it in an agent's or LLM call's `tools`, and Claude searches inside that call.
+  - `@loopstack/claude-tools-module` exports `ClaudeWebSearchStepTool` (`claude_web_search_step`), with
+    `ClaudeWebSearchStepArgs`, `ClaudeWebSearchStepConfig` and their schemas. It is a workflow step that makes its
+    own Claude request through `claude_native_web_search` and returns the hits and commentary.
+
+  To give an agent web search, list `claude_native_web_search` in its `tools`:
+
+  ```ts
+  await this.llmGenerateText.call({}, { config: { provider: 'claude', tools: ['claude_native_web_search'] } });
+  ```
+
+  `claude_web_search_step` always sends its request to the `claude` provider and does not save the reply as a
+  conversation message, so a search adds nothing to the workflow's history.
+
+### Patch Changes
+
+- Updated dependencies [[`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`e3c016e`](https://github.com/loopstack-ai/loopstack/commit/e3c016e73ed24178ec0a73b660fb496a787b3afe), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`369767e`](https://github.com/loopstack-ai/loopstack/commit/369767e035baebb2878d8b2877031216e77d969b), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9)]:
+  - @loopstack/common@0.44.0
+  - @loopstack/llm-provider-module@0.11.0
+
 ## 0.3.1
 
 ### Patch Changes

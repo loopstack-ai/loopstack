@@ -1,5 +1,19 @@
 # @loopstack/local-file-explorer-module
 
+## 0.26.3
+
+### Patch Changes
+
+- [#388](https://github.com/loopstack-ai/loopstack/pull/388) [`228f241`](https://github.com/loopstack-ai/loopstack/commit/228f241549a9b716399665e23d2a92f368109e52) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The `local-files/read` endpoint only returns files whose real location is inside the workspace root.
+  `FileSystemService.resolveContainedPath(basePath, relativePath)` resolves symlinks on both the root and the requested
+  path and returns the real path, or `null` when it lies outside the root or cannot be resolved; `FileApiService` reads
+  from that path and answers `Invalid file path` otherwise. Symlinks that stay inside the root are followed.
+  `validatePath` accepts names that start with two dots, such as `..notes.md`.
+- Updated dependencies [[`d5093f6`](https://github.com/loopstack-ai/loopstack/commit/d5093f62686443e86906293cc97db58e90b4dfba), [`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855), [`c2d9d3e`](https://github.com/loopstack-ai/loopstack/commit/c2d9d3e8aa032512de6207e0a3bd0c8afba629e4), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`e683f2e`](https://github.com/loopstack-ai/loopstack/commit/e683f2e77230c0f9b71735d78155042c6ea18d37), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9), [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd)]:
+  - @loopstack/contracts@0.44.0
+  - @loopstack/common@0.44.0
+  - @loopstack/core@0.44.0
+
 ## 0.26.2
 
 ### Patch Changes

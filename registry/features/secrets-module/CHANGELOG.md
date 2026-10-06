@@ -1,5 +1,28 @@
 # @loopstack/secrets-module
 
+## 0.29.0
+
+### Minor Changes
+
+- [#367](https://github.com/loopstack-ai/loopstack/pull/367) [`e3c016e`](https://github.com/loopstack-ai/loopstack/commit/e3c016e73ed24178ec0a73b660fb496a787b3afe) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Remove `RequestSecretsTool` (`request_secrets`), `RequestSecretsResult` and `RequestSecretsResultSchema`.
+
+  To ask for secrets from a scripted workflow, save a `SecretRequestDocument` with the keys and add a `wait: true`
+  transition named `secretsSubmitted`, the transition the form fires. In an agent loop, offer the LLM
+  `request_secrets_task` (`RequestSecretsTask`). It shows the form, waits for the user and completes by callback.
+
+- [#402](https://github.com/loopstack-ai/loopstack/pull/402) [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Store every `created_at` / `updated_at` column as `timestamptz`, so timestamps are correct regardless of the
+  timezones Node and Postgres run in.
+
+  On the first start after upgrading, schema synchronization recreates these columns: existing rows' created and
+  updated times are set to the upgrade time. Hosts that manage the schema themselves (`reuseExistingConnection`)
+  change the column types to `timestamptz` on their side.
+
+### Patch Changes
+
+- Updated dependencies [[`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`e683f2e`](https://github.com/loopstack-ai/loopstack/commit/e683f2e77230c0f9b71735d78155042c6ea18d37), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9)]:
+  - @loopstack/common@0.44.0
+  - @loopstack/core@0.44.0
+
 ## 0.28.2
 
 ### Patch Changes

@@ -1,5 +1,150 @@
 # @loopstack/loopstack-studio
 
+## 0.41.0
+
+### Minor Changes
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`ad4131b`](https://github.com/loopstack-ai/loopstack/commit/ad4131bb70880e6a39005a69878a6440b01746df) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add a `markdown-collapsed` form field: read-only Markdown behind a disclosure.
+
+  Detail that belongs on a form without being read every time — the full workings behind a decision, say — had
+  nowhere to go: `markdown-view` renders everything inline, and a raw `<details>` block in a Markdown string is
+  stripped, because the renderer runs no raw-HTML plugin. The field takes a `title` for the opener and an
+  optional `open` to start expanded, and renders nothing at all when its content is empty.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A dashboard that says what every workspace is doing right now.
+
+  Studio's landing page is a board with one card per workspace — one line per run it has going, each with the
+  `place` that run is parked or working at and how old it is, the one waiting on a person first — so "where is
+  everyone, who is free, who is waiting on me" is one glance rather than a tour of workspace pages. A line
+  shows the run that was started and, under it, the sub-workflow actually holding the state, each openable on
+  its own. Runs waiting on a person are pulled into a strip at the top, longest wait first; each entry opens
+  that run in the workbench in a new tab, so the board stays put.
+  Cards keep their position when state changes and can be dragged into any order, saved per browser.
+  - `@loopstack/loopstack-studio`: the board at `/dashboard` (`getDashboard()`), with the app launcher moving
+    to `/applications` (`getApplications()`). A workspace is `waiting | working | queued | idle`, where
+    `waiting` means waiting on a _person_ — a run parked on its own children is still working. The runs list
+    gains multi-select filters for status, workspace and workflow, and `getRunsActionRequired()` is gone with
+    the page it addressed, which filtered a `paused` state the engine never assigns.
+  - `@loopstack/contracts` and `@loopstack/api`: any workflow column filter takes one value or several —
+    `status: ['running', 'waiting']` reads as SQL `IN` — and `workflowName` joins the filter schema, which had
+    been silently dropped from every request that sent it.
+  - `@loopstack/cli`: `loopstack runs --status waiting,failed` filters on several states.
+  - `@loopstack/client` and `@loopstack/react`: the unused dashboard-statistics endpoint and its SDK surface
+    (`client.dashboard`, `queries.dashboardStats`, `useDashboardStats`) are removed; per-workspace rows answer
+    the question those counters did not.
+
+### Patch Changes
+
+- [#372](https://github.com/loopstack-ai/loopstack/pull/372) [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A keyed save is placed at the end by default; `position: 'keep'` updates in place.
+
+  Saving again under a `key` writes a new revision and invalidates the previous ones. The new `position` save
+  option decides where it sits in the workflow's document list:
+  - `'end'` (default): appended, like any new document. A card shown again after more work has happened — a
+    decision gate re-presented after a reply — sits below that work, at the bottom where the user is.
+  - `'keep'`: in the place of the revision it supersedes, for an entry that changes over time (status
+    tickers, streamed messages, terminal output, form state, sub-workflow links).
+
+  Tool document declarations accept `position` too. The sub-workflow link document, the bash tool's live
+  output, the OAuth prompt, the ask-user question and the examples' status and form documents update in
+  place. The Studio run view draws nothing at the place a revision moved away from.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`3e4ebed`](https://github.com/loopstack-ai/loopstack/commit/3e4ebedc1fa917ffe0b34f3e1189d5d5e9806b15) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add the `option-picker` form widget: a choice between options the document itself carries.
+
+  A radio or a select reads its entries from the schema, which is declared once per document class. Some
+  choices differ per run — the ways an agent proposes to fix one ticket — and no schema can list them in advance.
+  The `option-picker` field's value holds the options and the pick together: `{ options: [{ value, label,
+summary, detail, recommended }], selected }`. The form submits the same value with `selected` changed.
+
+  Each option is drawn as its own block, with a label, a summary and a smaller detail, and the recommended one
+  is marked, so a person can choose between them without reading anything else.
+
+  A declared widget now wins over a field's shape. The form element dispatched every object or array field into
+  nested fields before it looked at the widget, so no widget could ever draw a structured value. A field whose
+  document names a registered widget is drawn by that widget.
+
+- [#399](https://github.com/loopstack-ai/loopstack/pull/399) [`ac412b0`](https://github.com/loopstack-ai/loopstack/commit/ac412b0fc30ef893a8b9dd51390e1153e10cad31) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The `prompt-input` widget shows each field's label inside its select, in front of the chosen value.
+
+  Every field starts with a value, so a select used to show only that value, and two fields with the same
+  default (`none` and `none`) could not be told apart without opening them. Each select now reads, for
+  example, "Area core" or "Priority none". The submitted payload is unchanged.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`4aba4ec`](https://github.com/loopstack-ai/loopstack/commit/4aba4eccb9f0033c7497697749c3c11b551fa6fd) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The run view draws a run's workflow-level widgets beside the picked prompt, and renders questions as Markdown.
+
+  The rules pick one prompt, documents first, so a workflow-level widget — the reply input at a gate, the button
+  that leaves a loop — was never seen while a card was active. Those are controls of the run, not alternatives
+  to the card. Every live one is now drawn under the picked prompt, each answering its own workflow, and the
+  one that was itself picked is not drawn twice.
+
+  A question asked through the text, confirm and choices prompts, and the answered card in the transcript,
+  renders as Markdown. An agent asked for one clear question writes a paragraph, often with a list, and a `<p>`
+  collapsed its line breaks and showed its formatting as literal characters.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`9ba1294`](https://github.com/loopstack-ai/loopstack/commit/9ba12942417a2efd83c5395b3684f6d977c9dc2d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The run view draws a form as the document declared it.
+
+  The run view's `form` prompt walked the schema on its own and drew every string as a single-line input,
+  reading nothing of the declared widgets: a three-row textarea was one cut-off line, a collapsed Markdown block
+  was an input holding the whole block, an enum was free text. It now renders through the same dynamic form the
+  document tree uses, so a widget added there works in both views. It keeps its own actions and its own submit.
+
+  Two things came with it. A form action draws the variant it declares, `default` when none, instead of the
+  first action always being primary. And a refused submit names the field it failed on, as the document tree
+  already did, instead of a button that does nothing.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`89078db`](https://github.com/loopstack-ai/loopstack/commit/89078db25dc30ce9d053f46ea1cf807b5782475b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Let an optional select be left blank, and unset again.
+
+  An untouched dropdown defaulted to an empty string, which is a real value for a string field and a type
+  error for an enum — so `z.enum([...]).optional()` rejected the args of any form with a blank optional
+  dropdown in it. An untouched field is now `undefined` and is omitted on submit. Optional selects also gain a
+  `— none —` entry, relabelled with `clearLabel`, since a dropdown with no way back made the first choice
+  permanent.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`fd384c8`](https://github.com/loopstack-ai/loopstack/commit/fd384c8f1f22138fea1d7120891d56971a02924b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Three things Studio got wrong on its own pages, each fixed where it was caused.
+  - A form of exactly two fields puts them side by side only when both are compact inputs. A block — rendered
+    Markdown, a folded Markdown section, a code view, a text area, a picker — takes the whole width, so a card
+    made of a text and its folded detail no longer squeezes both into half a column.
+  - A widget can mark a field as required on top of the schema: what the document can be stored without is
+    one thing, what the user has to supply before the card's actions accept it is another, and a gate filled
+    in over several passes needs the second without the first.
+  - The sidebar's favourites filter sends `isFavourite` as a boolean, which is what the API's filter schema
+    accepts; it was sent as a string and refused, and the list stayed empty. The hook that builds the request
+    now takes the contract's filter type, so the mismatch cannot come back.
+  - The fleet board's memos depend on two fixed arrays folded through `useQueries`' `combine` instead of on a
+    dependency list that grew with the number of workspaces, which React flagged on every load.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`06be7c0`](https://github.com/loopstack-ai/loopstack/commit/06be7c09bc7b6e84cf42adfc1a33f07f943c9e6a) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Render the `terminal-handoff` document, with a way to end the session by hand.
+
+  A `TerminalHandoffDocument` showed as an unknown document type: only the CLI knew the widget, and only the CLI
+  could fire its `handoffDone` transition, when the handed-over command exited. A run whose terminal was closed
+  stayed parked at the hand-off for good, with no button anywhere to release it.
+
+  The handoff feature now renders the document as a copy-the-command card with an "End session" button. The
+  button fires the document's transition while the run offers it, so the run can tear its container down and
+  finish; once the run has moved on, the card reads as ended.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`b3ffc06`](https://github.com/loopstack-ai/loopstack/commit/b3ffc064e781ff4e6b48620a1891aa2c73ad5028) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Draw one entry per document in the run view, not one per revision.
+
+  A keyed save does not update a row: it writes a new document, marks the one it supersedes as invalidated,
+  and passes on its `index`. The transcript window is the `all` scope, because the live delta has to see
+  invalidated rows to learn that something was superseded — so every revision arrived, and every revision was
+  drawn. A streaming terminal became one card per poll, and a gate re-presented after a refusal left the
+  superseded card beside the new one with its buttons still looking live.
+
+  Only the live revision is drawn now, and it keeps the position it first appeared at: a revision carries a
+  newer timestamp, so sorting on it would walk a card that is still being written past everything logged while
+  it ran.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`e19fc04`](https://github.com/loopstack-ai/loopstack/commit/e19fc0408aeea88ea4d54f120864b69db2a72dd0) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Let a workflow-level `button` widget choose its style.
+
+  A workflow-level button is often the lesser of the actions on offer — an escape hatch beside the thing you
+  normally do — and rendering every one of them as the primary action said the opposite. The widget's
+  `variant` option is now honoured by `button` and `button-full-w`, with the same values the form buttons
+  already accept; anything unrecognised falls back to the default style.
+
+- Updated dependencies [[`d5093f6`](https://github.com/loopstack-ai/loopstack/commit/d5093f62686443e86906293cc97db58e90b4dfba), [`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`c2d9d3e`](https://github.com/loopstack-ai/loopstack/commit/c2d9d3e8aa032512de6207e0a3bd0c8afba629e4), [`fed5c64`](https://github.com/loopstack-ai/loopstack/commit/fed5c6449bae7eec18b120d02ab7526ccec398cd)]:
+  - @loopstack/contracts@0.44.0
+  - @loopstack/client@0.44.0
+  - @loopstack/react@6.0.0
+
 ## 0.40.1
 
 ### Patch Changes

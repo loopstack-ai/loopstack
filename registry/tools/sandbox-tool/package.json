@@ -8,7 +8,7 @@
     "loopstack",
     "sandbox"
   ],
-  "version": "0.8.1",
+  "version": "0.8.2",
   "license": "MIT",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
@@ -30,7 +30,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.42.0",
+    "@loopstack/common": "^0.44.0",
     "dockerode": "^4.0.10"
   },
   "devDependencies": {

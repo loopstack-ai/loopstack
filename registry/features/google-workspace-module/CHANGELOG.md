@@ -1,5 +1,55 @@
 # @loopstack/core-ui-module
 
+## 0.5.5
+
+### Patch Changes
+
+- [#407](https://github.com/loopstack-ai/loopstack/pull/407) [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Every package declares the packages its code imports, so it loads under installs that don't hoist dependencies
+  (npm `--install-strategy=nested`, pnpm `hoist=false`, Yarn PnP).
+  - `@loopstack/common`: peer dependencies `@nestjs/common` and `typeorm`.
+  - `@loopstack/core`: depends on `@loopstack/contracts`; peer dependencies `typeorm`, `@nestjs/typeorm` and
+    `reflect-metadata`.
+  - `@loopstack/api`: peer dependencies `typeorm`, `@nestjs/typeorm` and `zod`.
+  - `@loopstack/auth`: peer dependencies `typeorm` and `@nestjs/typeorm`.
+  - `@loopstack/testing`: peer dependency `typeorm`.
+  - `@loopstack/google-workspace-module`: depends on `@loopstack/common`; peer dependency `@nestjs/common`.
+  - `@loopstack/github-module`: peer dependency `@nestjs/common`.
+  - `@loopstack/oauth-module`, `@loopstack/openai-module`, `@loopstack/llm-provider-module`: peer dependency
+    `@nestjs/common`.
+  - `@loopstack/remote-client`: peer dependencies `@nestjs/core`, `class-transformer` and `class-validator`.
+  - `@loopstack/code-agent`: depends on `@loopstack/llm-provider-module`, whose types its module config uses.
+  - `@loopstack/git-examples`: depends on `@loopstack/remote-client`.
+
+- [#394](https://github.com/loopstack-ai/loopstack/pull/394) [`6b06ebc`](https://github.com/loopstack-ai/loopstack/commit/6b06ebc27c2bf9a4897e505c994cdc4974669f76) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Gmail and Drive tools escape what they put into mail headers, Drive queries and request URLs, and return complete, correctly typed results.
+  - `gmail_send_message` rejects line breaks in `to`, `cc`, `bcc` and `subject` with a validation error, and
+    sends non-ASCII subjects as RFC 2047 encoded-words.
+  - `gmail_reply_to_message` keeps header values copied from the original message on one line, extends the
+    original `References` chain with the parent Message-ID, and recognises an existing `Re:` prefix in any
+    letter case.
+  - `gmail_get_message` with `format: 'minimal'` returns the message with empty headers, body and attachments.
+  - `google_drive_list_files` escapes quotes and backslashes in `folderId`.
+  - `google_drive_download_file` applies `exportMimeType` to Google Docs/Sheets/Slides only; other files are
+    returned as stored, with their own mime type.
+  - `google_drive_upload_file` returns the created file's `webViewLink`.
+  - File and message ids are URL-encoded in request paths.
+
+- [#420](https://github.com/loopstack-ai/loopstack/pull/420) [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `@nestjs/config` is a peer dependency (`^4.0.0 || ^12.0.0`), so every package injects the app's own `ConfigService`.
+  A NestJS 11 app on `@nestjs/config` 4.x now boots with a single copy of `@nestjs/config`, the one its
+  `ConfigModule.forRoot()` registers.
+
+- [#401](https://github.com/loopstack-ai/loopstack/pull/401) [`04b54cf`](https://github.com/loopstack-ai/loopstack/commit/04b54cf47024fdfe5e5d86fdfa1930c919791f13) Thanks [@jakobklippel](https://github.com/jakobklippel)! - OAuth tokens stay valid with providers that rotate refresh tokens or omit `expires_in`.
+  - `@loopstack/oauth-module`: when `OAuthTokenStore` refreshes a token, it stores the refresh token and scope the
+    provider returned, falling back to the stored ones when the response omits them.
+  - `@loopstack/oauth-module`: `OAuthTokenSet.expiresIn` and `StoredTokens.expiresAt` are optional. A token set without
+    `expiresIn` is stored without an expiry, treated as valid until the provider rejects it, and kept in Redis for 30
+    days.
+  - `@loopstack/google-workspace-module`: `GoogleWorkspaceOAuthProvider.refreshToken()` returns the `refresh_token` from
+    Google's refresh response.
+
+- Updated dependencies [[`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`aab81a6`](https://github.com/loopstack-ai/loopstack/commit/aab81a67c5f8fd6b301b5cd678aa0dee87501ace), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`04b54cf`](https://github.com/loopstack-ai/loopstack/commit/04b54cf47024fdfe5e5d86fdfa1930c919791f13), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9)]:
+  - @loopstack/common@0.44.0
+  - @loopstack/oauth-module@0.5.6
+
 ## 0.5.4
 
 ### Patch Changes

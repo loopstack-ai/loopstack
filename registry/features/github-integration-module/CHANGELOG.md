@@ -1,5 +1,26 @@
 # @loopstack/github-integration
 
+## 0.5.3
+
+### Patch Changes
+
+- [#396](https://github.com/loopstack-ai/loopstack/pull/396) [`29c6aca`](https://github.com/loopstack-ai/loopstack/commit/29c6aca870013f271d5c03ca5d698547b6df45fb) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `connect_github` compares the checked-out branch with the same branch on `origin` when linking an existing
+  repository.
+  - A workspace ahead of the remote is pushed directly. If the remote is ahead, or the histories differ, the user
+    is asked how to resolve it.
+  - When the remote has no branch of that name, the branch is pushed and created there.
+  - A detached HEAD, unreadable comparison output, or a failing git command (auto-commit, reset, merge, remote
+    removal) fails the run with the git error instead of reporting the repository as connected.
+
+- Updated dependencies [[`3e27fd4`](https://github.com/loopstack-ai/loopstack/commit/3e27fd40a0e20fe2f97d37a7f8f73cb2cda1b193), [`8bc5176`](https://github.com/loopstack-ai/loopstack/commit/8bc5176a199b9272607a4fa5b2ddbd3f918bf51c), [`aab81a6`](https://github.com/loopstack-ai/loopstack/commit/aab81a67c5f8fd6b301b5cd678aa0dee87501ace), [`fc71cf0`](https://github.com/loopstack-ai/loopstack/commit/fc71cf018ff239527e8cfa251c73cd810cbd24bc), [`23347f3`](https://github.com/loopstack-ai/loopstack/commit/23347f394eb5a701f6af6bfb15af4bb81273e204), [`0c73301`](https://github.com/loopstack-ai/loopstack/commit/0c73301b72f7ff84fe622710543965d9e51f2855), [`04b54cf`](https://github.com/loopstack-ai/loopstack/commit/04b54cf47024fdfe5e5d86fdfa1930c919791f13), [`1653b4e`](https://github.com/loopstack-ai/loopstack/commit/1653b4ecdedba892f08f58b75f5e8c63bcc155bf), [`7fbd978`](https://github.com/loopstack-ai/loopstack/commit/7fbd9781224568dc1d93fa007a905b8f5cea6700), [`469f01c`](https://github.com/loopstack-ai/loopstack/commit/469f01c6f4519504ae0ca5a18f881439a55824fc), [`033d585`](https://github.com/loopstack-ai/loopstack/commit/033d585a128494abfb568ba3e3d923a58f2e7c6d), [`e683f2e`](https://github.com/loopstack-ai/loopstack/commit/e683f2e77230c0f9b71735d78155042c6ea18d37), [`a6d9846`](https://github.com/loopstack-ai/loopstack/commit/a6d9846e8b2dc9634092fab97fb164b737a0fcb9)]:
+  - @loopstack/common@0.44.0
+  - @loopstack/core@0.44.0
+  - @loopstack/github-module@0.4.11
+  - @loopstack/oauth-module@0.5.6
+  - @loopstack/remote-client@0.29.0
+  - @loopstack/hitl@0.6.3
+  - @loopstack/git-module@0.5.2
+
 ## 0.5.2
 
 ### Patch Changes
