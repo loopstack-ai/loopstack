@@ -37,7 +37,7 @@ import { AgentFinishTool } from '../tools/agent-finish.tool.js';
  * - When false (default), the agent never finishes on its own. The parent
  *   workflow controls the lifecycle.
  *
- * Tools are resolved from the current workflow first, then from the workspace.
+ * Tool names in `tools` are resolved by their `@Tool({ name })` value from the app-wide tool registry.
  */
 /**
  * Zod schema for `ChatAgentWorkflow` args (what callers pass to `run()`).

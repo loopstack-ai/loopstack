@@ -28,7 +28,7 @@ import {
  * `provider` and `model` default to the `LlmProviderModule` config in scope — the one passed to
  * `AgentModule.forFeature({ llm })`, or the app-wide one.
  *
- * Tools are resolved from the current workflow first, then from the workspace.
+ * Tool names in `tools` are resolved by their `@Tool({ name })` value from the app-wide tool registry.
  */
 /**
  * Zod schema for `AgentWorkflow` args (what callers pass to `run()`).
@@ -87,7 +87,7 @@ interface AgentState {
  * calls, feed their results back, and repeat until the model returns `end_turn`.
  *
  * Args (per `run()`): `system`, `tools`, `userMessage`, and optional `context`, `provider` and `model`.
- * Tools are resolved from the current workflow first, then from the workspace.
+ * Tool names in `tools` are resolved by their `@Tool({ name })` value from the app-wide tool registry.
  * On completion it publishes an {@link AgentResult} with the final assistant `response`.
  *
  * @public
