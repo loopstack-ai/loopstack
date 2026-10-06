@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { ExecutionScope, RunTraceCollector } from '../../../utils/index.js';
+import { ShutdownDrainService } from '../../shutdown-drain.service.js';
 import { WorkflowProcessorService } from '../workflow-processor.service.js';
 
 /**
@@ -56,6 +57,7 @@ describe('WorkflowProcessorService — invalid pending payload', () => {
           return () => clearTimeout(t);
         },
       } as never, // clock
+      new ShutdownDrainService(),
     );
   });
 

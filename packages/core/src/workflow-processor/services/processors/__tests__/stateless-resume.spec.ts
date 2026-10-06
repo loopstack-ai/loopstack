@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { executedTransitions } from '@loopstack/contracts/types';
 import { ExecutionScope } from '../../../utils/index.js';
+import { ShutdownDrainService } from '../../shutdown-drain.service.js';
 import { WorkflowProcessorService } from '../workflow-processor.service.js';
 
 /**
@@ -66,6 +67,7 @@ describe('WorkflowProcessorService — stateless park and resume', () => {
           return () => clearTimeout(t);
         },
       } as never, // clock
+      new ShutdownDrainService(),
     );
   });
 

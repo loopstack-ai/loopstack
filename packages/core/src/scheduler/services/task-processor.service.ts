@@ -1,7 +1,8 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { BeforeApplicationShutdown, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { Job } from 'bullmq';
 import type { ScheduledTask } from '@loopstack/contracts/types';
+import { ShutdownDrainService } from '../../workflow-processor/services/shutdown-drain.service.js';
 import { RunWorkflowTaskProcessorService } from './task-processor/run-workflow-task-processor.service.js';
 import { WorkspaceLockService } from './workspace-lock.service.js';
 
@@ -18,18 +19,20 @@ export const TASK_CONCURRENCY = Math.max(1, parseInt(process.env.TASK_CONCURRENC
 @Processor('task-queue', {
   concurrency: TASK_CONCURRENCY,
   autorun: false,
-  // A job stalls when its process dies mid-transition (crash or non-graceful
-  // deploy). Allow a few stalls before BullMQ fails the job permanently —
-  // the default of 1 kills a run on its second interruption. Kept low enough
-  // to still stop poison jobs that crash the worker on every attempt.
+  // A job stalls when its process dies mid-run (a crash, or a shutdown that
+  // was not drained). BullMQ hands it to a worker again, which continues the
+  // run from its last checkpoint. Allow a few stalls before the job fails
+  // permanently — kept low enough to still stop poison jobs that crash the
+  // worker on every attempt.
   maxStalledCount: 3,
 })
-export class TaskProcessorService extends WorkerHost implements OnApplicationBootstrap {
+export class TaskProcessorService extends WorkerHost implements OnApplicationBootstrap, BeforeApplicationShutdown {
   private readonly logger = new Logger(TaskProcessorService.name);
 
   constructor(
     private readonly runWorkflowTaskProcessorService: RunWorkflowTaskProcessorService,
     private readonly workspaceLockService: WorkspaceLockService,
+    private readonly shutdownDrain: ShutdownDrainService,
   ) {
     super();
   }
@@ -39,6 +42,17 @@ export class TaskProcessorService extends WorkerHost implements OnApplicationBoo
     this.worker.run().catch((error) => {
       this.logger.error('Worker failed to start:', error);
     });
+  }
+
+  /**
+   * Drain before anything else shuts down: running workflows yield at their next transition and queue
+   * their continuation, and the worker closes once its active jobs have returned — while the database and
+   * the queue those jobs still write to are open.
+   */
+  async beforeApplicationShutdown() {
+    this.logger.log('Draining: in-flight runs yield at their next transition');
+    this.shutdownDrain.begin();
+    await this.worker.close();
   }
 
   async process(job: Job<ScheduledTask>) {
@@ -75,10 +89,23 @@ export class TaskProcessorService extends WorkerHost implements OnApplicationBoo
   }
 
   @OnWorkerEvent('failed')
-  onFailed(job: Job | undefined, err: Error) {
+  async onFailed(job: Job<ScheduledTask> | undefined, err: Error) {
     const attempts = job?.attemptsMade ?? '?';
     const maxAttempts = job?.opts?.attempts ?? '?';
-    this.logger.error(`Job ${job?.id} failed permanently after ${attempts}/${maxAttempts} attempts: ${err.message}`);
+
+    // BullMQ stamps `finishedOn` only when it will not retry the job again.
+    if (!job?.finishedOn) {
+      this.logger.warn(`Job ${job?.id} failed attempt ${attempts}/${maxAttempts}: ${err.message}`);
+      return;
+    }
+
+    this.logger.error(`Job ${job.id} failed permanently after ${attempts}/${maxAttempts} attempts: ${err.message}`);
+    if (job.data.task.type !== 'run_workflow') return;
+    try {
+      await this.runWorkflowTaskProcessorService.abandon(job.data.task, err.message);
+    } catch (error) {
+      this.logger.error(`Could not fail the run of abandoned job ${job.id}:`, error);
+    }
   }
 
   @OnWorkerEvent('active')
