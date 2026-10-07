@@ -1,5 +1,12 @@
 # @loopstack/cli
 
+## 0.23.1
+
+### Patch Changes
+
+- [#425](https://github.com/loopstack-ai/loopstack/pull/425) [`925f789`](https://github.com/loopstack-ai/loopstack/commit/925f789d325e8eb8e4a64c89f618739296defbe3) Thanks [@jakobklippel](https://github.com/jakobklippel)! - `loopstack create` scaffolds a `.gitignore` (`node_modules/`, `dist/`, `.env`, `*.log`), so the initial commit holds
+  the project and not its dependencies or the `.env` the scaffold writes.
+
 ## 0.23.0
 
 ### Minor Changes

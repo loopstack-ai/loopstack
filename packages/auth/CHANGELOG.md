@@ -1,5 +1,23 @@
 # @loopstack/auth
 
+## 0.44.1
+
+### Patch Changes
+
+- [#425](https://github.com/loopstack-ai/loopstack/pull/425) [`a6c809c`](https://github.com/loopstack-ai/loopstack/commit/a6c809ca6a0d23b89116235b0b66e200002c819a) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Packages declare the packages their type-only imports use too, because those imports end up in the published `.d.ts`
+  files.
+  - `@loopstack/api`: optional peer dependency `express`, whose `Request` type the SSE controller uses.
+  - `@loopstack/auth`: optional peer dependency `express`, whose `Request` and `Response` types the auth controller and
+    strategies use.
+  - `@loopstack/loopstack-module`: the `cors` option takes its type from `@loopstack/api`.
+  - `@loopstack/oauth-module`: optional peer dependency `express`, whose `Response` type the OAuth callback controller
+    uses.
+  - `@loopstack/remote-client`: depends on `@loopstack/contracts`, whose types its environment config uses.
+
+- Updated dependencies [[`e0552a8`](https://github.com/loopstack-ai/loopstack/commit/e0552a8561926988c3926fe125ab7633c7eea0f3)]:
+  - @loopstack/common@0.44.1
+  - @loopstack/core@0.44.1
+
 ## 0.44.0
 
 ### Patch Changes
