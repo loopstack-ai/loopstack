@@ -17,3 +17,4 @@ export * from './processor.factory.js';
 export * from './processors/workflow-processor.service.js';
 export * from './stateless-child-runner.service.js';
 export * from './run-trace.service.js';
+export * from './shutdown-drain.service.js';

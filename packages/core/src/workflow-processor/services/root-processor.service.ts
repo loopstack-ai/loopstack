@@ -103,6 +103,25 @@ export class RootProcessorService {
       return executionMeta;
     }
 
+    // The run yielded to a draining shutdown — queue the task that continues it from its current place.
+    if (executionMeta._continueSignal) {
+      this.logger.log(`Queueing continuation for workflow ${workflow.id} at '${executionMeta.place}'`);
+
+      await this.taskSchedulerService.addTask({
+        id: `continuation-${randomUUID()}`,
+        workspaceId: workflow.workspaceId,
+        task: {
+          name: 'continuation',
+          type: 'run_workflow',
+          workflowId: workflow.id,
+          payload: {},
+          user: workflow.createdBy,
+        },
+      } satisfies ScheduledTask);
+
+      return executionMeta;
+    }
+
     // Status is already saved by WorkflowProcessorService.saveExecutionState().
     const status = executionMeta.status;
 

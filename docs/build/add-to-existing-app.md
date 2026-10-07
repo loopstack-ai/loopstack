@@ -32,7 +32,7 @@ import { LoopstackModule } from '@loopstack/loopstack-module';
 export class AppModule {}
 ```
 
-Enable shutdown hooks in `src/main.ts` so the workflow engine shuts down gracefully — on SIGTERM (a deploy, `docker stop`) in-flight transitions finish before the process exits:
+Enable shutdown hooks in `src/main.ts` so the workflow engine shuts down gracefully — on SIGTERM (a deploy, `docker stop`) running workflows finish their current transition, stop before the next one and queue their continuation, which the next process picks up:
 
 ```typescript
 async function bootstrap() {

@@ -45,6 +45,16 @@ end when: wait | end | error
 
 This is why workflows survive server restarts: the job ends and the state is safely in PostgreSQL. When the next job runs (triggered by a user action or retry), it picks up exactly from where the previous job left off.
 
+### Interrupted Runs
+
+A run whose chain of auto-transitions is long — a polling loop, an agent session — holds its job for as long as the chain runs. When the process goes away during that time, the run continues on its own:
+
+- **Shutdown (SIGTERM, a deploy, `docker stop`)** — with `app.enableShutdownHooks()`, the engine drains: each run finishes the transition it is in, stops before the next one, and queues a job that continues it. The worker closes once those jobs have returned, and the next process to start picks the continuations up.
+- **Crash** — BullMQ notices the job's lost lock and hands the job to a worker again (up to three times per job). It continues the run from its latest checkpoint. The transition that was executing when the process died never committed, so it **runs again**: give transitions with external side effects a way to recognise work they already did.
+- **The queue gives up** — a job that keeps failing or stalling past its limits fails its run at the place it reached, like any other failure: the parent is called back and a manual retry re-enters that place.
+
+A job without a transition always means _continue from the current place_: a run parked on a wait transition just settles back to `waiting`.
+
 ---
 
 ## Transactions and Rollback
@@ -206,15 +216,15 @@ Set `timeout: 0` to disable the timeout entirely for a specific transition.
 
 Each workflow run has a `status` from the `WorkflowState` enum, persisted on the workflow entity. The engine sets it as the run progresses.
 
-| State       | Description                                                                                                             | Set by                                                                                    |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `pending`   | Run created, not yet picked up by a worker (or re-queued after a wait/error).                                           | Initial value when a run is created, and again when a wait transition is resumed.         |
-| `running`   | A worker is currently executing a transition for this run.                                                              | Root processor at the start of each job.                                                  |
-| `waiting`   | Run is paused — either waiting for an external trigger (wait transition) or waiting for a retry/sub-workflow.           | Processor when a job ends without reaching `end` and without an error that fails the run. |
-| `completed` | Final transition reached `to: 'end'`. The `result` field holds whatever was published via `assignResult` / `setResult`. | Processor when a transition moves to `end`.                                               |
-| `failed`    | A transition errored and retries are exhausted (or the error has no retry).                                             | Processor on terminal failure.                                                            |
-| `canceled`  | Cancellation was requested — recursively applied to all child runs. Parent callback fires with `canceled` status.       | `WorkflowOrchestrationService.cancel()`.                                                  |
-| `paused`    | Reserved — currently not set by the engine. Treated like `waiting` in queries (e.g. dashboard "action required").       | —                                                                                         |
+| State       | Description                                                                                                                 | Set by                                                                                    |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `pending`   | Run created, not yet picked up by a worker (or re-queued after a wait/error).                                               | Initial value when a run is created, and again when a wait transition is resumed.         |
+| `running`   | A worker is currently executing a transition for this run, or the run yielded to a shutdown and its continuation is queued. | Root processor at the start of each job.                                                  |
+| `waiting`   | Run is paused — either waiting for an external trigger (wait transition) or waiting for a retry/sub-workflow.               | Processor when a job ends without reaching `end` and without an error that fails the run. |
+| `completed` | Final transition reached `to: 'end'`. The `result` field holds whatever was published via `assignResult` / `setResult`.     | Processor when a transition moves to `end`.                                               |
+| `failed`    | A transition errored and retries are exhausted (or the error has no retry).                                                 | Processor on terminal failure.                                                            |
+| `canceled`  | Cancellation was requested — recursively applied to all child runs. Parent callback fires with `canceled` status.           | `WorkflowOrchestrationService.cancel()`.                                                  |
+| `paused`    | Reserved — currently not set by the engine. Treated like `waiting` in queries (e.g. dashboard "action required").           | —                                                                                         |
 
 Terminal states are `completed`, `failed`, and `canceled` — no further work is scheduled for them, and any parent sub-workflow callback fires once the terminal state is reached.
 

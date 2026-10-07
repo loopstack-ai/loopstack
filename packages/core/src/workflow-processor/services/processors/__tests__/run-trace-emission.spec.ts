@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ExecutionScope } from '../../../utils/index.js';
+import { ShutdownDrainService } from '../../shutdown-drain.service.js';
 import { WorkflowProcessorService } from '../workflow-processor.service.js';
 
 /**
@@ -65,6 +66,7 @@ describe('WorkflowProcessorService — run trace emission', () => {
           return () => clearTimeout(t);
         },
       } as never, // clock
+      new ShutdownDrainService(),
     );
   };
 

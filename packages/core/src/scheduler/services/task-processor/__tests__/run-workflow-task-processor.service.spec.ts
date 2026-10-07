@@ -31,6 +31,7 @@ describe('RunWorkflowTaskProcessorService', () => {
       rootProcessorService as never,
       memoryMonitor as never,
       {} as never,
+      {} as never, // orchestrator
     );
   });
 
