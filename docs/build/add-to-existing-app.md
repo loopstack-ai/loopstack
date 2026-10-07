@@ -42,6 +42,8 @@ async function bootstrap() {
 }
 ```
 
+The drain waits at most `SHUTDOWN_DRAIN_TIMEOUT_MS` (30 seconds by default) for runs to yield, then closes by force; a second Ctrl+C does the same at once. See [Configuration](../reference/configuration.md#scheduler).
+
 Add YAML asset bundling to `nest-cli.json` so workflow UI configs are included in the build:
 
 ```json
