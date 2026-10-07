@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.44.0",
+    "@loopstack/contracts": "^0.44.0",
     "@loopstack/core": "^0.44.0",
     "@loopstack/secrets-module": "^0.29.0"
   },

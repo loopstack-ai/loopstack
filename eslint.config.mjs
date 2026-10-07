@@ -158,9 +158,10 @@ export default tseslint.config(
     },
   },
 
-  // Every runtime import must be declared in the importing package's own package.json — the workspace
+  // Every import must be declared in the importing package's own package.json — the workspace
   // hoists everything to the root node_modules, so an undeclared import resolves here but breaks consumers
-  // whose installs don't hoist. devDependencies are allowed only in test code.
+  // whose installs don't hoist. Type-only imports count too: they end up in the published .d.ts files.
+  // devDependencies are allowed only in test code.
   {
     files: ['packages/*/src/**/*.{ts,tsx}', 'registry/*/*/src/**/*.ts', 'frontend/*/src/**/*.{ts,tsx}'],
     plugins: { 'import-x': importX },
@@ -182,6 +183,7 @@ export default tseslint.config(
             'packages/react/src/testing/**',
           ],
           includeInternal: true,
+          includeTypes: true,
         },
       ],
     },
@@ -197,6 +199,7 @@ export default tseslint.config(
         {
           devDependencies: ['**/*.spec.{ts,tsx}', '**/*.test.{ts,tsx}', '**/__tests__/**', '**/test-utils/**'],
           includeInternal: true,
+          includeTypes: true,
           whitelist: ['@dagrejs/dagre'],
         },
       ],

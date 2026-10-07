@@ -83,6 +83,8 @@ export interface WorkflowMetadataInterface {
   retryTransitionId?: string;
   /** Transient signal for the caller to re-queue the workflow with a delay. Not persisted. */
   _retrySignal?: { delayMs: number };
+  /** Transient signal for the caller to queue a continuation: the run yielded to a draining shutdown. Not persisted. */
+  _continueSignal?: boolean;
   /** Stateless runs only: the in-memory state carrier to resume a parked run. */
   statelessState?: StatelessExecutionState;
 }

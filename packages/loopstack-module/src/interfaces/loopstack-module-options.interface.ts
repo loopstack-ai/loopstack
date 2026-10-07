@@ -1,5 +1,4 @@
-import type { CorsOptions } from 'cors';
-import type { SseStreamOptionsInterface } from '@loopstack/api';
+import type { ModuleOptionsInterface, SseStreamOptionsInterface } from '@loopstack/api';
 
 export interface LoopstackDatabaseOptions {
   /**
@@ -52,7 +51,7 @@ export interface LoopstackModuleOptions {
    * Full CORS override. When set it is used verbatim (`false` disables CORS). When omitted, a safe
    * default is used that allows any localhost origin plus `corsOrigins`, with credentials enabled.
    */
-  cors?: CorsOptions | false;
+  cors?: ModuleOptionsInterface['cors'];
   /**
    * Extra allowed origins for the default CORS policy (in addition to localhost). Falls back to the
    * `CORS_ORIGINS` / `FRONTEND_URL` env vars. Ignored when `cors` is set.

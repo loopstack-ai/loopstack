@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { WORKFLOW_ORCHESTRATOR, type WorkflowOrchestrator } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import type { RunWorkflowTask } from '@loopstack/contracts/types';
 import { WorkflowService, WorkspaceService } from '../../../persistence/index.js';
@@ -16,6 +17,7 @@ export class RunWorkflowTaskProcessorService {
     private readonly rootProcessorService: RootProcessorService,
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
     private readonly workflowRegistryService: WorkflowRegistryService,
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {}
 
   public async process(task: RunWorkflowTask) {
@@ -81,6 +83,24 @@ export class RunWorkflowTaskProcessorService {
         task.payload,
       );
     }
+  }
+
+  /**
+   * Fail the run of a task the queue has given up on — out of attempts, or interrupted more often than the
+   * stall limit allows. Nothing else would ever settle it: the run keeps its place and gets an error, so a
+   * manual retry re-enters it there, and its parent is called back as for any other failure.
+   */
+  public async abandon(task: RunWorkflowTask, reason: string) {
+    if (!task.workflowId) return;
+
+    const workflow = await this.workflowService.findById(task.workflowId);
+    if (!workflow || this.isTerminal(workflow.status)) return;
+
+    this.logger.warn(`Failing workflow ${workflow.id} at '${workflow.place}' — its task was abandoned: ${reason}`);
+    workflow.hasError = true;
+    workflow.errorMessage = reason;
+    await this.workflowService.setWorkflowStatus(workflow, WorkflowState.Failed);
+    await this.orchestrator.complete(workflow);
   }
 
   private isTerminal(status: WorkflowState): boolean {

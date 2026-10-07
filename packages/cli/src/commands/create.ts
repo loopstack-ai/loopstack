@@ -25,6 +25,9 @@ function copyTemplate(targetDir: string): void {
   const example = path.join(targetDir, 'env.example');
   fs.copyFileSync(example, path.join(targetDir, '.env'));
   fs.renameSync(example, path.join(targetDir, '.env.example'));
+  // Same reason: npm never packs a `.gitignore`. It has to be in place before
+  // the initial commit below, or that commit tracks node_modules and .env.
+  fs.renameSync(path.join(targetDir, 'gitignore'), path.join(targetDir, '.gitignore'));
 }
 
 /**

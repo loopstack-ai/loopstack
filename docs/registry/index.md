@@ -13,7 +13,7 @@ The Loopstack Registry is a curated collection of `@loopstack/*` npm packages th
 
 Feature packages add entire capabilities to your app — LLM providers, OAuth flows, Git integration, human-in-the-loop, and more. Each feature ships as a NestJS module with tools, services, and configuration.
 
-Examples: `@loopstack/claude-module`, `@loopstack/github-module`, `@loopstack/hitl`, `@loopstack/oauth-module`, `@loopstack/web-module` (web fetch and summarization)
+Examples: `@loopstack/claude-module`, `@loopstack/github-module`, `@loopstack/hitl`, `@loopstack/oauth-module`, `@loopstack/web-module` (web fetch and summarization), `@loopstack/typesafe-module` (typed decisions and classifications with TypeSafe AI)
 
 ### Examples
 

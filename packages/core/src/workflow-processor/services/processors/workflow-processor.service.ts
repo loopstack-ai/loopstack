@@ -19,6 +19,7 @@ import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor, TransitionAbortedError } from '../../../common/index.js';
 import { ExecutionScope, ExecutionScopeData, RunTraceCollector, shallowStateDiff } from '../../utils/index.js';
 import { RunTraceService } from '../run-trace.service.js';
+import { ShutdownDrainService } from '../shutdown-drain.service.js';
 import { TransitionResolverService } from '../transition-resolver.service.js';
 import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service.js';
 import { WorkflowStateService } from '../workflow-state.service.js';
@@ -44,6 +45,7 @@ export class WorkflowProcessorService implements Processor {
     private readonly dataSource: DataSource,
     private readonly runTraceService: RunTraceService,
     @Inject(CLOCK) private readonly clock: Clock,
+    private readonly shutdownDrain: ShutdownDrainService,
   ) {}
 
   async process(
@@ -123,18 +125,14 @@ export class WorkflowProcessorService implements Processor {
 
       const isInitialRun = meta.place === 'start';
 
+      // A task without a transition continues the run from its current place: a retry after an error, a
+      // continuation queued by a draining shutdown, or a task redelivered after its process died mid-run.
+      // The last committed checkpoint is where it picks up; a run parked on a wait transition settles again.
       const payloadTransition = (context.payload as Record<string, unknown>)?.transition as
         | TransitionPayloadInterface
         | undefined;
       pendingTransition =
         !isInitialRun && payloadTransition?.workflowId === context.workflowId ? payloadTransition : undefined;
-
-      const isRetry = !!workflowEntity.hasError;
-
-      if (!isInitialRun && !pendingTransition && !isRetry) {
-        this.logger.debug('Skipping processing since state is already processed.');
-        return meta;
-      }
 
       if (this.runTraceService.isEnabled(workflowEntity.trace)) {
         // Continue the trace sequence from the persisted rows — stateful runs get the same
@@ -208,7 +206,11 @@ export class WorkflowProcessorService implements Processor {
 
     const hasRetrySignal = !!meta._retrySignal;
 
-    if (hasRetrySignal) {
+    if (meta._continueSignal) {
+      // Yielded to a draining shutdown — still running, continued by the queued continuation task.
+      meta.stop = true;
+      meta.status = WorkflowState.Running;
+    } else if (hasRetrySignal) {
       meta.stop = true;
       meta.status = WorkflowState.Waiting;
     } else if (meta.hasError) {
@@ -756,6 +758,14 @@ export class WorkflowProcessorService implements Processor {
       });
 
       if (!next) break;
+
+      // Shutting down: stop before the next transition. Everything up to here is committed, so a
+      // continuation task re-enters the run at this place. Stateless runs have nothing to continue
+      // from and run to the end.
+      if (workflowEntity && this.shutdownDrain.draining) {
+        meta._continueSignal = true;
+        break;
+      }
 
       meta.transition = {
         id: next.methodName,
