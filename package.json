@@ -17,7 +17,8 @@
     "prepare": "husky",
     "test": "node scripts/test.mjs",
     "watch": "turbo run watch",
-    "changeset:version": "changeset version && npm install --package-lock-only --prefer-offline"
+    "changeset:version": "changeset version && npm install --package-lock-only --prefer-offline",
+    "api-reference": "node scripts/generate-api-reference.js"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
