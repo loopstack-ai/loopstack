@@ -1,10 +1,9 @@
 import { DynamicModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, type JwtSignOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import cookieParser from 'cookie-parser';
-import type { StringValue } from 'ms';
 import { ApiTokenEntity, Role, User } from '@loopstack/common';
 import { AssignRoleCommand } from './commands/assign-role.command.js';
 import { ApiTokenController, AuthController } from './controllers/index.js';
@@ -29,7 +28,7 @@ export class AuthModule implements NestModule {
           useFactory: (configService: ConfigService) => ({
             secret: configService.get<string>('auth.jwt.secret'),
             signOptions: {
-              expiresIn: configService.get<StringValue | number | undefined>('auth.jwt.expiresIn') || '1h',
+              expiresIn: configService.get<JwtSignOptions['expiresIn']>('auth.jwt.expiresIn') || '1h',
             },
           }),
           inject: [ConfigService],
