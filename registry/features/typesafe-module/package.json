@@ -11,7 +11,7 @@
     "module",
     "tool"
   ],
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -34,7 +34,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.44.0",
+    "@loopstack/common": "^0.44.1",
     "@typesafe-ai/sdk": "^0.6.0"
   },
   "devDependencies": {
