@@ -256,7 +256,8 @@ await this.agentWorkflow.run({
 - **Module:** `AgentModule` (with `forFeature()` for LLM config)
 - **Workflows:** `AgentWorkflow`, `ChatAgentWorkflow`
 - **Tools:** `AgentFinishTool`
-- **Types:** `AgentRunResult`
+- **Schemas:** `AgentResultSchema`, `AgentFinishResultSchema`
+- **Types:** `AgentResult`, `AgentFinishResult`
 
 ## Dependencies
 

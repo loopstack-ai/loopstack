@@ -208,6 +208,7 @@ CodeAgentModule.forFeature({
 
 - **Module:** `CodeAgentModule`
 - **Tool:** `ExploreTask`
+- **Schema:** `ExploreTaskResultSchema`
 - **Type:** `ExploreTaskResult`
 
 ## Dependencies
