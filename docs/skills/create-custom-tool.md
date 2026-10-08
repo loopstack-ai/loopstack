@@ -97,7 +97,7 @@ The `handle()` method receives validated arguments, the execution context, and o
 The public `call()` method is the entry point — it routes through validation before calling `handle()`.
 
 - `args` — Validated input (against the `@Tool({ schema })` Zod schema)
-- `ctx` — Read-only [`RunContext`](../build/fundamentals/workflows.md#basewworkflow): `userId`, `workspaceId`, `workflowId`, `args`. `ctx.execution` is **undefined** in tools (it's only populated when `ctx` is passed to a workflow transition).
+- `ctx` — Read-only [`RunContext`](../build/fundamentals/workflows.md#baseworkflow): `userId`, `workspaceId`, `workflowId`, `args`. `ctx.execution` is **undefined** in tools (it's only populated when `ctx` is passed to a workflow transition).
 - `options` — Options including validated config and optional callback
 
 ### Args vs Config

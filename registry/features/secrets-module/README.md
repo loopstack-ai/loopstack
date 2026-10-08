@@ -210,7 +210,7 @@ SecretsModule.forFeature({ enabled: true });
 ## Related
 
 - [Secrets Management docs](https://loopstack.ai/docs/build/integrations/secrets) -- overview of secret tools, how-it-works flow, and template examples
-- [secrets-example-workflow](https://loopstack.ai/docs/registry/examples/secrets-example-workflow) -- example with both a direct workflow and an agent-based approach using `RequestSecretsTask`
+- [secrets-example-workflow](/docs/registry/examples/secrets-examples) -- example with both a direct workflow and an agent-based approach using `RequestSecretsTask`
 
 ## About
 

@@ -402,8 +402,8 @@ Rendered by the `oauth-prompt` widget. Used internally by the `OAuthWorkflow` to
 
 - [OAuth Authentication](https://loopstack.ai/docs/build/integrations/oauth) — guide for integrating OAuth into workflows, using tokens in tools, and the try-then-authenticate pattern
 - [Creating OAuth Providers](https://loopstack.ai/docs/extend/oauth-providers) — step-by-step guide for implementing `OAuthProviderInterface`
-- [google-workspace-examples](https://loopstack.ai/registry/loopstack-google-workspace-examples) — Google Calendar fetch with OAuth sub-workflow and Google Workspace agent
-- [github-examples](https://loopstack.ai/registry/loopstack-github-examples) — GitHub OAuth with repos overview workflow and 25+ GitHub tools
+- [google-workspace-examples](/docs/registry/examples/google-workspace-examples) — Google Calendar fetch with OAuth sub-workflow and Google Workspace agent
+- [github-examples](/docs/registry/examples/github-examples) — GitHub OAuth with repos overview workflow and 25+ GitHub tools
 
 ## About
 

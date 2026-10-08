@@ -104,7 +104,7 @@ A scripted workflow that orchestrates four git tools in sequence: `gitStatus`, `
 
 Thin wrapper that launches `ConnectGitHubWorkflow` from `@loopstack/github-integration` as a sub-workflow. The integration handles the full sync flow: OAuth → create or pick repo → check uncommitted changes → resolve divergence → push.
 
-For examples of the GitHub API tools (repos, issues, PRs, actions, search), see [`@loopstack/github-examples`](https://loopstack.ai/registry/loopstack-github-examples).
+For examples of the GitHub API tools (repos, issues, PRs, actions, search), see [`@loopstack/github-examples`](/docs/registry/examples/github-examples).
 
 ### Files
 

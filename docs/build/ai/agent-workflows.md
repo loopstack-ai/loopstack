@@ -276,6 +276,6 @@ This enables multi-agent architectures where an orchestrator agent delegates tas
 
 ## Registry References
 
-- [@loopstack/agent](https://loopstack.ai/registry/loopstack-agent) — Built-in agent workflow module
-- [@loopstack/code-agent](https://loopstack.ai/registry/loopstack-code-agent) — Code exploration agent (ExploreTask) built on @loopstack/agent
-- [delegate-error-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Example demonstrating tool error handling and recovery
+- [@loopstack/agent](/docs/registry/features/agent-module) — Built-in agent workflow module
+- [@loopstack/code-agent](/docs/registry/features/code-agent-module) — Code exploration agent (ExploreTask) built on @loopstack/agent
+- [delegate-error-example-workflow](/docs/registry/examples/agent-examples#custom-agent) — Example demonstrating tool error handling and recovery

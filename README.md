@@ -149,7 +149,7 @@ progress render from your workflow's config — no frontend code required.
 
 [Explore all features](https://loopstack.ai/features)
 
-## Community Registry
+## Registry
 
 Install ready-made tools, agents, and workflows from the registry — copy, adapt, and own the source:
 
@@ -157,7 +157,7 @@ Install ready-made tools, agents, and workflows from the registry — copy, adap
 npm install @loopstack/<package-name>
 ```
 
-Then import the module in your NestJS app. Browse available packages at [loopstack.ai/registry](https://loopstack.ai/registry).
+Then import the module in your NestJS app. Browse available packages at [loopstack.ai/docs/registry](https://loopstack.ai/docs/registry).
 
 ## Next Steps
 

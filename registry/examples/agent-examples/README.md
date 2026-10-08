@@ -153,7 +153,7 @@ Also exercises error self-correction: the LLM is instructed to deliberately trig
 - You want to understand what `AgentWorkflow` does under the hood
 - You need a custom shape — multiple parallel LLMs, conditional tool sets per turn, etc.
 
-For the simple case, prefer `AgentWorkflow` (see [Basic Agent Example](../agent/README.md)).
+For the simple case, prefer `AgentWorkflow` (see [Basic Agent Example](#agent)).
 
 ### Files
 

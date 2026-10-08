@@ -231,6 +231,6 @@ One final JSON object on stdout, progress on stderr, and the exit-code contract:
 ## Where to look next
 
 - How to organize these tools into an acceptance-criteria-driven suite: [Testing Methodology](/docs/build/testing-methodology).
-- Runnable versions of every pattern on this page: the [`@loopstack/testing-examples`](https://loopstack.ai/registry) registry package; every HITL and agent flavor tested side by side: [`@loopstack/hitl-examples`](https://loopstack.ai/registry).
+- Runnable versions of every pattern on this page: the [`@loopstack/testing-examples`](/docs/registry) registry package; every HITL and agent flavor tested side by side: [`@loopstack/hitl-examples`](/docs/registry).
 - Design guidance on what to test where: [Best Practices](/docs/build/best-practices).
 - CLI flags and exit codes: [CLI reference](/docs/reference/cli).
