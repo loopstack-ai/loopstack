@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://loopstack.ai/sitemap-index.xml
+
+Llms-Txt: https://loopstack.ai/llms.txt
+Llms-Full-Txt: https://loopstack.ai/llms-full.txt

@@ -14,7 +14,7 @@ Two ways to use the `@loopstack/github-module` tools:
 
 Both share the same sign-in pattern: when a tool returns unauthorized, launch the `OAuthWorkflow` sub-workflow inline, then retry.
 
-For syncing a workspace to a GitHub repository, see the [GitHub Repo Sync](https://loopstack.ai/registry/loopstack-git-examples#github-repo-sync) example in `@loopstack/git-examples`.
+For syncing a workspace to a GitHub repository, see the [GitHub Repo Sync](/docs/registry/examples/git-examples#github-repo-sync) example in `@loopstack/git-examples`.
 
 ## Install as Source (Recommended)
 

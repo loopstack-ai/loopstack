@@ -108,7 +108,7 @@ Five workflow files demonstrating sub-workflow composition:
 - `sub-workflow-error-handling.workflow.ts` — parent handles failed children via `input.hasError` / `input.errorMessage`
 - `sub-workflow-show-modes.workflow.ts` — every `show` mode (`inline`, `link`, `hidden`) in one flow
 
-For parallel and sequential composition see [Fan-Out](../fan-out/README.md) and [Sequence](../sequence/README.md).
+For parallel and sequential composition see [Fan-Out](#fan-out) and [Sequence](#sequence).
 
 ## Fan-Out
 

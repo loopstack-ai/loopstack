@@ -49,7 +49,7 @@ This is why workflows survive server restarts: the job ends and the state is saf
 
 A run whose chain of auto-transitions is long — a polling loop, an agent session — holds its job for as long as the chain runs. When the process goes away during that time, the run continues on its own:
 
-- **Shutdown (SIGTERM, a deploy, `docker stop`)** — with `app.enableShutdownHooks()`, the engine drains: each run finishes the transition it is in, stops before the next one, and queues a job that continues it. The worker closes once those jobs have returned, and the next process to start picks the continuations up.
+- **Shutdown (SIGTERM, Ctrl+C, a deploy, `docker stop`)** — with `app.enableShutdownHooks()`, the engine drains: each run finishes the transition it is in, stops before the next one, and queues a job that continues it. The worker closes once those jobs have returned, and the next process to start picks the continuations up. The wait is bounded by `SHUTDOWN_DRAIN_TIMEOUT_MS` (30 seconds by default): a run still inside a transition at the deadline, or when a second signal arrives, is left to the crash path below.
 - **Crash** — BullMQ notices the job's lost lock and hands the job to a worker again (up to three times per job). It continues the run from its latest checkpoint. The transition that was executing when the process died never committed, so it **runs again**: give transitions with external side effects a way to recognise work they already did.
 - **The queue gives up** — a job that keeps failing or stalling past its limits fails its run at the place it reached, like any other failure: the parent is called back and a manual retry re-enters that place.
 

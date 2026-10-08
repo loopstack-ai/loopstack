@@ -210,4 +210,4 @@ export class OrderProcessingService {
 
 ## Registry References
 
-- [scheduling-examples](https://loopstack.ai/registry/loopstack-scheduling-examples) — Runnable examples of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.
+- [scheduling-examples](/docs/registry/examples/scheduling-examples) — Runnable examples of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.

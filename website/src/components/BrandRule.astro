@@ -1,0 +1,35 @@
+---
+/**
+ * A rule in the logo's own colours, in the order they stack in the mark: navy, cyan, amber, red.
+ * `full` spans its container as a structural divider; `short` is a fixed-width accent mark.
+ */
+interface Props {
+  variant?: 'full' | 'short';
+  class?: string;
+}
+const { variant = 'full', class: className } = Astro.props;
+---
+
+<span class:list={['brand-rule', variant, className]} aria-hidden="true"></span>
+
+<style>
+  .brand-rule {
+    display: block;
+    background-image: linear-gradient(
+      to right,
+      #074999 0 28%,
+      #009bd8 28% 46%,
+      #f9b800 46% 82%,
+      #e50a34 82% 100%
+    );
+  }
+  .full {
+    width: 100%;
+    height: 3px;
+  }
+  .short {
+    width: 7rem;
+    height: 4px;
+    border-radius: 999px;
+  }
+</style>

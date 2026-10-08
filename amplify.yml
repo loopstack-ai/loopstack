@@ -1,0 +1,24 @@
+version: 1
+applications:
+  - appRoot: website
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            # Astro 7 requires Node 22.12 or newer.
+            - nvm install 22
+            - nvm use 22
+            - npm ci
+        build:
+          commands:
+            # `prebuild` regenerates llms.txt from ../docs; `postbuild` checks every anchor link.
+            - npm run build
+      artifacts:
+        baseDirectory: dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          # Only dependencies. The .astro cache is deliberately not restored: the docs collection
+          # reads ../docs, and a stale content cache would publish outdated documentation.
+          - node_modules/**/*

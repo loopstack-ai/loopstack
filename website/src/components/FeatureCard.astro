@@ -1,0 +1,100 @@
+---
+/** A feature card: icon tile, title with a nudge arrow, teaser. Links to the features page anchor. */
+interface Props {
+  title: string;
+  teaser: string;
+  href: string;
+  icon: string;
+  /** One step of the brand spectrum; tints this card's icon tile. */
+  hue: string;
+}
+const { title, teaser, href, icon, hue } = Astro.props;
+
+const ICONS: Record<string, string> = {
+  durability:
+    '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 12 2.84"/><path d="M21 5v3"/><path d="M21 12l-3 5h4l-3 5"/><path d="M3 12a9 3 0 0 0 11.59 2.87"/>',
+  hitl: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
+  testing:
+    '<path d="M10 2v7.31"/><path d="M14 9.3V2"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>',
+  observability: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  agents:
+    '<path d="M7 6.13a2 2 0 0 1 1-1.71l3-1.8a2 2 0 0 1 2 0l3 1.8a2 2 0 0 1 1 1.71v4.37l-5 3-5-3Z"/><path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/><path d="M2 14.63a2 2 0 0 1 .97-1.71L7 10.5l5 3V19l-3.97 2.38a2 2 0 0 1-2.06 0l-3-1.8A2 2 0 0 1 2 17.87Z"/><path d="M12 13.5 17 10.5l4.03 2.42a2 2 0 0 1 .97 1.71v3.24a2 2 0 0 1-.97 1.71l-3 1.8a2 2 0 0 1-2.06 0L12 19Z"/>',
+  registry:
+    '<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+};
+---
+
+<a class="card" href={href} style={`--hue: ${hue}`}>
+  <span class="tile" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[icon]} />
+  </span>
+  <span class="title">{title}<span class="arrow" aria-hidden="true">→</span></span>
+  <span class="teaser">{teaser}</span>
+</a>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.5rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    transition:
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+  .card:hover {
+    background: var(--sl-color-gray-6);
+  }
+  .tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.6rem;
+    /* Both derived from the one hue, so each card tints without needing its own pair of values. */
+    background: color-mix(in oklab, var(--hue) 14%, transparent);
+    color: var(--hue);
+    margin-bottom: 1rem;
+    transition: background 0.2s ease;
+  }
+  /* The darker steps of the spectrum need lifting to stay legible on a dark tile. */
+  :global([data-theme='dark']) .tile {
+    background: color-mix(in oklab, var(--hue) 22%, transparent);
+    color: color-mix(in oklab, var(--hue) 62%, white);
+  }
+  .card:hover .tile {
+    background: color-mix(in oklab, var(--hue) 26%, transparent);
+  }
+  .card:hover {
+    border-color: color-mix(in oklab, var(--hue) 55%, transparent);
+  }
+  .card:hover .arrow {
+    color: var(--hue);
+  }
+  .title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: var(--sl-text-xl);
+    color: var(--sl-color-white);
+  }
+  .arrow {
+    color: var(--sl-color-gray-4);
+    transition: transform 0.2s ease;
+  }
+  .card:hover .arrow {
+    transform: translateX(2px);
+  }
+  .teaser {
+    margin-top: 0.6rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-base);
+    line-height: 1.65;
+  }
+</style>

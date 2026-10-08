@@ -152,11 +152,11 @@ Internally it delegates to `LlmDelegateService`, which:
 2. **Resolves each allowed tool by name** from the global tool registry (the same one built by `@Tool()` auto-discovery).
 3. **Dispatches all tool calls in parallel** with `Promise.all` — the LLM is free to request multiple tools in one turn, and they run concurrently.
 4. **Catches errors per tool** so one failing tool doesn't crash the others. Failures show up as `tool_result` entries with `isError: true` and are also collected on `result.errors` for inspection.
-5. **Tracks pending async tools** — tools that return `{ pending: true }` (typically [HITL](./agent-workflows.md#human-in-the-loop) or sub-workflow tools) don't produce a result immediately. The result includes a `pendingCount`, and `allCompleted` stays `false` until those tools fire their completion callbacks. `LlmUpdateToolResultTool` is the companion that processes those callbacks and updates the delegate result.
+5. **Tracks pending async tools** — tools that return `{ pending: true }` (typically [HITL](./agent-workflows.md#adding-user-interaction) or sub-workflow tools) don't produce a result immediately. The result includes a `pendingCount`, and `allCompleted` stays `false` until those tools fire their completion callbacks. `LlmUpdateToolResultTool` is the companion that processes those callbacks and updates the delegate result.
 
 The `callback` arg is required — it's how async tool completions find their way back to the workflow. For all-synchronous tool sets, `allCompleted` is already true when `executeToolCalls` returns and the `wait` transition is never entered; the callback is harmless overhead. For mixed or async-only sets, the `wait` transition is what keeps the workflow from silently hanging on pending tools.
 
 ## Registry References
 
-- [agent-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#agent) — Parent workflow that delegates to `AgentWorkflow` for tool-calling with weather and calculator tools
-- [delegate-error-example-workflow](https://loopstack.ai/registry/loopstack-agent-examples#custom-agent) — Reference for hand-rolling the tool loop when you need custom error policy or per-turn logic
+- [agent-example-workflow](/docs/registry/examples/agent-examples#agent) — Parent workflow that delegates to `AgentWorkflow` for tool-calling with weather and calculator tools
+- [delegate-error-example-workflow](/docs/registry/examples/agent-examples#custom-agent) — Reference for hand-rolling the tool loop when you need custom error policy or per-turn logic

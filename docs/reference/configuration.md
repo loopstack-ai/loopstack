@@ -1,6 +1,6 @@
 ---
 title: Configuration Reference
-description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS (cors, corsOrigins / CORS_ORIGINS / FRONTEND_URL allowlist), event stream tuning (sse.bufferSize / bufferTtlMs / heartbeatIntervalMs), run trace persistence (trace / LOOPSTACK_TRACE), API list page sizes (*_DEFAULT_LIMIT, DOCUMENT_MAX_LIMIT), scheduler concurrency (TASK_CONCURRENCY), LLM provider keys and models (CLAUDE_MODEL, OPENAI_MODEL), feature module settings (WORKSPACE_BASE_PATH, CLAUDE_WEB_FETCH_MODEL, QUOTA_*), and default settings.
+description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS (cors, corsOrigins / CORS_ORIGINS / FRONTEND_URL allowlist), event stream tuning (sse.bufferSize / bufferTtlMs / heartbeatIntervalMs), run trace persistence (trace / LOOPSTACK_TRACE), API list page sizes (*_DEFAULT_LIMIT, DOCUMENT_MAX_LIMIT), scheduler concurrency (TASK_CONCURRENCY), graceful shutdown deadline (SHUTDOWN_DRAIN_TIMEOUT_MS), LLM provider keys and models (CLAUDE_MODEL, OPENAI_MODEL), feature module settings (WORKSPACE_BASE_PATH, CLAUDE_WEB_FETCH_MODEL, QUOTA_*), and default settings.
 ---
 
 # Configuration
@@ -189,13 +189,16 @@ Only the document list has an upper bound. The workflow, workspace and admin use
 
 ### Scheduler
 
-| Env var            | Default | Description                                                          |
-| ------------------ | ------- | -------------------------------------------------------------------- |
-| `TASK_CONCURRENCY` | `10`    | How many scheduler tasks one process runs at once (positive integer) |
+| Env var                     | Default | Description                                                                                   |
+| --------------------------- | ------- | --------------------------------------------------------------------------------------------- |
+| `TASK_CONCURRENCY`          | `10`    | How many scheduler tasks one process runs at once (positive integer)                          |
+| `SHUTDOWN_DRAIN_TIMEOUT_MS` | `30000` | How long a shutdown waits for in-flight runs to yield before closing the worker by force (ms) |
 
 A workflow that occupies a task for its whole lifetime — a long-running agent session, for example — holds one of these slots, so leave headroom when running several. The value is exported from `@loopstack/core` as `TASK_CONCURRENCY` for apps that need to plan against it.
 
 `TASK_CONCURRENCY` is read once, when `@loopstack/core` is imported — before `LoopstackModule.forRoot()` loads `.env`. A value in `.env` is therefore ignored. Set it in the process environment instead: in your shell, container or process manager, or with `node --env-file=.env`.
+
+`SHUTDOWN_DRAIN_TIMEOUT_MS` bounds the graceful shutdown that `app.enableShutdownHooks()` enables. A run yields only between transitions, so a shutdown that arrives during a long transition — a container build, a clone, a command on a remote host — waits for it. Past the deadline, or on a second `SIGINT`/`SIGTERM`, the worker closes by force: the queue redelivers the interrupted jobs after restart and re-runs the cut-off transition from its checkpoint, the same recovery a crash takes. Raise the value for apps whose transitions legitimately run longer than 30 seconds and whose re-run would be costly. A container runtime kills the process at the end of its own grace period regardless (Docker after 10 seconds by default, Fly after 5), so a longer drain only takes effect where that grace period is raised with it. Read at shutdown time, so a value in `.env` works.
 
 ### LLM Providers (examples)
 

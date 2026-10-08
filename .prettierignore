@@ -18,5 +18,7 @@ apps
 workspace
 .changeset
 
-platform/website/src/content
 .next
+
+# The website has its own prettier setup, including the Astro plugin
+website

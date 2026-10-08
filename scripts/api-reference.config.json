@@ -1,0 +1,28 @@
+{
+  "outputDir": "docs/reference/api",
+  "packages": [
+    "packages/common",
+    "packages/core",
+    "registry/features/llm-provider-module",
+    "registry/features/agent-module",
+    "registry/features/hitl-module",
+    "registry/features/claude-module",
+    "registry/features/claude-tools-module",
+    "registry/features/openai-module",
+    "registry/features/code-agent-module",
+    "registry/features/git-module",
+    "registry/features/github-module",
+    "registry/features/github-integration-module",
+    "registry/features/google-workspace-module",
+    "registry/features/oauth-module",
+    "registry/features/local-file-explorer-module",
+    "registry/features/remote-file-explorer-module",
+    "registry/features/remote-client-module",
+    "registry/features/quota-module",
+    "registry/features/secrets-module",
+    "registry/features/mcp-module",
+    "registry/features/web-module",
+    "registry/tools/sandbox-tool",
+    "registry/tools/sandbox-filesystem"
+  ]
+}

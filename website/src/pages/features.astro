@@ -1,0 +1,330 @@
+---
+import { Code } from '@astrojs/starlight/components';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import '../styles/landing.css';
+import PageBackdrop from '../components/PageBackdrop.astro';
+import PageHead from '../components/PageHead.astro';
+import Section from '../components/Section.astro';
+import SplitSection from '../components/SplitSection.astro';
+
+const hitlSnippet = `@Transition({ from: 'classified', to: 'waiting_for_approval' })
+askForApproval(state, ctx) {
+  this.assignState({ question: 'Escalate to on-call engineering?' });
+}
+
+@Transition({ from: 'waiting_for_approval', to: 'end' })
+resolve(state, payload: { approved: boolean }) {
+  this.assignResult({ escalated: payload.approved });
+}`;
+
+const testingSnippet = `it('escalates a high-severity ticket', async () => {
+  const run = await runWorkflow(TriageTicketWorkflow, {
+    args: { ticketId: 1042 },
+    fixture: 'triage-high-severity',
+    answers: {
+      waiting_for_approval: { approved: true },
+    },
+  });
+
+  expect(run.status).toBe('completed');
+  expect(run.result).toMatchObject({ escalated: true });
+});`;
+
+const durabilityTranscript = `# terminal 1 — the server
+▸ analyze_ticket  (LLM call in flight)
+✗ process killed (SIGKILL)
+
+$ npm start
+  job stalled — reclaiming
+▸ analyze_ticket  (re-run from checkpoint)
+✓ analyze_ticket (2.6s)
+
+# terminal 2 — the CLI, same session
+■ run completed in 7.1s`;
+
+const errorSnippet = `@Transition({
+  from: 'start',
+  to: 'fetched',
+  retry: { attempts: 3, backoff: 'exponential' },
+  timeout: 30_000,
+  onError: 'fetch_failed',
+})
+async fetchTicket(state, ctx) {
+  // state rolls back between attempts
+}`;
+
+const agentSnippet = `@Transition({ from: 'planning', to: 'implementing' })
+async runAgent(state: MyState) {
+  await this.agent.run(
+    {
+      system: 'You are a code exploration agent.',
+      tools: ['glob', 'grep', 'read'],
+      userMessage: 'Find all API endpoints.',
+    },
+    { callback: { transition: 'agentDone' } },
+  );
+}`;
+
+const subWorkflowSnippet = `@Transition({ from: 'start', to: 'waiting' })
+async delegate(state, ctx) {
+  await this.researchWorkflow.run(
+    { topic: ctx.args.topic },
+    {
+      callback: { transition: 'onComplete' },
+      show: 'inline',
+    },
+  );
+}`;
+
+const uiConfigSnippet = `widgets:
+  - type: form
+    document: ClassificationDocument
+    fields:
+      priority:
+        type: choice
+        options: [urgent, high, medium, low]
+      summary:
+        type: markdown`;
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Features',
+    description:
+      'Everything you need to build, operate, and trust durable AI workflows — from human-in-the-loop to testing, durability, and observability.',
+    template: 'splash',
+    editUrl: false,
+    tableOfContents: false,
+  }}
+  hasSidebar={false}
+>
+  <div class="landing not-content">
+    <PageHead
+      title="Features"
+      lede="Everything you need to build, operate, and trust durable AI workflows — from human-in-the-loop to testing, durability, and observability."
+    />
+
+    <SplitSection
+      id="human-in-the-loop"
+      title="Human-in-the-Loop"
+      benefits={[
+        'Approvals, forms & confirmations',
+        'Answer from Studio or the terminal',
+        'Pause for minutes or days',
+      ]}
+      link={{ href: '/docs/build/patterns/human-in-the-loop', text: 'Learn more about human-in-the-loop' }}
+    >
+      <p slot="lede">
+        A workflow can stop and wait for a person. The waiting state is persisted, so a run can pause for minutes or
+        days without holding a process open, then continue the moment someone answers.
+      </p>
+      <Code code={hitlSnippet} lang="ts" frame="none" />
+    </SplitSection>
+
+    <SplitSection
+      id="testing"
+      reverse
+      tone="dark"
+      title="Testing, Built In"
+      benefits={['Unit & End-to-End Tests', 'Record real runs, replay in CI', 'Scripted humans for HITL flows']}
+      link={{ href: '/docs/build/testing', text: 'Read the testing guide' }}
+    >
+      <p slot="lede">
+        Test workflows like any other code — unit tests for tools, end-to-end tests for whole runs. Recorded responses
+        stand in for live LLM calls, simulated answers stand in for the human. Fast, deterministic, CI-ready.
+      </p>
+      <Code code={testingSnippet} lang="ts" frame="none" />
+    </SplitSection>
+
+    <SplitSection
+      id="durability"
+      title="Never Lose a Run"
+      benefits={['Survives crashes & deploys', 'Resumes from the last checkpoint', 'HITL pauses last indefinitely']}
+      link={{ href: '/docs/build/patterns/error-handling', text: 'How durability works' }}
+    >
+      <p slot="lede">
+        Kill the process mid-run — the run survives. Every step is checkpointed to Postgres, so a restart reclaims the
+        job and resumes from the last checkpoint. No lost work, no manual cleanup.
+      </p>
+      <Code code={durabilityTranscript} lang="ansi" frame="none" />
+    </SplitSection>
+
+    <SplitSection
+      id="observability"
+      reverse
+      tone="dark"
+      title="Inspect Every Run"
+      benefits={[
+        'Every transition, tool call & document traced',
+        'Token usage & cost quotas',
+        'Audit events & tool interceptors',
+      ]}
+      link={{ href: '/docs/registry/examples/observability-examples', text: 'See the observability examples' }}
+    >
+      <p slot="lede">
+        Every run records what happened — each step with its duration, every tool call and document. Inspect runs live
+        or afterwards, track token usage, and enforce quotas.
+      </p>
+      <div class="trace-mock">
+        <div class="trace-row"><code>fetch_ticket</code><span>tool</span><em>120ms</em></div>
+        <div class="trace-row"><code>analyze_ticket</code><span>llm</span><em>2.4s · 1,208 tok</em></div>
+        <div class="trace-row"><code>waiting_for_approval</code><span>park</span><em>19ms</em></div>
+        <div class="trace-row"><code>notify</code><span>tool</span><em>340ms</em></div>
+        <div class="trace-foot">4 transitions · 2 tool calls · 1 document · 4.9s</div>
+      </div>
+    </SplitSection>
+
+    <div id="code-examples" class="examples-band">
+      <Section title="Code Examples">
+        <div class="examples">
+          <article>
+            <h3>Agents With Full Control</h3>
+            <p>
+              Tool calling, error recovery, and cancellation built in. Need custom exit logic, setup phases, or human
+              interaction? Copy the agent and make it yours.
+            </p>
+            <Code code={agentSnippet} lang="ts" frame="none" />
+            <p><a href="/docs/build/ai/agent-workflows">Learn more <span aria-hidden="true">↗</span></a></p>
+          </article>
+
+          <article>
+            <h3>Nested Agents and Workflows</h3>
+            <p>
+              The LLM decides when to launch sub-workflows. Each one runs in the background and reports back. Nest
+              workflows as you need.
+            </p>
+            <Code code={subWorkflowSnippet} lang="ts" frame="none" />
+            <p><a href="/docs/build/patterns/sub-workflows">Learn more <span aria-hidden="true">↗</span></a></p>
+          </article>
+
+          <article>
+            <h3>Built-In Error Recovery</h3>
+            <p>Retries 3 times with exponential backoff. State rolls back between attempts.</p>
+            <Code code={errorSnippet} lang="ts" frame="none" />
+            <p><a href="/docs/build/patterns/error-handling">Learn more <span aria-hidden="true">↗</span></a></p>
+          </article>
+
+          <article>
+            <h3>Configurable UI</h3>
+            <p>
+              Documents define your data. A YAML config controls how they render — choices, forms, buttons, markdown.
+              No frontend code needed.
+            </p>
+            <Code code={uiConfigSnippet} lang="yaml" frame="none" />
+            <p><a href="/docs/build/fundamentals/studio-config">Learn more <span aria-hidden="true">↗</span></a></p>
+          </article>
+        </div>
+      </Section>
+    </div>
+
+    <Section
+      id="registry"
+      title="Registry"
+      tagline="Browse packages on npm — modules, tools, and workflow examples for your Loopstack app."
+    >
+      <div class="registry-cta">
+        <Code code="npx giget gh:loopstack-ai/loopstack/registry/examples/hitl-examples src/hitl" lang="bash" frame="none" />
+        <p class="caption">Pull a package in as a dependency, or copy an example's source and own it.</p>
+        <p class="center-link"><a href="/docs/registry">Browse the registry <span aria-hidden="true">↗</span></a></p>
+      </div>
+    </Section>
+
+    <div class="page-foot">
+      <PageBackdrop place="foot" />
+      <Section
+        id="getting-started"
+        title="Ready to Build?"
+        tagline="Start a new app or drop Loopstack into your existing NestJS project."
+      >
+      <div class="registry-cta">
+        <Code code="npx @loopstack/cli create my-app" lang="bash" frame="none" />
+        <p class="center-link"><a href="/docs/build/getting-started">Read the quick start guide <span aria-hidden="true">↗</span></a></p>
+        </div>
+      </Section>
+    </div>
+  </div>
+</StarlightPage>
+
+<style>
+  .landing {
+    text-align: start;
+  }
+
+  .examples-band {
+    width: 100%;
+  }
+  .page-foot {
+    position: relative;
+  }
+  .examples {
+    margin-top: 2.5rem;
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 60rem) {
+    .examples {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .examples article {
+    min-width: 0;
+  }
+  .examples h3 {
+    margin: 0 0 0.75rem;
+    font-size: var(--sl-text-h3);
+  }
+  .examples p {
+    margin: 0 0 1rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-base);
+    line-height: 1.7;
+  }
+
+  .trace-mock {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.7rem;
+    overflow: hidden;
+    background: var(--sl-color-black);
+    font-size: var(--sl-text-base);
+  }
+  .trace-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 1rem 1.3rem;
+    border-bottom: 1px solid var(--sl-color-gray-6);
+  }
+  .trace-row span {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .trace-row em {
+    font-style: normal;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .trace-foot {
+    padding: 1rem 1.3rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+
+  .registry-cta {
+    margin: 2.5rem auto 0;
+    max-width: 44rem;
+  }
+  .caption {
+    margin: 0.85rem 0 0;
+    text-align: center;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+  .center-link {
+    margin-top: 1.75rem;
+    text-align: center;
+    font-size: var(--sl-text-base);
+  }
+</style>

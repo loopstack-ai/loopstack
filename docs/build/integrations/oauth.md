@@ -189,5 +189,5 @@ The token store also reads `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` — 
 
 ## Registry References
 
-- [google-workspace-examples](https://loopstack.ai/registry/loopstack-google-workspace-examples) — Google Calendar fetch with OAuth sub-workflow, custom calendar tool, and Google Workspace agent with tool calling
-- [github-examples](https://loopstack.ai/registry/loopstack-github-examples) — GitHub OAuth integration with repos overview and GitHub agent with 25+ tools
+- [google-workspace-examples](/docs/registry/examples/google-workspace-examples) — Google Calendar fetch with OAuth sub-workflow, custom calendar tool, and Google Workspace agent with tool calling
+- [github-examples](/docs/registry/examples/github-examples) — GitHub OAuth integration with repos overview and GitHub agent with 25+ tools

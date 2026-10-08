@@ -117,7 +117,7 @@ The `show_question` state uses guard-based routing to save the correct document 
 
 **Callback `input.data`:** `{ answer: string }` — delivered as the `data` field of a `TransitionInput<{ answer: string }>` to the wait transition named in `options.callback.transition`. The `schema:` on the wait transition validates `input.data` only; the surrounding envelope (`workflowId`, `status`, `hasError`, `errorMessage`) is added by the framework.
 
-For the full sub-workflow callback pattern — typing `data` via the wait transition schema, branching on `input.hasError` / `input.status`, and embedding the child UI with `show: 'inline'` — see [`@loopstack/run-sub-workflow-example`](https://loopstack.ai/registry/loopstack-run-sub-workflow-example).
+For the full sub-workflow callback pattern — typing `data` via the wait transition schema, branching on `input.hasError` / `input.status`, and embedding the child UI with `show: 'inline'` — see [the sub-workflow example](/docs/registry/examples/advanced-workflows-examples#sub-workflow).
 
 #### Multiple-choice and confirmation modes
 
@@ -233,7 +233,7 @@ Present markdown content to the user for approval. Pauses the agent until the us
 ## Related
 
 - [Human-in-the-Loop Patterns](https://loopstack.ai/docs/build/patterns/human-in-the-loop) — wait transitions, document actions, conditional widgets
-- [hitl-examples](https://loopstack.ai/registry/loopstack-hitl-examples) — comprehensive HITL examples: custom document with widget, AskUserWorkflow / ConfirmUserWorkflow shortcuts, and agent-tool flows
+- [hitl-examples](/docs/registry/examples/hitl-examples) — comprehensive HITL examples: custom document with widget, AskUserWorkflow / ConfirmUserWorkflow shortcuts, and agent-tool flows
 
 ## About
 

@@ -5,7 +5,7 @@ description: How to turn acceptance criteria into an executable workflow test su
 
 # Testing Methodology
 
-[Testing](/build/testing) documents the tools — `runWorkflow`, replay fixtures, scripted answers, `parkView()`. This page documents the **method**: how to organize those tools so a workflow's test suite is a faithful, checkable translation of its acceptance criteria. This matters doubly when the workflow author is an AI agent: for an agent, tests are perception — the suite is how it knows it is done, and how you know it understood the task. Everything here is convention over plain vitest; there is no scenario DSL to learn.
+[Testing](/docs/build/testing) documents the tools — `runWorkflow`, replay fixtures, scripted answers, `parkView()`. This page documents the **method**: how to organize those tools so a workflow's test suite is a faithful, checkable translation of its acceptance criteria. This matters doubly when the workflow author is an AI agent: for an agent, tests are perception — the suite is how it knows it is done, and how you know it understood the task. Everything here is convention over plain vitest; there is no scenario DSL to learn.
 
 ## Criteria become scenarios, scenarios become tests
 

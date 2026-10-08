@@ -1,0 +1,153 @@
+---
+/**
+ * Starlight's header with the site navigation added. Everything else (site title, search, social
+ * icons, theme select) is Starlight's own component, so the chrome stays stock.
+ */
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+import SocialIcons from 'virtual:starlight/components/SocialIcons';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import config from 'virtual:starlight/user-config';
+
+const links = [
+  { href: '/features', label: 'Features' },
+  { href: '/docs/learn/introduction', label: 'Docs', match: '/docs' },
+  { href: '/blog', label: 'Blog' },
+];
+
+const path = Astro.url.pathname;
+const isCurrent = (l: { href: string; match?: string }) => path.startsWith(l.match ?? l.href);
+
+const shouldRenderSearch =
+  config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+---
+
+<div class="header sl-flex">
+  <div class="title-wrapper sl-flex">
+    <SiteTitle />
+  </div>
+
+  <nav class="site-nav" aria-label="Main">
+    {
+      links.map((l) => (
+        <a href={l.href} aria-current={isCurrent(l) ? 'page' : undefined}>
+          {l.label}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="sl-flex print:hidden search-slot">
+    {shouldRenderSearch && <Search />}
+  </div>
+
+  <div class="right-group print:hidden">
+    <div class="sl-hidden md:sl-flex social-icons">
+      <SocialIcons />
+    </div>
+    <ThemeSelect />
+  </div>
+</div>
+
+<style>
+  .header {
+    gap: var(--sl-nav-gap);
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
+  .title-wrapper {
+    overflow: clip;
+    padding: 0.25rem;
+    margin: -0.25rem;
+    min-width: 0;
+    /* The mark is the one thing that must never be squeezed out of the bar. */
+    flex-shrink: 0;
+  }
+  .site-nav {
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+  }
+  .site-nav a {
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .site-nav a:hover {
+    color: var(--sl-color-white);
+  }
+  .site-nav a[aria-current='page'] {
+    color: var(--sl-color-white);
+  }
+  .search-slot {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  /* Phones: drop the wordmark and tighten up so the nav and theme control still fit. */
+  @media (max-width: 50rem) {
+    .title-wrapper :global(a.site-title > span) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .header {
+      gap: 0.75rem;
+    }
+    .site-nav {
+      gap: 0.85rem;
+      font-size: var(--sl-text-xs);
+    }
+    /* The GitHub link lives in the footer too; drop it here to make room. */
+    .social-icons {
+      display: none;
+    }
+  }
+  .search-slot :global(site-search) {
+    width: 100%;
+    max-width: 17rem;
+  }
+
+  /* Wordmark matches the footer's: sentence case, heavy, tight tracking. */
+  .title-wrapper :global(a.site-title) {
+    gap: 0.6rem;
+    color: var(--sl-color-white);
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: none;
+  }
+  .title-wrapper :global(a.site-title img) {
+    height: 1.5rem;
+    width: auto;
+  }
+  .right-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .social-icons {
+    gap: 1rem;
+    align-items: center;
+  }
+  .social-icons::after {
+    content: '';
+    height: 2rem;
+    border-inline-end: 1px solid var(--sl-color-gray-5);
+  }
+  @media (min-width: 50rem) {
+    :global(:root[data-has-sidebar]) {
+      --__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+    }
+    :global(:root:not([data-has-toc])) {
+      --__toc-width: 0rem;
+    }
+  }
+</style>

@@ -21,6 +21,7 @@ export default tseslint.config(
       'prettier.config.mjs',
       'syncpack.config.mjs',
       'packages/cli/fixtures/**',
+      'website/**',
       '**/src/components/ai-elements/**',
       '**/vitest.config.ts',
       '**/vite.config.ts',
@@ -71,10 +72,22 @@ export default tseslint.config(
     },
   },
 
-  // Node scripts (plain ESM, no TypeScript)
+  // Node scripts (plain ESM, no TypeScript). Every .mjs in this repo is a Node script; the config
+  // files at the root are excluded by the global ignores above.
   {
-    files: ['scripts/**/*.mjs', 'packages/*/scripts/**/*.mjs', 'sandbox/*/scripts/**/*.mjs', 'services/**/*.mjs'],
+    files: ['**/*.mjs'],
     languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
+  // Node scripts written as CommonJS — `require`, `__dirname` and `module` are globals here
+  {
+    files: ['**/*.cjs', 'scripts/**/*.js', 'packages/*/scripts/**/*.js', 'sandbox/*/scripts/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
       globals: {
         ...globals.node,
       },

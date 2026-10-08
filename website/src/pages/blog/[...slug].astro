@@ -1,0 +1,74 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import { formatDate, getPosts } from '../../lib/blog';
+
+export const getStaticPaths = (async () => {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const { title, description, date, author, img, imgSize, imgThemeAdapt, draft } = post.data;
+---
+
+<StarlightPage
+  frontmatter={{
+    title,
+    description,
+    editUrl: false,
+    head: [
+      { tag: 'meta', attrs: { property: 'og:type', content: 'article' } },
+      { tag: 'meta', attrs: { property: 'article:published_time', content: date.toISOString() } },
+      ...(img ? [{ tag: 'meta' as const, attrs: { property: 'og:image', content: new URL(img, Astro.site).href } }] : []),
+    ],
+  }}
+  hasSidebar={false}
+>
+  <p class="byline not-content">
+    <time datetime={date.toISOString()}>{formatDate(date)}</time>
+    {author && <> · {author}</>}
+    {draft && <> · <strong>draft</strong></>}
+  </p>
+
+  {
+    img && (
+      <img
+        src={img}
+        alt=""
+        class:list={['hero-img', imgSize === 'sm' && 'sm', imgThemeAdapt && 'adapt']}
+      />
+    )
+  }
+
+  <Content />
+
+  <hr />
+  <p><a href="/blog">← All posts</a></p>
+</StarlightPage>
+
+<style>
+  .byline {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    margin-top: -0.5rem;
+  }
+  .hero-img {
+    width: 100%;
+    border-radius: 0.5rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .hero-img.sm {
+    max-width: 600px;
+    margin-inline: auto;
+    display: block;
+  }
+  .hero-img.adapt {
+    filter: none;
+  }
+  :global([data-theme='dark']) .hero-img.adapt {
+    filter: invert(1);
+  }
+</style>
