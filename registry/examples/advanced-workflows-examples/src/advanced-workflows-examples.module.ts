@@ -25,12 +25,12 @@ import { RunSubWorkflowExampleParentWorkflow } from './workflows/sub-workflow/su
 import { RunSubWorkflowExampleShowModesWorkflow } from './workflows/sub-workflow/sub-workflow-show-modes.workflow';
 import { RunSubWorkflowExampleSubWorkflow } from './workflows/sub-workflow/sub-workflow-sub.workflow';
 import { TestUiDocumentsWorkflow } from './workflows/ui-documents/ui-documents-example.workflow';
-import { WorkflowToolResultsWorkflow } from './workflows/workflow-state/tool-results-example.workflow';
+import { WorkflowResultWorkflow } from './workflows/workflow-state/workflow-result-example.workflow';
 import { WorkflowStateWorkflow } from './workflows/workflow-state/workflow-state-example.workflow';
 
 const WORKFLOWS = [
   WorkflowStateWorkflow,
-  WorkflowToolResultsWorkflow,
+  WorkflowResultWorkflow,
   DynamicRoutingExampleWorkflow,
   RunSubWorkflowExampleParentWorkflow,
   RunSubWorkflowExampleErrorHandlingWorkflow,

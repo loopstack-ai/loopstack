@@ -21,9 +21,9 @@ import { fileURLToPath } from 'node:url';
 
 /** @type {Array<{ workflow: string; expect: 'completed' | 'waiting' | 'failed'; error?: string }>} */
 const SMOKE_WORKFLOWS = [
-  // Advanced workflows — state, routing, tool results, documents, batching
+  // Advanced workflows — state, result, routing, documents, batching
   { workflow: 'workflow_state', expect: 'completed' },
-  { workflow: 'workflow_tool_results', expect: 'completed' },
+  { workflow: 'workflow_result', expect: 'completed' },
   { workflow: 'dynamic_routing_example', expect: 'completed' },
   { workflow: 'test_ui_documents', expect: 'completed' },
   { workflow: 'batch_processing_example', expect: 'completed' },

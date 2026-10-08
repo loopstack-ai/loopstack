@@ -95,6 +95,8 @@ finish(state: MyState) {
 
 Use `this.assignResult(partial)` to build the result up across multiple transitions, and `this.setResult(full)` to replace it.
 
+Publish what callers need and keep working data in state. The [workflow result example](/docs/registry/examples/advanced-workflows-examples#workflow-result) builds its result across two transitions while its working data stays private.
+
 ## Persistence Across Pauses
 
 State survives when a workflow pauses at a `wait: true` transition and resumes later:
@@ -152,5 +154,5 @@ export class MyWorkflow extends BaseWorkflow {
 
 ## Registry References
 
-- [workflow-state-example-workflow](/docs/registry/examples/advanced-workflows-examples#workflow-state) — Stores state in typed state interface, accesses in transitions, uses helper methods
-- [accessing-tool-results-example-workflow](/docs/registry/examples/advanced-workflows-examples#workflow-state) — Storing and accessing tool results via workflow state
+- [WorkflowStateWorkflow](/docs/registry/examples/advanced-workflows-examples#workflow-state) — Stores state in a typed state interface, reads it in the next transition, uses a helper method
+- [WorkflowResultWorkflow](/docs/registry/examples/advanced-workflows-examples#workflow-result) — Builds the published result across two transitions with `assignResult()`, keeping working data in private state

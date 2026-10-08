@@ -67,6 +67,7 @@ Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
 | Example                               | Studio title                                    | Description                                                                             |
 | ------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------- |
 | [Workflow State](#workflow-state)     | `Advanced - Workflow State Example`             | Persist typed state across transitions via `assignState()`                              |
+| [Workflow Result](#workflow-result)   | `Advanced - Workflow Result Example`            | Publish a result for callers via `assignResult()`, kept apart from private state        |
 | [Dynamic Routing](#dynamic-routing)   | `Advanced - Dynamic Routing Example`            | Conditional routing with `@Guard` decorators and transition priorities                  |
 | [Sub-Workflow](#sub-workflow)         | `Advanced - Sub-Workflow Example`               | Launch a child workflow via `.run()` and resume on callback                             |
 | [Fan-Out](#fan-out)                   | `Advanced - Fan-Out Example`                    | Parallel sub-workflows with single aggregated callback (`FanOutWorkflow`)               |
@@ -80,15 +81,19 @@ Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
 
 ## Workflow State
 
-Two related workflows demonstrating state management:
-
-- `WorkflowStateWorkflow` — minimal pattern: assign state, read it in the next transition.
-- `WorkflowToolResultsWorkflow` — store tool results in state and reference them later.
+`WorkflowStateWorkflow` — the minimal state pattern: `assignState()` in one transition, read the typed `state` parameter in the next, and format it with a private helper method. State is private to the workflow, so the run publishes no result.
 
 ### Files
 
 - `workflow-state-example.workflow.ts`
-- `tool-results-example.workflow.ts`
+
+## Workflow Result
+
+`WorkflowResultWorkflow` — the workflow's published result. The first transition keeps a name in state and publishes a greeting with `assignResult()`. The second reads the name from state and adds a second field with another `assignResult()`, which merges into the first. The run's result is `{ greeting, shout }` — what `WorkflowRunner` callers, parent callbacks (`input.data`) and the API receive — while the name stays in private state.
+
+### Files
+
+- `workflow-result-example.workflow.ts`
 
 ## Dynamic Routing
 
