@@ -1,0 +1,49 @@
+---
+/** A landing-page section: centered heading, optional tagline, then its content. */
+interface Props {
+  id?: string;
+  title: string;
+  tagline?: string;
+  tone?: 'default' | 'dark';
+}
+const { id, title, tagline, tone = 'default' } = Astro.props;
+---
+
+<section id={id} class:list={['section', tone === 'dark' && 'dark-band']}>
+  <div class="inner">
+    <h2>{title}</h2>
+    {tagline && <p class="tagline" set:html={tagline} />}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    width: 100%;
+    padding: 7rem 1.5rem;
+  }
+  .inner {
+    max-width: 68rem;
+    margin-inline: auto;
+  }
+  h2 {
+    font-size: clamp(1.9rem, 1.2rem + 2.2vw, 3rem);
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-align: center;
+    margin: 0;
+  }
+  .tagline {
+    margin: 1.25rem auto 0;
+    max-width: 52rem;
+    text-align: center;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.4rem);
+    color: var(--sl-color-gray-2);
+    line-height: 1.6;
+  }
+  .tagline :global(strong) {
+    color: var(--sl-color-white);
+    font-weight: 600;
+  }
+</style>

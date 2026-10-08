@@ -1,0 +1,45 @@
+---
+/** The opening block on a page that is not the landing page: title, lede, and the top backdrop. */
+import PageBackdrop from './PageBackdrop.astro';
+
+interface Props {
+  title: string;
+  lede?: string;
+}
+const { title, lede } = Astro.props;
+---
+
+<section class="page-head">
+  <PageBackdrop place="top" />
+  <div class="inner">
+    <h1>{title}</h1>
+    {lede && <p>{lede}</p>}
+  </div>
+</section>
+
+<style>
+  .page-head {
+    position: relative;
+    padding: 6rem 1.5rem 4rem;
+    overflow: hidden;
+    text-align: center;
+  }
+  .inner {
+    position: relative;
+    max-width: 48rem;
+    margin-inline: auto;
+  }
+  h1 {
+    font-size: clamp(2.4rem, 1.4rem + 3.2vw, 3.8rem);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+    font-weight: 500;
+    margin: 0;
+  }
+  p {
+    margin: 1.5rem auto 0;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.4rem);
+    line-height: 1.6;
+    color: var(--sl-color-gray-2);
+  }
+</style>

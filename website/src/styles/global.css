@@ -1,0 +1,38 @@
+@layer base, starlight, theme, components, utilities;
+
+@import '@astrojs/starlight-tailwind';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/*
+ * Stock Starlight, with the accent taken from the Loopstack logo: the cyan (#009bd8) anchors the
+ * mid scale and the navy (#074999) the dark end. Starlight derives its link, focus and highlight
+ * colors from these via @astrojs/starlight-tailwind.
+ */
+@theme {
+  --color-accent-50: #f0f9ff;
+  --color-accent-100: #e0f3fe;
+  --color-accent-200: #b9e6fe;
+  --color-accent-300: #7cd4fd;
+  --color-accent-400: #36bffa;
+  --color-accent-500: #0ca8eb;
+  --color-accent-600: #009bd8;
+  --color-accent-700: #0b6fa8;
+  --color-accent-800: #0d5a89;
+  --color-accent-900: #074999;
+  --color-accent-950: #052f61;
+}
+
+/*
+ * Terminal/window frames get macOS-style coloured dots, as on the current site. Expressive Code
+ * paints them as a single-colour mask, so the mask is swapped for a three-colour background image.
+ */
+.expressive-code .frame.is-terminal .header::before {
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2060%2016'%3E%3Ccircle%20cx%3D'8'%20cy%3D'8'%20r%3D'7'%20fill%3D'%23ed6a5f'%2F%3E%3Ccircle%20cx%3D'30'%20cy%3D'8'%20r%3D'7'%20fill%3D'%23f4bf50'%2F%3E%3Ccircle%20cx%3D'52'%20cy%3D'8'%20r%3D'7'%20fill%3D'%2361c454'%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  -webkit-mask-image: none;
+  mask-image: none;
+  opacity: 0.9;
+}

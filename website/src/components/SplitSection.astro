@@ -1,0 +1,115 @@
+---
+/**
+ * A landing section with copy on one side and a code block or panel on the other, mirroring the
+ * alternating layout of the current site.
+ */
+interface Props {
+  id?: string;
+  title: string;
+  reverse?: boolean;
+  tone?: 'default' | 'dark';
+  benefits?: string[];
+  link?: { href: string; text: string };
+}
+const { id, title, reverse = false, tone = 'default', benefits = [], link } = Astro.props;
+---
+
+<section id={id} class:list={['split', tone === 'dark' && 'dark-band']}>
+  <div class:list={['inner', reverse && 'reverse']}>
+    <div class="copy">
+      <h2 set:html={title} />
+      <div class="lede"><slot name="lede" /></div>
+      {
+        benefits.length > 0 && (
+          <ul class="benefits">
+            {benefits.map((b) => (
+              <li>
+                <span class="tick" aria-hidden="true">
+                  ✓
+                </span>
+                {b}
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      {
+        link && (
+          <p class="more">
+            <a href={link.href}>{link.text} <span aria-hidden="true">↗</span></a>
+          </p>
+        )
+      }
+    </div>
+    <div class="visual"><slot /></div>
+  </div>
+</section>
+
+<style>
+  .split {
+    width: 100%;
+    padding: 7rem 1.5rem;
+  }
+  .inner {
+    max-width: 68rem;
+    margin-inline: auto;
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  .inner > * {
+    min-width: 0;
+  }
+  @media (min-width: 60rem) {
+    .inner {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+    }
+    .inner.reverse .copy {
+      order: 2;
+    }
+  }
+  h2 {
+    font-size: clamp(1.9rem, 1.2rem + 2.2vw, 3rem);
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .lede :global(p) {
+    margin: 1.25rem 0 0;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.4rem);
+    color: var(--sl-color-gray-2);
+    line-height: 1.6;
+  }
+  .lede :global(code) {
+    font-size: 0.95em;
+  }
+  .benefits {
+    list-style: none;
+    padding: 0;
+    margin: 1.75rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-base);
+  }
+  .benefits li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    margin: 0;
+  }
+  .tick {
+    color: var(--sl-color-accent);
+    font-weight: 700;
+  }
+  .more {
+    margin-top: 1.75rem;
+    font-size: var(--sl-text-base);
+  }
+  .visual :global(.expressive-code) {
+    margin: 0;
+  }
+</style>

@@ -1,0 +1,9 @@
+node_modules
+dist
+.astro
+.env
+
+# Generated from ../docs at build time by scripts/generate-llms-txt.js
+public/llms.txt
+public/llms-full.txt
+public/llms/

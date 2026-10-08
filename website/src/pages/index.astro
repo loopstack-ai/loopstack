@@ -1,0 +1,708 @@
+---
+import { Code, LinkCard, TabItem, Tabs } from '@astrojs/starlight/components';
+import AgentPrompt from '../components/AgentPrompt.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+import PageBackdrop from '../components/PageBackdrop.astro';
+import logo from '../assets/logo.svg';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import '../styles/landing.css';
+import Section from '../components/Section.astro';
+import SplitSection from '../components/SplitSection.astro';
+
+const useCases = [
+  'Knowledge retrieval',
+  'Research & summarization',
+  'Data analysis',
+  'Fact-checking',
+  'Coding automation',
+  'Content & doc pipelines',
+  'Agent harness',
+];
+
+const features = [
+  {
+    title: 'Durable Execution',
+    teaser: 'Every step is checkpointed. Kill the process or redeploy mid-run — it resumes right where it left off.',
+    href: '/features#durability',
+    icon: 'durability',
+    hue: '#074999',
+  },
+  {
+    title: 'Human-in-the-Loop',
+    teaser: 'Pause for approvals, forms, or input — then continue the moment a human responds, minutes or days later.',
+    href: '/features#human-in-the-loop',
+    icon: 'hitl',
+    hue: '#0b72c4',
+  },
+  {
+    title: 'Automated Testing',
+    teaser: 'Test whole runs with recorded LLM responses and scripted human answers. Fast, deterministic, CI-ready.',
+    href: '/features#testing',
+    icon: 'testing',
+    hue: '#009bd8',
+  },
+  {
+    title: 'Observability',
+    teaser: 'Every transition, tool call, and document recorded — inspect any run from Studio or the terminal.',
+    href: '/features#observability',
+    icon: 'observability',
+    hue: '#f9b800',
+  },
+  {
+    title: 'Agents & Sub-workflows',
+    teaser: 'Compose systems from nested agents and sub-workflows, with tool calling and error recovery built in.',
+    href: '/features#code-examples',
+    icon: 'agents',
+    hue: '#f1701d',
+  },
+  {
+    title: 'Registry',
+    teaser: 'Install ready-made tools, agents, and workflows from the registry — copy, adapt, and own the source.',
+    href: '/features#registry',
+    icon: 'registry',
+    hue: '#e50a34',
+  },
+];
+
+const heroSnippet = `const { workflowId } = await this.workflowRunner.run(
+  ReviewTicketWorkflow,
+  { ticketId },
+);`;
+
+const workflowSnippet = `@Workflow()
+export class MyWorkflow extends BaseWorkflow {
+  // inject any service or tool here
+
+  @Transition({ from: 'start', to: 'step1done' })
+  async handleStep1(state, ctx) {
+    // any code for step 1
+  }
+
+  @Transition({ from: 'step1done', to: 'end' })
+  async handleStep2(state, ctx) {
+    // any code for step 2
+  }
+}`;
+
+const toolSnippet = `@Tool()
+export class MyCustomTool extends BaseTool {
+  async handle(args, ctx) {
+    // any code for the tool
+    return { data: result };
+  }
+}`;
+
+const documentSnippet = `@Document({ schema: ClassificationSchema })
+export class MyClassificationDocument {
+  priority: 'urgent' | 'high' | 'medium' | 'low';
+  summary: string;
+}`;
+
+const moduleSnippet = `@Module({
+  imports: [ClaudeModule, AgentModule],
+  providers: [MyWorkflow, MyCustomTool],
+})
+export class MyModule {}`;
+
+const schedulerSnippet = `@Cron(CronExpression.EVERY_30_MINUTES)
+async sweepStaleTickets() {
+
+  const { workflowId } = await this.workflowRunner.run(
+    TriageTicketWorkflow,
+    { status: 'stale' },
+  );
+
+}`;
+
+const agentPrompt = 'Read loopstack.ai/llms.txt, then help me build a Loopstack project and my first AI workflow';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Your Modular AI Stack',
+    description:
+      'Loopstack is a TypeScript framework based on NestJS for building AI agents and durable AI workflows. Open source.',
+    template: 'splash',
+    editUrl: false,
+    tableOfContents: false,
+    head: [
+      { tag: 'meta', attrs: { property: 'og:image', content: 'https://loopstack.ai/og-image.png' } },
+      { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+    ],
+  }}
+  hasSidebar={false}
+>
+  <div class="landing not-content">
+    {/* 1 — Hero */}
+    <section class="hero-band">
+      <PageBackdrop place="top" />
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h1>
+            Your Modular<br /><img class="title-mark" src={logo.src} alt="" width={logo.width} height={logo.height} /> AI Stack
+          </h1>
+          <p class="hero-lede">
+            Loopstack is a TypeScript framework based on NestJS for building AI agents and durable AI
+            workflows.
+          </p>
+          <p class="hero-cta">
+            <a class="btn" href="#getting-started">Start building <span aria-hidden="true">↓</span></a>
+          </p>
+          <p class="hero-badges">
+            <span>Open Source</span><span aria-hidden="true">·</span>
+            <span>TypeScript</span><span aria-hidden="true">·</span>
+            <span>NestJS</span><span aria-hidden="true">·</span>
+            <span>Studio &amp; CLI</span>
+          </p>
+        </div>
+        <div class="hero-visual">
+          <Code code={heroSnippet} lang="ts" frame="none" />
+        </div>
+      </div>
+    </section>
+
+    {/* 2 — What You Build */}
+    <Section
+      id="use-cases"
+      title="What You Build"
+      tagline="Build <strong>stateful AI agents and workflows</strong> that <strong>call your tools</strong>, <strong>coordinate sub-agents</strong>, and <strong>pause for human input</strong>."
+    >
+      <ul class="pills">
+        {useCases.map((u) => <li>{u}</li>)}
+      </ul>
+    </Section>
+
+    {/* 3 — How It Works */}
+    <Section
+      title="How It Works"
+      tagline="Compose complex AI systems from modular building blocks"
+    >
+      <div class="tabs-wrap">
+        <Tabs>
+          <TabItem label="workflow.ts">
+            <div class="panel">
+              <div class="panel-code"><Code code={workflowSnippet} lang="ts" frame="none" /></div>
+              <div class="panel-text">
+                <h3>Workflows</h3>
+                <p>
+                  Workflows are TypeScript state machines with explicit states and transitions. Inject tools, call
+                  LLMs, and create structured documents within transitions. Take different paths depending on the
+                  result, run steps in parallel, or pause for a human to respond. A single step can run another
+                  workflow or an AI agent. Every step is checkpointed, so failures resume right where they left off.
+                </p>
+                <p><a href="/docs/build/fundamentals/workflows">Learn more <span aria-hidden="true">↗</span></a></p>
+              </div>
+            </div>
+          </TabItem>
+
+          <TabItem label="tool.ts">
+            <div class="panel">
+              <div class="panel-code"><Code code={toolSnippet} lang="ts" frame="none" /></div>
+              <div class="panel-text">
+                <h3>Tools</h3>
+                <p>
+                  Tools are injectable NestJS services with Zod-validated inputs. Use them in workflows for
+                  deterministic steps, or expose them to LLMs so agents can decide when to call them. Build your own
+                  or install ready-made ones from the <a href="/docs/registry">registry</a>.
+                </p>
+                <p><a href="/docs/build/fundamentals/tools">Learn more <span aria-hidden="true">↗</span></a></p>
+              </div>
+            </div>
+          </TabItem>
+
+          <TabItem label="document.ts">
+            <div class="panel">
+              <div class="panel-code"><Code code={documentSnippet} lang="ts" frame="none" /></div>
+              <div class="panel-text">
+                <h3>Documents</h3>
+                <p>
+                  Documents are typed data objects that bridge your workflow and the UI. Define a Zod schema and they
+                  render automatically as forms, messages, or structured output in the Loopstack Studio. Users
+                  interact with documents to provide approvals, fill in data, or review AI-generated results.
+                </p>
+                <p><a href="/docs/build/fundamentals/documents">Learn more <span aria-hidden="true">↗</span></a></p>
+              </div>
+            </div>
+          </TabItem>
+
+          <TabItem label="module.ts">
+            <div class="panel">
+              <div class="panel-code"><Code code={moduleSnippet} lang="ts" frame="none" /></div>
+              <div class="panel-text">
+                <h3>Modules</h3>
+                <p>
+                  A module is a standard NestJS module. It imports feature modules like LLM providers or agents, and
+                  registers your tools and workflows as providers via standard dependency injection.
+                </p>
+                <p><a href="/docs/build/fundamentals/modules">Learn more <span aria-hidden="true">↗</span></a></p>
+              </div>
+            </div>
+          </TabItem>
+        </Tabs>
+      </div>
+    </Section>
+
+    {/* 4 — Integrate into your app */}
+    <SplitSection
+      title="Integrate into your app"
+      benefits={[
+        'Run via Cron, webhooks, queues, or any service',
+        'Subscribe to streamed output',
+        'Hand off to browser interface',
+      ]}
+      link={{ href: '/docs/build/integrations/programmatic-execution', text: 'Learn more about programmatic execution' }}
+    >
+      <p slot="lede">
+        Trigger workflows from anywhere in your NestJS app: a controller, a queue consumer, or a scheduled job.
+      </p>
+      <Code code={schedulerSnippet} lang="ts" frame="none" />
+    </SplitSection>
+
+    {/* 5 — CLI and Studio, side by side */}
+    <Section
+      title="Two ways to drive a run"
+      tagline="Start a workflow, follow it live, and answer its prompts — from the terminal or the browser. Both ship with the framework."
+    >
+      <div class="duo-inner">
+        <article>
+          <h3>CLI</h3>
+          <p class="lede">
+            <code>npm i -g @loopstack/cli</code> — and every workflow is a command. Runs stream live:
+            transitions, LLM tokens, tool calls, and human-in-the-loop prompts answered right in your terminal.
+          </p>
+          <ul class="benefits">
+            <li><span class="tick" aria-hidden="true">✓</span> CI-ready with JSON output &amp; exit codes</li>
+            <li><span class="tick" aria-hidden="true">✓</span> Operable by AI agents</li>
+            <li><span class="tick" aria-hidden="true">✓</span> Attach to any running workflow</li>
+          </ul>
+          <p class="more"><a href="/docs/reference/cli">Explore the CLI reference <span aria-hidden="true">↗</span></a></p>
+        </article>
+
+        <article>
+          <h3>Studio</h3>
+          <p class="lede">
+            Run, debug, and organize automations in the built-in frontend. Forms, documents, and live progress
+            render from your workflow's config — no frontend code required.
+          </p>
+          <ul class="benefits">
+            <li><span class="tick" aria-hidden="true">✓</span> Built-in React frontend</li>
+            <li><span class="tick" aria-hidden="true">✓</span> Visual: diagrams, documents, live progress</li>
+            <li><span class="tick" aria-hidden="true">✓</span> Extensible with widgets &amp; custom forms</li>
+          </ul>
+          <p class="more"><a href="/docs/learn/studio">Learn more about Studio <span aria-hidden="true">↗</span></a></p>
+        </article>
+      </div>
+    </Section>
+
+    {/* 7 — Features */}
+    <Section title="Features" tagline="Everything built in — pick a card to explore it in depth.">
+      <div class="feature-grid">
+        {features.map((f) => <FeatureCard title={f.title} teaser={f.teaser} href={f.href} icon={f.icon} hue={f.hue} />)}
+      </div>
+      <p class="center-link"><a href="/features">Explore all features <span aria-hidden="true">↗</span></a></p>
+    </Section>
+
+    {/* 8 — Getting started */}
+    <Section
+      id="getting-started"
+      title="Ready to Build?"
+      tagline="Start a new app or drop Loopstack into your existing NestJS project."
+    >
+      <div class="start-tabs">
+        <Tabs>
+          <TabItem label="Start with a coding agent">
+            <AgentPrompt prompt={agentPrompt} />
+          </TabItem>
+          <TabItem label="Create a new app">
+            <Code code="npx @loopstack/cli create my-app" lang="bash" frame="none" />
+            <p class="caption">Scaffolds the backend, Studio, CLI, and Docker for Postgres + Redis.</p>
+          </TabItem>
+          <TabItem label="Add to an existing app">
+            <Code code="npm install @loopstack/loopstack-module" lang="bash" frame="none" />
+            <p class="caption">
+              One module — <code>LoopstackModule.forRoot()</code> — Studio and CLI included.
+            </p>
+          </TabItem>
+        </Tabs>
+      </div>
+      <p class="center-link"><a href="/docs/build/getting-started">Read the quick start guide <span aria-hidden="true">↗</span></a></p>
+    </Section>
+
+    {/* 9 — Supported by */}
+    <section class="supported">
+      <PageBackdrop place="foot" />
+      <p class="supported-label">Supported by:</p>
+      <div class="logos">
+        <img src="/images/IFB_IS_Logo_black_rgb.png" alt="IFB Innovations Starter" width="200" height="100" loading="lazy" decoding="async" />
+        <img src="/images/aethos.png" alt="Aethos — Center of gravity for responsible AI" width="80" height="100" loading="lazy" decoding="async" />
+      </div>
+    </section>
+  </div>
+</StarlightPage>
+
+<style>
+  .landing {
+    text-align: start;
+  }
+
+  /* 1 — Hero */
+  .hero-band {
+    position: relative;
+    /* Fills the viewport, reaching up behind the fixed header that the main frame pads for. */
+    min-height: 100svh;
+    margin-top: calc(-1 * var(--sl-nav-height));
+    padding: calc(var(--sl-nav-height) + 4rem) 1.5rem 5rem;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .hero-inner > * {
+    min-width: 0;
+  }
+  .hero-inner {
+    position: relative;
+    width: 100%;
+    max-width: 68rem;
+    margin-inline: auto;
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  @media (min-width: 60rem) {
+    .hero-inner {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+    }
+  }
+  .hero-copy h1 {
+    font-size: clamp(2.5rem, 1.4rem + 3.6vw, 4.1rem);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+    font-weight: 500;
+    margin: 0;
+  }
+  /* Sits on the text baseline at roughly cap height, so it reads as part of the line. */
+  .title-mark {
+    height: 0.82em;
+    width: auto;
+    display: inline-block;
+    vertical-align: 0;
+  }
+  .hero-lede {
+    margin: 1.5rem 0 0;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.4rem);
+    line-height: 1.6;
+    color: var(--sl-color-gray-2);
+  }
+  .hero-cta {
+    margin: 2rem 0 0;
+  }
+  /* A blue sitting between the brand's navy and cyan: bright enough to separate from the dark page,
+     dark enough to hold white text at 4.98:1. */
+  .btn {
+    display: inline-block;
+    font-size: var(--sl-text-lg);
+    padding: 0.8rem 1.6rem;
+    border-radius: 999px;
+    background: #0b72c4;
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition:
+      background 0.15s ease,
+      transform 0.15s ease;
+  }
+  .btn:hover {
+    background: #1180da;
+    transform: translateY(-1px);
+  }
+  .btn:focus-visible {
+    outline: 2px solid #0b72c4;
+    outline-offset: 3px;
+  }
+  .hero-badges {
+    margin: 1.5rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: var(--sl-text-base);
+    color: var(--sl-color-gray-3);
+  }
+
+  /* 2 — pills */
+  .pills {
+    list-style: none;
+    padding: 0;
+    margin: 2rem auto 0;
+    max-width: 48rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+  }
+  .pills li {
+    margin: 0;
+    padding: 0.55rem 1.15rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    font-size: var(--sl-text-base);
+    color: var(--sl-color-gray-2);
+    background: var(--sl-color-gray-6);
+  }
+
+  /* 3 — How it works tabs */
+  .tabs-wrap {
+    margin-top: 2rem;
+  }
+
+  /*
+   * The tab strip reads as a code expression: the three composed building blocks inside braces,
+   * then the module that registers them. The punctuation is drawn with pseudo-elements on the list
+   * items, so Starlight's Tabs keep their own markup, keyboard handling and ARIA roles.
+   */
+  .tabs-wrap :global([role='tablist']) {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    border-bottom: none;
+  }
+  .tabs-wrap :global(.tab > [role='tab']) {
+    box-shadow: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1.2rem;
+    font-family: var(--sl-font-mono);
+    font-size: var(--sl-text-base);
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-2);
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+  }
+  .tabs-wrap :global(.tab > [role='tab']:hover) {
+    background: var(--sl-color-gray-5);
+    color: var(--sl-color-white);
+  }
+  /* Selected inverts against the page in both themes, because Starlight swaps these two tokens. */
+  .tabs-wrap :global(.tab > [role='tab'][aria-selected='true']) {
+    background: var(--sl-color-white);
+    color: var(--sl-color-black);
+    font-weight: 600;
+  }
+
+  .tabs-wrap :global(.tab:nth-child(1))::before,
+  .tabs-wrap :global(.tab:nth-child(1))::after,
+  .tabs-wrap :global(.tab:nth-child(2))::after,
+  .tabs-wrap :global(.tab:nth-child(3))::after {
+    display: flex;
+    align-items: center;
+    color: var(--sl-color-gray-4);
+    font-family: var(--sl-font-mono);
+    user-select: none;
+  }
+  .tabs-wrap :global(.tab:nth-child(1))::before {
+    content: '{';
+    font-size: 1.75rem;
+    line-height: 1;
+    padding-inline-end: 0.5rem;
+  }
+  .tabs-wrap :global(.tab:nth-child(3))::after {
+    content: '}';
+    font-size: 1.75rem;
+    line-height: 1;
+    padding-inline-start: 0.5rem;
+  }
+  .tabs-wrap :global(.tab:nth-child(1))::after,
+  .tabs-wrap :global(.tab:nth-child(2))::after {
+    content: '\2192';
+    font-size: 0.85rem;
+    padding-inline: 0.45rem;
+  }
+  .tabs-wrap :global(.tab:nth-child(4)) {
+    margin-inline-start: 0.6rem;
+  }
+  .tabs-wrap :global(.tablist-wrapper) {
+    margin-bottom: 1.5rem;
+  }
+  .tabs-wrap :global(.tablist-wrapper ~ [role='tabpanel']) {
+    margin-top: 1.5rem;
+  }
+
+  /* Narrow screens wrap the strip, where the punctuation only adds noise. */
+  @media (max-width: 34rem) {
+    .tabs-wrap :global(.tab)::before,
+    .tabs-wrap :global(.tab)::after {
+      display: none;
+    }
+    .tabs-wrap :global(.tab:nth-child(4)) {
+      margin-inline-start: 0;
+    }
+  }
+
+  /* The install tabs are pills too, without the expression punctuation. */
+  .start-tabs :global([role='tablist']) {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    border-bottom: none;
+  }
+  .start-tabs :global(.tab > [role='tab']) {
+    box-shadow: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1.1rem;
+    font-size: var(--sl-text-base);
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-2);
+  }
+  .start-tabs :global(.tab > [role='tab'][aria-selected='true']) {
+    background: var(--sl-color-white);
+    color: var(--sl-color-black);
+    font-weight: 600;
+  }
+  .panel {
+    display: grid;
+    gap: 1.75rem;
+  }
+  .panel > * {
+    min-width: 0;
+  }
+  @media (min-width: 60rem) {
+    .panel {
+      grid-template-columns: 2fr 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+  }
+  .panel-text h3 {
+    margin: 0 0 0.75rem;
+    font-size: var(--sl-text-h3);
+  }
+  .panel-text p {
+    margin: 0 0 0.75rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-base);
+    line-height: 1.7;
+  }
+
+
+  /* 5 — CLI and Studio */
+  .duo-inner {
+    margin-top: 3rem;
+    display: grid;
+    gap: 3.5rem;
+    text-align: start;
+  }
+  @media (min-width: 60rem) {
+    .duo-inner {
+      grid-template-columns: 1fr 1fr;
+      gap: 4.5rem;
+    }
+  }
+  .duo-inner article {
+    min-width: 0;
+  }
+  .duo-inner h3 {
+    font-size: var(--sl-text-h3);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .duo-inner .lede {
+    margin: 1.25rem 0 0;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.4rem);
+    color: var(--sl-color-gray-2);
+    line-height: 1.6;
+  }
+  .duo-inner .benefits {
+    list-style: none;
+    padding: 0;
+    margin: 1.75rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-base);
+  }
+  .duo-inner .benefits li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    margin: 0;
+  }
+  .duo-inner .tick {
+    color: var(--sl-color-accent);
+    font-weight: 700;
+  }
+  .duo-inner .more {
+    margin-top: 1.75rem;
+    font-size: var(--sl-text-base);
+  }
+
+  /* 7 — features */
+  .feature-grid {
+    margin-top: 2.25rem;
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 40rem) {
+    .feature-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 64rem) {
+    .feature-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .center-link {
+    margin-top: 2.25rem;
+    text-align: center;
+    font-size: var(--sl-text-base);
+  }
+
+  /* 8 — getting started */
+  .start-tabs {
+    margin: 2rem auto 0;
+    max-width: 44rem;
+  }
+  .caption {
+    margin: 0.85rem 0 0;
+    text-align: center;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+
+  /* 9 — supported by */
+  .supported {
+    position: relative;
+    padding: 5rem 1.5rem 6rem;
+  }
+  .supported-label,
+  .logos {
+    position: relative;
+  }
+  .supported-label {
+    text-align: center;
+    font-weight: 500;
+    margin: 0 0 1rem;
+  }
+  .logos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    opacity: 0.45;
+  }
+  .logos img {
+    height: auto;
+    max-height: 3.4rem;
+    width: auto;
+  }
+  :global([data-theme='dark']) .logos img {
+    filter: invert(1);
+  }
+</style>

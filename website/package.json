@@ -1,0 +1,40 @@
+{
+  "name": "@loopstack/website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "loopstack.ai — docs, blog and landing page, built with Astro and Starlight from the monorepo docs",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prebuild": "node scripts/generate-llms-txt.cjs",
+    "llms": "node scripts/generate-llms-txt.cjs",
+    "postbuild": "node scripts/check-anchors.cjs"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "^0.4.3",
+    "@astrojs/react": "^7.0.1",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@astrojs/starlight": "^0.42.5",
+    "@astrojs/starlight-tailwind": "^5.0.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.6",
+    "lucide-react": "^1.8.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "starlight-links-validator": "^0.26.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "prettier": "^3.8.2",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.9.3"
+  }
+}

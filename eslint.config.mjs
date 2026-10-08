@@ -21,6 +21,7 @@ export default tseslint.config(
       'prettier.config.mjs',
       'syncpack.config.mjs',
       'packages/cli/fixtures/**',
+      'website/**',
       '**/src/components/ai-elements/**',
       '**/vitest.config.ts',
       '**/vite.config.ts',

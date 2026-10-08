@@ -1,0 +1,113 @@
+---
+/**
+ * The prompt that points a coding agent at llms.txt. Given its own block rather than a plain code
+ * line, because it is the fastest route into the framework and was getting lost among the tabs.
+ */
+import ClaudeMark from './ClaudeMark.astro';
+
+interface Props {
+  prompt: string;
+}
+const { prompt } = Astro.props;
+---
+
+<div class="agent-prompt">
+  <p class="head">
+    <ClaudeMark class="mark" />
+    <span>Paste into Claude Code, Cursor, or any coding agent</span>
+  </p>
+  <div class="body">
+    <code>{prompt}</code>
+    <button type="button" class="copy" data-prompt={prompt}>
+      <span class="label">Copy</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.agent-prompt .copy').forEach((button) => {
+    const label = button.querySelector('.label');
+    button.addEventListener('click', async () => {
+      const text = button.dataset.prompt;
+      if (!text || !label) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        const previous = label.textContent;
+        label.textContent = 'Copied';
+        button.classList.add('done');
+        setTimeout(() => {
+          label.textContent = previous;
+          button.classList.remove('done');
+        }, 2000);
+      } catch {
+        /* Clipboard unavailable (insecure origin, or the user denied it) — leave the text selectable. */
+      }
+    });
+  });
+</script>
+
+<style>
+  .agent-prompt {
+    border: 1px solid color-mix(in oklab, var(--sl-color-accent) 40%, transparent);
+    border-radius: 0.75rem;
+    background: color-mix(in oklab, var(--sl-color-accent) 6%, transparent);
+    overflow: hidden;
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sl-color-accent) 25%, transparent);
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+  .mark {
+    flex-shrink: 0;
+    color: #d97757;
+  }
+  .body {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+  code {
+    flex: 1;
+    font-family: var(--sl-font-mono);
+    font-size: var(--sl-text-base);
+    line-height: 1.6;
+    color: var(--sl-color-white);
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .copy {
+    flex-shrink: 0;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--sl-color-gray-5);
+    background: var(--sl-color-black);
+    color: var(--sl-color-gray-2);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    cursor: pointer;
+    transition:
+      color 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .copy:hover {
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-accent);
+  }
+  .copy.done {
+    color: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+  }
+  @media (max-width: 34rem) {
+    .body {
+      flex-direction: column;
+    }
+  }
+</style>

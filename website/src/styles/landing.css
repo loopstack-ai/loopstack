@@ -1,0 +1,75 @@
+/*
+ * Marketing-page overrides, imported only by the landing and features pages.
+ *
+ * Starlight renders the frontmatter title as a page heading and caps the content column. Both are
+ * right for a docs page and wrong for a landing page that supplies its own hero and full-bleed
+ * bands, so the title panel is removed and the column is widened. The frontmatter title is kept
+ * because it still drives <title> and the meta tags.
+ */
+
+/*
+ * Starlight's page title is replaced by each page's own hero, but it is the target of the
+ * "Skip to content" link, so it stays in the document and is hidden visually rather than removed.
+ * `display: none` here broke that link.
+ */
+.content-panel:has(> .sl-container > h1#_top) {
+  padding: 0;
+  border: none;
+}
+
+h1#_top {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.content-panel {
+  border-top: none;
+  padding: 0;
+}
+
+.content-panel > .sl-container {
+  max-width: none;
+  margin-inline: 0;
+}
+
+main .sl-markdown-content {
+  margin-top: 0;
+}
+
+/* Let the page's own sections run edge to edge; each one centers its own inner column. */
+.landing {
+  width: 100%;
+}
+
+/*
+ * These pages all open with a backdrop, so the header floats over it: transparent with a blurred
+ * background, the way Starlight treats its own hero pages.
+ */
+header {
+  background-color: transparent;
+  border-bottom: 1px solid transparent;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Code blocks on the marketing pages breathe more than the docs default. */
+.landing .expressive-code pre {
+  --ec-codePadBlk: 1.15rem;
+  --ec-codePadInl: 1.35rem;
+}
+.landing .expressive-code code {
+  line-height: 1.7;
+}
+
+/* In-page jumps ease rather than snap, unless the viewer prefers reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

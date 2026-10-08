@@ -1,0 +1,143 @@
+---
+/**
+ * A three-way theme control rendered as icon buttons instead of Starlight's dropdown. Keeps
+ * Starlight's storage key and `StarlightThemeProvider`, so the inline no-flash script and any other
+ * picker on the page stay in sync.
+ */
+const options = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'auto', label: 'System' },
+] as const;
+---
+
+<starlight-theme-select class="theme-select">
+  <fieldset>
+    <legend class="sr-only">Color theme</legend>
+    {
+      options.map(({ value, label }) => (
+        <label title={label}>
+          <input type="radio" name="theme" value={value} />
+          <span class="sr-only">{label}</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            {value === 'light' && (
+              <>
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4" />
+              </>
+            )}
+            {value === 'dark' && <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />}
+            {value === 'auto' && (
+              <>
+                <rect x="2" y="4" width="20" height="13" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </>
+            )}
+          </svg>
+        </label>
+      ))
+    }
+  </fieldset>
+</starlight-theme-select>
+
+<script>
+  type Theme = 'auto' | 'dark' | 'light';
+
+  const storageKey = 'starlight-theme';
+
+  const parseTheme = (theme: unknown): Theme =>
+    theme === 'auto' || theme === 'dark' || theme === 'light' ? theme : 'auto';
+
+  const loadTheme = (): Theme =>
+    parseTheme(typeof localStorage !== 'undefined' && localStorage.getItem(storageKey));
+
+  function storeTheme(theme: Theme): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(storageKey, theme === 'light' || theme === 'dark' ? theme : '');
+    }
+  }
+
+  const getPreferredColorScheme = (): Theme =>
+    matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+
+  function onThemeChange(theme: Theme): void {
+    document.documentElement.dataset.theme = theme === 'auto' ? getPreferredColorScheme() : theme;
+    storeTheme(theme);
+    document.querySelectorAll<HTMLInputElement>('starlight-theme-select input[name="theme"]').forEach((input) => {
+      input.checked = input.value === theme;
+    });
+    // Keep any other picker Starlight rendered (the mobile menu) in step.
+    const provider = (window as unknown as { StarlightThemeProvider?: { updatePickers(t?: string): void } })
+      .StarlightThemeProvider;
+    provider?.updatePickers(theme);
+  }
+
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+    if (loadTheme() === 'auto') onThemeChange('auto');
+  });
+
+  class StarlightThemeSelect extends HTMLElement {
+    constructor() {
+      super();
+      onThemeChange(loadTheme());
+      this.addEventListener('change', (event) => {
+        const target = event.target;
+        if (target instanceof HTMLInputElement) onThemeChange(parseTheme(target.value));
+      });
+    }
+  }
+  customElements.define('starlight-theme-select', StarlightThemeSelect);
+</script>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  fieldset {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0.175rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: var(--sl-color-black);
+  }
+  label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 999px;
+    color: var(--sl-color-gray-3);
+    cursor: pointer;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+  }
+  label:hover {
+    color: var(--sl-color-white);
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  label:has(input:checked) {
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+  }
+  label:has(input:focus-visible) {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+</style>

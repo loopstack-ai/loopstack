@@ -1,0 +1,47 @@
+---
+/**
+ * The dot grid with a radial accent glow. `place="top"` opens a page behind its hero, `place="foot"`
+ * closes one above the footer. Both are decorative and sit behind the content.
+ */
+interface Props {
+  place?: 'top' | 'foot';
+}
+const { place = 'top' } = Astro.props;
+---
+
+<div class:list={['backdrop', place]} aria-hidden="true"></div>
+
+<style>
+  .backdrop {
+    position: absolute;
+    pointer-events: none;
+    background-size:
+      100% 100%,
+      26px 26px;
+    color: var(--sl-color-gray-5);
+    opacity: 0.62;
+  }
+  .top {
+    inset: 0;
+    background-image:
+      radial-gradient(
+        62rem 30rem at 50% -7rem,
+        color-mix(in oklab, var(--sl-color-accent) 24%, transparent),
+        transparent 72%
+      ),
+      radial-gradient(currentColor 1px, transparent 1px);
+    mask-image: linear-gradient(to bottom, black 55%, transparent 95%);
+  }
+  /* Bleeds past its section so the glow lands on the footer rule rather than stopping short. */
+  .foot {
+    inset: 0 0 -10rem;
+    background-image:
+      radial-gradient(
+        62rem 28rem at 50% 100%,
+        color-mix(in oklab, var(--sl-color-accent) 11%, transparent),
+        transparent 72%
+      ),
+      radial-gradient(currentColor 1px, transparent 1px);
+    mask-image: linear-gradient(to bottom, transparent 2%, black 45%);
+  }
+</style>
