@@ -91,13 +91,22 @@ aws amplify get-app --app-id "$APP_ID" --query 'app.{platform:platform,repo:repo
 3. **Remove the old environment variables**, all of which belonged to the Next.js site and are now
    unused: `RESEND_API_KEY`, `NOTION_DB`, `NOTION_SECRET`, `CACHE_INVALIDATION_SECRET` and
    `NEXT_PUBLIC_HUB_URL`.
-4. **Add the redirects** under Rewrites and redirects, so old links survive:
+4. **Add the redirects** under Rewrites and redirects. Amplify applies the first rule that matches,
+   so the catch-all has to come last or it swallows everything above it.
 
-   | Source          | Target           | Type |
-   | --------------- | ---------------- | ---- |
-   | `/blog/id/<*>`  | `/blog/<*>`      | 301  |
-   | `/registry`     | `/docs/registry` | 301  |
-   | `/registry/<*>` | `/docs/registry` | 301  |
+   ```json
+   [
+     { "source": "/blog/id/<*>", "status": "301", "target": "/blog/<*>" },
+     { "source": "/registry", "status": "301", "target": "/docs/registry" },
+     { "source": "/registry/<*>", "status": "301", "target": "/docs/registry" },
+     { "source": "/<*>", "status": "404", "target": "/404.html" }
+   ]
+   ```
+
+   The last rule serves the built 404 page with a real 404 status. Do **not** use the single-page-app
+   rule (`"status": "404-200"` targeting `/index.html`) that Amplify offers by default: this site is
+   131 separate HTML files, not a client-routed app, so that rule would answer every mistyped URL with
+   the landing page and a 200, hiding broken links from search engines and from you.
 
 5. **Build the branch** and check the Amplify-generated URL before anyone reaches the domain.
 
