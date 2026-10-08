@@ -116,8 +116,10 @@ aws amplify get-app --app-id "$APP_ID" --query 'app.{platform:platform,repo:repo
   must serve directly rather than redirecting to `/docs/learn/introduction/`. Confirm on the Amplify
   URL; if it redirects, the canonical tags and the URLs in `llms.txt` stop matching what is served.
 - **`customHttp.yml` is picked up.** `curl -I` the deployed site and look for the `Link` header
-  advertising `llms.txt`. For a monorepo app this file is expected at the app root, which is where it
-  is, but it is worth confirming rather than assuming.
+  advertising `llms.txt`. The file uses the monorepo `applications`/`appRoot` structure, which Amplify
+  requires once the app is a monorepo app; the flat `customHeaders:` form fails the build with
+  "Monorepo spec provided without applications key" and saves no headers at all. If the header is
+  still missing, try the file at the repository root rather than the app root.
 - **A page, the docs, the blog and `llms.txt`** all load, and `/blog/id/<some-post>` redirects.
 
 ### Fallback
