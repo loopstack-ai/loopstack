@@ -58,8 +58,23 @@ aws amplify update-app \
   --app-id "$APP_ID" \
   --platform WEB \
   --repository https://github.com/loopstack-ai/loopstack \
-  --access-token <a GitHub token with access to the loopstack repo>
+  --access-token <token, see the scopes below>
 ```
+
+Amplify installs a webhook on the repository as part of connecting it, so the token needs more than
+read access. Without it the call fails with `Resource not accessible by personal access token` and a
+403 pointing at the repository webhooks endpoint.
+
+- **Classic token:** `repo` *and* `admin:repo_hook`.
+- **Fine-grained token:** repository access to `loopstack-ai/loopstack`, with **Webhooks: Read and
+  write**, plus Contents: Read and Metadata: Read.
+
+Because the repository belongs to an organisation, a fine-grained token also has to be permitted by
+the org, and approved by an owner if the org requires approval. If the org has SAML single sign-on,
+authorise the token for the org after creating it.
+
+Connecting through the Amplify GitHub App instead of a token avoids the scope question entirely and
+is what AWS recommends; it is set up from the Amplify console rather than the CLI.
 
 Confirm it took before going further:
 
