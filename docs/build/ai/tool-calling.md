@@ -158,5 +158,5 @@ The `callback` arg is required — it's how async tool completions find their wa
 
 ## Registry References
 
-- [agent-example-workflow](/docs/registry/examples/agent-examples#agent) — Parent workflow that delegates to `AgentWorkflow` for tool-calling with weather and calculator tools
-- [delegate-error-example-workflow](/docs/registry/examples/agent-examples#custom-agent) — Reference for hand-rolling the tool loop when you need custom error policy or per-turn logic
+- [agent-example-workflow](/docs/examples/agent#agent) — Parent workflow that delegates to `AgentWorkflow` for tool-calling with weather and calculator tools
+- [delegate-error-example-workflow](/docs/examples/agent#custom-agent) — Reference for hand-rolling the tool loop when you need custom error policy or per-turn logic

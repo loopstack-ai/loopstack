@@ -200,7 +200,7 @@ Stop and destroy a sandbox container.
 
 - [Sandbox Execution docs](https://loopstack.ai/docs/build/integrations/sandbox) — setup guide, available tools across both sandbox packages, and security details
 - [@loopstack/sandbox-filesystem](https://loopstack.ai/docs/registry/tools/sandbox-filesystem) — file read/write/delete/list operations inside sandbox containers
-- [sandbox-example-workflow](https://loopstack.ai/docs/registry/examples/sandbox-example-workflow) — full sandbox lifecycle example using both `@loopstack/sandbox-tool` and `@loopstack/sandbox-filesystem`
+- [Sandbox example](/docs/examples/sandbox#sandbox) — full sandbox lifecycle example using both `@loopstack/sandbox-tool` and `@loopstack/sandbox-filesystem`
 
 ## About
 

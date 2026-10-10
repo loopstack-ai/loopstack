@@ -92,6 +92,7 @@
     "frontend/*",
     "registry/*/*",
     "services/*",
+    "examples",
     "sandbox/*"
   ]
 }

@@ -356,4 +356,4 @@ Each `wait: true` transition is a checkpoint. The workflow can pause here for se
 - **[Sub-Workflows](../build/patterns/sub-workflows.md)** — Use this workflow as a step inside a larger workflow
 - **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — Add a guard to route differently if the LLM output confidence is low
 - **[Error Handling](../build/patterns/error-handling.md)** — Add retry logic to the `optimizeNotes` transition in case the LLM call fails
-- **[Registry example](/docs/registry/examples/hitl-examples#meeting-notes)** — The complete source for this workflow
+- **[Registry example](/docs/examples/hitl#meeting-notes)** — The complete source for this workflow

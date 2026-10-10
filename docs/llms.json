@@ -52,12 +52,12 @@
       "includeInLlmsFullTxt": false
     },
     {
-      "key": "registry-examples",
-      "title": "Registry — Examples",
-      "description": "Example workflows demonstrating Loopstack patterns: chat, tool calling, agents, HITL, structured output, sub-workflows, and integrations.",
-      "sourceDir": "registry/examples",
+      "key": "examples",
+      "title": "Examples",
+      "description": "Example workflows demonstrating Loopstack patterns: chat, tool calling, agents, HITL, structured output, sub-workflows, and integrations. One runnable app, one module per theme.",
+      "sourceDir": "examples/src",
       "collect": "*/README.md",
-      "urlPrefix": "https://loopstack.ai/llms/registry/examples",
+      "urlPrefix": "https://loopstack.ai/llms/examples",
       "includeInLlmsTxt": true,
       "includeInLlmsFullTxt": false
     }

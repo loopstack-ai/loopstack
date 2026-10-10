@@ -345,7 +345,7 @@ Prunes worktree administrative files for worktrees whose directories no longer e
 
 ## Related
 
-- [`git-commit-flow-example-workflow`](/docs/registry/examples/git-examples) -- full example showing status, add, commit, and log in a multi-step workflow
+- [`git-commit-flow-example-workflow`](/docs/examples/git) -- full example showing status, add, commit, and log in a multi-step workflow
 - [`@loopstack/github-module`](https://loopstack.ai/docs/registry/features/github-module) -- GitHub integration (PRs, issues, actions) that pairs well with git operations
 - [`@loopstack/remote-client`](https://loopstack.ai/docs/registry/features/remote-client-module) -- the underlying transport layer that git tools delegate to
 - [Tools documentation](https://loopstack.ai/docs/build/fundamentals/tools) -- how `@Tool`, `BaseTool`, and tool DI work in Loopstack

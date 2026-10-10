@@ -49,7 +49,7 @@ LINEAR_MCP_TOKEN="Bearer lin_oauth_..."
 
 ## Quick Start
 
-This example mirrors the `@loopstack/agent-examples` package. It starts a `ChatAgentWorkflow` sub-workflow with both MCP tools available.
+This example mirrors the the [agent examples](/docs/examples/agent) package. It starts a `ChatAgentWorkflow` sub-workflow with both MCP tools available.
 
 ```ts
 // mcp-linear.module.ts
@@ -304,7 +304,7 @@ Override `MCP_METRICS` for custom metric collection:
 
 ## Related
 
-- [`@loopstack/agent-examples`](https://loopstack.ai/docs/registry/examples/agent-examples#mcp-linear) — Full working example connecting a ChatAgentWorkflow to Linear via MCP.
+- [the [agent examples](/docs/examples/agent)](https://loopstack.ai/docs/examples/agent#mcp-linear) — Full working example connecting a ChatAgentWorkflow to Linear via MCP.
 - [Agent Workflows](https://loopstack.ai/docs/build/ai/agent-workflows) — How `ChatAgentWorkflow` and tool resolution work.
 - [Tool Configuration](https://loopstack.ai/docs/build/fundamentals/tools) — How `configSchema` and `options.config` are merged at call time.
 - [`@loopstack/claude-module`](https://loopstack.ai/docs/registry/features/claude-module) — LLM provider that powers the agent loop calling MCP tools.

@@ -112,7 +112,7 @@ const result = await this.oAuth.run(
 );
 ```
 
-See [`@loopstack/google-workspace-examples`](/docs/registry/examples/google-workspace-examples#google-calendar-summary) for a complete implementation of this pattern.
+See [the [google-workspace examples](/docs/examples/google-workspace)](/docs/examples/google-workspace#google-calendar-summary) for a complete implementation of this pattern.
 
 ## Tools Reference
 
@@ -258,7 +258,7 @@ Uploads a new file using multipart upload.
 ## Related
 
 - [OAuth Integration](https://loopstack.ai/docs/build/integrations/oauth) — OAuth flow patterns and token management
-- [google-workspace-examples](/docs/registry/examples/google-workspace-examples) — full example with agent workflow, Calendar/Gmail/Drive tools, and authentication handling
+- [google-workspace examples](/docs/examples/google-workspace) — full example with agent workflow, Calendar/Gmail/Drive tools, and authentication handling
 
 ## About
 

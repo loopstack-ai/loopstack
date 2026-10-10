@@ -134,5 +134,5 @@ ui:
 
 ## Registry References
 
-- [prompt-example-workflow](/docs/registry/examples/llm-examples#prompt) — Uses `this.render()` for Handlebars prompt templates
-- [meeting-notes-example-workflow](/docs/registry/examples/hitl-examples#meeting-notes) — Uses templates for structured note rendering
+- [prompt-example-workflow](/docs/examples/llm#prompt) — Uses `this.render()` for Handlebars prompt templates
+- [meeting-notes-example-workflow](/docs/examples/hitl#meeting-notes) — Uses templates for structured note rendering

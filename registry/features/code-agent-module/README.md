@@ -224,7 +224,7 @@ CodeAgentModule.forFeature({
 
 ## Related
 
-- [`code-agent-example-workflow`](/docs/registry/examples/agent-examples#code-agent) — full working example showing `AgentWorkflow` with glob/grep/read
+- [`code-agent-example-workflow`](/docs/examples/agent#code-agent) — full working example showing `AgentWorkflow` with glob/grep/read
 - [Agent Workflows](https://loopstack.ai/docs/build/ai/agent-workflows) — how the agent loop, tool resolution, and callbacks work
 - [`@loopstack/agent`](https://loopstack.ai/docs/registry/features/agent-module) — the generic `AgentWorkflow` that powers the code agent
 - [`@loopstack/remote-client`](https://loopstack.ai/docs/registry/features/remote-client-module) — the `glob`, `grep`, and `read` tools used by the agent

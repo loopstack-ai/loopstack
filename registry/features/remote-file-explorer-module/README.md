@@ -153,7 +153,7 @@ No environment variables are required by this module itself. The remote agent UR
 
 - [`@loopstack/remote-client`](https://loopstack.ai/docs/registry/features/remote-client-module) -- the underlying client this module proxies through; also provides `GlobTool`, `ReadTool`, and other workflow tools for remote file operations
 - [`@loopstack/local-file-explorer-module`](https://loopstack.ai/docs/registry/features/local-file-explorer-module) -- same concept for local filesystems instead of remote agents
-- [Remote File Explorer example workflow](https://github.com/nicobrinkkemper/loopstack/tree/main/registry/examples/remote-file-explorer-example-workflow) -- demonstrates using `GlobTool` and `ReadTool` from `@loopstack/remote-client` in a workflow
+- [Remote File Explorer example](/docs/examples/remote-client#file-explorer) -- demonstrates using `GlobTool` and `ReadTool` from `@loopstack/remote-client` in a workflow
 
 ## About
 

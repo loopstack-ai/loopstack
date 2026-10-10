@@ -202,7 +202,7 @@ properties:
     readonly: true
 ```
 
-Enforcement applies to user submissions of transitions the widget declares (`actions[].transition` / `options.transition`); the workflow itself can always update its own documents. See `inline_form_example` in `@loopstack/hitl-examples` for a working example.
+Enforcement applies to user submissions of transitions the widget declares (`actions[].transition` / `options.transition`); the workflow itself can always update its own documents. See `inline_form_example` in the [HITL examples](/docs/examples/hitl#inline-form) for a working example.
 
 ### Actions
 

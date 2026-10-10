@@ -159,7 +159,7 @@ const uiConfigSnippet = `widgets:
         'Token usage & cost quotas',
         'Audit events & tool interceptors',
       ]}
-      link={{ href: '/docs/registry/examples/observability-examples', text: 'See the observability examples' }}
+      link={{ href: '/docs/examples/observability', text: 'See the observability examples' }}
     >
       <p slot="lede">
         Every run records what happened — each step with its duration, every tool call and document. Inspect runs live
@@ -220,11 +220,11 @@ const uiConfigSnippet = `widgets:
     <Section
       id="registry"
       title="Registry"
-      tagline="Browse packages on npm — modules, tools, and workflow examples for your Loopstack app."
+      tagline="Install modules and tools from npm, or copy a workflow from the examples app and own it."
     >
       <div class="registry-cta">
-        <Code code="npx giget gh:loopstack-ai/loopstack/registry/examples/hitl-examples src/hitl" lang="bash" frame="none" />
-        <p class="caption">Pull a package in as a dependency, or copy an example's source and own it.</p>
+        <Code code="npx giget gh:loopstack-ai/loopstack/examples/src/hitl src/hitl" lang="bash" frame="none" />
+        <p class="caption">Copy an example module into your app, or install a registry package as a dependency.</p>
         <p class="center-link"><a href="/docs/registry">Browse the registry <span aria-hidden="true">↗</span></a></p>
       </div>
     </Section>

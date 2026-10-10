@@ -1,3 +1,8 @@
+---
+title: Code Workspace Module
+description: '@loopstack/code-workspace — isolated per-run checkouts from shared generational bases, worked in disposable Docker containers. Provisioning, inventory and reclamation of repos, checkouts, containers and volumes with CodeWorkspaceModule and CodeWorkspaceMaintenanceModule.'
+---
+
 # @loopstack/code-workspace
 
 Isolated per-run checkouts of a codebase, cloned from a shared base and worked in disposable Docker

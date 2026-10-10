@@ -121,4 +121,4 @@ await this.llmGenerateObject.call(
 
 ## Registry References
 
-- [prompt-structured-output-example-workflow](/docs/registry/examples/llm-examples#structured-output) — Generates structured code files using the LLM provider
+- [prompt-structured-output-example-workflow](/docs/examples/llm#structured-output) — Generates structured code files using the LLM provider

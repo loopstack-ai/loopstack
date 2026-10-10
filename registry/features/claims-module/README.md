@@ -1,3 +1,8 @@
+---
+title: Claims Module
+description: '@loopstack/claims — resource claims for Loopstack workflows. Exclusive and pooled resources claimed by a run or a workspace, released when their scope ends. Covers mutex, pool-of-N and reader/writer lock patterns with ClaimsModule, the claim tools and run/workspace claim scopes.'
+---
+
 # @loopstack/claims
 
 Resource claims for Loopstack workflows. A workflow that must not run beside another says so by claiming a

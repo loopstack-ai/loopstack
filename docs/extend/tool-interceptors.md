@@ -97,7 +97,7 @@ The core registers no interceptors. These ship in Loopstack packages and join th
 
 - **`QuotaInterceptor`** (priority `50`) — `@loopstack/quota`, registered by `QuotaModule.forRoot()`. Checks the user's quotas before the call and reports usage after it. Source: `loopstack/registry/features/quota-module/src/services/quota.interceptor.ts`.
 - **`ReplayToolInterceptor`** / **`RecordToolInterceptor`** (priority `10`) — `@loopstack/testing`, registered by `runWorkflow()` only when a test replays or records tool responses (see [Record and replay tool responses](../build/testing.md#record-and-replay-tool-responses)). Source: `loopstack/packages/testing/src/facade/replay.ts` and `record.ts`.
-- **`TracingInterceptor`** (priority `10`) — example in `@loopstack/observability-examples` that measures every tool call and stores trace entries in an injectable service. Source: `loopstack/registry/examples/observability-examples/src/workflows/tracing/interceptors/tracing.interceptor.ts`.
+- **`TracingInterceptor`** (priority `10`) — example in the [observability examples](/docs/examples/observability) that measures every tool call and stores trace entries in an injectable service. Source: `examples/src/observability/workflows/tracing/interceptors/tracing.interceptor.ts`.
 
 ## Real-world Example: Quota
 

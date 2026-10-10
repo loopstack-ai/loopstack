@@ -50,22 +50,6 @@
       "@loopstack/mcp-module": ["./registry/features/mcp-module/src"],
       "@loopstack/sandbox-filesystem": ["./registry/tools/sandbox-filesystem/src"],
       "@loopstack/sandbox-tool": ["./registry/tools/sandbox-tool/src"],
-      "@loopstack/accessing-tool-results-example-workflow": [
-        "./registry/examples/accessing-tool-results-example-workflow/src"
-      ],
-      "@loopstack/chat-example-workflow": ["./registry/examples/chat-example-workflow/src"],
-      "@loopstack/custom-tool-example-module": ["./registry/examples/custom-tool-example-module/src"],
-      "@loopstack/dynamic-routing-example-workflow": ["./registry/examples/dynamic-routing-example-workflow/src"],
-      "@loopstack/meeting-notes-example-workflow": ["./registry/examples/meeting-notes-example-workflow/src"],
-      "@loopstack/prompt-example-workflow": ["./registry/examples/prompt-example-workflow/src"],
-      "@loopstack/prompt-structured-output-example-workflow": [
-        "./registry/examples/prompt-structured-output-example-workflow/src"
-      ],
-      "@loopstack/run-sub-workflow-example": ["./registry/examples/run-sub-workflow-example/src"],
-      "@loopstack/sandbox-example-workflow": ["./registry/examples/sandbox-example-workflow/src"],
-      "@loopstack/secrets-example-workflow": ["./registry/examples/secrets-example-workflow/src"],
-      "@loopstack/test-ui-documents-example-workflow": ["./registry/examples/test-ui-documents-example-workflow/src"],
-      "@loopstack/workflow-state-example-workflow": ["./registry/examples/workflow-state-example-workflow/src"],
       "@loopstack/loopstack-studio": ["./frontend/studio/src"]
     }
   }

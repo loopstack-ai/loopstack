@@ -69,6 +69,24 @@ export default defineConfig({
 
   redirects: {
     '/docs': '/docs/learn/introduction',
+
+    // The examples moved out of the registry into one app, so their pages moved with them.
+    '/docs/registry/examples/advanced-workflows-examples': '/docs/examples/advanced-workflows',
+    '/docs/registry/examples/agent-examples': '/docs/examples/agent',
+    '/docs/registry/examples/error-handling-examples': '/docs/examples/error-handling',
+    '/docs/registry/examples/git-examples': '/docs/examples/git',
+    '/docs/registry/examples/github-examples': '/docs/examples/github',
+    '/docs/registry/examples/google-workspace-examples': '/docs/examples/google-workspace',
+    '/docs/registry/examples/hitl-examples': '/docs/examples/hitl',
+    '/docs/registry/examples/integration-examples': '/docs/examples/integrations',
+    '/docs/registry/examples/llm-examples': '/docs/examples/llm',
+    '/docs/registry/examples/local-file-explorer-examples': '/docs/examples/local-file-explorer',
+    '/docs/registry/examples/observability-examples': '/docs/examples/observability',
+    '/docs/registry/examples/remote-client-examples': '/docs/examples/remote-client',
+    '/docs/registry/examples/sandbox-examples': '/docs/examples/sandbox',
+    '/docs/registry/examples/scheduling-examples': '/docs/examples/scheduling',
+    '/docs/registry/examples/secrets-examples': '/docs/examples/secrets',
+    '/docs/registry/examples/testing-examples': '/docs/examples/testing',
   },
 
   vite: {

@@ -315,7 +315,7 @@ Create a GitHub OAuth App at [github.com/settings/developers](https://github.com
 
 - [OAuth Authentication](https://loopstack.ai/docs/build/integrations/oauth) -- how to use `OAuthWorkflow` as a sub-workflow, token management, and the guard-based auth pattern
 - [`@loopstack/oauth-module`](https://loopstack.ai/docs/registry/features/oauth-module) -- the provider-agnostic OAuth framework this module plugs into
-- [`@loopstack/github-examples`](/docs/registry/examples/github-examples) -- full example with a repo overview workflow and a GitHub chat agent using all 25 tools
+- [the [github examples](/docs/examples/github)](/docs/examples/github) -- full example with a repo overview workflow and a GitHub chat agent using all 25 tools
 - [`@loopstack/git-module`](https://loopstack.ai/docs/registry/features/git-module) -- local Git operations (commit, push, branch, diff) for cloned repositories
 
 ## About

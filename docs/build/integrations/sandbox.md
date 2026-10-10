@@ -156,4 +156,4 @@ export class SandboxWorkflow extends BaseWorkflow<SandboxArgs> {
 
 ## Registry References
 
-- [sandbox-example-workflow](/docs/registry/examples/sandbox-examples#sandbox) — Full sandbox lifecycle: init, create directory, write/read files, list directory, check existence, get file info, delete, and destroy
+- [sandbox-example-workflow](/docs/examples/sandbox#sandbox) — Full sandbox lifecycle: init, create directory, write/read files, list directory, check existence, get file info, delete, and destroy

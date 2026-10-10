@@ -1,6 +1,6 @@
 ---
 title: Registry Overview
-description: The Loopstack Registry — a curated collection of npm packages providing feature modules (LLM, OAuth, Git, HITL), standalone tools (sandbox, filesystem), and example workflows. How to discover, install, and use @loopstack/* packages.
+description: The Loopstack Registry — a curated collection of npm packages providing feature modules (LLM, OAuth, Git, HITL) and standalone tools (sandbox, filesystem). How to discover, install, and use @loopstack/* packages.
 ---
 
 # Registry
@@ -15,11 +15,15 @@ Feature packages add entire capabilities to your app — LLM providers, OAuth fl
 
 Examples: `@loopstack/claude-module`, `@loopstack/github-module`, `@loopstack/hitl`, `@loopstack/oauth-module`, `@loopstack/web-module` (web fetch and summarization), `@loopstack/typesafe-module` (typed decisions and classifications with TypeSafe AI)
 
-### Examples
+### Tools
 
-Example packages are complete, working workflows that demonstrate Loopstack patterns. Use them as starting points — install the package, study the source, and adapt it to your needs.
+Tool packages add standalone tools you inject into your workflows without a surrounding feature module.
 
-Examples: `@loopstack/hitl-examples`, `@loopstack/agent-examples`, `@loopstack/sandbox-examples`
+Examples: `@loopstack/sandbox-tool` (Docker sandbox containers), `@loopstack/sandbox-filesystem` (safe filesystem operations inside a sandbox)
+
+## Looking for Examples?
+
+Complete, working workflows that demonstrate Loopstack patterns live in the [Examples](/docs/examples/llm) app, not in the registry. They are meant to be read and copied rather than installed.
 
 ## Installing a Package
 
@@ -57,8 +61,8 @@ To browse the source code of any registry package, use [giget](https://github.co
 # Download a feature module
 npx giget@latest gh:loopstack-ai/loopstack/registry/features/claude-module /tmp/claude-module
 
-# Download an example workflow
-npx giget@latest gh:loopstack-ai/loopstack/registry/examples/hitl-examples /tmp/chat-example
+# Download a standalone tool
+npx giget@latest gh:loopstack-ai/loopstack/registry/tools/sandbox-tool /tmp/sandbox-tool
 ```
 
 The repo path pattern is:
@@ -67,6 +71,6 @@ The repo path pattern is:
 gh:loopstack-ai/loopstack/registry/<category>/<package-name>
 ```
 
-Where `<category>` is `features`, `tools`, or `examples`.
+Where `<category>` is `features` or `tools`.
 
 Review the `README.md` for usage documentation, installation, and configuration. For implementation details, look at the TypeScript source in `src/`.

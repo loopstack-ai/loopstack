@@ -323,4 +323,4 @@ For weather (a single sync tool), `toolResultReceived` is never entered — `all
 - **[Custom Tools](../build/fundamentals/tools.md)** — build tools that call real external APIs, inject NestJS services, or validate their own output
 - **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — extend the guard pattern to handle error states, retries, or multi-step branching
 - **[Sub-Workflows](../build/patterns/sub-workflows.md)** — replace the inline tool loop with a dedicated agent sub-workflow
-- **[Registry example](/docs/registry/examples/agent-examples#agent)** — The complete source for the agent pattern using `AgentWorkflow`
+- **[Registry example](/docs/examples/agent#agent)** — The complete source for the agent pattern using `AgentWorkflow`

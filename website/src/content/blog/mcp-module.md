@@ -40,16 +40,10 @@ Also an allowlist plus DNS resolution check keeps a model-controlled URL from wa
 ## Try It
 
 ```bash
-npm install @loopstack/agent-examples
+npx giget@latest gh:loopstack-ai/loopstack/examples/src/agent src/agent
 ```
 
-Or to copy the source into your project so you can modify it:
-
-```bash
-npx giget@latest gh:loopstack-ai/loopstack/registry/examples/agent-examples#main
-```
-
-(The MCP Linear example lives at `src/workflows/mcp-linear/` inside that package.)
+(The MCP Linear example lives at `workflows/mcp-linear/` inside that module.)
 
 Follow the README and you'll get a working chat agent wired to Linear's hosted MCP server. Set `LINEAR_MCP_TOKEN="Bearer lin_oauth_..."` in your env and you're done. Point a workflow at it and your agent can list and create issues from chat.
 
