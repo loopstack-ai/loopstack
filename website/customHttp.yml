@@ -1,17 +1,22 @@
-customHeaders:
-  - pattern: '**'
-    headers:
-      - key: Link
-        value: '</llms.txt>; rel="llms-txt", </llms-full.txt>; rel="llms-full-txt"'
-      - key: X-Llms-Txt
-        value: /llms.txt
-  # Hashed build assets never change under the same name.
-  - pattern: '/_astro/**'
-    headers:
-      - key: Cache-Control
-        value: 'public, max-age=31536000, immutable'
-  # Generated for agents on every build; should not be served stale.
-  - pattern: '/llms*.txt'
-    headers:
-      - key: Cache-Control
-        value: 'public, max-age=300, must-revalidate'
+# Amplify builds this repo as a monorepo, so the headers file has to carry the same
+# `applications`/`appRoot` structure as amplify.yml. Without it the build logs
+# "Monorepo spec provided without applications key" and saves no headers.
+applications:
+  - appRoot: website
+    customHeaders:
+      - pattern: '**'
+        headers:
+          - key: Link
+            value: '</llms.txt>; rel="llms-txt", </llms-full.txt>; rel="llms-full-txt"'
+          - key: X-Llms-Txt
+            value: /llms.txt
+      # Hashed build assets never change under the same name.
+      - pattern: '/_astro/**'
+        headers:
+          - key: Cache-Control
+            value: 'public, max-age=31536000, immutable'
+      # Generated for agents on every build; should not be served stale.
+      - pattern: '/llms*.txt'
+        headers:
+          - key: Cache-Control
+            value: 'public, max-age=300, must-revalidate'

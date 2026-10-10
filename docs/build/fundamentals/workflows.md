@@ -16,7 +16,7 @@ A simple chat workflow: wait for a user message, call LLM, display the response,
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider';
 
 @Workflow({
   widget: './chat.ui.yaml', // UI config
@@ -435,12 +435,12 @@ src/
 
 ## Registry References
 
-- [chat-example-workflow](/docs/registry/examples/hitl-examples#prompt-input-chat) — Multi-turn chat workflow (the minimal example on this page)
-- [prompt-example-workflow](/docs/registry/examples/llm-examples#prompt) — Simple single-turn prompt workflow
-- [tool-call-example-workflow](/docs/registry/examples/agent-examples#custom-agent) — Tool calling loop with guards and conditional routing
-- [dynamic-routing-example-workflow](/docs/registry/examples/advanced-workflows-examples#dynamic-routing) — Multi-level guard-based routing
-- [workflow-state-example-workflow](/docs/registry/examples/advanced-workflows-examples#workflow-state) — State management with typed state interface
-- [run-sub-workflow-example](/docs/registry/examples/advanced-workflows-examples#sub-workflow) — Sub-workflow execution with callbacks
+- [chat-example-workflow](/docs/examples/hitl#prompt-input-chat) — Multi-turn chat workflow (the minimal example on this page)
+- [prompt-example-workflow](/docs/examples/llm#prompt) — Simple single-turn prompt workflow
+- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — Tool calling loop with guards and conditional routing
+- [dynamic-routing-example-workflow](/docs/examples/advanced-workflows#dynamic-routing) — Multi-level guard-based routing
+- [workflow-state-example-workflow](/docs/examples/advanced-workflows#workflow-state) — State management with typed state interface
+- [run-sub-workflow-example](/docs/examples/advanced-workflows#sub-workflow) — Sub-workflow execution with callbacks
 
 ---
 

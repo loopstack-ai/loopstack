@@ -1,0 +1,27 @@
+import { SquareTerminal } from 'lucide-react';
+import type { StudioFeature } from '@/features/feature-registry';
+import { ChangedFilesCard } from './ChangedFilesCard';
+import { HandoffCommandCard } from './HandoffCommandCard';
+import { HandoffPanel } from './HandoffPanel';
+import { TerminalHandoffCard } from './TerminalHandoffCard';
+
+/**
+ * The `handoff` feature — a sidebar panel of the run's prepared hand-off commands (open in IDE, continue in
+ * terminal, …), plus the inline renderers for `handoff`, `changed-files` and `terminal-handoff` documents in
+ * the run timeline. Enabled when the backend app mounts it via `HandoffModule.forFeature()`
+ * (`@loopstack/handoff`); its contents are the per-run `HandoffDocument`s workflows emit.
+ */
+export const handoffFeature: StudioFeature = {
+  id: 'handoff',
+  documentRenderers: {
+    handoff: HandoffCommandCard,
+    'changed-files': ChangedFilesCard,
+    'terminal-handoff': TerminalHandoffCard,
+  },
+  sidebarPanel: {
+    id: 'handoff',
+    label: 'Handoff',
+    icon: SquareTerminal,
+    component: HandoffPanel,
+  },
+};

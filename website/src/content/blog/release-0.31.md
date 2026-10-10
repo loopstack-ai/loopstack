@@ -42,7 +42,7 @@ This is the foundation for building systems where workflows are triggered by ext
 
 ## LLM Provider Registry
 
-Loopstack is no longer tied to a single LLM. The new `@loopstack/llm-provider-module` introduces a provider-agnostic registry with a clean `LlmProviderInterface`. Claude and OpenAI ship as first-party providers, and you can add your own.
+Loopstack is no longer tied to a single LLM. The new `@loopstack/llm-provider` introduces a provider-agnostic registry with a clean `LlmProviderInterface`. Claude and OpenAI ship as first-party providers, and you can add your own.
 
 Adapter tools like `LlmGenerateText`, `LlmGenerateObject`, and `LlmDelegateToolCalls` abstract away the differences between providers. Your workflows don't change when you switch models — you just change the provider config.
 
@@ -60,19 +60,19 @@ It's a generic, non-subclassable workflow that runs the classic agent loop: LLM 
 
 This release adds 12 new registry modules. Here's what's available:
 
-**Git & GitHub** — `@loopstack/git-module` ships 12 tools for status, commit, push, pull, diff, branch, and worktree operations. `@loopstack/github-module` adds 25 tools covering repos, issues, PRs, content, actions, search, and user management. Both include OAuth providers and Studio UI integration.
+**Git & GitHub** — `@loopstack/git` ships 12 tools for status, commit, push, pull, diff, branch, and worktree operations. `@loopstack/github` adds 25 tools covering repos, issues, PRs, content, actions, search, and user management. Both include OAuth providers and Studio UI integration.
 
-**Google Workspace** — `@loopstack/google-workspace-module` brings 11 tools for Calendar, Gmail, and Drive, plus a Google OAuth provider.
+**Google Workspace** — `@loopstack/google-workspace` brings 11 tools for Calendar, Gmail, and Drive, plus a Google OAuth provider.
 
-**OAuth** — `@loopstack/oauth-module` provides a provider-agnostic OAuth 2.0 framework. Providers self-register at startup, tokens are stored in Redis for multi-instance deployments, and auto-refresh is built in.
+**OAuth** — `@loopstack/oauth` provides a provider-agnostic OAuth 2.0 framework. Providers self-register at startup, tokens are stored in Redis for multi-instance deployments, and auto-refresh is built in.
 
-**MCP** — `@loopstack/mcp-module` is a client for remote MCP servers. It comes with strict security defaults: hostname allowlists, HTTPS enforcement, public IP validation, and no embedded credentials.
+**MCP** — `@loopstack/mcp` is a client for remote MCP servers. It comes with strict security defaults: hostname allowlists, HTTPS enforcement, public IP validation, and no embedded credentials.
 
-**Web** — `@loopstack/web-module` adds a `WebFetchTool` that fetches URLs, converts HTML to Markdown, and optionally summarizes content.
+**Web** — `@loopstack/web` adds a `WebFetchTool` that fetches URLs, converts HTML to Markdown, and optionally summarizes content.
 
 **Human-in-the-Loop** — `@loopstack/hitl` gained `AskClarificationTool` and `AskForApprovalTool` for pausing workflows to get user input mid-execution.
 
-**Secrets** — `@loopstack/secrets-module` was extracted from core into its own registry module with tools for requesting and listing secrets.
+**Secrets** — `@loopstack/secrets` was extracted from core into its own registry module with tools for requesting and listing secrets.
 
 **Quota** — `@loopstack/quota` provides opt-in, Redis-backed cost metering with token-based pricing calculators for Claude and OpenAI models.
 

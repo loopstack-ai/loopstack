@@ -15,8 +15,10 @@ export function routeForFile(absPath: string): string | null {
   if (rel.startsWith('docs/')) {
     return '/' + rel.replace(/\.md$/, '').replace(/\/index$/, '');
   }
-  const registry = rel.match(/^registry\/(features|examples|tools)\/([^/]+)\/README\.md$/);
-  if (registry) return `/docs/registry/${registry[1]}/${registry[2]}`;
+  const example = rel.match(/^examples\/src\/([^/]+)\/README\.md$/);
+  if (example) return `/docs/examples/${example[1]}`;
+  const registry = rel.match(/^registry\/([^/]+)\/README\.md$/);
+  if (registry) return `/docs/registry/${registry[1]}`;
   return null;
 }
 

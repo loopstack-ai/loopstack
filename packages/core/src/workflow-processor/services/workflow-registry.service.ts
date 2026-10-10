@@ -77,4 +77,16 @@ export class WorkflowRegistryService implements OnApplicationBootstrap {
   has(workflowClass: Type): boolean {
     return this.byClass.has(workflowClass);
   }
+
+  /**
+   * Check if a workflow is registered under its canonical identifier.
+   */
+  hasName(workflowName: string): boolean {
+    return this.byName.has(workflowName);
+  }
+
+  /** The canonical identifiers of every registered workflow. */
+  names(): string[] {
+    return [...this.byName.keys()];
+  }
 }

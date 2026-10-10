@@ -31,7 +31,7 @@ import { LoopCoreModule } from '@loopstack/core';
 import { WorkflowRunner } from '@loopstack/core';
 ```
 
-## `@loopstack/llm-provider-module`
+## `@loopstack/llm-provider`
 
 ```typescript
 import {
@@ -45,41 +45,38 @@ import {
   LlmProviderRegistry,
   LlmResultMeta,
   LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider-module';
+} from '@loopstack/llm-provider';
 ```
 
-## `@loopstack/claude-module`
+## `@loopstack/claude`
 
 ```typescript
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 ```
 
-## `@loopstack/handoff-module`
+## `@loopstack/handoff`
 
 ```typescript
-import {
-  ChangedFilesDocument,
-  HandoffDocument,
-  HandoffModule,
-  TerminalHandoffDocument,
-} from '@loopstack/handoff-module';
+import { ChangedFilesDocument, HandoffDocument, HandoffModule, TerminalHandoffDocument } from '@loopstack/handoff';
 ```
 
-## `@loopstack/openai-module`
+## `@loopstack/openai`
 
 ```typescript
-import { OpenAiModule } from '@loopstack/openai-module';
+import { OpenAiModule } from '@loopstack/openai';
 ```
 
-## `@loopstack/secrets-module`
+## `@loopstack/secrets`
 
 ```typescript
-import { GetSecretKeysTool, RequestSecretsTask, SecretRequestDocument } from '@loopstack/secrets-module';
+import { GetSecretKeysTool, RequestSecretsTask, SecretRequestDocument } from '@loopstack/secrets';
 ```
 
-## `@loopstack/sandbox-tool` / `@loopstack/sandbox-filesystem`
+## `@loopstack/docker-sandbox` / `@loopstack/docker-sandbox-filesystem`
 
 ```typescript
+import { SandboxCommand, SandboxDestroy, SandboxInit } from '@loopstack/docker-sandbox';
+import { SandboxToolModule } from '@loopstack/docker-sandbox';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -88,21 +85,19 @@ import {
   SandboxListDirectory,
   SandboxReadFile,
   SandboxWriteFile,
-} from '@loopstack/sandbox-filesystem';
-import { SandboxFilesystemModule } from '@loopstack/sandbox-filesystem';
-import { SandboxCommand, SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
-import { SandboxToolModule } from '@loopstack/sandbox-tool';
+} from '@loopstack/docker-sandbox-filesystem';
+import { SandboxFilesystemModule } from '@loopstack/docker-sandbox-filesystem';
 ```
 
-## `@loopstack/oauth-module`
+## `@loopstack/oauth`
 
 ```typescript
-import { OAuthProviderInterface, OAuthProviderRegistry, OAuthTokenStore } from '@loopstack/oauth-module';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+import { OAuthProviderInterface, OAuthProviderRegistry, OAuthTokenStore } from '@loopstack/oauth';
+import { OAuthWorkflow } from '@loopstack/oauth';
 ```
 
-## `@loopstack/google-workspace-module`
+## `@loopstack/google-workspace`
 
 ```typescript
-import { GoogleWorkspaceModule } from '@loopstack/google-workspace-module';
+import { GoogleWorkspaceModule } from '@loopstack/google-workspace';
 ```

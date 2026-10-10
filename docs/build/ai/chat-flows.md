@@ -12,7 +12,7 @@ Build multi-turn conversational workflows where users exchange messages with an 
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-import { LlmContextDocument, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmContextDocument, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider';
 
 @Workflow({ widget: './chat.ui.yaml' })
 export class ChatWorkflow extends BaseWorkflow {
@@ -129,5 +129,5 @@ respond(state: ChatState) {}
 
 ## Registry References
 
-- [chat-example-workflow](/docs/registry/examples/hitl-examples#prompt-input-chat) — Multi-turn chat with Claude, system message, and prompt-input widget
-- [tool-call-example-workflow](/docs/registry/examples/agent-examples#custom-agent) — Chat with tool calling loop
+- [chat-example-workflow](/docs/examples/hitl#prompt-input-chat) — Multi-turn chat with Claude, system message, and prompt-input widget
+- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — Chat with tool calling loop

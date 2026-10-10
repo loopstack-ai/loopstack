@@ -1,0 +1,152 @@
+import { Inject, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { OAuthTokenStore } from '@loopstack/oauth';
+
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    pullNumber: z.number(),
+    mergeMethod: z.enum(['merge', 'squash', 'rebase']).default('merge'),
+    commitTitle: z.string().optional(),
+    commitMessage: z.string().optional(),
+  })
+  .strict();
+
+/**
+ * Args for `GitHubMergePullRequestTool`: the repository `owner`, `repo`, `pullNumber`,
+ * `mergeMethod` and optional `commitTitle`/`commitMessage`.
+ *
+ * @public
+ */
+export type GitHubMergePullRequestArgs = z.input<typeof inputSchema>;
+
+/**
+ * Result for `GitHubMergePullRequestTool`: a `merge` object with the merge commit `sha`
+ * and `merged` flag, or an `error`.
+ *
+ * @public
+ */
+export type GitHubMergePullRequestResult =
+  | {
+      merge: {
+        sha: string;
+        merged: boolean;
+        message: string;
+      };
+    }
+  | { error: string; message: string };
+
+/**
+ * Zod schema for the success shape of {@link GitHubMergePullRequestResult}.
+ *
+ * @public
+ */
+export const GitHubMergePullRequestResultSchema = z.strictObject({
+  merge: z.strictObject({
+    sha: z.string(),
+    merged: z.boolean(),
+    message: z.string(),
+  }),
+});
+
+/**
+ * Tool that merges a GitHub pull request using the chosen merge method.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
+@Tool({
+  name: 'github_merge_pull_request',
+  description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
+  schema: inputSchema,
+  resultSchema: GitHubMergePullRequestResultSchema,
+  effects: 'external',
+})
+export class GitHubMergePullRequestTool extends BaseTool<
+  GitHubMergePullRequestArgs,
+  object,
+  GitHubMergePullRequestResult
+> {
+  private readonly logger = new Logger(GitHubMergePullRequestTool.name);
+
+  @Inject()
+  private tokenStore: OAuthTokenStore;
+
+  protected async handle(
+    args: GitHubMergePullRequestArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubMergePullRequestResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+
+    if (!accessToken) {
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'No valid GitHub token found. Please authenticate first.',
+        },
+        error: 'No valid GitHub token found. Please authenticate first.',
+      };
+    }
+
+    const requestBody: Record<string, unknown> = {
+      merge_method: args.mergeMethod ?? 'merge',
+    };
+
+    if (args.commitTitle) requestBody.commit_title = args.commitTitle;
+    if (args.commitMessage) requestBody.commit_message = args.commitMessage;
+
+    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/pulls/${args.pullNumber}/merge`;
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      return {
+        data: {
+          error: '401',
+          message: 'GitHub token was rejected. Please re-authenticate.',
+        },
+        error: 'GitHub token was rejected. Please re-authenticate.',
+      };
+    }
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      this.logger.error(`GitHub API error: ${response.status} ${errorBody}`);
+      return {
+        data: {
+          error: 'api_error',
+          message: `GitHub API error: ${response.statusText}`,
+        },
+        error: `GitHub API error: ${response.statusText}`,
+      };
+    }
+
+    const result = (await response.json()) as {
+      sha: string;
+      merged: boolean;
+      message: string;
+    };
+
+    return {
+      data: {
+        merge: {
+          sha: result.sha,
+          merged: result.merged,
+          message: result.message,
+        },
+      },
+    };
+  }
+}

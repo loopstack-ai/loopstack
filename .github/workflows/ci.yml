@@ -95,14 +95,14 @@ jobs:
       - name: Run tests
         run: npm test --if-present
 
-      # Boots sandbox/smoke-tests on Postgres + Redis and runs the deterministic example
+      # Boots the examples app on Postgres + Redis and runs the deterministic example
       # workflows through the CLI: HTTP start, queue, persistence, sub-workflow callbacks.
       - name: Smoke run
-        working-directory: sandbox/smoke-tests
+        working-directory: examples
         env:
           DATABASE_URL: postgres://postgres:admin@127.0.0.1:5432/postgres
           REDIS_URL: redis://127.0.0.1:6379
-        run: npm run test
+        run: npm run smoke
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

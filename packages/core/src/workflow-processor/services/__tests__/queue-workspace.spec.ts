@@ -41,6 +41,7 @@ function orchestrator() {
     { resolve: () => ({ instance: {}, workflowName: 'child' }) } as never,
     { save: vi.fn().mockResolvedValue(undefined) } as never,
     {} as never,
+    { emit: vi.fn() } as never,
   );
   return { service, create, addTask };
 }

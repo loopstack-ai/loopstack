@@ -181,8 +181,8 @@ function groupBySubsection(section, docs) {
 }
 
 // Per-section / per-sub-section full files live under public/llms/ mirroring the doc
-// paths, e.g. llms/build.txt, llms/build/ai.txt, llms/registry/features.txt.
-// Hyphenated keys (registry-features) map to nested paths (registry/features).
+// paths, e.g. llms/build.txt, llms/build/ai.txt, llms/registry/packages.txt.
+// Hyphenated keys (registry-packages) map to nested paths (registry/packages).
 function sectionKeyPath(section) {
   return section.key.replace(/-/g, '/');
 }

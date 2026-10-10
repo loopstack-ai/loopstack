@@ -36,13 +36,13 @@ export class GetWeather extends BaseTool<{ location: string }, object, string> {
 
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
   LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider-module';
+} from '@loopstack/llm-provider';
 import { GetWeather } from './tools/get-weather.tool';
 
 interface ToolCallState {
@@ -158,5 +158,5 @@ The `callback` arg is required — it's how async tool completions find their wa
 
 ## Registry References
 
-- [agent-example-workflow](/docs/registry/examples/agent-examples#agent) — Parent workflow that delegates to `AgentWorkflow` for tool-calling with weather and calculator tools
-- [delegate-error-example-workflow](/docs/registry/examples/agent-examples#custom-agent) — Reference for hand-rolling the tool loop when you need custom error policy or per-turn logic
+- [agent-example-workflow](/docs/examples/agent#agent) — Parent workflow that delegates to `AgentWorkflow` for tool-calling with weather and calculator tools
+- [delegate-error-example-workflow](/docs/examples/agent#custom-agent) — Reference for hand-rolling the tool loop when you need custom error policy or per-turn logic

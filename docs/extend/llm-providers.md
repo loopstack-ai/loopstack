@@ -10,13 +10,13 @@ Add a new LLM provider to Loopstack by implementing `LlmProviderInterface` and r
 ## Architecture
 
 ```
-@loopstack/llm-provider-module     ← contracts, registry, adapter tools, helpers
+@loopstack/llm-provider     ← contracts, registry, adapter tools, helpers
     ↑               ↑              ↑
-claude-module    openai-module   your-module
+@loopstack/claude  @loopstack/openai  your provider
 ```
 
-- **`@loopstack/llm-provider-module`** — shared interfaces, `LlmProviderRegistry`, adapter tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`), shared helpers, and `LlmMessageDocument`
-- **Provider modules** (e.g. `@loopstack/claude-module`, `@loopstack/openai-module`) — implement `LlmProviderInterface`, self-register at module init
+- **`@loopstack/llm-provider`** — shared interfaces, `LlmProviderRegistry`, adapter tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`), shared helpers, and `LlmMessageDocument`
+- **Provider modules** (e.g. `@loopstack/claude`, `@loopstack/openai`) — implement `LlmProviderInterface`, self-register at module init
 - Adapter tools route to the correct provider at runtime based on the `provider` config value
 
 ## Implement `LlmProviderInterface`
@@ -32,8 +32,8 @@ import type {
   LlmNormalizedMessage,
   LlmProviderInterface,
   LlmUsage,
-} from '@loopstack/llm-provider-module';
-import { LlmProviderRegistry } from '@loopstack/llm-provider-module';
+} from '@loopstack/llm-provider';
+import { LlmProviderRegistry } from '@loopstack/llm-provider';
 
 @Injectable()
 export class OllamaLlmProvider implements LlmProviderInterface, OnModuleInit {

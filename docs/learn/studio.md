@@ -135,7 +135,7 @@ And run the loopstack studio from the loopstack monorepo:
 
 ```
 git clone git@github.com:loopstack-ai/loopstack.git
-cd loopstack/frontend/studio
+cd loopstack/studio
 npm install
 npm run dev
 ```

@@ -1,0 +1,135 @@
+import { Inject, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { OAuthTokenStore } from '@loopstack/oauth';
+
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    workflowId: z.string(),
+    ref: z.string(),
+    inputs: z.record(z.string(), z.string()).optional(),
+  })
+  .strict();
+
+/**
+ * Args for `GitHubTriggerWorkflowTool`: the repository `owner`, `repo`, `workflowId`,
+ * `ref` to run against and optional `inputs` for the dispatch event.
+ *
+ * @public
+ */
+export type GitHubTriggerWorkflowArgs = z.infer<typeof inputSchema>;
+
+/**
+ * Result for `GitHubTriggerWorkflowTool`: a `triggered` flag with a message, or an `error`.
+ *
+ * @public
+ */
+export type GitHubTriggerWorkflowResult =
+  | {
+      triggered: boolean;
+      message: string;
+    }
+  | { error: string; message: string };
+
+/**
+ * Zod schema for the success shape of {@link GitHubTriggerWorkflowResult}.
+ *
+ * @public
+ */
+export const GitHubTriggerWorkflowResultSchema = z.strictObject({
+  triggered: z.boolean(),
+  message: z.string(),
+});
+
+/**
+ * Tool that triggers a GitHub Actions workflow dispatch event on a given ref.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
+@Tool({
+  name: 'github_trigger_workflow',
+  description:
+    'Triggers a GitHub Actions workflow dispatch event. Returns 204 No Content on success. Returns { error: "unauthorized" } if no valid token is available.',
+  schema: inputSchema,
+  resultSchema: GitHubTriggerWorkflowResultSchema,
+  effects: 'external',
+})
+export class GitHubTriggerWorkflowTool extends BaseTool<
+  GitHubTriggerWorkflowArgs,
+  object,
+  GitHubTriggerWorkflowResult
+> {
+  private readonly logger = new Logger(GitHubTriggerWorkflowTool.name);
+
+  @Inject()
+  private tokenStore: OAuthTokenStore;
+
+  protected async handle(
+    args: GitHubTriggerWorkflowArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubTriggerWorkflowResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+
+    if (!accessToken) {
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'No valid GitHub token found. Please authenticate first.',
+        },
+        error: 'No valid GitHub token found. Please authenticate first.',
+      };
+    }
+
+    const requestBody: Record<string, unknown> = {
+      ref: args.ref,
+    };
+
+    if (args.inputs) requestBody.inputs = args.inputs;
+
+    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/actions/workflows/${encodeURIComponent(args.workflowId)}/dispatches`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      return {
+        data: {
+          error: '401',
+          message: 'GitHub token was rejected. Please re-authenticate.',
+        },
+        error: 'GitHub token was rejected. Please re-authenticate.',
+      };
+    }
+
+    if (!response.ok && response.status !== 204) {
+      const body = await response.text();
+      this.logger.error(`GitHub API error: ${response.status} ${body}`);
+      return {
+        data: {
+          error: 'api_error',
+          message: `GitHub API error: ${response.statusText}`,
+        },
+        error: `GitHub API error: ${response.statusText}`,
+      };
+    }
+
+    return {
+      data: {
+        triggered: true,
+        message: 'Workflow dispatch event triggered successfully.',
+      },
+    };
+  }
+}

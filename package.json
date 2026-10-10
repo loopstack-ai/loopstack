@@ -89,9 +89,10 @@
   "packageManager": "npm@11.11.0",
   "workspaces": [
     "packages/*",
-    "frontend/*",
-    "registry/*/*",
-    "services/*",
+    "studio",
+    "registry/*",
+    "registry/remote-client/server",
+    "examples",
     "sandbox/*"
   ]
 }

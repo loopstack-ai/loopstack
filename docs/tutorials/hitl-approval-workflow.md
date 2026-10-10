@@ -32,7 +32,7 @@ start → show raw notes → [user clicks "Optimize"] → LLM structures the not
 This workflow uses the Claude LLM provider for structured output:
 
 ```shell
-npm install @loopstack/claude-module @loopstack/llm-provider-module
+npm install @loopstack/claude @loopstack/llm-provider
 ```
 
 ---
@@ -45,7 +45,7 @@ Create `src/meeting-notes/meeting-notes.module.ts`:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { MeetingNotesWorkflow } from './meeting-notes.workflow';
 
@@ -224,8 +224,8 @@ import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
-import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
-import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
+import type { LlmGenerateObjectResult } from '@loopstack/llm-provider';
+import { LlmGenerateObjectTool } from '@loopstack/llm-provider';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 
@@ -356,4 +356,4 @@ Each `wait: true` transition is a checkpoint. The workflow can pause here for se
 - **[Sub-Workflows](../build/patterns/sub-workflows.md)** — Use this workflow as a step inside a larger workflow
 - **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — Add a guard to route differently if the LLM output confidence is low
 - **[Error Handling](../build/patterns/error-handling.md)** — Add retry logic to the `optimizeNotes` transition in case the LLM call fails
-- **[Registry example](/docs/registry/examples/hitl-examples#meeting-notes)** — The complete source for this workflow
+- **[Registry example](/docs/examples/hitl#meeting-notes)** — The complete source for this workflow

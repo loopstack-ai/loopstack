@@ -299,7 +299,7 @@ await this.llmGenerateText.call(
 );
 ```
 
-A server tool and a regular tool can wrap the same provider feature, and they are used differently. `@loopstack/claude-module` ships `claude_native_web_search`, the server tool above: list it in an agent's or LLM call's `tools`, and Claude searches inside that call. `@loopstack/claude-tools-module` ships `claude_web_search_step`, a `BaseTool` you call from workflow code: it makes its own Claude request with `claude_native_web_search` and returns the hits. To give an agent web search, list `claude_native_web_search` — listing `claude_web_search_step` works too, but every search then costs a second LLM call.
+A server tool and a regular tool can wrap the same provider feature, and they are used differently. `@loopstack/claude` ships `claude_native_web_search`, the server tool above: list it in an agent's or LLM call's `tools`, and Claude searches inside that call. `@loopstack/claude-tools` ships `claude_web_search_step`, a `BaseTool` you call from workflow code: it makes its own Claude request with `claude_native_web_search` and returns the hits. To give an agent web search, list `claude_native_web_search` — listing `claude_web_search_step` works too, but every search then costs a second LLM call.
 
 ## Using Tools in Workflows
 
@@ -343,8 +343,8 @@ src/
 
 ## Registry References
 
-- [custom-tool-example-module](/docs/registry/examples/advanced-workflows-examples#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
-- [tool-call-example-workflow](/docs/registry/examples/agent-examples#custom-agent) — GetWeather tool exposed to the LLM for function calling
+- [custom-tool-example-module](/docs/examples/advanced-workflows#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
+- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — GetWeather tool exposed to the LLM for function calling
 
 ---
 

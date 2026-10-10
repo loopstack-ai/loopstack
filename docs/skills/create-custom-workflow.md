@@ -216,7 +216,7 @@ export class MyWorkflow extends BaseWorkflow<MyArgs> {
 Documents are referenced by class — no injection needed. Use `this.documentStore.save()` to create/update documents. `documentStore` is auto-injected on `BaseWorkflow`.
 
 ```typescript
-import { LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmMessageDocument } from '@loopstack/llm-provider';
 
 // Save a new document
 await this.documentStore.save(LlmMessageDocument, {
@@ -421,7 +421,7 @@ export class MyFeatureModule {}
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider';
 
 const PromptSchema = z.object({
   subject: z.string().default('coffee'),

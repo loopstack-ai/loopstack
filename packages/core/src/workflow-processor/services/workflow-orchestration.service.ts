@@ -1,4 +1,5 @@
 import { Injectable, Logger, Type } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomUUID } from 'node:crypto';
 import {
   LinkDocument,
@@ -17,6 +18,7 @@ import type { ScheduledTask } from '@loopstack/contracts/types';
 import { TransitionAbortedError } from '../../common/index.js';
 import { WorkflowService } from '../../persistence/services/workflow.service.js';
 import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
+import { WORKFLOW_SETTLED, type WorkflowSettledEvent, isSettledState } from '../events/index.js';
 import { ExecutionScope, ExecutionScopeData } from '../utils/index.js';
 import { CreateWorkflowService } from './create-workflow.service.js';
 import { DocumentStore } from './document-store.service.js';
@@ -43,6 +45,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     private readonly workflowRegistryService: WorkflowRegistryService,
     private readonly documentStore: DocumentStore,
     private readonly statelessChildRunner: StatelessChildRunner,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async queue(workflowClass: Type, args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
@@ -240,10 +243,9 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     // 3. Set status to Canceled
     await this.workflowService.setWorkflowStatus(workflow, WorkflowState.Canceled);
 
-    // 4. Trigger parent callback if configured
-    if (workflow.parentId && workflow.callbackTransition) {
-      await this.complete(workflow);
-    }
+    // 4. Announce the run's end and, if it has one, call its parent back — `complete` does both and returns
+    // on its own for a run with no callback, so there is no condition to repeat here.
+    await this.complete(workflow);
   }
 
   async cancelChildren(parentWorkflowId: string): Promise<void> {
@@ -254,6 +256,26 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
   }
 
   async complete(workflowEntity: WorkflowEntity): Promise<void> {
+    // Every path that settles a run arrives here — a processing pass that reached a terminal state, a task
+    // the queue gave up on, a cancellation — so this is where the run's end is announced, before the early
+    // return below for a run with no parent to call back. A listener that throws must not take the callback
+    // with it: whatever it was releasing is its own business, and the parent is still owed its turn.
+    if (isSettledState(workflowEntity.status)) {
+      try {
+        this.eventEmitter.emit(WORKFLOW_SETTLED, {
+          id: workflowEntity.id,
+          workspaceId: workflowEntity.workspaceId,
+          workflowName: workflowEntity.workflowName,
+          ...(workflowEntity.parentId ? { parentId: workflowEntity.parentId } : {}),
+          status: workflowEntity.status,
+          user: workflowEntity.createdBy,
+        } satisfies WorkflowSettledEvent);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.error(`A ${WORKFLOW_SETTLED} listener failed for workflow ${workflowEntity.id}: ${message}`);
+      }
+    }
+
     if (!workflowEntity.parentId || !workflowEntity.callbackTransition) {
       return;
     }

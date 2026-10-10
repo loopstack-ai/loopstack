@@ -23,7 +23,7 @@ function frontmatterTitle(file: string): string | null {
 function entriesFrom(
   dir: string,
   routePrefix: string,
-  options: { readme?: boolean; stripLabelPrefix?: string } = {},
+  options: { readme?: boolean; stripLabelPrefix?: string; stripLabelSuffix?: string } = {},
 ): { label: string; slug: string }[] {
   const base = path.join(REPO_ROOT, dir);
   if (!fs.existsSync(base)) return [];
@@ -41,6 +41,9 @@ function entriesFrom(
       let label = frontmatterTitle(file) ?? name;
       if (options.stripLabelPrefix && label.startsWith(options.stripLabelPrefix)) {
         label = label.slice(options.stripLabelPrefix.length);
+      }
+      if (options.stripLabelSuffix && label.endsWith(options.stripLabelSuffix)) {
+        label = label.slice(0, -options.stripLabelSuffix.length);
       }
       return [{ label, slug: `${routePrefix}/${name}` }];
     });
@@ -153,18 +156,18 @@ export const sidebar: StarlightUserConfig['sidebar'] = [
     ],
   },
   {
+    label: 'Examples',
+    collapsed: true,
+    items: entriesFrom('examples/src', 'docs/examples', { readme: true, stripLabelSuffix: ' Examples' }),
+  },
+  {
     label: 'Registry',
     items: [
       { label: 'Overview', slug: 'docs/registry' },
       {
-        label: 'Features',
+        label: 'Packages',
         collapsed: true,
-        items: entriesFrom('registry/features', 'docs/registry/features', { readme: true }),
-      },
-      {
-        label: 'Examples',
-        collapsed: true,
-        items: entriesFrom('registry/examples', 'docs/registry/examples', { readme: true }),
+        items: entriesFrom('registry', 'docs/registry', { readme: true }),
       },
     ],
   },

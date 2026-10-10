@@ -11,7 +11,7 @@ Add a new OAuth provider to Loopstack by implementing `OAuthProviderInterface` a
 
 ```typescript
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { OAuthProviderInterface, OAuthProviderRegistry, OAuthTokenSet } from '@loopstack/oauth-module';
+import { OAuthProviderInterface, OAuthProviderRegistry, OAuthTokenSet } from '@loopstack/oauth';
 
 @Injectable()
 export class MyOAuthProvider implements OAuthProviderInterface, OnModuleInit {
@@ -74,7 +74,7 @@ The provider self-registers via `OnModuleInit`. Once registered, it's available 
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { OAuthModule } from '@loopstack/oauth-module';
+import { OAuthModule } from '@loopstack/oauth';
 import { MyOAuthProvider } from './my-oauth-provider';
 
 @Module({
@@ -116,7 +116,7 @@ await this.oAuth.run(
 
 ## Existing Providers
 
-| Provider | Module                               | Provider ID |
-| -------- | ------------------------------------ | ----------- |
-| Google   | `@loopstack/google-workspace-module` | `'google'`  |
-| GitHub   | `@loopstack/github-module`           | `'github'`  |
+| Provider | Module                        | Provider ID |
+| -------- | ----------------------------- | ----------- |
+| Google   | `@loopstack/google-workspace` | `'google'`  |
+| GitHub   | `@loopstack/github`           | `'github'`  |

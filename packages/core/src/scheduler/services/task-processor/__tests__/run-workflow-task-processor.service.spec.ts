@@ -1,3 +1,4 @@
+import { UnrecoverableError } from 'bullmq';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import type { RunWorkflowTask } from '@loopstack/contracts/types';
@@ -8,6 +9,7 @@ describe('RunWorkflowTaskProcessorService', () => {
   let workflowService: { getWorkflow: ReturnType<typeof vi.fn> };
   let rootProcessorService: { runWorkflow: ReturnType<typeof vi.fn> };
   let memoryMonitor: { logHeap: ReturnType<typeof vi.fn> };
+  let workflowRegistryService: { hasName: ReturnType<typeof vi.fn>; names: ReturnType<typeof vi.fn> };
 
   const workflowId = 'wf-1';
 
@@ -24,13 +26,14 @@ describe('RunWorkflowTaskProcessorService', () => {
     workflowService = { getWorkflow: vi.fn() };
     rootProcessorService = { runWorkflow: vi.fn().mockResolvedValue({}) };
     memoryMonitor = { logHeap: vi.fn() };
+    workflowRegistryService = { hasName: vi.fn().mockReturnValue(true), names: vi.fn().mockReturnValue(['demo']) };
 
     service = new RunWorkflowTaskProcessorService(
       {} as never,
       workflowService as never,
       rootProcessorService as never,
       memoryMonitor as never,
-      {} as never,
+      workflowRegistryService as never,
       {} as never, // orchestrator
     );
   });
@@ -63,5 +66,32 @@ describe('RunWorkflowTaskProcessorService', () => {
 
     await expect(service.process(makeTask())).rejects.toThrow(`Workflow with id ${workflowId} not found.`);
     expect(rootProcessorService.runWorkflow).not.toHaveBeenCalled();
+  });
+
+  describe('a job for a workflow this deployment does not have', () => {
+    beforeEach(() => {
+      workflowService.getWorkflow.mockResolvedValue({
+        id: workflowId,
+        workflowName: 'foreign',
+        status: WorkflowState.Pending,
+      });
+      workflowRegistryService.hasName.mockReturnValue(false);
+    });
+
+    it('refuses it without retrying, and names the shared-Redis cause', async () => {
+      // UnrecoverableError stops BullMQ from burning the remaining attempts, so the run is failed
+      // with this reason immediately instead of after three backed-off retries.
+      await expect(service.process(makeTask())).rejects.toThrow(UnrecoverableError);
+      await expect(service.process(makeTask())).rejects.toThrow(
+        /Workflow "foreign" is not registered in this deployment.*sharing this Redis database.*REDIS_DB/s,
+      );
+      expect(rootProcessorService.runWorkflow).not.toHaveBeenCalled();
+    });
+
+    it('lists what is registered here, capped', async () => {
+      workflowRegistryService.names.mockReturnValue(Array.from({ length: 14 }, (_, i) => `wf_${i}`));
+
+      await expect(service.process(makeTask())).rejects.toThrow(/Registered here: wf_0.*wf_9 and 4 more\./s);
+    });
   });
 });

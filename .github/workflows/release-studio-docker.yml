@@ -51,7 +51,7 @@ jobs:
         run: |
           VERSION="${{ inputs.version }}"
           if [ -z "$VERSION" ]; then
-            VERSION=$(node -p "require('./frontend/studio/package.json').version")
+            VERSION=$(node -p "require('./studio/package.json').version")
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -108,7 +108,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ./frontend/studio
+          context: ./studio
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-stable.outputs.tags }}

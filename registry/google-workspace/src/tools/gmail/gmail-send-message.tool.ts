@@ -1,0 +1,162 @@
+import { Inject, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { OAuthTokenStore } from '@loopstack/oauth';
+import { encodeHeaderText, headerValue } from './mime-headers.js';
+
+const inputSchema = z
+  .object({
+    to: z.array(headerValue),
+    cc: z.array(headerValue).optional(),
+    bcc: z.array(headerValue).optional(),
+    subject: headerValue,
+    body: z.string(),
+    htmlBody: z.string().optional(),
+  })
+  .strict();
+
+/**
+ * Args for `GmailSendMessageTool`.
+ *
+ * @public
+ */
+export type GmailSendMessageArgs = z.infer<typeof inputSchema>;
+
+/**
+ * Result for `GmailSendMessageTool`.
+ *
+ * @public
+ */
+export type GmailSendMessageResult =
+  | { id: string; threadId: string; labelIds: string[] }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
+/**
+ * Zod schema for the success shape of {@link GmailSendMessageResult} — the sent message.
+ *
+ * @public
+ */
+export const GmailSendMessageResultSchema = z.strictObject({
+  id: z.string(),
+  threadId: z.string(),
+  labelIds: z.array(z.string()),
+});
+
+/**
+ * Tool that sends a new email via Gmail. Takes `to`/`cc`/`bcc` recipients, a subject, and plain-text
+ * (and optional HTML) body, and returns the sent message's id, thread id, and label ids, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
+@Tool({
+  name: 'gmail_send_message',
+  description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',
+  schema: inputSchema,
+  resultSchema: GmailSendMessageResultSchema,
+  effects: 'external',
+})
+export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object, GmailSendMessageResult> {
+  private readonly logger = new Logger(GmailSendMessageTool.name);
+
+  @Inject()
+  private tokenStore: OAuthTokenStore;
+
+  protected async handle(args: GmailSendMessageArgs, ctx: RunContext): Promise<ToolEnvelope<GmailSendMessageResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+
+    if (!accessToken) {
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'No valid Google token found. Please authenticate first.',
+        },
+        error: 'No valid Google token found. Please authenticate first.',
+      };
+    }
+
+    const rawMessage = this.buildMimeMessage(args);
+    const encodedMessage = Buffer.from(rawMessage)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    const response = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ raw: encodedMessage }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      this.logger.warn(`Gmail API returned ${response.status} for user ${ctx.userId}`);
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'Google token was rejected. Please re-authenticate.',
+        },
+        error: 'Google token was rejected. Please re-authenticate.',
+      };
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      this.logger.error(`Gmail API error: ${response.status} ${body}`);
+      return {
+        data: {
+          error: 'api_error',
+          message: `Gmail API error: ${response.statusText}`,
+        },
+        error: `Gmail API error: ${response.statusText}`,
+      };
+    }
+
+    const result = (await response.json()) as {
+      id: string;
+      threadId: string;
+      labelIds: string[];
+    };
+
+    return {
+      data: {
+        id: result.id,
+        threadId: result.threadId,
+        labelIds: result.labelIds,
+      },
+    };
+  }
+
+  private buildMimeMessage(args: GmailSendMessageArgs): string {
+    const headers = [`To: ${args.to.join(', ')}`, `Subject: ${encodeHeaderText(args.subject)}`, 'MIME-Version: 1.0'];
+
+    if (args.cc?.length) headers.push(`Cc: ${args.cc.join(', ')}`);
+    if (args.bcc?.length) headers.push(`Bcc: ${args.bcc.join(', ')}`);
+
+    if (args.htmlBody) {
+      const boundary = `boundary_${Date.now()}`;
+      headers.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
+      return [
+        headers.join('\r\n'),
+        '',
+        `--${boundary}`,
+        'Content-Type: text/plain; charset="UTF-8"',
+        '',
+        args.body,
+        `--${boundary}`,
+        'Content-Type: text/html; charset="UTF-8"',
+        '',
+        args.htmlBody,
+        `--${boundary}--`,
+      ].join('\r\n');
+    }
+
+    headers.push('Content-Type: text/plain; charset="UTF-8"');
+    return [headers.join('\r\n'), '', args.body].join('\r\n');
+  }
+}

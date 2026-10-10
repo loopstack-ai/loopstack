@@ -137,15 +137,15 @@ const all = this.documentStore.findAllDocuments();
 
 These are available without creating custom documents:
 
-| Document             | Source                           | Key Fields                                 |
-| -------------------- | -------------------------------- | ------------------------------------------ |
-| `LlmMessageDocument` | `@loopstack/llm-provider-module` | `role`, `text`, `blocks`                   |
-| `LlmContextDocument` | `@loopstack/llm-provider-module` | `role`, `text`                             |
-| `LinkDocument`       | `@loopstack/common`              | `label`, `workflowId`, `embed`, `expanded` |
-| `MessageDocument`    | `@loopstack/common`              | `role`, `text`                             |
-| `MarkdownDocument`   | `@loopstack/common`              | `markdown`                                 |
-| `PlainDocument`      | `@loopstack/common`              | `text`                                     |
-| `ErrorDocument`      | `@loopstack/common`              | `error`                                    |
+| Document             | Source                    | Key Fields                                 |
+| -------------------- | ------------------------- | ------------------------------------------ |
+| `LlmMessageDocument` | `@loopstack/llm-provider` | `role`, `text`, `blocks`                   |
+| `LlmContextDocument` | `@loopstack/llm-provider` | `role`, `text`                             |
+| `LinkDocument`       | `@loopstack/common`       | `label`, `workflowId`, `embed`, `expanded` |
+| `MessageDocument`    | `@loopstack/common`       | `role`, `text`                             |
+| `MarkdownDocument`   | `@loopstack/common`       | `markdown`                                 |
+| `PlainDocument`      | `@loopstack/common`       | `text`                                     |
+| `ErrorDocument`      | `@loopstack/common`       | `error`                                    |
 
 ### Choosing the right built-in type
 
@@ -159,7 +159,7 @@ These are available without creating custom documents:
 
 ```typescript
 import { LinkDocument, MarkdownDocument, PlainDocument } from '@loopstack/common';
-import { LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmMessageDocument } from '@loopstack/llm-provider';
 
 await this.documentStore.save(LlmMessageDocument, {
   role: 'assistant',
@@ -330,9 +330,9 @@ const result = await this.llmGenerateObject.call(
 
 ## Registry References
 
-- [prompt-structured-output-example-workflow](/docs/registry/examples/llm-examples#structured-output) — FileDocument with code-view widget for AI-generated code
-- [meeting-notes-example-workflow](/docs/registry/examples/hitl-examples#meeting-notes) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
-- [test-ui-documents-example-workflow](/docs/registry/examples/advanced-workflows-examples#ui-documents) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
+- [prompt-structured-output-example-workflow](/docs/examples/llm#structured-output) — FileDocument with code-view widget for AI-generated code
+- [meeting-notes-example-workflow](/docs/examples/hitl#meeting-notes) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
+- [test-ui-documents-example-workflow](/docs/examples/advanced-workflows#ui-documents) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
 
 ---
 

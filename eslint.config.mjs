@@ -59,7 +59,7 @@ export default tseslint.config(
 
   // Backend (NestJS) - Node globals
   {
-    files: ['packages/**/*.ts', 'registry/**/*.ts', 'sandbox/**/*.ts'],
+    files: ['packages/**/*.ts', 'registry/**/*.ts', 'examples/**/*.ts', 'sandbox/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -176,7 +176,13 @@ export default tseslint.config(
   // whose installs don't hoist. Type-only imports count too: they end up in the published .d.ts files.
   // devDependencies are allowed only in test code.
   {
-    files: ['packages/*/src/**/*.{ts,tsx}', 'registry/*/*/src/**/*.ts', 'frontend/*/src/**/*.{ts,tsx}'],
+    files: [
+      'packages/*/src/**/*.{ts,tsx}',
+      'registry/*/src/**/*.ts',
+      'registry/remote-client/server/src/**/*.ts',
+      'examples/src/**/*.ts',
+      'studio/src/**/*.{ts,tsx}',
+    ],
     plugins: { 'import-x': importX },
     settings: {
       // Resolve as Node does at runtime: packages such as typeorm export only under the `node` condition,
@@ -205,7 +211,7 @@ export default tseslint.config(
   // Studio's library build bundles every import its vite config doesn't mark external into dist, so a
   // bundled package is rightly a devDependency.
   {
-    files: ['frontend/studio/src/**/*.{ts,tsx}'],
+    files: ['studio/src/**/*.{ts,tsx}'],
     rules: {
       'import-x/no-extraneous-dependencies': [
         'error',
@@ -228,6 +234,9 @@ export default tseslint.config(
       'registry/**/*.spec.ts',
       'registry/**/*.test.ts',
       'registry/**/__tests__/**/*.ts',
+      'examples/**/*.spec.ts',
+      'examples/**/*.test.ts',
+      'examples/**/__tests__/**/*.ts',
     ],
     rules: {
       // Allow non-null assertions in tests
@@ -249,7 +258,7 @@ export default tseslint.config(
 
   // Frontend (React/Vite) - Browser globals + React plugins
   {
-    files: ['frontend/**/*.{ts,tsx}'],
+    files: ['studio/**/*.{ts,tsx}'],
     plugins: {
       // 'react-hooks': reactHooks,
       'react-refresh': reactRefresh,

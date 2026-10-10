@@ -10,7 +10,8 @@ includeInLlmsFullTxt: false
 
 ### BashTool
 
-Tool that executes a shell command on the remote instance and returns its output and exit code.
+Tool that executes a shell command on the remote instance, streaming its output live into a document
+as it runs, and returns the merged output plus the exit code.
 
 ```ts
 import { BashTool } from '@loopstack/remote-client';
@@ -21,7 +22,7 @@ import { BashTool } from '@loopstack/remote-client';
 ```ts
 export class BashTool extends BaseTool<BashArgs, object, BashResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(args: BashArgs): Promise<ToolEnvelope<BashResult>>;
+  protected handle(args: BashArgs, ctx: RunContext): Promise<ToolEnvelope<BashResult>>;
 }
 ```
 
@@ -56,7 +57,12 @@ import { EnvironmentService } from '@loopstack/remote-client';
 
 ```ts
 export class EnvironmentService {
-  constructor(scope: ScopeAccessor, repo: Repository<WorkspaceEnvironmentEntity>, remote: RemoteClient);
+  constructor(
+    scope: ScopeAccessor,
+    repo: Repository<WorkspaceEnvironmentEntity>,
+    remote: RemoteClient,
+    clientMessages: ClientMessageService,
+  );
   getEnvironments(): Promise<WorkspaceEnvironmentContextDto[]>;
   getAgentUrl(slotId?: string): Promise<string>;
   assertReachable(slotId?: string): Promise<string>;
@@ -195,6 +201,23 @@ export class RemoteClient {
     replaceAll?: boolean,
   ): Promise<FileEditResponse>;
   executeCommand(connectionUrl: string, command: string, cwd?: string, timeout?: number): Promise<ExecResponse>;
+  startExec(
+    connectionUrl: string,
+    options: {
+      command: string;
+      cwd?: string;
+      timeout?: number;
+    },
+  ): Promise<ExecStartResponse>;
+  execStatus(connectionUrl: string, id: string): Promise<ExecStatusResponse>;
+  readExecLog(connectionUrl: string, id: string, offset: number): Promise<ExecLogChunk>;
+  killExec(
+    connectionUrl: string,
+    id: string,
+  ): Promise<{
+    ok: boolean;
+  }>;
+  streamCommand(connectionUrl: string, options: StreamCommandOptions): Promise<StreamCommandResult>;
   glob(connectionUrl: string, pattern: string, path?: string): Promise<GlobResponse>;
   grep(
     connectionUrl: string,
@@ -223,6 +246,13 @@ export class RemoteClient {
     restarted: boolean;
   }>;
   resetWorkspace(connectionUrl: string): Promise<{
+    success: boolean;
+    message: string;
+  }>;
+  purgeWorkspace(
+    connectionUrl: string,
+    workspaceRoot?: string,
+  ): Promise<{
     success: boolean;
     message: string;
   }>;
@@ -430,6 +460,7 @@ export class WorkspaceEnvironmentDto implements WorkspaceEnvironmentInterface {
   workerId?: string;
   workerUrl?: string;
   local?: boolean;
+  status?: EnvironmentStatus;
   static create(entity: WorkspaceEnvironmentEntity): WorkspaceEnvironmentDto;
 }
 ```
@@ -453,6 +484,21 @@ export class WriteTool extends BaseTool<WriteArgs, object, WriteResult> {
 
 ## Interfaces
 
+### ExecLogChunk
+
+One incremental slice of a streamed command's merged output from `RemoteClient.readExecLog`.
+
+```ts
+import { ExecLogChunk } from '@loopstack/remote-client';
+```
+
+```ts
+export interface ExecLogChunk {
+  chunk: string;
+  nextOffset: number;
+}
+```
+
 ### ExecResponse
 
 Response from `RemoteClient.executeCommand` — stdout, stderr, and the process exit code.
@@ -466,6 +512,41 @@ export interface ExecResponse {
   stdout: string;
   stderr: string;
   exitCode: number;
+}
+```
+
+### ExecStartResponse
+
+Response from `RemoteClient.startExec` — the id of the started streamed command.
+
+```ts
+import { ExecStartResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface ExecStartResponse {
+  id: string;
+}
+```
+
+### ExecStatusResponse
+
+Status of a streamed command from `RemoteClient.execStatus`.
+
+```ts
+import { ExecStatusResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface ExecStatusResponse {
+  id: string;
+  status: 'running' | 'exited' | 'killed';
+  exitCode: number | null;
+  killedBySignal: string | null;
+  timedOut: boolean;
+  bytesWritten: number;
+  startedAt: string;
+  endedAt: string | null;
 }
 ```
 
@@ -571,5 +652,39 @@ export interface RemoteClientModuleOptions {
   environments?: {
     available?: AvailableEnvironmentInterface[];
   };
+}
+```
+
+### StreamCommandOptions
+
+Options for `RemoteClient.streamCommand` — how to run the command and where to deliver live output.
+
+```ts
+import { StreamCommandOptions } from '@loopstack/remote-client';
+```
+
+```ts
+export interface StreamCommandOptions {
+  command: string;
+  cwd?: string;
+  timeout?: number;
+  pollMs?: number;
+  signal?: AbortSignal;
+  onChunk?: (chunk: string) => void | Promise<void>;
+}
+```
+
+### StreamCommandResult
+
+Terminal outcome of `RemoteClient.streamCommand` — the exit code and the full captured output.
+
+```ts
+import { StreamCommandResult } from '@loopstack/remote-client';
+```
+
+```ts
+export interface StreamCommandResult {
+  exitCode: number;
+  output: string;
 }
 ```

@@ -1,5 +1,3 @@
-export interface RedisOptions {
-  host?: string;
-  port?: number;
-  password?: string;
-}
+import type { RedisConnectionOptions } from '@loopstack/common';
+
+export type RedisOptions = RedisConnectionOptions;

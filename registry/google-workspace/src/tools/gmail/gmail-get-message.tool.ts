@@ -1,0 +1,234 @@
+import { Inject, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { OAuthTokenStore } from '@loopstack/oauth';
+
+const inputSchema = z
+  .object({
+    messageId: z.string(),
+    format: z.enum(['full', 'metadata', 'minimal']).default('full'),
+  })
+  .strict();
+
+/**
+ * Args for `GmailGetMessageTool`.
+ *
+ * @public
+ */
+export type GmailGetMessageArgs = z.infer<typeof inputSchema>;
+
+/**
+ * Result for `GmailGetMessageTool`.
+ *
+ * @public
+ */
+export type GmailGetMessageResult =
+  | {
+      id: string;
+      threadId: string;
+      from: string;
+      to: string;
+      cc: string;
+      subject: string;
+      date: string;
+      body: string;
+      snippet: string;
+      labelIds: string[];
+      attachments: Array<{ attachmentId: string; filename: string; mimeType: string; size: number }>;
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
+/**
+ * Zod schema for the success shape of {@link GmailGetMessageResult} — the message content and
+ * attachment metadata.
+ *
+ * @public
+ */
+export const GmailGetMessageResultSchema = z.strictObject({
+  id: z.string(),
+  threadId: z.string(),
+  from: z.string(),
+  to: z.string(),
+  cc: z.string(),
+  subject: z.string(),
+  date: z.string(),
+  body: z.string(),
+  snippet: z.string(),
+  labelIds: z.array(z.string()),
+  attachments: z.array(
+    z.strictObject({
+      attachmentId: z.string(),
+      filename: z.string(),
+      mimeType: z.string(),
+      size: z.number(),
+    }),
+  ),
+});
+
+interface GmailMessagePart {
+  mimeType: string;
+  filename?: string;
+  headers?: Array<{ name: string; value: string }>;
+  body: { attachmentId?: string; size: number; data?: string };
+  parts?: GmailMessagePart[];
+}
+
+/**
+ * Tool that gets the full content of a single Gmail message. Takes a `messageId` and `format`, and
+ * returns headers, decoded body text, snippet, label ids, and attachment metadata, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
+@Tool({
+  name: 'gmail_get_message',
+  description:
+    'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
+  schema: inputSchema,
+  resultSchema: GmailGetMessageResultSchema,
+  effects: 'none',
+})
+export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, GmailGetMessageResult> {
+  private readonly logger = new Logger(GmailGetMessageTool.name);
+
+  @Inject()
+  private tokenStore: OAuthTokenStore;
+
+  protected async handle(args: GmailGetMessageArgs, ctx: RunContext): Promise<ToolEnvelope<GmailGetMessageResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+
+    if (!accessToken) {
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'No valid Google token found. Please authenticate first.',
+        },
+        error: 'No valid Google token found. Please authenticate first.',
+      };
+    }
+
+    const format = args.format || 'full';
+    const response = await fetch(
+      `https://www.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(args.messageId)}?format=${format}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (response.status === 401 || response.status === 403) {
+      this.logger.warn(`Gmail API returned ${response.status} for user ${ctx.userId}`);
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'Google token was rejected. Please re-authenticate.',
+        },
+        error: 'Google token was rejected. Please re-authenticate.',
+      };
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      this.logger.error(`Gmail API error: ${response.status} ${body}`);
+      return {
+        data: {
+          error: 'api_error',
+          message: `Gmail API error: ${response.statusText}`,
+        },
+        error: `Gmail API error: ${response.statusText}`,
+      };
+    }
+
+    const msgData = (await response.json()) as {
+      id: string;
+      threadId: string;
+      snippet: string;
+      labelIds: string[];
+      // Absent for `format: 'minimal'`.
+      payload?: GmailMessagePart;
+    };
+
+    const { payload } = msgData;
+    const getHeader = (name: string): string =>
+      payload?.headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? '';
+
+    const body = payload ? this.extractBody(payload) : '';
+    const attachments = payload ? this.extractAttachments(payload) : [];
+
+    return {
+      data: {
+        id: msgData.id,
+        threadId: msgData.threadId,
+        from: getHeader('From'),
+        to: getHeader('To'),
+        cc: getHeader('Cc'),
+        subject: getHeader('Subject'),
+        date: getHeader('Date'),
+        body,
+        snippet: msgData.snippet,
+        labelIds: msgData.labelIds,
+        attachments,
+      },
+    };
+  }
+
+  private extractBody(part: GmailMessagePart): string {
+    if (part.mimeType === 'text/plain' && part.body.data) {
+      return this.decodeBase64Url(part.body.data);
+    }
+
+    if (part.parts) {
+      for (const child of part.parts) {
+        if (child.mimeType === 'text/plain' && child.body.data) {
+          return this.decodeBase64Url(child.body.data);
+        }
+      }
+      for (const child of part.parts) {
+        const nested = this.extractBody(child);
+        if (nested) return nested;
+      }
+    }
+
+    if (part.mimeType === 'text/html' && part.body.data) {
+      return this.decodeBase64Url(part.body.data);
+    }
+
+    return '';
+  }
+
+  private extractAttachments(part: GmailMessagePart): Array<{
+    attachmentId: string;
+    filename: string;
+    mimeType: string;
+    size: number;
+  }> {
+    const attachments: Array<{
+      attachmentId: string;
+      filename: string;
+      mimeType: string;
+      size: number;
+    }> = [];
+
+    if (part.body.attachmentId && part.filename) {
+      attachments.push({
+        attachmentId: part.body.attachmentId,
+        filename: part.filename,
+        mimeType: part.mimeType,
+        size: part.body.size,
+      });
+    }
+
+    if (part.parts) {
+      for (const child of part.parts) {
+        attachments.push(...this.extractAttachments(child));
+      }
+    }
+
+    return attachments;
+  }
+
+  private decodeBase64Url(data: string): string {
+    const base64 = data.replace(/-/g, '+').replace(/_/g, '/');
+    return Buffer.from(base64, 'base64').toString('utf-8');
+  }
+}

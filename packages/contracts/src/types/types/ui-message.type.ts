@@ -59,7 +59,7 @@ export type UIContentBlock = z.infer<typeof UIContentBlockSchema>;
 // Completion metadata — optional per-message run info (model, usage, cost, …)
 // ---------------------------------------------------------------------------
 
-/** Normalized token usage — field names mirror `LlmUsage` in @loopstack/llm-provider-module. */
+/** Normalized token usage — field names mirror `LlmUsage` in @loopstack/llm-provider. */
 export const UIUsageSchema = z.object({
   inputTokens: z.number(),
   outputTokens: z.number(),

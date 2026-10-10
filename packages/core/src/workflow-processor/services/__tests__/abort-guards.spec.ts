@@ -70,6 +70,7 @@ describe('abort guards', () => {
         {} as never,
         {} as never,
         {} as never,
+        { emit: vi.fn() } as never,
       );
 
       await expect(service.queue(class {} as never)).rejects.toBeInstanceOf(TransitionAbortedError);

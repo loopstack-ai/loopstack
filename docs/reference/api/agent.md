@@ -60,8 +60,8 @@ export class AgentModule {
 Workflow that runs a generic LLM agent loop: prompt the LLM, delegate any tool
 calls, feed their results back, and repeat until the model returns `end_turn`.
 
-Args (per `run()`): `system`, `tools`, `userMessage`, and optional `context`.
-Tools are resolved from the current workflow first, then from the workspace.
+Args (per `run()`): `system`, `tools`, `userMessage`, and optional `context`, `provider` and `model`.
+Tool names in `tools` are resolved by their `@Tool({ name })` value from the app-wide tool registry.
 On completion it publishes an `AgentResult` with the final assistant `response`.
 
 ```ts
@@ -130,7 +130,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
 
 Args for `AgentWorkflow` (passed to `run()`).
 
-Holds `system`, `tools`, `userMessage`, and optional `context`.
+Holds `system`, `tools`, `userMessage`, and optional `context`, `provider` and `model`.
 
 ```ts
 import { AgentArgs } from '@loopstack/agent';
@@ -138,6 +138,22 @@ import { AgentArgs } from '@loopstack/agent';
 
 ```ts
 export type AgentArgs = z.infer<typeof AgentArgsSchema>;
+```
+
+### AgentFinishResult
+
+Result returned by `AgentFinishTool` — a sentinel marking agent completion with
+the final `result`.
+
+```ts
+import { AgentFinishResult } from '@loopstack/agent';
+```
+
+```ts
+export type AgentFinishResult = {
+  __agentFinish: true;
+  result: unknown;
+};
 ```
 
 ### AgentResult
@@ -158,7 +174,7 @@ export type AgentResult = z.infer<typeof AgentResultSchema>;
 
 Args for `ChatAgentWorkflow` (passed to `run()`).
 
-Holds `system`, `tools`, `userMessage`, optional `context`, and optional `taskMode`.
+Holds `system`, `tools`, `userMessage`, and optional `context`, `taskMode`, `provider` and `model`.
 
 ```ts
 import { ChatAgentArgs } from '@loopstack/agent';
@@ -185,8 +201,28 @@ AgentArgsSchema: z.ZodObject<
     tools: z.ZodArray<z.ZodString>;
     userMessage: z.ZodString;
     context: z.ZodOptional<z.ZodString>;
+    provider: z.ZodOptional<z.ZodString>;
+    model: z.ZodOptional<z.ZodString>;
   },
   z.core.$strip
+>;
+```
+
+### AgentFinishResultSchema
+
+Zod schema for `AgentFinishResult`.
+
+```ts
+import { AgentFinishResultSchema } from '@loopstack/agent';
+```
+
+```ts
+AgentFinishResultSchema: z.ZodObject<
+  {
+    __agentFinish: z.ZodLiteral<true>;
+    result: z.ZodUnknown;
+  },
+  z.core.$strict
 >;
 ```
 
@@ -226,6 +262,8 @@ ChatAgentArgsSchema: z.ZodObject<
     userMessage: z.ZodString;
     context: z.ZodOptional<z.ZodString>;
     taskMode: z.ZodOptional<z.ZodBoolean>;
+    provider: z.ZodOptional<z.ZodString>;
+    model: z.ZodOptional<z.ZodString>;
   },
   z.core.$strip
 >;

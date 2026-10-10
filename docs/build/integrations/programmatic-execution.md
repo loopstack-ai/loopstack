@@ -18,7 +18,7 @@ Use the `WorkflowRunner` to execute workflows in response to:
 - Batch processing tasks
 
 For a runnable version of every pattern below — cron, webhook, delayed run, and batch — see the
-[`@loopstack/scheduling-examples`](#registry-references) package. Each fundamental ships as a small
+[scheduling examples](/docs/examples/scheduling). Each fundamental ships as a small
 workflow plus the real trigger that fires it, and you can drive the HTTP-triggered ones straight from
 Studio.
 
@@ -210,4 +210,4 @@ export class OrderProcessingService {
 
 ## Registry References
 
-- [scheduling-examples](/docs/registry/examples/scheduling-examples) — Runnable examples of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.
+- [scheduling-examples](/docs/examples/scheduling) — Runnable examples of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.

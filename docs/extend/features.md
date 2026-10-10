@@ -29,7 +29,7 @@ The feature `id` on the backend must match the key in the frontend's `AVAILABLE_
 ```typescript
 import { Module } from '@nestjs/common';
 import { StudioApp } from '@loopstack/common';
-import { GitModule } from '@loopstack/git-module';
+import { GitModule } from '@loopstack/git';
 import { MyWorkflow } from './workflows/my.workflow';
 
 @StudioApp({
@@ -47,7 +47,7 @@ Importing `GitModule` alone provides the Git tools. Calling `GitModule.forFeatur
 
 ## Example — Hand-offs to the User's Machine
 
-`HandoffModule.forFeature()` from `@loopstack/handoff-module` registers the `handoff` feature. Studio then shows a "Handoff" sidebar panel with every document tagged `handoff` for the run in view, and renders two document widgets:
+`HandoffModule.forFeature()` from `@loopstack/handoff` registers the `handoff` feature. Studio then shows a "Handoff" sidebar panel with every document tagged `handoff` for the run in view, and renders two document widgets:
 
 | Document               | Widget          | Content                                                                           |
 | ---------------------- | --------------- | --------------------------------------------------------------------------------- |
@@ -55,7 +55,7 @@ Importing `GitModule` alone provides the Git tools. Calling `GitModule.forFeatur
 | `ChangedFilesDocument` | `changed-files` | `hostRoot` (absolute path on the user's machine) and the changed `paths` under it |
 
 ```typescript
-import { HandoffDocument } from '@loopstack/handoff-module';
+import { HandoffDocument } from '@loopstack/handoff';
 
 await this.documentStore.save(
   HandoffDocument,
@@ -97,4 +97,4 @@ Some feature modules also contribute arbitrary config sections to a `@StudioApp`
 
 - `loopstack/packages/common/src/utils/feature-registration.ts` — `registerFeature()` helper
 - `loopstack/packages/core/src/workflow-processor/services/studio-discovery.service.ts` — bootstrap-time feature discovery
-- `loopstack/registry/features/git-module/src/git.module.ts` — reference implementation
+- `loopstack/registry/git/src/git.module.ts` — reference implementation

@@ -12,8 +12,8 @@ Loopstack supports multiple LLM providers through a runtime registry. Provider m
 Import `LlmProviderModule` for the adapter tools and a provider module (e.g. `ClaudeModule`) to register the LLM backend:
 
 ```typescript
-import { ClaudeModule } from '@loopstack/claude-module';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { ClaudeModule } from '@loopstack/claude';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 
 @Module({
   imports: [LoopstackModule.forRoot(), LlmProviderModule, ClaudeModule],
@@ -164,7 +164,7 @@ await this.llmGenerateText.call(
 
 ## Adapter Tools
 
-All LLM interactions go through adapter tools from `@loopstack/llm-provider-module`. This ensures validation, interceptors, and logging apply to every LLM call.
+All LLM interactions go through adapter tools from `@loopstack/llm-provider`. This ensures validation, interceptors, and logging apply to every LLM call.
 
 | Tool                       | Purpose                                       |
 | -------------------------- | --------------------------------------------- |
@@ -232,9 +232,9 @@ See [Creating LLM Providers](../../extend/llm-providers.md) for the full interfa
 
 ## Available Providers
 
-| Provider         | Module                     | ID         |
-| ---------------- | -------------------------- | ---------- |
-| Anthropic Claude | `@loopstack/claude-module` | `'claude'` |
-| OpenAI           | `@loopstack/openai-module` | `'openai'` |
+| Provider         | Module              | ID         |
+| ---------------- | ------------------- | ---------- |
+| Anthropic Claude | `@loopstack/claude` | `'claude'` |
+| OpenAI           | `@loopstack/openai` | `'openai'` |
 
 To create a custom provider, see [Creating LLM Providers](../../extend/llm-providers.md).

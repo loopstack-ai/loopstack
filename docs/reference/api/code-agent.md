@@ -36,7 +36,8 @@ export class CodeAgentModule {
 
 Tool that launches an `AgentWorkflow` sub-agent to explore and analyze a codebase with the `glob`/`grep`/`read` tools and return a synthesized summary.
 
-Those tools come from `RemoteClientModule`. Constructing `ExploreTask` without them throws, so an app that has not wired the remote client fails at boot instead of on the first `explore_task` call.
+Those tools come from `RemoteClientModule`. Constructing `ExploreTask` without them throws, so an app
+that has not wired the remote client fails at boot instead of on the first `explore_task` call.
 
 ```ts
 import { ExploreTask } from '@loopstack/code-agent';
@@ -46,7 +47,7 @@ import { ExploreTask } from '@loopstack/code-agent';
 
 ```ts
 export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskResult> {
-  constructor(agentWorkflow: AgentWorkflow);
+  constructor(agentWorkflow: AgentWorkflow, globTool?: GlobTool, grepTool?: GrepTool, readTool?: ReadTool);
   protected handle(
     args: ExploreTaskInput,
     ctx: RunContext,
@@ -104,4 +105,17 @@ ExploreTaskInputSchema: z.ZodObject<
   },
   z.core.$strict
 >;
+```
+
+### ExploreTaskResultSchema
+
+Zod schema for `ExploreTaskResult` — the synthesized summary string or, when the
+sub-workflow returned no response text, its raw result record.
+
+```ts
+import { ExploreTaskResultSchema } from '@loopstack/code-agent';
+```
+
+```ts
+ExploreTaskResultSchema: z.ZodUnion<readonly [z.ZodString, z.ZodRecord<z.ZodString, z.ZodUnknown>]>;
 ```

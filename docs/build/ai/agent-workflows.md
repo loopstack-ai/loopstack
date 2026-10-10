@@ -111,13 +111,13 @@ The built-in `AgentWorkflow` is a regular workflow. When you need custom behavio
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
   LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider-module';
+} from '@loopstack/llm-provider';
 
 interface AgentState {
   llmResult?: LlmGenerateTextResult;
@@ -276,6 +276,6 @@ This enables multi-agent architectures where an orchestrator agent delegates tas
 
 ## Registry References
 
-- [@loopstack/agent](/docs/registry/features/agent-module) — Built-in agent workflow module
-- [@loopstack/code-agent](/docs/registry/features/code-agent-module) — Code exploration agent (ExploreTask) built on @loopstack/agent
-- [delegate-error-example-workflow](/docs/registry/examples/agent-examples#custom-agent) — Example demonstrating tool error handling and recovery
+- [@loopstack/agent](/docs/registry/agent) — Built-in agent workflow module
+- [@loopstack/code-agent](/docs/registry/code-agent) — Code exploration agent (ExploreTask) built on @loopstack/agent
+- [delegate-error-example-workflow](/docs/examples/agent#custom-agent) — Example demonstrating tool error handling and recovery

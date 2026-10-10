@@ -37,27 +37,27 @@
     {
       "key": "registry",
       "title": "Registry",
-      "description": "The Loopstack Registry — a curated collection of npm packages providing feature modules, standalone tools, and example workflows.",
+      "description": "The Loopstack Registry — a curated collection of npm packages providing LLM providers, agents, tools, OAuth integrations, workspace runtime and Studio surfaces.",
       "includeInLlmsTxt": true,
       "includeInLlmsFullTxt": true
     },
     {
-      "key": "registry-features",
-      "title": "Registry — Features",
-      "description": "Official Loopstack modules providing LLM integrations, OAuth, human-in-the-loop, Git/GitHub tools, secrets management, and more.",
-      "sourceDir": "registry/features",
+      "key": "registry-packages",
+      "title": "Registry — Packages",
+      "description": "Official Loopstack packages providing LLM providers, OAuth, human-in-the-loop, Git/GitHub tools, Docker sandboxes, secrets management, and more.",
+      "sourceDir": "registry",
       "collect": "*/README.md",
-      "urlPrefix": "https://loopstack.ai/llms/registry/features",
+      "urlPrefix": "https://loopstack.ai/llms/registry/packages",
       "includeInLlmsTxt": true,
       "includeInLlmsFullTxt": false
     },
     {
-      "key": "registry-examples",
-      "title": "Registry — Examples",
-      "description": "Example workflows demonstrating Loopstack patterns: chat, tool calling, agents, HITL, structured output, sub-workflows, and integrations.",
-      "sourceDir": "registry/examples",
+      "key": "examples",
+      "title": "Examples",
+      "description": "Example workflows demonstrating Loopstack patterns: chat, tool calling, agents, HITL, structured output, sub-workflows, and integrations. One runnable app, one module per theme.",
+      "sourceDir": "examples/src",
       "collect": "*/README.md",
-      "urlPrefix": "https://loopstack.ai/llms/registry/examples",
+      "urlPrefix": "https://loopstack.ai/llms/examples",
       "includeInLlmsTxt": true,
       "includeInLlmsFullTxt": false
     }

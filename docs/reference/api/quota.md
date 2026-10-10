@@ -35,11 +35,12 @@ AI-cost and processing-time calculators.
 Registration:
 
 - `QuotaModule.forRoot(QuotaModuleOptions)` — use when you configure the module in code; sets the
-  `enabled` flag and the Redis connection (`redisHost`/`redisPort`/`redisPassword`) explicitly and
+  `enabled` flag and the Redis connection (`redisHost`/`redisPort`/`redisPassword`/`redisDb`) and
   registers the module globally.
 - `QuotaModule.forRootAsync()` — use when configuration comes from the environment at runtime; reads
-  `QUOTA_ENABLED`, `QUOTA_REDIS_HOST` (fallback `REDIS_HOST`), `QUOTA_REDIS_PORT` (fallback
-  `REDIS_PORT`), and `QUOTA_REDIS_PASSWORD` (fallback `REDIS_PASSWORD`), then delegates to `forRoot`.
+  `QUOTA_ENABLED`, `QUOTA_REDIS_HOST`, `QUOTA_REDIS_PORT`, `QUOTA_REDIS_PASSWORD` and
+  `QUOTA_REDIS_DB`, then delegates to `forRoot`. Anything left unset falls back to the deployment's
+  own Redis connection (`REDIS_URL`, or `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` / `REDIS_DB`).
 
 Requires: a reachable Redis instance when `enabled: true` (usage counters are Redis-backed). When
 `enabled` is `false` (the default), the Redis connection is skipped and the interceptor is a no-op.
@@ -73,6 +74,7 @@ export interface QuotaModuleOptions {
   redisHost?: string;
   redisPort?: number;
   redisPassword?: string;
+  redisDb?: number;
 }
 ```
 

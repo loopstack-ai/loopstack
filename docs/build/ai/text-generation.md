@@ -11,8 +11,8 @@ Generate text from any configured LLM provider using `LlmGenerateTextTool`. Pass
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { ClaudeModule } from '@loopstack/claude';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 
 @Module({
   imports: [LlmProviderModule, ClaudeModule],
@@ -30,7 +30,7 @@ export class PromptModule {}
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider';
 
 const PromptSchema = z.object({
   subject: z.string().default('coffee'),
@@ -97,7 +97,7 @@ await this.llmGenerateText.call(
 
 The tool saves the assistant message as an `LlmMessageDocument` automatically — no manual `documentStore.save()` is required. Two config knobs control this:
 
-- `config: { save: false }` — opt out entirely. Use this when you want to inspect, transform, or persist the response yourself (see [llm-multi-provider-example-workflow](/docs/registry/examples/llm-examples#multi-provider) for a worked case).
+- `config: { save: false }` — opt out entirely. Use this when you want to inspect, transform, or persist the response yourself (see [llm-multi-provider-example-workflow](/docs/examples/llm#multi-provider) for a worked case).
 - `config: { meta: {...} }` — merge extra metadata into the auto-saved document. Free-form payload that downstream readers can pick up off `document.meta`.
 
 To run a "silent" turn the LLM remembers but the user doesn't see, opt out of auto-save and persist the result as `LlmContextDocument` (declared `internal: true`, so Studio never sees it):
@@ -156,4 +156,4 @@ If you're implementing a custom `LlmProviderInterface`, honor the `onStream` cal
 
 ## Registry References
 
-- [prompt-example-workflow](/docs/registry/examples/llm-examples#prompt) — Single-turn prompt with subject parameter and Handlebars template
+- [prompt-example-workflow](/docs/examples/llm#prompt) — Single-turn prompt with subject parameter and Handlebars template

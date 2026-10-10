@@ -34,7 +34,7 @@ start → setup → [user sends message] → LLM turn → [if tool call: delegat
 This workflow uses Claude for LLM calls:
 
 ```shell
-npm install @loopstack/claude-module @loopstack/llm-provider-module
+npm install @loopstack/claude @loopstack/llm-provider
 ```
 
 ---
@@ -47,7 +47,7 @@ Create `src/weather-chat/weather-chat.module.ts`:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { GetWeatherTool } from './tools/get-weather.tool';
 import { WeatherChatWorkflow } from './weather-chat.workflow';
@@ -158,14 +158,14 @@ Create `src/weather-chat/weather-chat.workflow.ts`:
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Guard, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
 import {
   LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
   LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider-module';
+} from '@loopstack/llm-provider';
 
 interface ChatState {
   llmResult?: LlmGenerateTextResult;
@@ -323,4 +323,4 @@ For weather (a single sync tool), `toolResultReceived` is never entered — `all
 - **[Custom Tools](../build/fundamentals/tools.md)** — build tools that call real external APIs, inject NestJS services, or validate their own output
 - **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — extend the guard pattern to handle error states, retries, or multi-step branching
 - **[Sub-Workflows](../build/patterns/sub-workflows.md)** — replace the inline tool loop with a dedicated agent sub-workflow
-- **[Registry example](/docs/registry/examples/agent-examples#agent)** — The complete source for the agent pattern using `AgentWorkflow`
+- **[Registry example](/docs/examples/agent#agent)** — The complete source for the agent pattern using `AgentWorkflow`

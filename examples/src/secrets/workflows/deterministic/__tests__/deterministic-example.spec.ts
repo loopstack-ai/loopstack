@@ -1,0 +1,62 @@
+import { describe, expect, it } from 'vitest';
+import { LlmProviderModule } from '@loopstack/llm-provider';
+import { SecretsModule } from '@loopstack/secrets';
+import { type TestRun, coverage, replay, runWorkflow } from '@loopstack/testing';
+import { SecretsExamplesModule } from '../../../secrets-examples.module';
+import { DeterministicExampleWorkflow } from '../deterministic-example.workflow';
+
+const KEYS = [
+  { key: 'EXAMPLE_API_KEY', hasValue: true, global: false },
+  { key: 'EXAMPLE_SECRET', hasValue: true, global: false },
+];
+
+/**
+ * `get_secret_keys` is backed by the secrets store (a DB service), so it runs inside the replay
+ * boundary and is scripted. The workflow's own HITL wait and verification logic run for real.
+ */
+describe('DeterministicExampleWorkflow', () => {
+  const runs: TestRun[] = [];
+  const imports = [LlmProviderModule, SecretsModule.forFeature(), SecretsExamplesModule];
+
+  it('parks on the secrets request form', async () => {
+    const run = await runWorkflow(DeterministicExampleWorkflow, undefined, {
+      imports,
+      replay: replay({ version: 3, recordings: [] }),
+    });
+    runs.push(run);
+
+    expect(run.status).toBe('waiting');
+    expect(run.place).toBe('requesting_secrets');
+
+    const view = run.parkView();
+    expect(view).toMatchObject({
+      widget: 'secret-input',
+      documentName: 'secret_request',
+      content: { variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }] },
+      defaultTransition: 'secretsSubmitted',
+    });
+  });
+
+  it('verifies the stored keys after the user submits', async () => {
+    const run = await runWorkflow(DeterministicExampleWorkflow, undefined, {
+      imports,
+      answers: { secretsSubmitted: {} },
+      replay: replay({
+        version: 3,
+        recordings: [{ tool: 'get_secret_keys', envelope: { data: KEYS } }],
+      }),
+    });
+    runs.push(run);
+
+    expect(run.error).toBeUndefined();
+    expect(run.status).toBe('completed');
+    const texts = run.documents.map((d) => (d.content as { markdown?: string }).markdown ?? '');
+    expect(texts.some((t) => t.includes('EXAMPLE_API_KEY'))).toBe(true);
+  });
+
+  it('covers every transition and park (coverage gate)', () => {
+    const cov = coverage(runs, DeterministicExampleWorkflow);
+    expect(cov.missingTransitions).toEqual([]);
+    expect(cov.missingParks).toEqual([]);
+  });
+});

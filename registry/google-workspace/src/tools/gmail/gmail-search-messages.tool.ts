@@ -1,0 +1,200 @@
+import { Inject, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { OAuthTokenStore } from '@loopstack/oauth';
+
+const inputSchema = z
+  .object({
+    query: z.string().optional(),
+    labelIds: z.array(z.string()).optional(),
+    maxResults: z.number().default(10),
+    pageToken: z.string().optional(),
+  })
+  .strict();
+
+/**
+ * Args for `GmailSearchMessagesTool`.
+ *
+ * @public
+ */
+export type GmailSearchMessagesArgs = z.infer<typeof inputSchema>;
+
+/**
+ * Result for `GmailSearchMessagesTool`.
+ *
+ * @public
+ */
+export type GmailSearchMessagesResult =
+  | {
+      messages: Array<{
+        id: string;
+        threadId: string;
+        snippet: string;
+        from: string;
+        to: string;
+        subject: string;
+        date: string;
+      }>;
+      nextPageToken?: string;
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
+/**
+ * Zod schema for the success shape of {@link GmailSearchMessagesResult} — the message summaries
+ * and pagination token.
+ *
+ * @public
+ */
+export const GmailSearchMessagesResultSchema = z.strictObject({
+  messages: z.array(
+    z.strictObject({
+      id: z.string(),
+      threadId: z.string(),
+      snippet: z.string(),
+      from: z.string(),
+      to: z.string(),
+      subject: z.string(),
+      date: z.string(),
+    }),
+  ),
+  nextPageToken: z.string().optional(),
+});
+
+/**
+ * Tool that searches Gmail messages using Gmail query syntax. Takes a `query`, optional `labelIds`,
+ * and pagination, and returns message summaries with headers and snippets plus a `nextPageToken`, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
+@Tool({
+  name: 'gmail_search_messages',
+  description:
+    'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
+  schema: inputSchema,
+  resultSchema: GmailSearchMessagesResultSchema,
+  effects: 'none',
+})
+export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, object, GmailSearchMessagesResult> {
+  private readonly logger = new Logger(GmailSearchMessagesTool.name);
+
+  @Inject()
+  private tokenStore: OAuthTokenStore;
+
+  protected async handle(
+    args: GmailSearchMessagesArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GmailSearchMessagesResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+
+    if (!accessToken) {
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'No valid Google token found. Please authenticate first.',
+        },
+        error: 'No valid Google token found. Please authenticate first.',
+      };
+    }
+
+    const params = new URLSearchParams({
+      maxResults: String(args.maxResults ?? 10),
+    });
+    if (args.query) params.set('q', args.query);
+    if (args.pageToken) params.set('pageToken', args.pageToken);
+    if (args.labelIds) {
+      for (const label of args.labelIds) {
+        params.append('labelIds', label);
+      }
+    }
+
+    const listResponse = await fetch(`https://www.googleapis.com/gmail/v1/users/me/messages?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (listResponse.status === 401 || listResponse.status === 403) {
+      const body = await listResponse.text();
+      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${ctx.userId}: ${body}`);
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'Google token was rejected. Please re-authenticate.',
+        },
+        error: 'Google token was rejected. Please re-authenticate.',
+      };
+    }
+
+    if (!listResponse.ok) {
+      const body = await listResponse.text();
+      this.logger.error(`Gmail API error: ${listResponse.status} ${body}`);
+      return {
+        data: {
+          error: 'api_error',
+          message: `Gmail API error: ${listResponse.statusText}`,
+        },
+        error: `Gmail API error: ${listResponse.statusText}`,
+      };
+    }
+
+    const listData = (await listResponse.json()) as {
+      messages?: Array<{ id: string; threadId: string }>;
+      nextPageToken?: string;
+    };
+
+    if (!listData.messages || listData.messages.length === 0) {
+      return {
+        data: { messages: [], nextPageToken: listData.nextPageToken },
+      };
+    }
+
+    const messages = await Promise.all(
+      listData.messages.map(async (msg) => {
+        const msgResponse = await fetch(
+          `https://www.googleapis.com/gmail/v1/users/me/messages/${encodeURIComponent(msg.id)}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Subject&metadataHeaders=Date`,
+          { headers: { Authorization: `Bearer ${accessToken}` } },
+        );
+
+        if (!msgResponse.ok) {
+          return {
+            id: msg.id,
+            threadId: msg.threadId,
+            snippet: '',
+            from: '',
+            to: '',
+            subject: '',
+            date: '',
+          };
+        }
+
+        const msgData = (await msgResponse.json()) as {
+          id: string;
+          threadId: string;
+          snippet: string;
+          payload: {
+            headers: Array<{ name: string; value: string }>;
+          };
+        };
+
+        const getHeader = (name: string): string =>
+          msgData.payload.headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? '';
+
+        return {
+          id: msgData.id,
+          threadId: msgData.threadId,
+          snippet: msgData.snippet,
+          from: getHeader('From'),
+          to: getHeader('To'),
+          subject: getHeader('Subject'),
+          date: getHeader('Date'),
+        };
+      }),
+    );
+
+    return {
+      data: { messages, nextPageToken: listData.nextPageToken },
+    };
+  }
+}

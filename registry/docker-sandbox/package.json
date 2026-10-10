@@ -1,0 +1,53 @@
+{
+  "name": "@loopstack/docker-sandbox",
+  "displayName": "Sandbox Tool",
+  "description": "Provides isolated execution environments for running untrusted or experimental code within Loopstack workflows",
+  "keywords": [
+    "docker",
+    "isolated-execution",
+    "loopstack",
+    "sandbox"
+  ],
+  "version": "0.8.2",
+  "license": "MIT",
+  "author": {
+    "name": "Tobias Blättermann, Jakob Klippel"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.44.0",
+    "dockerode": "^4.0.10"
+  },
+  "devDependencies": {
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/testing": "^12.0.1",
+    "@swc/core": "^1.15.33",
+    "@types/dockerode": "^4.0.1",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.6",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0 || ^12.0.0",
+    "zod": "^4.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module"
+}

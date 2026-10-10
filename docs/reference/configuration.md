@@ -1,6 +1,6 @@
 ---
 title: Configuration Reference
-description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS (cors, corsOrigins / CORS_ORIGINS / FRONTEND_URL allowlist), event stream tuning (sse.bufferSize / bufferTtlMs / heartbeatIntervalMs), run trace persistence (trace / LOOPSTACK_TRACE), API list page sizes (*_DEFAULT_LIMIT, DOCUMENT_MAX_LIMIT), scheduler concurrency (TASK_CONCURRENCY), graceful shutdown deadline (SHUTDOWN_DRAIN_TIMEOUT_MS), LLM provider keys and models (CLAUDE_MODEL, OPENAI_MODEL), feature module settings (WORKSPACE_BASE_PATH, CLAUDE_WEB_FETCH_MODEL, QUOTA_*), and default settings.
+description: All LoopstackModule.forRoot() options and environment variables — database, Redis, authentication, CORS (cors, corsOrigins / CORS_ORIGINS / FRONTEND_URL allowlist), event stream tuning (sse.bufferSize / bufferTtlMs / heartbeatIntervalMs), run trace persistence (trace / LOOPSTACK_TRACE), API list page sizes (*_DEFAULT_LIMIT, DOCUMENT_MAX_LIMIT), scheduler concurrency (TASK_CONCURRENCY), graceful shutdown deadline (SHUTDOWN_DRAIN_TIMEOUT_MS), LLM provider keys and models (CLAUDE_MODEL, OPENAI_MODEL), registry package settings (WORKSPACE_BASE_PATH, CLAUDE_WEB_FETCH_MODEL, QUOTA_*), and default settings.
 ---
 
 # Configuration
@@ -67,15 +67,33 @@ Set `database.reuseExistingConnection: true` to reuse the host application's **d
 
 ### `redis`
 
-Redis connection settings for BullMQ job queues.
+Redis connection settings. They are shared by the BullMQ job queues, the OAuth token and session stores, and the quota counters.
 
 | Option           | Env var          | Default     |
 | ---------------- | ---------------- | ----------- |
 | `redis.host`     | `REDIS_HOST`     | `localhost` |
 | `redis.port`     | `REDIS_PORT`     | `6379`      |
 | `redis.password` | `REDIS_PASSWORD` | —           |
+| `redis.db`       | `REDIS_DB`       | `0`         |
 
-Alternatively, set a single **`REDIS_URL`** (e.g. `redis://host:6379`) — common in managed and hosted environments. When present, it takes precedence over the discrete `REDIS_*` vars.
+Alternatively, set a single **`REDIS_URL`** (e.g. `redis://host:6379/2`) — common in managed and hosted environments. When present, it takes precedence over the discrete `REDIS_*` vars, and its path segment sets the database.
+
+#### One database per deployment
+
+A deployment is one `AppModule` with its own workflows and database, plus any replicas of it. Replicas share a Redis database on purpose: that is what makes them one worker pool for one `task-queue`.
+
+Two **different** deployments must not share a database. Workers consume any job on `task-queue`, so a job can be handed to a process whose `AppModule` never registered that workflow. It cannot run it, and the run fails with a message naming this cause. The OAuth token store is keyed by user id with no deployment scope, so a shared database also means shared provider tokens.
+
+Give each deployment its own database:
+
+```bash
+# deployment A
+REDIS_DB=0
+# deployment B, same Redis server
+REDIS_DB=1
+```
+
+Redis Cluster has no `SELECT`, and some managed providers expose only database `0`. There, give each deployment its own Redis instance instead.
 
 ### `auth`
 
@@ -204,12 +222,12 @@ A workflow that occupies a task for its whole lifetime — a long-running agent 
 
 Set these when using the corresponding LLM provider modules.
 
-| Env var             | Module                     | Description            |
-| ------------------- | -------------------------- | ---------------------- |
-| `ANTHROPIC_API_KEY` | `@loopstack/claude-module` | Anthropic API key      |
-| `OPENAI_API_KEY`    | `@loopstack/openai-module` | OpenAI API key         |
-| `CLAUDE_MODEL`      | `@loopstack/claude-module` | Default model fallback |
-| `OPENAI_MODEL`      | `@loopstack/openai-module` | Default model fallback |
+| Env var             | Module              | Description            |
+| ------------------- | ------------------- | ---------------------- |
+| `ANTHROPIC_API_KEY` | `@loopstack/claude` | Anthropic API key      |
+| `OPENAI_API_KEY`    | `@loopstack/openai` | OpenAI API key         |
+| `CLAUDE_MODEL`      | `@loopstack/claude` | Default model fallback |
+| `OPENAI_MODEL`      | `@loopstack/openai` | Default model fallback |
 
 See [LLM Providers](../build/ai/llm-providers.md#environment-variables) for how these combine with module-level and per-call models.
 
@@ -217,27 +235,28 @@ See [LLM Providers](../build/ai/llm-providers.md#environment-variables) for how 
 
 Set these when using OAuth modules for third-party integrations.
 
-| Env var                     | Module                               | Description                    |
-| --------------------------- | ------------------------------------ | ------------------------------ |
-| `GITHUB_CLIENT_ID`          | `@loopstack/github-module`           | GitHub OAuth app client ID     |
-| `GITHUB_CLIENT_SECRET`      | `@loopstack/github-module`           | GitHub OAuth app client secret |
-| `GITHUB_OAUTH_REDIRECT_URI` | `@loopstack/github-module`           | GitHub OAuth redirect URI      |
-| `GOOGLE_CLIENT_ID`          | `@loopstack/google-workspace-module` | Google OAuth client ID         |
-| `GOOGLE_CLIENT_SECRET`      | `@loopstack/google-workspace-module` | Google OAuth client secret     |
-| `GOOGLE_OAUTH_REDIRECT_URI` | `@loopstack/google-workspace-module` | Google OAuth redirect URI      |
+| Env var                     | Module                        | Description                    |
+| --------------------------- | ----------------------------- | ------------------------------ |
+| `GITHUB_CLIENT_ID`          | `@loopstack/github`           | GitHub OAuth app client ID     |
+| `GITHUB_CLIENT_SECRET`      | `@loopstack/github`           | GitHub OAuth app client secret |
+| `GITHUB_OAUTH_REDIRECT_URI` | `@loopstack/github`           | GitHub OAuth redirect URI      |
+| `GOOGLE_CLIENT_ID`          | `@loopstack/google-workspace` | Google OAuth client ID         |
+| `GOOGLE_CLIENT_SECRET`      | `@loopstack/google-workspace` | Google OAuth client secret     |
+| `GOOGLE_OAUTH_REDIRECT_URI` | `@loopstack/google-workspace` | Google OAuth redirect URI      |
 
-### Feature Modules
+### Registry Packages
 
-Set these when using the corresponding feature modules.
+Set these when using the corresponding registry packages.
 
-| Env var                  | Module                                  | Default                     | Description                                                                                                         |
-| ------------------------ | --------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `WORKSPACE_BASE_PATH`    | `@loopstack/local-file-explorer-module` | `process.cwd()`             | Root directory the file explorer lists and reads; paths outside it are rejected                                     |
-| `CLAUDE_WEB_FETCH_MODEL` | `@loopstack/web-module`                 | `claude-haiku-4-5-20251001` | Model `WebFetchTool` summarizes with when called with a `prompt` and the provider is `claude`; its `model` arg wins |
-| `QUOTA_ENABLED`          | `@loopstack/quota`                      | `false`                     | Set to `true` to enable quota tracking                                                                              |
-| `QUOTA_REDIS_HOST`       | `@loopstack/quota`                      | value of `REDIS_HOST`       | Redis host for quota counters                                                                                       |
-| `QUOTA_REDIS_PORT`       | `@loopstack/quota`                      | value of `REDIS_PORT`       | Redis port for quota counters                                                                                       |
-| `QUOTA_REDIS_PASSWORD`   | `@loopstack/quota`                      | value of `REDIS_PASSWORD`   | Redis password for quota counters                                                                                   |
+| Env var                  | Module                           | Default                     | Description                                                                                                         |
+| ------------------------ | -------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `WORKSPACE_BASE_PATH`    | `@loopstack/local-file-explorer` | `process.cwd()`             | Root directory the file explorer lists and reads; paths outside it are rejected                                     |
+| `CLAUDE_WEB_FETCH_MODEL` | `@loopstack/web`                 | `claude-haiku-4-5-20251001` | Model `WebFetchTool` summarizes with when called with a `prompt` and the provider is `claude`; its `model` arg wins |
+| `QUOTA_ENABLED`          | `@loopstack/quota`               | `false`                     | Set to `true` to enable quota tracking                                                                              |
+| `QUOTA_REDIS_HOST`       | `@loopstack/quota`               | value of `REDIS_HOST`       | Redis host for quota counters                                                                                       |
+| `QUOTA_REDIS_PORT`       | `@loopstack/quota`               | value of `REDIS_PORT`       | Redis port for quota counters                                                                                       |
+| `QUOTA_REDIS_PASSWORD`   | `@loopstack/quota`               | value of `REDIS_PASSWORD`   | Redis password for quota counters                                                                                   |
+| `QUOTA_REDIS_DB`         | `@loopstack/quota`               | value of `REDIS_DB`         | Redis database for quota counters                                                                                   |
 
 The `QUOTA_*` variables are read only when the module is registered with `QuotaModule.forRootAsync()` — see [`@loopstack/quota`](api/quota.md#quotamodule).
 

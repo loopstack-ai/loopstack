@@ -40,6 +40,12 @@ export interface LoopstackRedisOptions {
   host?: string;
   port?: number;
   password?: string;
+  /**
+   * Redis database index, `0` by default. Give every deployment its own: deployments sharing a
+   * database share the `task-queue`, and a worker that picks up another deployment's job cannot
+   * resolve its workflow. Replicas of one deployment share a database.
+   */
+  db?: number;
 }
 
 export interface LoopstackModuleOptions {

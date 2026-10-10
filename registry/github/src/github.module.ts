@@ -1,0 +1,77 @@
+import { Module } from '@nestjs/common';
+import { OAuthModule } from '@loopstack/oauth';
+import { GitHubOAuthProvider } from './github-oauth.provider.js';
+import { GitHubGetWorkflowRunTool } from './tools/actions/github-get-workflow-run.tool.js';
+import { GitHubListWorkflowRunsTool } from './tools/actions/github-list-workflow-runs.tool.js';
+import { GitHubTriggerWorkflowTool } from './tools/actions/github-trigger-workflow.tool.js';
+import { GitHubCreateOrUpdateFileTool } from './tools/content/github-create-or-update-file.tool.js';
+import { GitHubGetCommitTool } from './tools/content/github-get-commit.tool.js';
+import { GitHubGetFileContentTool } from './tools/content/github-get-file-content.tool.js';
+import { GitHubListDirectoryTool } from './tools/content/github-list-directory.tool.js';
+import { GitHubCreateIssueCommentTool } from './tools/issues/github-create-issue-comment.tool.js';
+import { GitHubCreateIssueTool } from './tools/issues/github-create-issue.tool.js';
+import { GitHubGetIssueTool } from './tools/issues/github-get-issue.tool.js';
+import { GitHubListIssuesTool } from './tools/issues/github-list-issues.tool.js';
+import { GitHubCreatePullRequestTool } from './tools/pull-requests/github-create-pull-request.tool.js';
+import { GitHubGetPullRequestTool } from './tools/pull-requests/github-get-pull-request.tool.js';
+import { GitHubListPrReviewsTool } from './tools/pull-requests/github-list-pr-reviews.tool.js';
+import { GitHubListPullRequestsTool } from './tools/pull-requests/github-list-pull-requests.tool.js';
+import { GitHubMergePullRequestTool } from './tools/pull-requests/github-merge-pull-request.tool.js';
+import { GitHubCreateRepoTool } from './tools/repos/github-create-repo.tool.js';
+import { GitHubGetRepoTool } from './tools/repos/github-get-repo.tool.js';
+import { GitHubListBranchesTool } from './tools/repos/github-list-branches.tool.js';
+import { GitHubListReposTool } from './tools/repos/github-list-repos.tool.js';
+import { GitHubSearchCodeTool } from './tools/search/github-search-code.tool.js';
+import { GitHubSearchIssuesTool } from './tools/search/github-search-issues.tool.js';
+import { GitHubSearchReposTool } from './tools/search/github-search-repos.tool.js';
+import { GitHubGetAuthenticatedUserTool } from './tools/users/github-get-authenticated-user.tool.js';
+import { GitHubListUserOrgsTool } from './tools/users/github-list-user-orgs.tool.js';
+
+const tools = [
+  GitHubListReposTool,
+  GitHubGetRepoTool,
+  GitHubCreateRepoTool,
+  GitHubListBranchesTool,
+  GitHubListIssuesTool,
+  GitHubGetIssueTool,
+  GitHubCreateIssueTool,
+  GitHubCreateIssueCommentTool,
+  GitHubListPullRequestsTool,
+  GitHubGetPullRequestTool,
+  GitHubCreatePullRequestTool,
+  GitHubMergePullRequestTool,
+  GitHubListPrReviewsTool,
+  GitHubGetFileContentTool,
+  GitHubCreateOrUpdateFileTool,
+  GitHubListDirectoryTool,
+  GitHubGetCommitTool,
+  GitHubListWorkflowRunsTool,
+  GitHubTriggerWorkflowTool,
+  GitHubGetWorkflowRunTool,
+  GitHubSearchCodeTool,
+  GitHubSearchReposTool,
+  GitHubSearchIssuesTool,
+  GitHubGetAuthenticatedUserTool,
+  GitHubListUserOrgsTool,
+];
+
+/**
+ * NestJS module that provides the GitHub OAuth provider (`GitHubOAuthProvider`) and 25 GitHub API tools
+ * for repositories, issues, pull requests, file content/git ops, actions/workflow runs, search, and users/orgs.
+ *
+ * Registration:
+ * - `GitHubModule` — bare import; it internally imports `OAuthModule` and registers `GitHubOAuthProvider`
+ *   plus all tools. No static configuration methods exist.
+ *
+ * Requires: a configured GitHub OAuth app via the environment variables `GITHUB_CLIENT_ID`,
+ * `GITHUB_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI`; without valid OAuth credentials the tools
+ * return `{ error: 'unauthorized' }`.
+ *
+ * @public
+ */
+@Module({
+  imports: [OAuthModule],
+  providers: [GitHubOAuthProvider, ...tools],
+  exports: [GitHubOAuthProvider, ...tools],
+})
+export class GitHubModule {}

@@ -51,5 +51,5 @@ Write workflow tests for every non-trivial workflow you build. Guide: https://lo
 ## Learning more
 
 - Docs: https://loopstack.ai/docs — for agents, the full corpus is at https://loopstack.ai/llms.txt (route via titles, fetch what you need)
-- Registry of feature modules and examples (LLM providers, HITL prompts, agents, git, secrets, sandboxes): https://loopstack.ai/registry — each package README has an installation section; prefer adapting a registry example over building from scratch
+- Registry packages (LLM providers, HITL prompts, agents, git, secrets, sandboxes): https://loopstack.ai/docs/registry — each package README has an installation section; example workflows to copy: https://loopstack.ai/docs/examples/llm — prefer adapting an example over building from scratch
 - CLI reference: https://loopstack.ai/docs/reference/cli
