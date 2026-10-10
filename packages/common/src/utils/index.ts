@@ -6,6 +6,7 @@ export * from './feature-registration.js';
 export * from './identifier.utils.js';
 export * from './jsonb-sanitizer.js';
 export * from './normalize-object.js';
+export * from './redis-connection.js';
 export * from './stable-json-transformer.js';
 export * from './stateless-child.util.js';
 export * from './studio-app-extension.js';

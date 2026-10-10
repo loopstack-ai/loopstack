@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
+import { resolveRedisConnection } from '@loopstack/common';
 
 /**
  * Pending OAuth flow registered when the authorization URL is built — the
@@ -34,11 +35,13 @@ export class OAuthSessionService implements OnModuleDestroy {
   private redis: Redis | null;
 
   constructor() {
+    const { host, port, password, db } = resolveRedisConnection();
     this.redis = new Redis({
-      host: process.env.REDIS_HOST ?? 'localhost',
-      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
+      host,
+      port,
+      db,
       family: 0,
-      ...(process.env.REDIS_PASSWORD ? { password: process.env.REDIS_PASSWORD } : {}),
+      ...(password ? { password } : {}),
       lazyConnect: true,
       retryStrategy: () => null,
     });

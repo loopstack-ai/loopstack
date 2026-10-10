@@ -160,7 +160,8 @@ export class GoogleCalendarListCalendarsTool extends BaseTool<
 Tool that downloads or exports a file from Google Drive. Takes a `fileId` and optional
 `exportMimeType`, automatically handles Google Docs/Sheets/Slides export, and returns text or
 base64-encoded content with its mime type, or `{ error: 'unauthorized' }` when no valid Google
-token is available.
+token is available. `exportMimeType` applies to Google Docs/Sheets/Slides only; other files are
+returned as stored, with their own mime type.
 
 ```ts
 import { GoogleDriveDownloadFileTool } from '@loopstack/google-workspace-module';

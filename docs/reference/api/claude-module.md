@@ -28,7 +28,9 @@ export class ClaudeModule {}
 
 ### ClaudeNativeWebSearchTool
 
-Claude's provider-native web search. List it in an LLM call's `tools` (an agent or `llm_generate_text`) and Claude runs the search inside that same call. It is not callable from workflow code — for a standalone search step, use `ClaudeWebSearchStepTool` (`claude_web_search_step`) from `@loopstack/claude-tools-module`.
+Claude's provider-native web search. List it in an LLM call's `tools` (an agent or `llm_generate_text`) and
+Claude runs the search inside that same call. It is not callable from workflow code — for a standalone search
+step, use `ClaudeWebSearchStepTool` (`claude_web_search_step`) from `@loopstack/claude-tools-module`.
 
 ```ts
 import { ClaudeNativeWebSearchTool } from '@loopstack/claude-module';

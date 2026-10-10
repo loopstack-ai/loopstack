@@ -173,6 +173,23 @@ export abstract class ServerTool<TConfig extends object = object> {
 }
 ```
 
+### TerminalDocument
+
+Document that renders raw terminal output in Studio — a monospaced, dark terminal card that interprets
+ANSI color escape codes (so NestJS logs, npm/tsx output, git, etc. keep their colors instead of showing
+raw `\x1b[..m` noise). `text` is the raw stream (ANSI intact); `title` is an optional header.
+
+```ts
+import { TerminalDocument } from '@loopstack/common';
+```
+
+```ts
+export class TerminalDocument {
+  text: string;
+  title?: string;
+}
+```
+
 ## Interfaces
 
 ### Clock
@@ -235,6 +252,40 @@ export interface DocumentStore {
   findAll<T extends object>(documentClass: DocumentClass<T>): T[];
   findAllDocuments(): DocumentEntity[];
   findByTag(tag: string): DocumentEntity[];
+}
+```
+
+### RedisConnectionOptions
+
+Redis connection settings a Loopstack deployment uses.
+
+```ts
+import { RedisConnectionOptions } from '@loopstack/common';
+```
+
+```ts
+export interface RedisConnectionOptions {
+  host?: string;
+  port?: number;
+  password?: string;
+  db?: number;
+}
+```
+
+### ResolvedRedisConnection
+
+The settings after defaults are applied, ready to hand to ioredis or BullMQ.
+
+```ts
+import { ResolvedRedisConnection } from '@loopstack/common';
+```
+
+```ts
+export interface ResolvedRedisConnection {
+  host: string;
+  port: number;
+  password?: string;
+  db: number;
 }
 ```
 
@@ -377,6 +428,7 @@ export interface ToolDocumentDeclaration {
   content: Record<string, unknown>;
   options?: {
     key?: string;
+    position?: 'keep' | 'end';
     meta?: Record<string, unknown>;
     validate?: 'strict' | 'safe' | 'skip';
   };
@@ -610,6 +662,24 @@ import { Guard } from '@loopstack/common';
 
 ```ts
 export function Guard(guardMethodName: string): MethodDecorator;
+```
+
+### resolveRedisConnection
+
+Resolves the Redis connection every Redis-backed feature shares — the task queue, the OAuth token
+and session stores, and the quota counters.
+
+Precedence: explicit options, then a single `REDIS_URL` (managed and hosted environments), then the
+discrete `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` / `REDIS_DB` vars, then the defaults
+`localhost:6379` on database `0`. A `REDIS_URL` path sets the database, so
+`redis://localhost:6379/2` resolves to database `2`.
+
+```ts
+import { resolveRedisConnection } from '@loopstack/common';
+```
+
+```ts
+export function resolveRedisConnection(options?: RedisConnectionOptions): ResolvedRedisConnection;
 ```
 
 ### StudioApp

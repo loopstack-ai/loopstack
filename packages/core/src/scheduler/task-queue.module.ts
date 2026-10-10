@@ -1,5 +1,6 @@
 import { BullModule } from '@nestjs/bullmq';
 import { DynamicModule, Module } from '@nestjs/common';
+import { resolveRedisConnection } from '@loopstack/common';
 import { RedisOptions } from './interfaces/redis-options.interface.js';
 import { TaskProcessorService } from './services/task-processor.service.js';
 import { CleanupWorkflowTaskProcessorService } from './services/task-processor/cleanup-workflow-task-processor.service.js';
@@ -34,15 +35,7 @@ const PROVIDERS = [
 @Module({})
 export class TaskQueueModule {
   static forRoot(redis?: RedisOptions): DynamicModule {
-    // A single REDIS_URL is honored (managed/hosted environments, PaaS); explicit options and the
-    // discrete REDIS_HOST/PORT/PASSWORD vars remain as fallbacks.
-    const redisUrl = process.env.REDIS_URL ? new URL(process.env.REDIS_URL) : undefined;
-    const host = redis?.host ?? redisUrl?.hostname ?? process.env.REDIS_HOST ?? 'localhost';
-    const port =
-      redis?.port ??
-      (redisUrl?.port ? Number(redisUrl.port) : undefined) ??
-      (process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379);
-    const password = redis?.password ?? (redisUrl?.password || undefined) ?? process.env.REDIS_PASSWORD;
+    const { host, port, password, db } = resolveRedisConnection(redis);
 
     return {
       module: TaskQueueModule,
@@ -51,6 +44,7 @@ export class TaskQueueModule {
           connection: {
             host,
             port,
+            db,
             family: 0,
             ...(password ? { password } : {}),
           },

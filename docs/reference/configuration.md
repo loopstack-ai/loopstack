@@ -67,15 +67,33 @@ Set `database.reuseExistingConnection: true` to reuse the host application's **d
 
 ### `redis`
 
-Redis connection settings for BullMQ job queues.
+Redis connection settings. They are shared by the BullMQ job queues, the OAuth token and session stores, and the quota counters.
 
 | Option           | Env var          | Default     |
 | ---------------- | ---------------- | ----------- |
 | `redis.host`     | `REDIS_HOST`     | `localhost` |
 | `redis.port`     | `REDIS_PORT`     | `6379`      |
 | `redis.password` | `REDIS_PASSWORD` | —           |
+| `redis.db`       | `REDIS_DB`       | `0`         |
 
-Alternatively, set a single **`REDIS_URL`** (e.g. `redis://host:6379`) — common in managed and hosted environments. When present, it takes precedence over the discrete `REDIS_*` vars.
+Alternatively, set a single **`REDIS_URL`** (e.g. `redis://host:6379/2`) — common in managed and hosted environments. When present, it takes precedence over the discrete `REDIS_*` vars, and its path segment sets the database.
+
+#### One database per deployment
+
+A deployment is one `AppModule` with its own workflows and database, plus any replicas of it. Replicas share a Redis database on purpose: that is what makes them one worker pool for one `task-queue`.
+
+Two **different** deployments must not share a database. Workers consume any job on `task-queue`, so a job can be handed to a process whose `AppModule` never registered that workflow. It cannot run it, and the run fails with a message naming this cause. The OAuth token store is keyed by user id with no deployment scope, so a shared database also means shared provider tokens.
+
+Give each deployment its own database:
+
+```bash
+# deployment A
+REDIS_DB=0
+# deployment B, same Redis server
+REDIS_DB=1
+```
+
+Redis Cluster has no `SELECT`, and some managed providers expose only database `0`. There, give each deployment its own Redis instance instead.
 
 ### `auth`
 
@@ -238,6 +256,7 @@ Set these when using the corresponding feature modules.
 | `QUOTA_REDIS_HOST`       | `@loopstack/quota`                      | value of `REDIS_HOST`       | Redis host for quota counters                                                                                       |
 | `QUOTA_REDIS_PORT`       | `@loopstack/quota`                      | value of `REDIS_PORT`       | Redis port for quota counters                                                                                       |
 | `QUOTA_REDIS_PASSWORD`   | `@loopstack/quota`                      | value of `REDIS_PASSWORD`   | Redis password for quota counters                                                                                   |
+| `QUOTA_REDIS_DB`         | `@loopstack/quota`                      | value of `REDIS_DB`         | Redis database for quota counters                                                                                   |
 
 The `QUOTA_*` variables are read only when the module is registered with `QuotaModule.forRootAsync()` — see [`@loopstack/quota`](api/quota.md#quotamodule).
 

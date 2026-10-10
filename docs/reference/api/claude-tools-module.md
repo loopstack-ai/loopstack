@@ -31,7 +31,10 @@ export class ClaudeToolsModule {
 
 ### ClaudeWebSearchStepTool
 
-Workflow step that runs a web search as its own Claude request, returning search hits and model commentary. The request uses `claude_native_web_search`, and its reply is not saved to the conversation. To give an agent web search, list `claude_native_web_search` in its `tools` instead — attaching this tool to an agent costs a second LLM call per search.
+Workflow step that runs a web search as its own Claude request, returning search hits and model commentary.
+The request uses `claude_native_web_search`, and its reply is not saved to the conversation. To give an agent
+web search, list `claude_native_web_search` in its `tools` instead — attaching this tool to an agent costs a
+second LLM call per search.
 
 ```ts
 import { ClaudeWebSearchStepTool } from '@loopstack/claude-tools-module';

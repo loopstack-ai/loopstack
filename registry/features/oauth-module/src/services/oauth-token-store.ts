@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
+import { resolveRedisConnection } from '@loopstack/common';
 import type { OAuthTokenSet } from '../contracts/index.js';
 import { OAuthProviderRegistry } from './oauth-provider-registry.js';
 
@@ -40,11 +41,13 @@ export class OAuthTokenStore implements OnModuleDestroy {
   private readonly providerRegistry: OAuthProviderRegistry;
 
   constructor() {
+    const { host, port, password, db } = resolveRedisConnection();
     this.redis = new Redis({
-      host: process.env.REDIS_HOST ?? 'localhost',
-      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
+      host,
+      port,
+      db,
       family: 0,
-      ...(process.env.REDIS_PASSWORD ? { password: process.env.REDIS_PASSWORD } : {}),
+      ...(password ? { password } : {}),
       lazyConnect: true,
       retryStrategy: () => null,
     });

@@ -136,6 +136,37 @@ export class WorkflowRunner {
 }
 ```
 
+## Interfaces
+
+### WorkflowSettledEvent
+
+Emitted once a run has reached a state it will not leave by itself: completed, failed, or canceled. The
+counterpart of `workspace.deleted` / `workflow.deleted`, for the end of a run rather than the end of its
+record — so a host application can release what it was holding for that run (a claimed resource, a
+reserved slot) without polling for it.
+
+Emitted after the run's own persistence has committed, and for sub-workflows as well as root runs — a
+consumer that only cares about root runs checks `parentId`.
+
+A consumer must be **idempotent**: there is no guarantee the event arrives exactly once per run, and a
+process that dies before its listener ran will never see it at all. Anything whose correctness depends on
+it should reconcile against the run's status instead, and treat the event as what makes that prompt.
+
+```ts
+import { WorkflowSettledEvent } from '@loopstack/core';
+```
+
+```ts
+export interface WorkflowSettledEvent {
+  id: string;
+  workspaceId: string;
+  workflowName: string;
+  parentId?: string;
+  status: SettledWorkflowState;
+  user: string;
+}
+```
+
 ## Type Aliases
 
 ### FanOutArgs
@@ -310,4 +341,16 @@ SequenceResultSchema: z.ZodObject<
   },
   z.core.$strip
 >;
+```
+
+### WORKFLOW_SETTLED
+
+In-process event name for `WorkflowSettledEvent`.
+
+```ts
+import { WORKFLOW_SETTLED } from '@loopstack/core';
+```
+
+```ts
+WORKFLOW_SETTLED = 'workflow.settled';
 ```
