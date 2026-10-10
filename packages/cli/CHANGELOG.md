@@ -1,5 +1,19 @@
 # @loopstack/cli
 
+## 0.23.2
+
+### Patch Changes
+
+- [#435](https://github.com/loopstack-ai/loopstack/pull/435) [`e194666`](https://github.com/loopstack-ai/loopstack/commit/e194666b8cada794df5f430e263b3b67714be6b2) Thanks [@jakobklippel](https://github.com/jakobklippel)! - One name per registry package: the directory under `registry/`, the npm name and the docs page share it, and
+  the `-module` / `-tool` suffixes are gone.
+  - `@loopstack/claude`, `@loopstack/claude-tools`, `@loopstack/git`, `@loopstack/github`,
+    `@loopstack/google-workspace`, `@loopstack/handoff`, `@loopstack/llm-provider`,
+    `@loopstack/local-file-explorer`, `@loopstack/mcp`, `@loopstack/oauth`, `@loopstack/openai`,
+    `@loopstack/remote-file-explorer`, `@loopstack/secrets`, `@loopstack/typesafe`, `@loopstack/web` — published
+    under these names from now on.
+  - `@loopstack/docker-sandbox` and `@loopstack/docker-sandbox-filesystem` — the Docker sandbox pair.
+  - `@loopstack/cli`: `create` scaffolds `@loopstack/claude`.
+
 ## 0.23.1
 
 ### Patch Changes

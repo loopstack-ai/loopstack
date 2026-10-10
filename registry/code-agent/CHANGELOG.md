@@ -1,5 +1,23 @@
 # @loopstack/code-agent
 
+## 0.6.1
+
+### Patch Changes
+
+- [#435](https://github.com/loopstack-ai/loopstack/pull/435) [`4d10d0f`](https://github.com/loopstack-ai/loopstack/commit/4d10d0fb22d777d1091b729b87cf86f66f48885a) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Registry packages export what their public API documents, and nothing else.
+  - `@loopstack/mcp`: `McpClientLike`, `McpTransportLike`, `McpClientCtor` and `McpTransportCtor` are no longer
+    exported.
+  - `@loopstack/claude`: `ClaudeGenerateOptions` and `ClaudeToolDefinition` are no longer exported.
+  - `@loopstack/agent`: exports `AgentFinishResultSchema` and `AgentFinishResult`, the result of `AgentFinishTool`.
+  - `@loopstack/code-agent`: exports `ExploreTaskResultSchema`, the result schema of `ExploreTask`.
+
+- Updated dependencies [[`2ea921f`](https://github.com/loopstack-ai/loopstack/commit/2ea921f59e64f3aa6208ac5e429f085725865522), [`4d10d0f`](https://github.com/loopstack-ai/loopstack/commit/4d10d0fb22d777d1091b729b87cf86f66f48885a), [`e194666`](https://github.com/loopstack-ai/loopstack/commit/e194666b8cada794df5f430e263b3b67714be6b2), [`c4639e8`](https://github.com/loopstack-ai/loopstack/commit/c4639e8ca6d7fd4f423b4befb160890d1b52e20c)]:
+  - @loopstack/common@0.45.0
+  - @loopstack/core@0.45.0
+  - @loopstack/agent@0.6.4
+  - @loopstack/llm-provider@0.12.0
+  - @loopstack/remote-client@0.29.2
+
 ## 0.6.0
 
 ### Minor Changes

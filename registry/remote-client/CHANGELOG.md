@@ -1,5 +1,14 @@
 # @loopstack/remote-client
 
+## 0.29.2
+
+### Patch Changes
+
+- Updated dependencies [[`2ea921f`](https://github.com/loopstack-ai/loopstack/commit/2ea921f59e64f3aa6208ac5e429f085725865522), [`e194666`](https://github.com/loopstack-ai/loopstack/commit/e194666b8cada794df5f430e263b3b67714be6b2), [`c4639e8`](https://github.com/loopstack-ai/loopstack/commit/c4639e8ca6d7fd4f423b4befb160890d1b52e20c)]:
+  - @loopstack/common@0.45.0
+  - @loopstack/core@0.45.0
+  - @loopstack/secrets@0.30.0
+
 ## 0.29.1
 
 ### Patch Changes
