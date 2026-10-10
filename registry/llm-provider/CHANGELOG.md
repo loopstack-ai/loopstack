@@ -1,5 +1,25 @@
 # @loopstack/llm-provider-module
 
+## 0.12.0
+
+### Minor Changes
+
+- [#435](https://github.com/loopstack-ai/loopstack/pull/435) [`e194666`](https://github.com/loopstack-ai/loopstack/commit/e194666b8cada794df5f430e263b3b67714be6b2) Thanks [@jakobklippel](https://github.com/jakobklippel)! - One name per registry package: the directory under `registry/`, the npm name and the docs page share it, and
+  the `-module` / `-tool` suffixes are gone.
+  - `@loopstack/claude`, `@loopstack/claude-tools`, `@loopstack/git`, `@loopstack/github`,
+    `@loopstack/google-workspace`, `@loopstack/handoff`, `@loopstack/llm-provider`,
+    `@loopstack/local-file-explorer`, `@loopstack/mcp`, `@loopstack/oauth`, `@loopstack/openai`,
+    `@loopstack/remote-file-explorer`, `@loopstack/secrets`, `@loopstack/typesafe`, `@loopstack/web` — published
+    under these names from now on.
+  - `@loopstack/docker-sandbox` and `@loopstack/docker-sandbox-filesystem` — the Docker sandbox pair.
+  - `@loopstack/cli`: `create` scaffolds `@loopstack/claude`.
+
+### Patch Changes
+
+- Updated dependencies [[`2ea921f`](https://github.com/loopstack-ai/loopstack/commit/2ea921f59e64f3aa6208ac5e429f085725865522), [`c4639e8`](https://github.com/loopstack-ai/loopstack/commit/c4639e8ca6d7fd4f423b4befb160890d1b52e20c)]:
+  - @loopstack/common@0.45.0
+  - @loopstack/core@0.45.0
+
 ## 0.11.0
 
 ### Minor Changes

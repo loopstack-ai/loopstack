@@ -11,7 +11,7 @@
     "tool",
     "webfetch"
   ],
-  "version": "0.6.0",
+  "version": "0.7.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -34,13 +34,13 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.44.0",
-    "@loopstack/llm-provider": "^0.11.0",
+    "@loopstack/common": "^0.45.0",
+    "@loopstack/llm-provider": "^0.12.0",
     "lru-cache": "^11.0.2",
     "turndown": "^7.2.0"
   },
   "devDependencies": {
-    "@loopstack/testing": "^0.44.0",
+    "@loopstack/testing": "^0.45.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/testing": "^12.0.1",

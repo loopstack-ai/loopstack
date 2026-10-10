@@ -9,7 +9,7 @@
     "sandbox",
     "workspace"
   ],
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,9 +33,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/claims": "^0.0.0",
-    "@loopstack/common": "^0.44.0",
-    "@loopstack/hitl": "^0.6.3",
+    "@loopstack/claims": "^0.1.0",
+    "@loopstack/common": "^0.45.0",
+    "@loopstack/hitl": "^0.6.4",
     "dockerode": "^4.0.9"
   },
   "devDependencies": {
