@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GitModule } from '@loopstack/git-module';
+import { GitModule } from '@loopstack/git';
 import { RemoteClientModule } from '@loopstack/remote-client';
 import { replay, runWorkflow } from '@loopstack/testing';
 import { GitExamplesModule } from '../../../git-examples.module';

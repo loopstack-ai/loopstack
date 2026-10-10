@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider';
 
 const PromptExampleSchema = z.object({
   subject: z.string().default('coffee'),

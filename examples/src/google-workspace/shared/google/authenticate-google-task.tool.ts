@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+import { OAuthWorkflow } from '@loopstack/oauth';
 
 const AuthenticateGoogleTaskInputSchema = z
   .object({

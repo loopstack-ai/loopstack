@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
+import { McpCallTool, McpListToolsTool } from '@loopstack/mcp';
 
 const LINEAR_MCP_URL = 'https://mcp.linear.app/mcp';
 

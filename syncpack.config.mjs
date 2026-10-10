@@ -16,9 +16,9 @@ export default {
   source: [
     'package.json',
     'packages/*/package.json',
-    'frontend/*/package.json',
-    'templates/*/package.json',
-    'registry/*/*/package.json',
+    'studio/package.json',
+    'registry/*/package.json',
+    'registry/remote-client/server/package.json',
   ],
 
   // Sort package.json keys

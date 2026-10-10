@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
-import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateObjectTool } from '@loopstack/llm-provider';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 

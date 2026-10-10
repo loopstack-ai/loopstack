@@ -16,7 +16,7 @@ A simple chat workflow: wait for a user message, call LLM, display the response,
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider';
 
 @Workflow({
   widget: './chat.ui.yaml', // UI config

@@ -92,8 +92,8 @@ Registration:
 - `GitHubIntegrationModule` — bare import; it internally imports `GitModule`, `GitHubModule`, `HitlModule`,
   and `OAuthModule`, so you do not import those yourself. No static configuration methods exist.
 
-Requires: the peer packages `@loopstack/git-module`, `@loopstack/github-module`, `@loopstack/hitl`,
-`@loopstack/oauth-module`, and `@loopstack/remote-client` must be installed, plus a configured GitHub OAuth app
+Requires: the peer packages `@loopstack/git`, `@loopstack/github`, `@loopstack/hitl`,
+`@loopstack/oauth`, and `@loopstack/remote-client` must be installed, plus a configured GitHub OAuth app
 (client ID/secret via `GitHubModule`'s env vars) and the `RemoteClient` infrastructure required by `GitModule`.
 
 ```ts

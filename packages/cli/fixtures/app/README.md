@@ -24,4 +24,4 @@ docker compose -f docker-compose.studio.yml up -d
 ## Next steps
 
 - Build your first workflow: https://loopstack.ai/docs
-- Add feature modules and example workflows from the registry: https://loopstack.ai/registry
+- Add registry packages: https://loopstack.ai/docs/registry — copy example workflows: https://loopstack.ai/docs/examples/llm

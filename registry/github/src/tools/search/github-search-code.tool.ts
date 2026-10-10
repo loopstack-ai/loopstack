@@ -1,0 +1,152 @@
+import { Inject, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { OAuthTokenStore } from '@loopstack/oauth';
+
+const inputSchema = z
+  .object({
+    query: z.string(),
+    perPage: z.number().default(30),
+    page: z.number().default(1),
+  })
+  .strict();
+
+/**
+ * Args for `GitHubSearchCodeTool`: the GitHub code-search `query` and `perPage`/`page` paging.
+ *
+ * @public
+ */
+export type GitHubSearchCodeArgs = z.input<typeof inputSchema>;
+
+/**
+ * Result for `GitHubSearchCodeTool`: `totalCount` and a `results` array of matching files
+ * with their repository, or an `error`.
+ *
+ * @public
+ */
+export type GitHubSearchCodeResult = {
+  totalCount?: number;
+  results?: Array<{
+    name: string;
+    path: string;
+    sha: string;
+    htmlUrl: string;
+    repository: string;
+  }>;
+  error?: string;
+  message?: string;
+};
+
+/**
+ * Zod schema for the success shape of {@link GitHubSearchCodeResult}.
+ *
+ * @public
+ */
+export const GitHubSearchCodeResultSchema = z.strictObject({
+  totalCount: z.number(),
+  results: z.array(
+    z.strictObject({
+      name: z.string(),
+      path: z.string(),
+      sha: z.string(),
+      htmlUrl: z.string(),
+      repository: z.string(),
+    }),
+  ),
+});
+
+/**
+ * Tool that searches for code across GitHub repositories using the GitHub search syntax.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
+@Tool({
+  name: 'github_search_code',
+  description:
+    'Searches for code across GitHub repositories using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
+  schema: inputSchema,
+  resultSchema: GitHubSearchCodeResultSchema,
+  effects: 'none',
+})
+export class GitHubSearchCodeTool extends BaseTool<GitHubSearchCodeArgs, object, GitHubSearchCodeResult> {
+  private readonly logger = new Logger(GitHubSearchCodeTool.name);
+
+  @Inject()
+  private tokenStore: OAuthTokenStore;
+
+  protected async handle(args: GitHubSearchCodeArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubSearchCodeResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+
+    if (!accessToken) {
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'No valid GitHub token found. Please authenticate first.',
+        },
+        error: 'No valid GitHub token found. Please authenticate first.',
+      };
+    }
+
+    const params = new URLSearchParams({
+      q: args.query,
+      per_page: String(args.perPage ?? 30),
+      page: String(args.page ?? 1),
+    });
+
+    const response = await fetch(`https://api.github.com/search/code?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      return {
+        data: {
+          error: '401',
+          message: 'GitHub token was rejected. Please re-authenticate.',
+        },
+        error: 'GitHub token was rejected. Please re-authenticate.',
+      };
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      this.logger.error(`GitHub API error: ${response.status} ${body}`);
+      return {
+        data: {
+          error: 'api_error',
+          message: `GitHub API error: ${response.statusText}`,
+        },
+        error: `GitHub API error: ${response.statusText}`,
+      };
+    }
+
+    const data = (await response.json()) as {
+      total_count: number;
+      items: Array<{
+        name: string;
+        path: string;
+        sha: string;
+        html_url: string;
+        repository: { full_name: string };
+      }>;
+    };
+
+    const results = data.items.map((item) => ({
+      name: item.name,
+      path: item.path,
+      sha: item.sha,
+      htmlUrl: item.html_url,
+      repository: item.repository.full_name,
+    }));
+
+    return {
+      data: { totalCount: data.total_count, results },
+    };
+  }
+}

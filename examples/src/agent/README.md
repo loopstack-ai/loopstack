@@ -14,7 +14,7 @@ Four ways to build agents in Loopstack — from the recommended `AgentWorkflow` 
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/agent @loopstack/claude-module @loopstack/code-agent @loopstack/common @loopstack/llm-provider-module @loopstack/mcp-module @loopstack/remote-client
+npm install @loopstack/agent @loopstack/claude @loopstack/code-agent @loopstack/common @loopstack/llm-provider @loopstack/mcp @loopstack/remote-client
 ```
 
 Register the module:
@@ -32,11 +32,11 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-All four examples use LLM tools (`LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, etc.) from `@loopstack/llm-provider-module`. That module is `@Global` and must be configured once in your root module to set the default model:
+All four examples use LLM tools (`LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, etc.) from `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { AgentExamplesModule } from './agent/agent-examples.module';
 
@@ -86,7 +86,7 @@ Launches `AgentWorkflow` as a code-exploration agent with `glob`, `grep`, and `r
 
 The `glob`, `grep`, and `read` tools execute on a **remote agent**, so the workspace must have a `sandbox` environment connected.
 
-**1. Run a remote agent.** The simplest option is `@loopstack/remote-server` on `localhost:3001` (see `services/remote-server/`).
+**1. Run a remote agent.** The simplest option is `@loopstack/remote-server` on `localhost:3001` (see `registry/remote-client/server/`).
 
 **2. Register an available environment in your app module:**
 

@@ -2,7 +2,7 @@
 '@loopstack/common': minor
 '@loopstack/core': minor
 '@loopstack/loopstack-module': minor
-'@loopstack/oauth-module': minor
+'@loopstack/oauth': minor
 '@loopstack/quota': minor
 ---
 

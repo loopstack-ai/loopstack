@@ -1,11 +1,11 @@
 ---
 title: OAuth Authentication
-description: Integrating OAuth 2.0 authentication using @loopstack/oauth-module. Covers setup with Google Workspace provider, token management, and accessing OAuth-protected APIs from workflows.
+description: Integrating OAuth 2.0 authentication using @loopstack/oauth. Covers setup with Google Workspace provider, token management, and accessing OAuth-protected APIs from workflows.
 ---
 
 # OAuth Authentication
 
-Add OAuth 2.0 authentication to your workflows using the provider-agnostic `@loopstack/oauth-module`. Register providers like Google Workspace or GitHub, and access OAuth-protected APIs from any workflow or tool.
+Add OAuth 2.0 authentication to your workflows using the provider-agnostic `@loopstack/oauth`. Register providers like Google Workspace or GitHub, and access OAuth-protected APIs from any workflow or tool.
 
 ## How It Works
 
@@ -32,7 +32,7 @@ Tools that need an access token call `OAuthTokenStore.getValidAccessToken(userId
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { GoogleWorkspaceModule } from '@loopstack/google-workspace-module';
+import { GoogleWorkspaceModule } from '@loopstack/google-workspace';
 
 @Module({
   imports: [GoogleWorkspaceModule],
@@ -45,7 +45,7 @@ export class MyModule {}
 `GoogleWorkspaceModule` and `GitHubModule` import `OAuthModule` internally — you don't need to add it explicitly. For a custom provider, import `OAuthModule` directly alongside your provider module:
 
 ```typescript
-import { OAuthModule } from '@loopstack/oauth-module';
+import { OAuthModule } from '@loopstack/oauth';
 import { MyCustomOAuthModule } from './my-custom-oauth.module';
 
 @Module({
@@ -65,7 +65,7 @@ The simplest approach: launch the built-in `OAuthWorkflow` when authentication i
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
 import { MarkdownDocument } from '@loopstack/common';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+import { OAuthWorkflow } from '@loopstack/oauth';
 
 interface CalendarState {
   events?: CalendarEvent[];
@@ -128,7 +128,7 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth-module';
+import { OAuthTokenStore } from '@loopstack/oauth';
 
 @Tool({
   name: 'calendar_fetch_events',

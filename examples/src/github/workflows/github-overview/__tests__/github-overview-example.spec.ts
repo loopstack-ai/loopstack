@@ -9,8 +9,8 @@ import {
   GitHubListUserOrgsTool,
   GitHubListWorkflowRunsTool,
   GitHubSearchCodeTool,
-} from '@loopstack/github-module';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+} from '@loopstack/github';
+import { OAuthWorkflow } from '@loopstack/oauth';
 import { failure, queue, runWorkflow } from '@loopstack/testing';
 import { GithubOverviewExampleWorkflow } from '../github-overview-example.workflow';
 

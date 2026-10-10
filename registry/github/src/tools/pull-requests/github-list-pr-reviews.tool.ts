@@ -1,0 +1,149 @@
+import { Inject, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { OAuthTokenStore } from '@loopstack/oauth';
+
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    pullNumber: z.number(),
+  })
+  .strict();
+
+/**
+ * Args for `GitHubListPrReviewsTool`: the repository `owner`, `repo` and `pullNumber`.
+ *
+ * @public
+ */
+export type GitHubListPrReviewsArgs = z.infer<typeof inputSchema>;
+
+/**
+ * Result for `GitHubListPrReviewsTool`: a `reviews` array with reviewer, body, state
+ * and submission time (absent for a pending review), or an `error`.
+ *
+ * @public
+ */
+export type GitHubListPrReviewsResult =
+  | {
+      reviews: Array<{
+        id: number;
+        user: string;
+        body: string;
+        state: string;
+        submittedAt?: string;
+        htmlUrl: string;
+      }>;
+    }
+  | { error: string; message: string };
+
+/**
+ * Zod schema for the success shape of {@link GitHubListPrReviewsResult}.
+ *
+ * @public
+ */
+export const GitHubListPrReviewsResultSchema = z.strictObject({
+  reviews: z.array(
+    z.strictObject({
+      id: z.number(),
+      user: z.string(),
+      body: z.string(),
+      state: z.string(),
+      submittedAt: z.string().optional(),
+      htmlUrl: z.string(),
+    }),
+  ),
+});
+
+/**
+ * Tool that lists reviews submitted on a GitHub pull request.
+ *
+ * @providedBy GitHubModule
+ * @public
+ */
+@Tool({
+  name: 'github_list_pr_reviews',
+  description:
+    'Lists reviews on a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
+  schema: inputSchema,
+  resultSchema: GitHubListPrReviewsResultSchema,
+  effects: 'none',
+})
+export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, object, GitHubListPrReviewsResult> {
+  private readonly logger = new Logger(GitHubListPrReviewsTool.name);
+
+  @Inject()
+  private tokenStore: OAuthTokenStore;
+
+  protected async handle(
+    args: GitHubListPrReviewsArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubListPrReviewsResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+
+    if (!accessToken) {
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'No valid GitHub token found. Please authenticate first.',
+        },
+        error: 'No valid GitHub token found. Please authenticate first.',
+      };
+    }
+
+    const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/pulls/${args.pullNumber}/reviews`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      return {
+        data: {
+          error: '401',
+          message: 'GitHub token was rejected. Please re-authenticate.',
+        },
+        error: 'GitHub token was rejected. Please re-authenticate.',
+      };
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      this.logger.error(`GitHub API error: ${response.status} ${body}`);
+      return {
+        data: {
+          error: 'api_error',
+          message: `GitHub API error: ${response.statusText}`,
+        },
+        error: `GitHub API error: ${response.statusText}`,
+      };
+    }
+
+    const data = (await response.json()) as Array<{
+      id: number;
+      user: { login: string };
+      body: string;
+      state: string;
+      submitted_at?: string;
+      html_url: string;
+    }>;
+
+    const reviews = data.map((review) => ({
+      id: review.id,
+      user: review.user.login,
+      body: review.body,
+      state: review.state,
+      submittedAt: review.submitted_at,
+      htmlUrl: review.html_url,
+    }));
+
+    return {
+      data: { reviews },
+    };
+  }
+}

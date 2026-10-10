@@ -12,8 +12,8 @@ import {
   GitHubListUserOrgsTool,
   GitHubListWorkflowRunsTool,
   GitHubSearchCodeTool,
-} from '@loopstack/github-module';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+} from '@loopstack/github';
+import { OAuthWorkflow } from '@loopstack/oauth';
 
 interface GitHubReposOverviewState {
   owner: string;

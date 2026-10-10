@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
-import { SecretsModule } from '@loopstack/secrets-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
+import { SecretsModule } from '@loopstack/secrets';
 import { type TestRun, coverage, replay, runWorkflow } from '@loopstack/testing';
 import { SecretsExamplesModule } from '../../../secrets-examples.module';
 import { DeterministicExampleWorkflow } from '../deterministic-example.workflow';

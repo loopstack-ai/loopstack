@@ -2,13 +2,13 @@ import { Inject } from '@nestjs/common';
 import { join } from 'node:path';
 import { BaseWorkflow, Guard, MessageDocument, Transition, WORKFLOW_ORCHESTRATOR, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput, WorkflowOrchestrator } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
   LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider-module';
+} from '@loopstack/llm-provider';
 import { FailingSubWorkflowTool } from './tools/failing-sub-workflow.tool';
 import { RuntimeErrorTool } from './tools/runtime-error.tool';
 import { StrictSchemaTool } from './tools/strict-schema.tool';

@@ -1,6 +1,6 @@
 ---
 title: 'Plug Your Agents Into Any MCP Server'
-description: 'Introducing @loopstack/mcp-module, a module that allows you to list and call tools on remote MCP servers from any Loopstack workflow.'
+description: 'Introducing @loopstack/mcp, a module that allows you to list and call tools on remote MCP servers from any Loopstack workflow.'
 date: '2026-05-18'
 author: 'Loopstack Team'
 tags: ['Release', 'MCP', 'Integrations']
@@ -11,7 +11,7 @@ imgThemeAdapt: true
 
 Your agent is only as useful as the tools it can reach. If those tools live behind a remote MCP server like Linear, GitHub or an internal service, getting there has historically meant writing your own client and your own auth plumbing.
 
-`@loopstack/mcp-module` ships two workflow tools that connect any Loopstack agent to a remote [Model Context Protocol](https://modelcontextprotocol.io) server over Streamable HTTP or legacy SSE. No transport code, no header juggling.
+`@loopstack/mcp` ships two workflow tools that connect any Loopstack agent to a remote [Model Context Protocol](https://modelcontextprotocol.io) server over Streamable HTTP or legacy SSE. No transport code, no header juggling.
 
 ## Two Tools, One Job
 
@@ -47,7 +47,7 @@ npx giget@latest gh:loopstack-ai/loopstack/examples/src/agent src/agent
 
 Follow the README and you'll get a working chat agent wired to Linear's hosted MCP server. Set `LINEAR_MCP_TOKEN="Bearer lin_oauth_..."` in your env and you're done. Point a workflow at it and your agent can list and create issues from chat.
 
-For the full security model, transport selection, and the env-reader / metrics extension points, the [`@loopstack/mcp-module` README](https://github.com/loopstack-ai/loopstack/tree/main/registry/features/mcp-module) walks through every knob.
+For the full security model, transport selection, and the env-reader / metrics extension points, the [`@loopstack/mcp` README](https://github.com/loopstack-ai/loopstack/tree/main/registry/mcp) walks through every knob.
 
 ## Wrapping Up
 

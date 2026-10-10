@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
-import { GoogleWorkspaceModule } from '@loopstack/google-workspace-module';
+import { GoogleWorkspaceModule } from '@loopstack/google-workspace';
 import { AuthenticateGoogleTask } from './shared/google/authenticate-google-task.tool';
 import { GoogleCalendarFetchEventsTool } from './shared/google/google-calendar-fetch-events.tool';
 import { GoogleCalendarSummaryExampleWorkflow } from './workflows/google-calendar-summary/google-calendar-summary-example.workflow';

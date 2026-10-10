@@ -40,7 +40,7 @@ A document is a **typed data object** displayed in the Loopstack Studio UI. It h
 
 Documents are how workflows communicate with users:
 
-- **LlmMessageDocument** — chat messages, from `@loopstack/llm-provider-module`
+- **LlmMessageDocument** — chat messages, from `@loopstack/llm-provider`
 - **MarkdownDocument** — rendered markdown
 - **LinkDocument** — clickable links to sub-workflows
 - **ErrorDocument** — error messages

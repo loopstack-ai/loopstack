@@ -14,7 +14,7 @@ Side-by-side examples of every way to pause a Loopstack workflow for the user. T
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/agent @loopstack/claude-module @loopstack/common @loopstack/hitl @loopstack/llm-provider-module
+npm install @loopstack/agent @loopstack/claude @loopstack/common @loopstack/hitl @loopstack/llm-provider
 ```
 
 Register the module:
@@ -40,11 +40,11 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-`HitlExamplesModule` brings its own `HitlModule`, `AgentModule`, and `ClaudeModule`. The Meeting Notes and Agent examples additionally call `LlmGenerateObjectTool` / `LlmGenerateTextTool` from `@loopstack/llm-provider-module`. That module is `@Global` and must be configured once in your root module to set the default model:
+`HitlExamplesModule` brings its own `HitlModule`, `AgentModule`, and `ClaudeModule`. The Meeting Notes and Agent examples additionally call `LlmGenerateObjectTool` / `LlmGenerateTextTool` from `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { HitlExamplesModule } from './hitl/hitl-examples.module';
 

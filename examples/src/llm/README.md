@@ -14,7 +14,7 @@ A collection of workflow examples that demonstrate how to integrate LLMs into Lo
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude-module @loopstack/common @loopstack/llm-provider-module @loopstack/openai-module @loopstack/web-module
+npm install @loopstack/claude @loopstack/common @loopstack/llm-provider @loopstack/openai @loopstack/web
 ```
 
 Register the module:
@@ -32,11 +32,11 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-Every workflow in this module calls a tool from `@loopstack/llm-provider-module` (`LlmGenerateTextTool`, `LlmGenerateObjectTool`). That module is `@Global` and must be configured once in your root module to set the default model:
+Every workflow in this module calls a tool from `@loopstack/llm-provider` (`LlmGenerateTextTool`, `LlmGenerateObjectTool`). That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { LlmExamplesModule } from './llm/llm-examples.module';
 
@@ -175,7 +175,7 @@ Fetches a URL, converts HTML to Markdown, and optionally summarizes it against a
 
 ### What it demonstrates
 
-- Using `WebFetchTool` from `@loopstack/web-module`
+- Using `WebFetchTool` from `@loopstack/web`
 - HTML → Markdown conversion with size caps and same-origin redirect handling
 - Optional prompt-based summarization built into the tool
 
@@ -198,8 +198,8 @@ When `prompt` is omitted, `WebFetchTool` returns the raw Markdown (truncated if 
 
 ### Related modules
 
-- `@loopstack/web-module` — fetch + Markdown conversion + summarization
-- `@loopstack/claude-module` — `claude_native_web_search`, Claude's server-side web search tool (alternative when you want the LLM to search rather than fetch a specific URL)
+- `@loopstack/web` — fetch + Markdown conversion + summarization
+- `@loopstack/claude` — `claude_native_web_search`, Claude's server-side web search tool (alternative when you want the LLM to search rather than fetch a specific URL)
 
 ## About
 

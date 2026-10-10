@@ -7,7 +7,7 @@ description: Google Workspace integration workflow examples for Loopstack — a 
 
 > Google Workspace integration workflow examples for the [Loopstack](https://loopstack.ai) automation framework.
 
-Two ways to use the `@loopstack/google-workspace-module` tools:
+Two ways to use the `@loopstack/google-workspace` tools:
 
 - A **scripted summary** workflow — fetches calendar events with a custom tool and renders them
 - An **interactive agent** workflow — Claude with Calendar, Gmail, and Drive tools
@@ -19,7 +19,7 @@ Both share the same sign-in pattern: when a tool returns unauthorized, launch th
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude-module @loopstack/common @loopstack/google-workspace-module @loopstack/llm-provider-module @loopstack/oauth-module
+npm install @loopstack/claude @loopstack/common @loopstack/google-workspace @loopstack/llm-provider @loopstack/oauth
 ```
 
 Register the module:
@@ -37,11 +37,11 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-Both examples use Claude via `@loopstack/llm-provider-module` — `@Global`, configured once in your root module to set the default model:
+Both examples use Claude via `@loopstack/llm-provider` — `@Global`, configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { GoogleWorkspaceExamplesModule } from './google-workspace/google-workspace-examples.module';
 
@@ -65,7 +65,7 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 ```
 
-Refer to `@loopstack/google-workspace-module` for the full OAuth setup (redirect URL, scopes).
+Refer to `@loopstack/google-workspace` for the full OAuth setup (redirect URL, scopes).
 
 ## Running
 

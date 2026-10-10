@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { StudioApp } from '@loopstack/common';
-import { LocalFileExplorerModule } from '@loopstack/local-file-explorer-module';
+import { LocalFileExplorerModule } from '@loopstack/local-file-explorer';
 import { LocalFileExplorerExampleWorkflow } from './workflows/local-file-explorer/local-file-explorer-example.workflow';
 
 const WORKFLOWS = [LocalFileExplorerExampleWorkflow];

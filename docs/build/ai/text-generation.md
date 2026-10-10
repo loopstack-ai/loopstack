@@ -11,8 +11,8 @@ Generate text from any configured LLM provider using `LlmGenerateTextTool`. Pass
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { ClaudeModule } from '@loopstack/claude';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 
 @Module({
   imports: [LlmProviderModule, ClaudeModule],
@@ -30,7 +30,7 @@ export class PromptModule {}
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider';
 
 const PromptSchema = z.object({
   subject: z.string().default('coffee'),

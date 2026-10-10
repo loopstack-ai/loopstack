@@ -7,7 +7,7 @@ description: GitHub integration workflow examples for Loopstack — a scripted r
 
 > GitHub integration workflow examples for the [Loopstack](https://loopstack.ai) automation framework.
 
-Two ways to use the `@loopstack/github-module` tools:
+Two ways to use the `@loopstack/github` tools:
 
 - A **scripted overview** workflow — single pass, hand-rolled tool sequence
 - An **interactive agent** workflow — Claude with the full GitHub tool set
@@ -21,7 +21,7 @@ For syncing a workspace to a GitHub repository, see the [GitHub Repo Sync](/docs
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude-module @loopstack/common @loopstack/github-module @loopstack/llm-provider-module @loopstack/oauth-module
+npm install @loopstack/claude @loopstack/common @loopstack/github @loopstack/llm-provider @loopstack/oauth
 ```
 
 Register the module:
@@ -39,11 +39,11 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-Both examples use Claude via `@loopstack/llm-provider-module` — `@Global`, configured once in your root module to set the default model:
+Both examples use Claude via `@loopstack/llm-provider` — `@Global`, configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { GitHubExamplesModule } from './github/github-examples.module';
 
@@ -63,7 +63,7 @@ GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...
 ```
 
-Refer to `@loopstack/github-module` for the full OAuth setup (redirect URL, scopes).
+Refer to `@loopstack/github` for the full OAuth setup (redirect URL, scopes).
 
 ## Running
 

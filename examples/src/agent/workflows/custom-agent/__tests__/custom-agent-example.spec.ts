@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider';
 import { replay, runWorkflow } from '@loopstack/testing';
 import { CalculatorTool } from '../../../tools/calculator.tool';
 import { WeatherLookupTool } from '../../../tools/weather-lookup.tool';

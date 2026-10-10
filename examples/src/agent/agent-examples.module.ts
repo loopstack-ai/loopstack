@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AgentModule } from '@loopstack/agent';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { CodeAgentModule } from '@loopstack/code-agent';
 import { StudioApp } from '@loopstack/common';
-import { McpModule } from '@loopstack/mcp-module';
+import { McpModule } from '@loopstack/mcp';
 import { RemoteClientModule } from '@loopstack/remote-client';
 import { CalculatorTool } from './tools/calculator.tool';
 import { WeatherLookupTool } from './tools/weather-lookup.tool';

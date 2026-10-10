@@ -14,16 +14,16 @@ import {
   GoogleDriveGetFileMetadataTool,
   GoogleDriveListFilesTool,
   GoogleDriveUploadFileTool,
-} from '@loopstack/google-workspace-module';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+} from '@loopstack/google-workspace';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
 import {
   LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
   LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider-module';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+} from '@loopstack/llm-provider';
+import { OAuthWorkflow } from '@loopstack/oauth';
 import { AuthenticateGoogleTask } from '../../shared/google/authenticate-google-task.tool';
 
 interface GoogleWorkspaceAgentState {

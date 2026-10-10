@@ -14,7 +14,7 @@ Deep-dive examples for framework patterns authors reach for less often but want 
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude-module @loopstack/common @loopstack/core @loopstack/llm-provider-module
+npm install @loopstack/claude @loopstack/common @loopstack/core @loopstack/llm-provider
 ```
 
 Register the module:
@@ -32,11 +32,11 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-Examples that exercise LLM tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool` — used by Sub-Workflow, Fan-Out, Sequence, Batch Processing, Custom Tool, Module Config) call into `@loopstack/llm-provider-module`. That module is `@Global` and must be configured once in your root module to set the default model:
+Examples that exercise LLM tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool` — used by Sub-Workflow, Fan-Out, Sequence, Batch Processing, Custom Tool, Module Config) call into `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { AdvancedWorkflowsExamplesModule } from './advanced-workflows/advanced-workflows-examples.module';
 

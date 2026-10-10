@@ -14,7 +14,7 @@ Two ways a workflow works against a remote workspace with the `@loopstack/remote
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/common @loopstack/remote-client @loopstack/remote-file-explorer-module
+npm install @loopstack/common @loopstack/remote-client @loopstack/remote-file-explorer
 ```
 
 Register the module:

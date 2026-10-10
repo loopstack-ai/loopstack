@@ -14,7 +14,7 @@ Two workflow examples that show how to compose git tools and integrate with GitH
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/common @loopstack/git-module @loopstack/github-integration @loopstack/remote-client
+npm install @loopstack/common @loopstack/git @loopstack/github-integration @loopstack/remote-client
 ```
 
 Register the module:

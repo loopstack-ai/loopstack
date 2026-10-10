@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth-module';
+import { OAuthTokenStore } from '@loopstack/oauth';
 
 const GoogleCalendarFetchEventsSchema = z
   .object({

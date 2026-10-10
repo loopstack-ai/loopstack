@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { type AgentResult, AgentResultSchema, AgentWorkflow } from '@loopstack/agent';
 import { BaseWorkflow, Transition, type TransitionInput, Workflow } from '@loopstack/common';
-import { LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmMessageDocument } from '@loopstack/llm-provider';
 
 @Workflow({
   title: 'Agent - Basic Agent Example',

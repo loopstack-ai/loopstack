@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AgentModule } from '@loopstack/agent';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { runWorkflow } from '@loopstack/testing';
 import { HitlExamplesModule } from '../../../hitl-examples.module';
 import { AgentAskClarificationExampleWorkflow } from '../agent-ask-clarification-example.workflow';

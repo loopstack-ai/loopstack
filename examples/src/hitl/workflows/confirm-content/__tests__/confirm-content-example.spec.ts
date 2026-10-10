@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { HitlModule } from '@loopstack/hitl';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { type TestRun, coverage, runWorkflow } from '@loopstack/testing';
 import { HitlExamplesModule } from '../../../hitl-examples.module';
 import { ConfirmContentExampleWorkflow } from '../confirm-content-example.workflow';

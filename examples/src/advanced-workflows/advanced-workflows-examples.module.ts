@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { AgentErrorHandlingFailingSubWorkflow } from './workflows/agent-error-handling/agent-error-handling-failing-sub.workflow';
 import { AgentErrorHandlingWorkflow } from './workflows/agent-error-handling/agent-error-handling.workflow';

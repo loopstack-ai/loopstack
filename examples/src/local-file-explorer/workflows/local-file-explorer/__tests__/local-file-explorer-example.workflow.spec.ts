@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { LocalFileExplorerModule } from '@loopstack/local-file-explorer-module';
+import { LocalFileExplorerModule } from '@loopstack/local-file-explorer';
 import { createWorkflowTest, runWorkflow } from '@loopstack/testing';
 import { LocalFileExplorerExamplesModule } from '../../../local-file-explorer-examples.module';
 import { LocalFileExplorerExampleWorkflow } from '../local-file-explorer-example.workflow';

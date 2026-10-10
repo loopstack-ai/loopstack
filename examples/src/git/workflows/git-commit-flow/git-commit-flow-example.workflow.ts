@@ -1,5 +1,5 @@
 import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack/git-module';
+import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack/git';
 import { WriteTool } from '@loopstack/remote-client';
 
 @Workflow({

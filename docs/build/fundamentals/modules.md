@@ -13,7 +13,7 @@ Every module whose workflows should be **visible and launchable in Loopstack Stu
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { MyTool } from './tools/my.tool';
 import { MyWorkflow } from './workflows/my.workflow';
@@ -96,7 +96,7 @@ A feature module groups related workflows, tools, and services together for reus
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { MyTool } from './tools/my.tool';
 import { MyWorkflow } from './workflows/my.workflow';
 

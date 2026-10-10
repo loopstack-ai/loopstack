@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
-import { OpenAiModule } from '@loopstack/openai-module';
-import { WebModule } from '@loopstack/web-module';
+import { OpenAiModule } from '@loopstack/openai';
+import { WebModule } from '@loopstack/web';
 import { MultiProviderExampleWorkflow } from './workflows/multi-provider/multi-provider-example.workflow';
 import { PromptExampleWorkflow } from './workflows/prompt/prompt-example.workflow';
 import { FileDocument } from './workflows/structured-output/documents/file-document';

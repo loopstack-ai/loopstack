@@ -5,7 +5,7 @@ description: Forcing LLMs to return structured JSON data using LlmGenerateObject
 
 # AI Structured Output
 
-Use `LlmGenerateObjectTool` from `@loopstack/llm-provider-module` to generate structured data conforming to a JSON Schema. Provider-agnostic — works with Claude, OpenAI, and other providers.
+Use `LlmGenerateObjectTool` from `@loopstack/llm-provider` to generate structured data conforming to a JSON Schema. Provider-agnostic — works with Claude, OpenAI, and other providers.
 
 ## Define a Document
 
@@ -40,8 +40,8 @@ export class FileDocument {
 import { toJSONSchema, z } from 'zod';
 import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
-import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import type { LlmGenerateObjectResult } from '@loopstack/llm-provider';
+import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
 
 interface StructuredOutputState {

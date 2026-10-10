@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { StudioApp } from '@loopstack/common';
-import { GitModule } from '@loopstack/git-module';
+import { GitModule } from '@loopstack/git';
 import { GitHubIntegrationModule } from '@loopstack/github-integration';
 import { RemoteClientModule } from '@loopstack/remote-client';
 import { GitCommitFlowExampleWorkflow } from './workflows/git-commit-flow/git-commit-flow-example.workflow';

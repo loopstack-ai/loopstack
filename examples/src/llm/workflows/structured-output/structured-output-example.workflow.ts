@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
 
 interface StructuredOutputState {

@@ -1,20 +1,20 @@
 ---
 title: Local File Explorer Examples
-description: Local file explorer workflow example for Loopstack — build a file tree of the workspace with FileSystemService from @loopstack/local-file-explorer-module.
+description: Local file explorer workflow example for Loopstack — build a file tree of the workspace with FileSystemService from @loopstack/local-file-explorer.
 ---
 
 # Local File Explorer Examples
 
 > Local file explorer workflow example for the [Loopstack](https://loopstack.ai) automation framework.
 
-Shows how a workflow reads the local disk with `FileSystemService` from `@loopstack/local-file-explorer-module`. The same module also lights up the Studio file panel and exposes a REST API for it. Reach for this when a workflow needs to inspect files on the machine the app runs on.
+Shows how a workflow reads the local disk with `FileSystemService` from `@loopstack/local-file-explorer`. The same module also lights up the Studio file panel and exposes a REST API for it. Reach for this when a workflow needs to inspect files on the machine the app runs on.
 
 ## Use in Your App
 
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/common @loopstack/local-file-explorer-module
+npm install @loopstack/common @loopstack/local-file-explorer
 ```
 
 Register the module:

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { SandboxFilesystemModule } from '@loopstack/sandbox-filesystem';
-import { SandboxToolModule } from '@loopstack/sandbox-tool';
+import { SandboxToolModule } from '@loopstack/docker-sandbox';
+import { SandboxFilesystemModule } from '@loopstack/docker-sandbox-filesystem';
 import { coverage, createWorkflowTest, replay, runWorkflow } from '@loopstack/testing';
 import { SandboxExamplesModule } from '../../../sandbox-examples.module';
 import { SandboxExampleWorkflow } from '../sandbox-example.workflow';

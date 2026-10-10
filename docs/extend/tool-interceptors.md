@@ -7,7 +7,7 @@ description: Advanced — register chain-based interceptors around every tool.ca
 
 Tool interceptors are a chain-based extension point that wraps every `tool.call()` in your app. They are the right surface for cross-cutting concerns that should run around _every_ tool call without changing tool implementations — quota enforcement, response caching, structured tracing, custom error handling, billing accounting.
 
-This is an advanced extension point. Most apps don't need a custom interceptor — the tool pipeline already times and logs every call and records it on the run trace, and the `@loopstack/quota` registry feature includes a working `QuotaInterceptor` you can copy.
+This is an advanced extension point. Most apps don't need a custom interceptor — the tool pipeline already times and logs every call and records it on the run trace, and the `@loopstack/quota` registry package includes a working `QuotaInterceptor` you can copy.
 
 ## How They Work
 
@@ -95,7 +95,7 @@ The first argument to `intercept()` carries everything an interceptor needs.
 
 The core registers no interceptors. These ship in Loopstack packages and join the chain when their module or option is used:
 
-- **`QuotaInterceptor`** (priority `50`) — `@loopstack/quota`, registered by `QuotaModule.forRoot()`. Checks the user's quotas before the call and reports usage after it. Source: `loopstack/registry/features/quota-module/src/services/quota.interceptor.ts`.
+- **`QuotaInterceptor`** (priority `50`) — `@loopstack/quota`, registered by `QuotaModule.forRoot()`. Checks the user's quotas before the call and reports usage after it. Source: `loopstack/registry/quota/src/services/quota.interceptor.ts`.
 - **`ReplayToolInterceptor`** / **`RecordToolInterceptor`** (priority `10`) — `@loopstack/testing`, registered by `runWorkflow()` only when a test replays or records tool responses (see [Record and replay tool responses](../build/testing.md#record-and-replay-tool-responses)). Source: `loopstack/packages/testing/src/facade/replay.ts` and `record.ts`.
 - **`TracingInterceptor`** (priority `10`) — example in the [observability examples](/docs/examples/observability) that measures every tool call and stores trace entries in an injectable service. Source: `examples/src/observability/workflows/tracing/interceptors/tracing.interceptor.ts`.
 
@@ -116,4 +116,4 @@ export class QuotaInterceptor implements ToolInterceptor {
 }
 ```
 
-See `loopstack/registry/features/quota-module/src/services/quota.interceptor.ts` for the full implementation.
+See `loopstack/registry/quota/src/services/quota.interceptor.ts` for the full implementation.

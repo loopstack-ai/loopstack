@@ -178,9 +178,10 @@ export default tseslint.config(
   {
     files: [
       'packages/*/src/**/*.{ts,tsx}',
-      'registry/*/*/src/**/*.ts',
+      'registry/*/src/**/*.ts',
+      'registry/remote-client/server/src/**/*.ts',
       'examples/src/**/*.ts',
-      'frontend/*/src/**/*.{ts,tsx}',
+      'studio/src/**/*.{ts,tsx}',
     ],
     plugins: { 'import-x': importX },
     settings: {
@@ -210,7 +211,7 @@ export default tseslint.config(
   // Studio's library build bundles every import its vite config doesn't mark external into dist, so a
   // bundled package is rightly a devDependency.
   {
-    files: ['frontend/studio/src/**/*.{ts,tsx}'],
+    files: ['studio/src/**/*.{ts,tsx}'],
     rules: {
       'import-x/no-extraneous-dependencies': [
         'error',
@@ -257,7 +258,7 @@ export default tseslint.config(
 
   // Frontend (React/Vite) - Browser globals + React plugins
   {
-    files: ['frontend/**/*.{ts,tsx}'],
+    files: ['studio/**/*.{ts,tsx}'],
     plugins: {
       // 'react-hooks': reactHooks,
       'react-refresh': reactRefresh,

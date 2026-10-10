@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { BaseWorkflow, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
-import { type GetSecretKeysResult, GetSecretKeysTool, SecretRequestDocument } from '@loopstack/secrets-module';
+import { type GetSecretKeysResult, GetSecretKeysTool, SecretRequestDocument } from '@loopstack/secrets';
 
 interface DeterministicState {
   secretKeys?: GetSecretKeysResult;

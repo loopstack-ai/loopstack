@@ -1,6 +1,6 @@
 ---
 title: Secrets Management
-description: Requesting, storing, and retrieving secrets (API keys, tokens) at runtime using SecretRequestDocument, RequestSecretsTask, and GetSecretKeysTool from @loopstack/secrets-module.
+description: Requesting, storing, and retrieving secrets (API keys, tokens) at runtime using SecretRequestDocument, RequestSecretsTask, and GetSecretKeysTool from @loopstack/secrets.
 ---
 
 # Secrets Management
@@ -30,18 +30,18 @@ async pushSecrets(state: SecretsState) {
 
 ## Available Tools
 
-| Tool                    | Source                      | Description                                              |
-| ----------------------- | --------------------------- | -------------------------------------------------------- |
-| `RequestSecretsTask`    | `@loopstack/secrets-module` | Agent-friendly task that launches a secrets sub-workflow |
-| `GetSecretKeysTool`     | `@loopstack/secrets-module` | List stored secret keys and their availability           |
-| `SecretRequestDocument` | `@loopstack/secrets-module` | Document displaying the secret input form                |
+| Tool                    | Source               | Description                                              |
+| ----------------------- | -------------------- | -------------------------------------------------------- |
+| `RequestSecretsTask`    | `@loopstack/secrets` | Agent-friendly task that launches a secrets sub-workflow |
+| `GetSecretKeysTool`     | `@loopstack/secrets` | List stored secret keys and their availability           |
+| `SecretRequestDocument` | `@loopstack/secrets` | Document displaying the secret input form                |
 
 ## Example Workflow
 
 ```typescript
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { MarkdownDocument } from '@loopstack/common';
-import { GetSecretKeysTool, SecretRequestDocument } from '@loopstack/secrets-module';
+import { GetSecretKeysTool, SecretRequestDocument } from '@loopstack/secrets';
 
 interface SecretsState {
   secretKeys?: Array<{ key: string; hasValue: boolean }>;

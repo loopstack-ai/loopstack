@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider-module';
-import { SecretsModule } from '@loopstack/secrets-module';
+import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider';
+import { SecretsModule } from '@loopstack/secrets';
 import { type TestRun, replay, runWorkflow } from '@loopstack/testing';
 import { SecretsExamplesModule } from '../../../secrets-examples.module';
 import { AgenticExampleWorkflow } from '../agentic-example.workflow';

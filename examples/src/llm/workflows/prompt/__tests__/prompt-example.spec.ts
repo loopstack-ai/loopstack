@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { replay, runWorkflow } from '@loopstack/testing';
 import { LlmExamplesModule } from '../../../llm-examples.module';
 import { PromptExampleWorkflow } from '../prompt-example.workflow';

@@ -7,14 +7,14 @@ description: Docker sandbox workflow example for Loopstack — init a container,
 
 > Docker sandbox workflow example for the [Loopstack](https://loopstack.ai) automation framework.
 
-Shows how a workflow runs file operations in an isolated Docker container with `@loopstack/sandbox-tool` (container lifecycle) and `@loopstack/sandbox-filesystem` (file operations inside the container). Reach for this pattern when a workflow needs to execute or inspect untrusted code without touching the host.
+Shows how a workflow runs file operations in an isolated Docker container with `@loopstack/docker-sandbox` (container lifecycle) and `@loopstack/docker-sandbox-filesystem` (file operations inside the container). Reach for this pattern when a workflow needs to execute or inspect untrusted code without touching the host.
 
 ## Use in Your App
 
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/common @loopstack/sandbox-filesystem @loopstack/sandbox-tool
+npm install @loopstack/common @loopstack/docker-sandbox @loopstack/docker-sandbox-filesystem
 ```
 
 Register the module:

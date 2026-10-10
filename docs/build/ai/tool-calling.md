@@ -36,13 +36,13 @@ export class GetWeather extends BaseTool<{ location: string }, object, string> {
 
 ```typescript
 import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
 import {
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
   LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider-module';
+} from '@loopstack/llm-provider';
 import { GetWeather } from './tools/get-weather.tool';
 
 interface ToolCallState {

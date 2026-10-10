@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+import { OAuthWorkflow } from '@loopstack/oauth';
 import { GoogleCalendarFetchEventsTool } from '../../shared/google';
 
 interface CalendarSummaryState {

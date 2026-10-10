@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AgentModule } from '@loopstack/agent';
-import { ClaudeModule } from '@loopstack/claude-module';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { ClaudeModule } from '@loopstack/claude';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { RemoteClientModule } from '@loopstack/remote-client';
-import { SecretsModule } from '@loopstack/secrets-module';
+import { SecretsModule } from '@loopstack/secrets';
 import { AdvancedWorkflowsExamplesModule } from './advanced-workflows/advanced-workflows-examples.module';
 import { AgentExamplesModule } from './agent/agent-examples.module';
 import { ErrorHandlingExamplesModule } from './error-handling/error-handling-examples.module';

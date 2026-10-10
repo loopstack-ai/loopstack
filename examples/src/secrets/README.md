@@ -14,7 +14,7 @@ Two ways to manage workspace secrets: a scripted request/verify flow, and an age
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude-module @loopstack/common @loopstack/llm-provider-module @loopstack/secrets-module
+npm install @loopstack/claude @loopstack/common @loopstack/llm-provider @loopstack/secrets
 ```
 
 Register the module:
@@ -32,11 +32,11 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-The Agentic example calls `LlmGenerateTextTool` from `@loopstack/llm-provider-module`. That module is `@Global` and must be configured once in your root module to set the default model:
+The Agentic example calls `LlmGenerateTextTool` from `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { SecretsExamplesModule } from './secrets/secrets-examples.module';
 

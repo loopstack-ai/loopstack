@@ -1,40 +1,37 @@
 ---
 title: 'Skill: Use the Loopstack Registry'
-description: Instructions for AI agents to discover, install, and integrate @loopstack/* registry packages — feature modules and tools via npm — and to read and copy example workflows from the examples app.
+description: Instructions for AI agents to discover, install, and integrate @loopstack/* registry packages via npm, and to read and copy example workflows from the examples app.
 ---
 
 # Skill: Use the Loopstack Registry
 
 ## Overview
 
-The Loopstack Registry is a collection of `@loopstack/*` packages providing pre-built tools and feature modules. Always check the registry before building a custom tool or workflow — the functionality you need may already exist.
+The Loopstack Registry is a collection of `@loopstack/*` packages providing pre-built tools, workflows and modules. Always check the registry before building a custom tool or workflow — the functionality you need may already exist.
 
-| Kind         | What it is                                                                                          | How you use it                 |
-| ------------ | --------------------------------------------------------------------------------------------------- | ------------------------------ |
-| **Features** | Reusable modules and tools you import as a dependency (LLM providers, OAuth, sandboxes, HITL, etc.) | `npm install @loopstack/<pkg>` |
-| **Tools**    | Standalone tools (Docker sandbox, sandbox filesystem)                                               | `npm install @loopstack/<pkg>` |
+Every registry package is a NestJS module you import as a dependency (LLM providers, OAuth, Docker sandboxes, HITL, git, MCP, etc.): `npm install @loopstack/<name>`. The package lives at `registry/<name>` in the Loopstack repository and is documented at `https://loopstack.ai/docs/registry/<name>`.
 
 Example workflows are not registry packages. They live in one app in the Loopstack repository and are
 meant to be read and copied — see [Using an Example](#using-an-example).
 
 ## Discovering Packages
 
-Browse the registry at `https://loopstack.ai/registry`.
+Browse the registry at `https://loopstack.ai/docs/registry`.
 
-## Installing a Feature Module
+## Installing a Package
 
 ```bash
-npm install @loopstack/<package-name>
+npm install @loopstack/<name>
 ```
 
 Then import its module in your app:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { MyFeatureModule } from '@loopstack/<package-name>';
+import { MyModule } from '@loopstack/<name>';
 
 @Module({
-  imports: [MyFeatureModule],
+  imports: [MyModule],
 })
 export class AppModule {}
 ```
@@ -56,7 +53,7 @@ directory and install what it imports — each module's README names the exact p
 
 ```bash
 cp -r loopstack-examples/src/hitl src/hitl
-npm install @loopstack/agent @loopstack/claude-module @loopstack/common @loopstack/hitl @loopstack/llm-provider-module
+npm install @loopstack/agent @loopstack/claude @loopstack/common @loopstack/hitl @loopstack/llm-provider
 ```
 
 Then register the module like any local NestJS module:
@@ -74,18 +71,19 @@ export class AppModule {}
 
 ## Inspecting a Package Before Committing
 
-To explore a feature package without adding it to the project, install it in a temporary directory:
+To explore a registry package without adding it to the project, install it in a temporary directory:
 
 ```bash
 mkdir -p /tmp/loopstack-inspect && cd /tmp/loopstack-inspect
-npm init -y && npm install @loopstack/<package-name>
+npm init -y && npm install @loopstack/<name>
 ```
 
-Review `node_modules/@loopstack/<package-name>/README.md` and `src/` to verify the package does what you need.
+Review `node_modules/@loopstack/<name>/README.md` and `src/` to verify the package does what you need.
 
-A single example module can be inspected the same way, straight into `/tmp`:
+The source of a package or a single example module can also be fetched straight into `/tmp`:
 
 ```bash
+npx giget@latest gh:loopstack-ai/loopstack/registry/<name> /tmp/<name>
 npx giget@latest gh:loopstack-ai/loopstack/examples/src/<module-name> /tmp/<module-name>
 ```
 
@@ -93,10 +91,10 @@ npx giget@latest gh:loopstack-ai/loopstack/examples/src/<module-name> /tmp/<modu
 
 When in doubt about a tool's behavior — its input schema, return type, or side effects — read the source directly.
 
-For features installed via npm:
+For packages installed via npm:
 
 ```
-node_modules/@loopstack/<package-name>/src/tools/<tool-name>.tool.ts
+node_modules/@loopstack/<name>/src/tools/<tool-name>.tool.ts
 ```
 
 For an example module you copied, the source lives wherever you put it (e.g. `src/<module-name>/`).

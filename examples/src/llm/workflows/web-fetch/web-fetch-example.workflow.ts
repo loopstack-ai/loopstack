@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmMessageDocument } from '@loopstack/llm-provider-module';
-import { WebFetchTool } from '@loopstack/web-module';
+import { LlmMessageDocument } from '@loopstack/llm-provider';
+import { WebFetchTool } from '@loopstack/web';
 
 interface WebFetchState {
   url?: string;
@@ -22,7 +22,7 @@ type WebFetchArgs = z.infer<typeof WebFetchArgsSchema>;
 @Workflow({
   title: 'LLM - Web Fetch Example',
   description:
-    'Fetches a URL, converts HTML to Markdown, and summarizes it with the configured LLM provider using a user-provided prompt. Demonstrates the WebFetchTool from @loopstack/web-module.',
+    'Fetches a URL, converts HTML to Markdown, and summarizes it with the configured LLM provider using a user-provided prompt. Demonstrates the WebFetchTool from @loopstack/web.',
   schema: WebFetchArgsSchema,
 })
 export class WebFetchExampleWorkflow extends BaseWorkflow<WebFetchArgs> {

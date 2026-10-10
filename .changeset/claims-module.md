@@ -2,7 +2,7 @@
 '@loopstack/claims': minor
 ---
 
-New registry feature: resource claims.
+New registry package: resource claims.
 
 A workflow that must not run beside another claims a resource; a claim is a row that lives as long as the run or
 the workspace it is scoped to. One primitive serves a mutex, a pool of N and a reader/writer lock — a key with

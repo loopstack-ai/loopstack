@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+import { OAuthWorkflow } from '@loopstack/oauth';
 import { failure, queue, runWorkflow } from '@loopstack/testing';
 import { GoogleCalendarFetchEventsTool } from '../../../shared/google';
 import { GoogleCalendarSummaryExampleWorkflow } from '../google-calendar-summary-example.workflow';

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { TransitionInput } from '@loopstack/common';
-import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider';
 
 @Workflow({
   title: 'HITL - Prompt Input Chat Example',

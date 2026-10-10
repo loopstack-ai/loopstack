@@ -28,16 +28,16 @@ import {
   GitHubSearchIssuesTool,
   GitHubSearchReposTool,
   GitHubTriggerWorkflowTool,
-} from '@loopstack/github-module';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+} from '@loopstack/github';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
 import {
   LlmContextDocument,
   LlmDelegateToolCallsTool,
   LlmGenerateTextTool,
   LlmMessageDocument,
   LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider-module';
-import { OAuthWorkflow } from '@loopstack/oauth-module';
+} from '@loopstack/llm-provider';
+import { OAuthWorkflow } from '@loopstack/oauth';
 import { AuthenticateGitHubTask } from '../../shared/github/authenticate-github-task.tool';
 
 interface GitHubAgentState {

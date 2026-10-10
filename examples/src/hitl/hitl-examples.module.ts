@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AgentModule } from '@loopstack/agent';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { HitlModule } from '@loopstack/hitl';
 import { AgentAskClarificationExampleWorkflow } from './workflows/agent-ask-clarification/agent-ask-clarification-example.workflow';

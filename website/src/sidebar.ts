@@ -165,9 +165,9 @@ export const sidebar: StarlightUserConfig['sidebar'] = [
     items: [
       { label: 'Overview', slug: 'docs/registry' },
       {
-        label: 'Features',
+        label: 'Packages',
         collapsed: true,
-        items: entriesFrom('registry/features', 'docs/registry/features', { readme: true }),
+        items: entriesFrom('registry', 'docs/registry', { readme: true }),
       },
     ],
   },

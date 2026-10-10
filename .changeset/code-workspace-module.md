@@ -2,7 +2,7 @@
 '@loopstack/code-workspace': minor
 ---
 
-New registry feature: isolated per-run checkouts, and their whole life.
+New registry package: isolated per-run checkouts, and their whole life.
 
 Clones a codebase from a shared, generational base into one checkout per run, works it in disposable Docker
 containers, and reclaims all of it again. Domain-neutral: it knows about repos, checkouts, containers and

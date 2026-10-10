@@ -32,7 +32,7 @@ start → show raw notes → [user clicks "Optimize"] → LLM structures the not
 This workflow uses the Claude LLM provider for structured output:
 
 ```shell
-npm install @loopstack/claude-module @loopstack/llm-provider-module
+npm install @loopstack/claude @loopstack/llm-provider
 ```
 
 ---
@@ -45,7 +45,7 @@ Create `src/meeting-notes/meeting-notes.module.ts`:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { MeetingNotesWorkflow } from './meeting-notes.workflow';
 
@@ -224,8 +224,8 @@ import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
-import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
-import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
+import type { LlmGenerateObjectResult } from '@loopstack/llm-provider';
+import { LlmGenerateObjectTool } from '@loopstack/llm-provider';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 

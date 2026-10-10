@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
+import { SandboxDestroy, SandboxInit } from '@loopstack/docker-sandbox';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -9,8 +10,7 @@ import {
   SandboxListDirectory,
   SandboxReadFile,
   SandboxWriteFile,
-} from '@loopstack/sandbox-filesystem';
-import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
+} from '@loopstack/docker-sandbox-filesystem';
 
 interface FileEntry {
   name: string;
@@ -39,10 +39,10 @@ type SandboxExampleArgs = z.infer<typeof SandboxExampleArgsSchema>;
 })
 export class SandboxExampleWorkflow extends BaseWorkflow<SandboxExampleArgs> {
   constructor(
-    // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
+    // Sandbox lifecycle tools (from @loopstack/docker-sandbox)
     private readonly sandboxInit: SandboxInit,
     private readonly sandboxDestroy: SandboxDestroy,
-    // Filesystem tools (from @loopstack/sandbox-filesystem)
+    // Filesystem tools (from @loopstack/docker-sandbox-filesystem)
     private readonly sandboxWriteFile: SandboxWriteFile,
     private readonly sandboxReadFile: SandboxReadFile,
     private readonly sandboxListDirectory: SandboxListDirectory,

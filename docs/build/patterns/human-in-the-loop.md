@@ -99,7 +99,7 @@ import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateObjectTool } from '@loopstack/llm-provider';
 
 interface MeetingNotesState {
   meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
@@ -356,11 +356,11 @@ await this.agent.run(
 );
 ```
 
-See [`@loopstack/hitl`](/docs/registry/features/hitl-module) for the full tool args reference.
+See [`@loopstack/hitl`](/docs/registry/hitl) for the full tool args reference.
 
 ## Registry References
 
 - [hitl-example-module](/docs/examples/hitl) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
-- [@loopstack/hitl](/docs/registry/features/hitl-module) — The underlying HITL module: `AskUserWorkflow`, `ConfirmUserWorkflow`, `ask_clarification`, `ask_for_approval`
+- [@loopstack/hitl](/docs/registry/hitl) — The underlying HITL module: `AskUserWorkflow`, `ConfirmUserWorkflow`, `ask_clarification`, `ask_for_approval`
 - [meeting-notes-example-workflow](/docs/examples/hitl#meeting-notes) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
 - [chat-example-workflow](/docs/examples/hitl#prompt-input-chat) — Chat input pattern with prompt-input widget

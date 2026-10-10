@@ -1,0 +1,173 @@
+import { Inject, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
+import { OAuthTokenStore } from '@loopstack/oauth';
+
+const inputSchema = z
+  .object({
+    calendarId: z.string().default('primary'),
+    summary: z.string(),
+    description: z.string().optional(),
+    start: z.string(),
+    end: z.string(),
+    location: z.string().optional(),
+    attendees: z.array(z.object({ email: z.string() })).optional(),
+    reminders: z
+      .object({
+        useDefault: z.boolean(),
+        overrides: z.array(z.object({ method: z.string(), minutes: z.number() })).optional(),
+      })
+      .optional(),
+  })
+  .strict();
+
+/**
+ * Args for `GoogleCalendarCreateEventTool`.
+ *
+ * @public
+ */
+export type GoogleCalendarCreateEventArgs = z.infer<typeof inputSchema>;
+
+/**
+ * Result for `GoogleCalendarCreateEventTool`.
+ *
+ * @public
+ */
+export type GoogleCalendarCreateEventResult =
+  | {
+      event: {
+        id: string;
+        summary: string;
+        start: string | undefined;
+        end: string | undefined;
+        htmlLink: string;
+      };
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
+/**
+ * Zod schema for the success shape of {@link GoogleCalendarCreateEventResult} — the created event.
+ *
+ * @public
+ */
+export const GoogleCalendarCreateEventResultSchema = z.strictObject({
+  event: z.strictObject({
+    id: z.string(),
+    summary: z.string(),
+    start: z.string().optional(),
+    end: z.string().optional(),
+    htmlLink: z.string(),
+  }),
+});
+
+/**
+ * Tool that creates a new event on a Google Calendar. Takes a summary, start/end times, and optional
+ * description, location, attendees, and reminders, and returns the created event's id and link, or
+ * `{ error: 'unauthorized' }` when no valid Google token is available.
+ *
+ * @providedBy GoogleWorkspaceModule
+ * @public
+ */
+@Tool({
+  name: 'google_calendar_create_event',
+  description:
+    'Creates a new event on Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
+  schema: inputSchema,
+  resultSchema: GoogleCalendarCreateEventResultSchema,
+  effects: 'external',
+})
+export class GoogleCalendarCreateEventTool extends BaseTool<
+  GoogleCalendarCreateEventArgs,
+  object,
+  GoogleCalendarCreateEventResult
+> {
+  private readonly logger = new Logger(GoogleCalendarCreateEventTool.name);
+
+  @Inject()
+  private tokenStore: OAuthTokenStore;
+
+  protected async handle(
+    args: GoogleCalendarCreateEventArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GoogleCalendarCreateEventResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+
+    if (!accessToken) {
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'No valid Google token found. Please authenticate first.',
+        },
+        error: 'No valid Google token found. Please authenticate first.',
+      };
+    }
+
+    const calendarId = args.calendarId || 'primary';
+
+    const eventBody: Record<string, unknown> = {
+      summary: args.summary,
+      start: { dateTime: args.start },
+      end: { dateTime: args.end },
+    };
+
+    if (args.description) eventBody.description = args.description;
+    if (args.location) eventBody.location = args.location;
+    if (args.attendees) eventBody.attendees = args.attendees;
+    if (args.reminders) eventBody.reminders = args.reminders;
+
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(eventBody),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
+      return {
+        data: {
+          error: 'unauthorized',
+          message: 'Google token was rejected. Please re-authenticate.',
+        },
+        error: 'Google token was rejected. Please re-authenticate.',
+      };
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      this.logger.error(`Google Calendar API error: ${response.status} ${body}`);
+      return {
+        data: {
+          error: 'api_error',
+          message: `Google Calendar API error: ${response.statusText}`,
+        },
+        error: `Google Calendar API error: ${response.statusText}`,
+      };
+    }
+
+    const event = (await response.json()) as {
+      id: string;
+      summary: string;
+      start: { dateTime?: string; date?: string };
+      end: { dateTime?: string; date?: string };
+      htmlLink: string;
+    };
+
+    return {
+      data: {
+        event: {
+          id: event.id,
+          summary: event.summary,
+          start: event.start.dateTime || event.start.date,
+          end: event.end.dateTime || event.end.date,
+          htmlLink: event.htmlLink,
+        },
+      },
+    };
+  }
+}

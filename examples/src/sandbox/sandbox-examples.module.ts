@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { StudioApp } from '@loopstack/common';
-import { SandboxFilesystemModule } from '@loopstack/sandbox-filesystem';
-import { SandboxToolModule } from '@loopstack/sandbox-tool';
+import { SandboxToolModule } from '@loopstack/docker-sandbox';
+import { SandboxFilesystemModule } from '@loopstack/docker-sandbox-filesystem';
 import { SandboxExampleWorkflow } from './workflows/sandbox/sandbox-example.workflow';
 
 const WORKFLOWS = [SandboxExampleWorkflow];

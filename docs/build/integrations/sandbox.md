@@ -1,6 +1,6 @@
 ---
 title: Sandbox Execution
-description: Executing untrusted code in Docker containers using @loopstack/sandbox-tool and @loopstack/sandbox-filesystem. Setup, file I/O inside sandboxes, and cleanup.
+description: Executing untrusted code in Docker containers using @loopstack/docker-sandbox and @loopstack/docker-sandbox-filesystem. Setup, file I/O inside sandboxes, and cleanup.
 ---
 
 # Sandbox Execution
@@ -26,7 +26,7 @@ The host directory at `projectOutPath` is bind-mounted into the container at `/<
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { SandboxFilesystemModule } from '@loopstack/sandbox-filesystem';
+import { SandboxFilesystemModule } from '@loopstack/docker-sandbox-filesystem';
 
 @Module({
   imports: [SandboxFilesystemModule],
@@ -42,13 +42,13 @@ export class SandboxModule {}
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
+import { SandboxDestroy, SandboxInit } from '@loopstack/docker-sandbox';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
   SandboxReadFile,
   SandboxWriteFile,
-} from '@loopstack/sandbox-filesystem';
-import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
+} from '@loopstack/docker-sandbox-filesystem';
 
 interface SandboxState {
   containerId?: string;
