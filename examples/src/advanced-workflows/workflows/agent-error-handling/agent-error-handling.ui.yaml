@@ -1,6 +1,0 @@
-widget: button
-showWhen:
-  - awaiting_tools
-options:
-  transition: cancelPendingTools
-  label: Cancel pending tools

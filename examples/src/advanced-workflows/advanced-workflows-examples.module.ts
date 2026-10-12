@@ -1,11 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
-import { AgentErrorHandlingFailingSubWorkflow } from './workflows/agent-error-handling/agent-error-handling-failing-sub.workflow';
-import { AgentErrorHandlingWorkflow } from './workflows/agent-error-handling/agent-error-handling.workflow';
-import { FailingSubWorkflowTool } from './workflows/agent-error-handling/tools/failing-sub-workflow.tool';
-import { RuntimeErrorTool } from './workflows/agent-error-handling/tools/runtime-error.tool';
-import { StrictSchemaTool } from './workflows/agent-error-handling/tools/strict-schema.tool';
 import { BatchProcessingExampleWorkflow } from './workflows/batch-processing/batch-processing-example.workflow';
 import { CustomToolExampleWorkflow } from './workflows/custom-tool/custom-tool-example.workflow';
 import { MathService } from './workflows/custom-tool/services/math.service';
@@ -40,7 +35,6 @@ const WORKFLOWS = [
   BatchProcessingExampleWorkflow,
   CustomToolExampleWorkflow,
   TestUiDocumentsWorkflow,
-  AgentErrorHandlingWorkflow,
 ];
 
 @StudioApp({
@@ -60,12 +54,8 @@ const WORKFLOWS = [
     MathService,
     MathSumTool,
     CounterTool,
-    StrictSchemaTool,
-    RuntimeErrorTool,
-    FailingSubWorkflowTool,
     RunSubWorkflowExampleSubWorkflow,
     RunSubWorkflowExampleFailingSubWorkflow,
-    AgentErrorHandlingFailingSubWorkflow,
     ...WORKFLOWS,
   ],
   exports: WORKFLOWS,

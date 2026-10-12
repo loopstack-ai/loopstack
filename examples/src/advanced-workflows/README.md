@@ -14,7 +14,7 @@ Deep-dive examples for framework patterns authors reach for less often but want 
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude @loopstack/common @loopstack/core @loopstack/llm-provider
+npm install @loopstack/claude @loopstack/common @loopstack/core
 ```
 
 Register the module:
