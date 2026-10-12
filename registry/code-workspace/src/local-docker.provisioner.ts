@@ -317,12 +317,26 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     };
   }
 
-  /** `<baseKey>/<generation>` for every generation a live checkout records — the ones GC must keep. */
+  /**
+   * `<baseKey>/<generation>` for every generation a live checkout records — the ones GC must keep.
+   *
+   * Reads the markers and nothing else. A checkout is ~100k files, and this runs at the end of every base
+   * build, so a listing that also measured each checkout (`du` over all of them) would cost minutes for a
+   * set of names.
+   */
   private async referencedGenerations(): Promise<Set<string>> {
     const referenced = new Set<string>();
-    for (const state of await this.listWorkspaceStates()) {
-      for (const checkout of state.checkouts) {
-        const marker = this.readCheckoutBase(state.workspaceId, checkout.workflowId);
+    const root = this.stateRoot();
+    if (!existsSync(root)) return referenced;
+    const workspaces = (await readdir(root, { withFileTypes: true }))
+      .filter((e) => e.isDirectory() && !e.name.startsWith('_'))
+      .map((e) => e.name);
+    for (const workspaceId of workspaces) {
+      const workflowsRoot = path.join(root, workspaceId, 'workflows');
+      if (!existsSync(workflowsRoot)) continue;
+      for (const wf of await readdir(workflowsRoot, { withFileTypes: true })) {
+        if (!wf.isDirectory()) continue;
+        const marker = this.readCheckoutBase(workspaceId, wf.name);
         if (marker) referenced.add(`${marker.baseKey}/${marker.generation}`);
       }
     }
