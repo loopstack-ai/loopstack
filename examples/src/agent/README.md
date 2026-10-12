@@ -1,20 +1,20 @@
 ---
 title: Agent Examples
-description: Workflow examples for LLM agents in Loopstack — basic AgentWorkflow with custom tools, tool errors fed back to the LLM, code-exploration agent, MCP-connected agent, and a from-scratch custom agent loop with a turn budget.
+description: Workflow examples for LLM agents in Loopstack — basic AgentWorkflow with custom tools, tool errors fed back to the LLM, code-exploration agent, and a from-scratch custom agent loop with a turn budget.
 ---
 
 # Agent Examples
 
 > LLM agent workflow examples for the [Loopstack](https://loopstack.ai) automation framework.
 
-Four ways to build agents in Loopstack — from the recommended `AgentWorkflow` shortcut to a from-scratch custom loop. Pick the right shape for your control vs. simplicity tradeoff. One more example shows how an agent recovers when its tools fail.
+Three ways to build agents in Loopstack — from the recommended `AgentWorkflow` shortcut to a from-scratch custom loop. Pick the right shape for your control vs. simplicity tradeoff. One more example shows how an agent recovers when its tools fail.
 
 ## Use in Your App
 
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/agent @loopstack/claude @loopstack/code-agent @loopstack/common @loopstack/llm-provider @loopstack/mcp @loopstack/remote-client
+npm install @loopstack/agent @loopstack/claude @loopstack/code-agent @loopstack/common @loopstack/llm-provider @loopstack/remote-client
 ```
 
 Register the module:
@@ -32,7 +32,7 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-All four examples use LLM tools (`LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, etc.) from `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
+All examples use LLM tools (`LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, etc.) from `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -46,7 +46,7 @@ import { AgentExamplesModule } from './agent/agent-examples.module';
 export class AppModule {}
 ```
 
-`AgentExamplesModule` re-imports `ClaudeModule` (provider), `AgentModule` (the `AgentWorkflow` / `ChatAgentWorkflow` classes), `CodeAgentModule`, `McpModule`, and `RemoteClientModule.forFeature({ type: 'sandbox' })`. `LlmProviderModule.forRoot(...)` sets the default model the tools dispatch to.
+`AgentExamplesModule` re-imports `ClaudeModule` (provider), `AgentModule` (the `AgentWorkflow` / `ChatAgentWorkflow` classes), `CodeAgentModule`, and `RemoteClientModule.forFeature({ type: 'sandbox' })`. `LlmProviderModule.forRoot(...)` sets the default model the tools dispatch to.
 
 The Code Agent example additionally requires `RemoteClientModule.forRoot({ environments })` — see [Code Agent → Setup](#code-agent) below.
 
@@ -54,18 +54,16 @@ The Code Agent example additionally requires `RemoteClientModule.forRoot({ envir
 
 ```bash
 ANTHROPIC_API_KEY=sk-ant-...
-LINEAR_MCP_TOKEN=...   # required only for the MCP Linear example
 ```
 
 ## Examples
 
-| Example                       | Studio title                   | Description                                                                          |
-| ----------------------------- | ------------------------------ | ------------------------------------------------------------------------------------ |
-| [Agent](#agent)               | `Agent - Basic Agent Example`  | Launch `AgentWorkflow` with custom tools — recommended starting point                |
-| [Tool Errors](#tool-errors)   | `Agent - Tool Errors Example`  | Failing tools reach the LLM as `is_error` tool results, and the LLM corrects course  |
-| [Code Agent](#code-agent)     | `Agent - Code Agent Example`   | Specialized codebase-exploration agent with `glob` / `grep` / `read`                 |
-| [MCP Linear](#mcp-linear)     | `Agent - MCP Linear Example`   | Chat agent connected to Linear's hosted MCP server via `mcp_list_tools` + `mcp_call` |
-| [Custom Agent](#custom-agent) | `Agent - Custom Agent Example` | Build an agent loop from scratch — delegate primitives, guards, a turn budget        |
+| Example                       | Studio title                   | Description                                                                         |
+| ----------------------------- | ------------------------------ | ----------------------------------------------------------------------------------- |
+| [Agent](#agent)               | `Agent - Basic Agent Example`  | Launch `AgentWorkflow` with custom tools — recommended starting point               |
+| [Tool Errors](#tool-errors)   | `Agent - Tool Errors Example`  | Failing tools reach the LLM as `is_error` tool results, and the LLM corrects course |
+| [Code Agent](#code-agent)     | `Agent - Code Agent Example`   | Specialized codebase-exploration agent with `glob` / `grep` / `read`                |
+| [Custom Agent](#custom-agent) | `Agent - Custom Agent Example` | Build an agent loop from scratch — delegate primitives, guards, a turn budget       |
 
 ---
 
@@ -140,16 +138,6 @@ export class AppModule {}
 ### Files
 
 - `code-agent-example.workflow.ts` — workflow class
-
-## MCP Linear
-
-Launches `ChatAgentWorkflow` configured with `mcp_list_tools` + `mcp_call`, pointing at Linear's hosted MCP server. The agent dynamically discovers Linear's tool surface at runtime and invokes the right one for the user's question.
-
-Requires `LINEAR_MCP_TOKEN` env var and configures `McpModule.forRoot` with an allowed-hosts policy.
-
-### Files
-
-- `mcp-linear-example.workflow.ts` — workflow class
 
 ## Custom Agent
 

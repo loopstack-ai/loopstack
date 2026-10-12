@@ -16,6 +16,7 @@ import { HitlExamplesModule } from './hitl/hitl-examples.module';
 import { IntegrationExamplesModule } from './integrations/integration-examples.module';
 import { LlmExamplesModule } from './llm/llm-examples.module';
 import { LocalFileExplorerExamplesModule } from './local-file-explorer/local-file-explorer-examples.module';
+import { McpExamplesModule } from './mcp/mcp-examples.module';
 import { ObservabilityExamplesModule } from './observability/observability-examples.module';
 import { RemoteClientExamplesModule } from './remote-client/remote-client-examples.module';
 import { SandboxExamplesModule } from './sandbox/sandbox-examples.module';
@@ -46,6 +47,7 @@ import { TestingExamplesModule } from './testing/testing-examples.module';
 
     LlmExamplesModule,
     AgentExamplesModule,
+    McpExamplesModule,
     HitlExamplesModule,
     GitHubExamplesModule,
     GoogleWorkspaceExamplesModule,
