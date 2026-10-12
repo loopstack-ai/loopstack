@@ -35,4 +35,32 @@ describe('MultiProviderExampleWorkflow', () => {
     expect(texts).toContain('**Claude:** 42, obviously.');
     expect(texts).toContain('**OpenAI:** To seek meaning is the meaning.');
   });
+
+  it("opts out of the tool's own save so only the labelled replies are stored", async () => {
+    // `config` on a recording is asserted against the actual call, so dropping `save: false` from
+    // either call fails this scenario with a replay drift.
+    const system = 'You are a helpful assistant. Keep your response brief.';
+    const run = await runWorkflow(
+      MultiProviderExampleWorkflow,
+      { prompt: 'Name a colour.' },
+      {
+        imports: [LlmProviderModule, LlmExamplesModule],
+        replay: replay({
+          version: 3,
+          recordings: [
+            { ...reply('Blue.'), config: { save: false, provider: 'claude', model: 'claude-sonnet-4-6', system } },
+            { ...reply('Green.'), config: { save: false, provider: 'openai', model: 'gpt-4o-mini', system } },
+          ],
+        }),
+      },
+    );
+
+    expect(run.status).toBe('completed');
+    const messages = run.documents.map((d) => d.content as { role: string; text: string });
+    expect(messages).toEqual([
+      { role: 'user', text: 'Name a colour.' },
+      { role: 'assistant', text: '**Claude:** Blue.' },
+      { role: 'assistant', text: '**OpenAI:** Green.' },
+    ]);
+  });
 });

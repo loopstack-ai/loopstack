@@ -17,7 +17,6 @@ type MultiProviderArgs = z.infer<typeof MultiProviderArgsSchema>;
   title: 'LLM - Multi-Provider Example',
   description:
     'Runs the same prompt through Claude and OpenAI side by side. Demonstrates that the same tool class (LlmGenerateTextTool) works with any registered provider by passing provider/model via config at call time.',
-  widget: './multi-provider.ui.yaml',
   schema: MultiProviderArgsSchema,
 })
 export class MultiProviderExampleWorkflow extends BaseWorkflow<MultiProviderArgs> {
