@@ -92,7 +92,10 @@ jobs:
       - name: Lint
         run: npm run lint --if-present
 
+      # Specs that check SQL against Postgres read the database from here and skip without it.
       - name: Run tests
+        env:
+          DATABASE_URL: postgres://postgres:admin@127.0.0.1:5432/postgres
         run: npm test --if-present
 
       # Boots the examples app on Postgres + Redis and runs the deterministic example

@@ -1,11 +1,15 @@
-import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
+import type { WorkflowItemInterface, WorkspaceActivity, WorkspaceInterface } from '@loopstack/contracts/api';
 import { type RunActivity, runActivity } from '@/lib/run-status.ts';
 
 /**
  * What a workspace card reports. `idle` means no active run at all — the dashboard deliberately holds no
  * run history, so a workspace whose last run failed reads as idle here and is found in the runs list.
+ *
+ * The workspace API filters by the same states, computed in SQL (`WorkspaceApiService` in
+ * `@loopstack/api`) from the same rule as {@link classifyWorkspace}: change one and a card and the filter
+ * that selected it disagree.
  */
-export type FleetState = 'waiting' | 'working' | 'queued' | 'idle';
+export type FleetState = WorkspaceActivity;
 
 /**
  * One active run on a card: the run that was started, and — when the state is held further down — the
@@ -164,14 +168,15 @@ export function orderEntries(entries: FleetEntry[], manualOrder: string[] = []):
 }
 
 /**
- * The entries the board draws: all of them, or — with `activeOnly` — only those with an active run.
+ * The full order a drop is applied to: the saved order, then every shown workspace it does not rank yet.
  *
- * Opt-in because it gives up the board's stillness: with the filter on, a card appears when a run starts and
- * leaves when the last one finishes. A workspace whose runs are still loading reads as idle and joins once
- * they arrive. Order is kept, so what remains sits where it sat on the full board.
+ * The board shows only the workspaces its search and filters select, so the shown ones alone are not the
+ * order to save — a drop would drop every other workspace's place. The saved ranks are kept as they are,
+ * hidden ones included, and the shown ones without a rank join at the tail, where the board draws them.
  */
-export function visibleEntries(entries: FleetEntry[], activeOnly: boolean): FleetEntry[] {
-  return activeOnly ? entries.filter((entry) => entry.state !== 'idle') : entries;
+export function boardOrder(savedOrder: string[], shownIds: string[]): string[] {
+  const ranked = new Set(savedOrder);
+  return [...savedOrder, ...shownIds.filter((id) => !ranked.has(id))];
 }
 
 /** Moves `id` to where `targetId` sits, returning the full order to save. */

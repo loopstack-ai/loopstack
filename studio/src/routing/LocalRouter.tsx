@@ -44,10 +44,6 @@ export class LocalRouter implements StudioRouter {
     await this.navigate(this.getDashboard());
   }
 
-  getWorkspaces() {
-    return '/workspaces';
-  }
-
   getDebugWorkflows() {
     return '/debug/workflows';
   }
@@ -58,10 +54,6 @@ export class LocalRouter implements StudioRouter {
 
   async navigateToDebugWorkflow(workflowId: string) {
     await this.navigate(this.getDebugWorkflow(workflowId));
-  }
-
-  async navigateToWorkspaces() {
-    await this.navigate(this.getWorkspaces());
   }
 
   getWorkspace(workspaceId: string) {

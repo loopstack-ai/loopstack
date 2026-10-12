@@ -20,14 +20,13 @@ Studio is useful both during development and in production:
 
 ## Navigation
 
-Studio has four main sections, accessible from the top navigation:
+Studio has three main sections, in the sidebar:
 
-| Section          | URL             | What it shows                                        |
-| ---------------- | --------------- | ---------------------------------------------------- |
-| **Home**         | `/`             | Recent runs and paused workflows needing attention   |
-| **Applications** | `/applications` | All registered apps and their available workflows    |
-| **Workspaces**   | `/workspaces`   | All workspaces — one per user/context                |
-| **Runs**         | `/runs`         | Complete list of all workflow runs across workspaces |
+| Section          | URL             | What it shows                                                        |
+| ---------------- | --------------- | -------------------------------------------------------------------- |
+| **Dashboard**    | `/dashboard`    | Every workspace and what its runs are doing right now (`/` opens it) |
+| **Applications** | `/applications` | All registered apps and their available workflows                    |
+| **Runs**         | `/runs`         | Complete list of all workflow runs across workspaces                 |
 
 There is also an **Action Required** view at `/runs/action-required` that filters runs to only those paused and waiting for user input.
 
@@ -35,7 +34,7 @@ There is also an **Action Required** view at `/runs/action-required` that filter
 
 ## Starting a Run
 
-Click **New Run** from the Home page or the Runs list. A step-by-step dialog opens:
+Click **New Run** on the Dashboard or the Runs list. A step-by-step dialog opens:
 
 1. **Select Workspace** — Pick an existing workspace or create a new one. A workspace is the runtime container for a set of workflow runs, tied to an app.
 2. **Select Workflow** — Choose from the workflows registered in that workspace's app. Each option shows the workflow's title and description.
@@ -97,6 +96,8 @@ The icon strip on the far right toggles collapsible panels:
 ## Workspaces
 
 A **workspace** is a runtime instance of an app for a specific user or context. When a new workspace is created, it is linked to an app (defined by `@StudioApp`) and stores all workflow runs and documents for that context.
+
+The **Dashboard** lists the workspaces, as cards or as one row per workspace. Each shows the workspace's state — waiting for you, working, queued or idle, taken from its most urgent active run — and the runs behind it. A search on title and app, and filters by state, app and favourites, narrow the list in both views; the filters are kept per browser. In the list view, workspaces can be selected and deleted together. Each workspace's menu runs a workflow in it, opens, edits, favourites or deletes it.
 
 The workspace view (`/workspaces/:id`) shows workspace details and a link to its run history. The **Runs** panel within a workspace shows an execution timeline of all runs, sorted by time, with status badges (running, paused, completed, failed).
 

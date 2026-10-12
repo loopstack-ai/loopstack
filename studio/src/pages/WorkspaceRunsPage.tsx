@@ -19,7 +19,7 @@ const WorkspaceRunsPage = () => {
   const workspace = fetchWorkspace.data;
 
   const breadcrumbData = [
-    { label: 'Workspaces', href: router.getWorkspaces() },
+    { label: 'Dashboard', href: router.getDashboard() },
     {
       label: workspace?.title ?? '',
       href: workspaceId ? router.getWorkspace(workspaceId) : undefined,

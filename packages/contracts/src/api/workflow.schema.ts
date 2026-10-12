@@ -4,6 +4,7 @@ import { TransitionPayloadSchema } from '../schemas/transition-payload.schema.js
 import type { WorkflowTransitionType } from '../types/types/workflow-transition.type.js';
 import { SortBySchema } from './common.schema.js';
 import type { SortByInterface } from './common.schema.js';
+import { oneOrMany } from './one-or-many.js';
 
 export interface WorkflowContextInterface {
   [key: string]: unknown;
@@ -81,14 +82,6 @@ export const WorkflowUpdateSchema = z.object({
   labels: z.array(z.string()).min(1).optional(),
 });
 export type WorkflowUpdateInterface = z.infer<typeof WorkflowUpdateSchema>;
-
-/**
- * A column filter that matches one value or any of several — `status: 'waiting'` and
- * `status: ['waiting', 'running']` are both valid, the latter reading as SQL `IN`.
- */
-function oneOrMany<T extends z.ZodType>(value: T) {
-  return z.union([value, z.array(value).min(1)]);
-}
 
 export const WorkflowFilterSchema = z.object({
   workspaceId: oneOrMany(z.uuid()).optional(),

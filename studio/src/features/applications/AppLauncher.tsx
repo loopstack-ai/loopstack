@@ -117,7 +117,7 @@ export default function AppLauncher({ apps }: AppLauncherProps) {
                   <div className="flex gap-2">
                     {workspaceCount > 0 ? (
                       <Button variant="ghost" size="sm" className="flex-1" asChild>
-                        <Link to={`${router.getWorkspaces()}?appName=${encodeURIComponent(app.appName)}`}>
+                        <Link to={`${router.getDashboard()}?appName=${encodeURIComponent(app.appName)}`}>
                           <FolderOpen className="mr-1 h-4 w-4" />
                           View Workspaces
                         </Link>
