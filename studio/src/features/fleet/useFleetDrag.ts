@@ -21,10 +21,11 @@ export interface FleetDrag {
  *
  * Native drag events rather than a library: the board needs one gesture in a two-dimensional grid, which
  * `motion`'s single-axis `Reorder` cannot express, and the saved value is a plain list of ids either way.
- * Because the drop target decides the position, the full visible order is written on every drop — including
- * workspaces that had no saved rank — so a board arranged once stays arranged.
+ * Because the drop target decides the position, the full board order is written on every drop — including
+ * workspaces that had no saved rank, and those the active-only filter hides — so a board arranged once stays
+ * arranged.
  */
-export function useFleetDrag(visibleIds: string[]): FleetDrag {
+export function useFleetDrag(orderedIds: string[]): FleetDrag {
   const { preferences, setPreference } = useStudioPreferences();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -35,8 +36,8 @@ export function useFleetDrag(visibleIds: string[]): FleetDrag {
   };
 
   const commit = (id: string, targetId: string) => {
-    const next = reorderIds(visibleIds, id, targetId);
-    if (next !== visibleIds) setPreference('fleetOrder', next);
+    const next = reorderIds(orderedIds, id, targetId);
+    if (next !== orderedIds) setPreference('fleetOrder', next);
   };
 
   return {

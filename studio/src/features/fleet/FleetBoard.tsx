@@ -1,5 +1,5 @@
 import { formatDistanceToNowStrict } from 'date-fns';
-import { GripVertical, LayoutGrid, List, Play } from 'lucide-react';
+import { Activity, GripVertical, LayoutGrid, List, Play } from 'lucide-react';
 import { type HTMLAttributes, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
@@ -11,7 +11,7 @@ import { useStudioPreferences } from '@/providers/StudioPreferencesProvider.tsx'
 import { useStudio } from '@/providers/StudioProvider.tsx';
 import NewWorkspaceTile from './NewWorkspaceTile.tsx';
 import WorkspaceCard from './WorkspaceCard.tsx';
-import type { FleetCounts, FleetEntry } from './fleet-model.ts';
+import { type FleetCounts, type FleetEntry, visibleEntries } from './fleet-model.ts';
 import { STATE_ICON, STATE_LABEL, STATE_TEXT, runAge } from './fleet-presentation.ts';
 import { useFleet } from './useFleet.ts';
 import { useFleetDrag } from './useFleetDrag.ts';
@@ -111,13 +111,15 @@ function FleetRow({ entry, handleProps, dropProps, isDragging, isDropTarget }: F
  *
  * The grid never reorders on a state change — a card stays where it was, and urgency is carried by its own
  * state marker and the counter line instead. A board whose cards move while you read it is unusable exactly
- * when the fleet is busy.
+ * when the fleet is busy. The one exception is opt-in: "active only" hides idle workspaces, so with it on a
+ * card comes and goes with its runs. The counter line still covers every workspace.
  */
 export default function FleetBoard() {
   const { preferences, setPreference } = useStudioPreferences();
   const { entries, counts, total, isLoading, error } = useFleet();
   const [newRunOpen, setNewRunOpen] = useState(false);
   const { router } = useStudio();
+  // Every workspace, hidden ones included, so a drop with the filter on leaves their saved places alone.
   const drag = useFleetDrag(entries.map((entry) => entry.workspace.id));
 
   // Relative times must keep moving even though `updatedAt` does not.
@@ -126,6 +128,8 @@ export default function FleetBoard() {
   if (isLoading) return <LoadingCentered loading />;
 
   const density = preferences.fleetDensity;
+  const activeOnly = preferences.fleetActiveOnly;
+  const shown = visibleEntries(entries, activeOnly);
 
   return (
     <>
@@ -155,6 +159,19 @@ export default function FleetBoard() {
             <Button
               variant="ghost"
               size="icon"
+              className={cn('size-7', activeOnly && 'bg-muted')}
+              onClick={() => setPreference('fleetActiveOnly', !activeOnly)}
+              aria-label="Show active workflows only"
+              aria-pressed={activeOnly}
+              title="Show active workflows only"
+            >
+              <Activity className="size-4" />
+            </Button>
+          </div>
+          <div className="flex items-center rounded-md border p-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
               className={cn('size-7', density === 'grid' && 'bg-muted')}
               onClick={() => setPreference('fleetDensity', 'grid')}
               aria-label="Card view"
@@ -178,9 +195,13 @@ export default function FleetBoard() {
         </div>
       </div>
 
+      {activeOnly && shown.length === 0 && entries.length > 0 && (
+        <p className="text-muted-foreground text-sm">No active workspaces.</p>
+      )}
+
       {density === 'grid' ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {entries.map((entry) => (
+          {shown.map((entry) => (
             <WorkspaceCard
               key={entry.workspace.id}
               entry={entry}
@@ -194,7 +215,7 @@ export default function FleetBoard() {
         </div>
       ) : (
         <ul className="border-border bg-card divide-y overflow-hidden rounded-lg border">
-          {entries.map((entry) => (
+          {shown.map((entry) => (
             <FleetRow
               key={entry.workspace.id}
               entry={entry}

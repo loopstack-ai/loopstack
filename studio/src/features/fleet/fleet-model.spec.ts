@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
-import { classifyWorkspace, countStates, orderEntries, reorderIds, rootOf } from './fleet-model.ts';
+import { classifyWorkspace, countStates, orderEntries, reorderIds, rootOf, visibleEntries } from './fleet-model.ts';
 
 function workspace(id: string, title = id, isFavourite = false): WorkspaceInterface {
   return {
@@ -262,5 +262,25 @@ describe('countStates', () => {
       classifyWorkspace(workspace('e'), []),
     ]);
     expect(counts).toEqual({ waiting: 1, working: 1, queued: 1, idle: 2 });
+  });
+});
+
+describe('visibleEntries', () => {
+  const entries = () => [
+    classifyWorkspace(workspace('a'), []),
+    classifyWorkspace(workspace('b'), [working('2026-10-01T09:00:00.000Z')]),
+    classifyWorkspace(workspace('c'), [], true),
+    classifyWorkspace(workspace('d'), [waiting('2026-10-01T09:00:00.000Z')]),
+    classifyWorkspace(workspace('e'), [queued('2026-10-01T09:00:00.000Z')]),
+  ];
+
+  it('returns every entry when the filter is off', () => {
+    const all = entries();
+    expect(visibleEntries(all, false)).toBe(all);
+  });
+
+  it('keeps only workspaces with an active run, in board order', () => {
+    // 'c' is still loading, so it reads as idle until its runs arrive.
+    expect(visibleEntries(entries(), true).map((entry) => entry.workspace.id)).toEqual(['b', 'd', 'e']);
   });
 });

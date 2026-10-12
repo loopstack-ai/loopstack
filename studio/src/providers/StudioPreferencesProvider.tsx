@@ -13,6 +13,8 @@ interface StudioPreferences {
   fleetDensity: 'grid' | 'list';
   /** Workspace ids in the order the dashboard was dragged into. Unlisted workspaces follow, by title. */
   fleetOrder: string[];
+  /** Dashboard filter: hide workspaces with no active run. */
+  fleetActiveOnly: boolean;
 }
 
 const DEFAULTS: StudioPreferences = {
@@ -22,6 +24,7 @@ const DEFAULTS: StudioPreferences = {
   workbenchView: 'classic',
   fleetDensity: 'grid',
   fleetOrder: [],
+  fleetActiveOnly: false,
 };
 
 interface StudioPreferencesContextType {

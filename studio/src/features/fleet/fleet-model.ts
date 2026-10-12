@@ -163,6 +163,17 @@ export function orderEntries(entries: FleetEntry[], manualOrder: string[] = []):
   });
 }
 
+/**
+ * The entries the board draws: all of them, or — with `activeOnly` — only those with an active run.
+ *
+ * Opt-in because it gives up the board's stillness: with the filter on, a card appears when a run starts and
+ * leaves when the last one finishes. A workspace whose runs are still loading reads as idle and joins once
+ * they arrive. Order is kept, so what remains sits where it sat on the full board.
+ */
+export function visibleEntries(entries: FleetEntry[], activeOnly: boolean): FleetEntry[] {
+  return activeOnly ? entries.filter((entry) => entry.state !== 'idle') : entries;
+}
+
 /** Moves `id` to where `targetId` sits, returning the full order to save. */
 export function reorderIds(ids: string[], id: string, targetId: string): string[] {
   const from = ids.indexOf(id);
