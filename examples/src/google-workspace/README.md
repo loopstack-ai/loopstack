@@ -9,7 +9,7 @@ description: Google Workspace integration workflow examples for Loopstack — a 
 
 Two ways to use the `@loopstack/google-workspace` tools:
 
-- A **scripted summary** workflow — fetches calendar events with a custom tool and renders them
+- A **scripted summary** workflow — fetches calendar events and renders them
 - An **interactive agent** workflow — Claude with Calendar, Gmail, and Drive tools
 
 Both share the same sign-in pattern: when a tool returns unauthorized, launch the `OAuthWorkflow` sub-workflow inline, then retry.
@@ -89,13 +89,12 @@ On the first run you are asked to sign in to Google; after that the summary rend
 
 ## Google Calendar Summary
 
-Fetches the user's upcoming calendar events via `GoogleCalendarFetchEventsTool` and renders a markdown summary. On unauthorized it launches the `OAuthWorkflow` sub-workflow inline and retries.
+Fetches the user's upcoming calendar events with `GoogleCalendarFetchEventsTool` from `@loopstack/google-workspace` and renders a markdown summary. On unauthorized it launches the `OAuthWorkflow` sub-workflow inline and retries — the flow that [GitHub Overview](/docs/examples/github#sign-in-and-retry) explains step by step.
 
 ### Files
 
 - `google-calendar-summary-example.workflow.ts` — workflow class
 - `templates/calendarSummary.md` — Handlebars markdown summary
-- `../../shared/google/google-calendar-fetch-events.tool.ts` — custom calendar tool
 
 ## Google Workspace Agent
 

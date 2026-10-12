@@ -89,6 +89,15 @@ On the first run you are asked to sign in to GitHub; after that the overview ren
 
 A scripted (non-agent) GitHub workflow that walks every major GitHub read tool: user info, orgs, repo details, branches, issues, PRs, directory contents, workflow runs, and code search. On any unauthorized error it pauses, launches the `OAuthWorkflow` sub-workflow inline, then retries from the start.
 
+### Sign in and retry
+
+This is the reference for the sign-in flow of a scripted workflow. The [Google Calendar Summary](/docs/examples/google-workspace#google-calendar-summary) example uses the same flow. It has four parts:
+
+1. **Catch the error.** A tool with no valid token throws an error whose message contains "authenticate" ("Please authenticate first." / "Please re-authenticate."). `fetchUser` catches it and sets `requiresAuthentication` in the state. It rethrows any other error.
+2. **Start the sign-in.** `authRequired` has `priority: 10` and the `needsAuth` guard, so it runs before the normal next step when the state asks for sign-in. It calls `OAuthWorkflow.run()` with the provider, the scopes and `callback: { transition: 'authCompleted' }`, and shows the sub-workflow inline.
+3. **Retry.** `authCompleted` is a `wait: true` transition back to `start`. The sub-workflow's callback fires it, and the run fetches again with the new token.
+4. **Stop on a failed sign-in.** `authCompleted` sets `errorPlace: 'auth_failed'`. A failed or canceled sub-workflow ends the run at `auth_failed` instead of starting the sign-in again. From there `retryAuth`, also `wait: true`, goes back to `start` once the OAuth app is configured.
+
 ### Files
 
 - `github-overview-example.workflow.ts` — workflow class
