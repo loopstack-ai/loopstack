@@ -73,6 +73,7 @@ When falling back to documents, the tool:
 - Filters `DocumentEntity` records by `doc.tags.includes(messagesSearchTag)`
 - Excludes any document with `doc.isInvalidated === true`
 - Sorts by `doc.index` to preserve chronological order
+- Replays an assistant message's native response (`doc.meta.response`) when the same provider wrote it, and otherwise rebuilds the message from its normalized content — see [LLM Providers — Switching Provider Within a Conversation](./llm-providers.md#switching-provider-within-a-conversation)
 
 This means you can run parallel conversation threads in the same workflow by saving messages under different tags and switching `messagesSearchTag` per call:
 

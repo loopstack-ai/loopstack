@@ -284,7 +284,7 @@ export class ClaudeNativeWebSearchTool extends ServerTool<Config> {
 }
 ```
 
-List the server tool in the LLM `tools` config the same way as a regular tool — the framework picks the right code path based on the class.
+List the server tool in the LLM `tools` config the same way as a regular tool — the framework picks the right code path based on the class. A server tool runs only on the provider whose native spec it returns; a provider that cannot run it rejects the call.
 
 ```typescript
 await this.llmGenerateText.call(
