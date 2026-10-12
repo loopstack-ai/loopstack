@@ -3,8 +3,8 @@ import { GreeterModule } from '../greeter/index.js';
 import { FrenchGreetingWorkflow } from './french-greeting.workflow.js';
 
 /**
- * Scenario 3: forFeature with French config.
- * Runs alongside GermanGreetingModule — proves each module gets its own config.
+ * Scenario 2: forFeature with French config.
+ * The module-scoped GreeterTool overrides the global default for this module's workflows.
  */
 @Module({
   imports: [GreeterModule.forFeature({ language: 'fr', greeting: 'Bonjour' })],

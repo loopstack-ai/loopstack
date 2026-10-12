@@ -56,18 +56,18 @@ Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
 
 ## Examples
 
-| Example                               | Studio title                                    | Description                                                                             |
-| ------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [Workflow State](#workflow-state)     | `Advanced - Workflow State Example`             | Persist typed state across transitions via `assignState()`                              |
-| [Workflow Result](#workflow-result)   | `Advanced - Workflow Result Example`            | Publish a result for callers via `assignResult()`, kept apart from private state        |
-| [Dynamic Routing](#dynamic-routing)   | `Advanced - Dynamic Routing Example`            | Conditional routing with `@Guard` decorators and transition priorities                  |
-| [Sub-Workflow](#sub-workflow)         | `Advanced - Sub-Workflow Example`               | Launch a child workflow via `.run()` and resume on callback                             |
-| [Fan-Out](#fan-out)                   | `Advanced - Fan-Out Example`                    | Parallel sub-workflows with single aggregated callback (`FanOutWorkflow`)               |
-| [Sequence](#sequence)                 | `Advanced - Sequence Example`                   | Sequential sub-workflows with single aggregated callback (`SequenceWorkflow`)           |
-| [Batch Processing](#batch-processing) | `Advanced - Batch Processing Example`           | Chunked processing of a list in fixed-size batches                                      |
-| [Custom Tool](#custom-tool)           | `Advanced - Custom Tool Example`                | Authoring custom tools — stateless + stateful, `@Tool()`, Zod schemas, NestJS injection |
-| [Module Config](#module-config)       | `Advanced - Module Config (Default/German/...)` | `forRoot` / `forFeature` patterns for configurable modules                              |
-| [UI Documents](#ui-documents)         | `Advanced - UI Documents Example`               | Smoke test for built-in document types (Message, Error, Markdown, Plain)                |
+| Example                               | Studio title                                       | Description                                                                             |
+| ------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [Workflow State](#workflow-state)     | `Advanced - Workflow State Example`                | Persist typed state across transitions via `assignState()`                              |
+| [Workflow Result](#workflow-result)   | `Advanced - Workflow Result Example`               | Publish a result for callers via `assignResult()`, kept apart from private state        |
+| [Dynamic Routing](#dynamic-routing)   | `Advanced - Dynamic Routing Example`               | Conditional routing with `@Guard` decorators and transition priorities                  |
+| [Sub-Workflow](#sub-workflow)         | `Advanced - Sub-Workflow Example`                  | Launch a child workflow via `.run()` and resume on callback                             |
+| [Fan-Out](#fan-out)                   | `Advanced - Fan-Out Example`                       | Parallel sub-workflows with single aggregated callback (`FanOutWorkflow`)               |
+| [Sequence](#sequence)                 | `Advanced - Sequence Example`                      | Sequential sub-workflows with single aggregated callback (`SequenceWorkflow`)           |
+| [Batch Processing](#batch-processing) | `Advanced - Batch Processing Example`              | Chunked processing of a list in fixed-size batches                                      |
+| [Custom Tool](#custom-tool)           | `Advanced - Custom Tool Example`                   | Authoring custom tools — stateless + stateful, `@Tool()`, Zod schemas, NestJS injection |
+| [Module Config](#module-config)       | `Advanced - Module Config (Default/French/Nested)` | `forRoot` / `forFeature` patterns for configurable modules                              |
+| [UI Documents](#ui-documents)         | `Advanced - UI Documents Example`                  | Smoke test for built-in document types (Message, Error, Markdown, Plain)                |
 
 ---
 
@@ -151,19 +151,18 @@ Demonstrates authoring custom tools by extending `BaseTool`:
 
 ## Module Config
 
-Four scenarios for configurable modules:
+Three scenarios for configurable modules, each a workflow that calls `GreeterTool` and saves the greeting it gets back:
 
-1. **Default Greeting** — no `forFeature` override; uses `forRoot` global defaults
-2. **German Greeting** — `forFeature` override per module
-3. **French Greeting** — independent `forFeature`, proves per-module isolation
-4. **Nested Greeting** — config passed through a wrapper module (`GreeterAgentModule.forFeature`)
+1. **Default Greeting** (`default_greeting`) — no `forFeature` override; uses the app's `forRoot({ language: 'en' })` → `Hello, World! [language=en]`
+2. **French Greeting** (`french_greeting`) — a `forFeature({ language: 'fr' })` override in its own module → `Bonjour, Monde! [language=fr]`
+3. **Nested Greeting** (`nested_greeting`) — config passed through a wrapper module (`GreeterAgentModule.forFeature`) → `Hola, Mundo! [language=es]`
 
-Each consumer module registers its own `@Workflow` so all four show up in the sidebar.
+All three run side by side in one app, each with its own resolved config. Each consumer module provides its own workflow, so the workflows get the `GreeterTool` of that module's scope. The `@StudioApp` `workflows` list names them, so they can be started from Studio, the API and the CLI. They are not listed again in the module's `providers`, because a second instance there would resolve the global config.
 
 ### Files
 
-- `greeter/` — configurable module (`forRoot`, `forFeature`, constants, tool)
-- `consumers/` — four module + workflow pairs, one per scenario
+- `greeter/` — configurable module (`forRoot`, `forFeature`, constants, tool) and the `GreeterAgentModule` wrapper
+- `consumers/` — three module + workflow pairs, one per scenario
 
 ## UI Documents
 

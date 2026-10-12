@@ -2,7 +2,7 @@ import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/
 import { GreeterTool } from '../greeter/index.js';
 
 /**
- * Scenario 4: Config passed through a wrapper module (GreeterAgentModule.forFeature).
+ * Scenario 3: Config passed through a wrapper module (GreeterAgentModule.forFeature).
  * Demonstrates the nested forFeature pattern like AgentModule.forFeature → LlmProviderModule.forFeature.
  */
 @Workflow({ name: 'nested_greeting', title: 'Advanced - Module Config (Nested)' })

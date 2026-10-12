@@ -9,9 +9,11 @@ import { MathSumTool } from './workflows/custom-tool/tools/math-sum.tool';
 import { DynamicRoutingExampleWorkflow } from './workflows/dynamic-routing/dynamic-routing-example.workflow';
 import { RunSubWorkflowExampleFanOutWorkflow } from './workflows/fan-out/fan-out-example.workflow';
 import { DefaultGreetingModule } from './workflows/module-config/consumers/default-greeting.module';
+import { DefaultGreetingWorkflow } from './workflows/module-config/consumers/default-greeting.workflow';
 import { FrenchGreetingModule } from './workflows/module-config/consumers/french-greeting.module';
-import { GermanGreetingModule } from './workflows/module-config/consumers/german-greeting.module';
+import { FrenchGreetingWorkflow } from './workflows/module-config/consumers/french-greeting.workflow';
 import { NestedGreetingModule } from './workflows/module-config/consumers/nested-greeting.module';
+import { NestedGreetingWorkflow } from './workflows/module-config/consumers/nested-greeting.workflow';
 import { GreeterModule } from './workflows/module-config/greeter/greeter.module';
 import { RunSubWorkflowExampleSequenceWorkflow } from './workflows/sequence/sequence-example.workflow';
 import { RunSubWorkflowExampleErrorHandlingWorkflow } from './workflows/sub-workflow/sub-workflow-error-handling.workflow';
@@ -39,14 +41,15 @@ const WORKFLOWS = [
 
 @StudioApp({
   title: 'Advanced Workflows Examples',
-  workflows: WORKFLOWS,
+  // The greeting workflows are provided by their consumer modules, each with its own GreeterTool config,
+  // so they are listed here but not in providers.
+  workflows: [...WORKFLOWS, DefaultGreetingWorkflow, FrenchGreetingWorkflow, NestedGreetingWorkflow],
 })
 @Module({
   imports: [
     ClaudeModule,
     GreeterModule.forRoot({ language: 'en', greeting: 'Hello' }),
     DefaultGreetingModule,
-    GermanGreetingModule,
     FrenchGreetingModule,
     NestedGreetingModule,
   ],
