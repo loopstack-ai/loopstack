@@ -278,4 +278,4 @@ This enables multi-agent architectures where an orchestrator agent delegates tas
 
 - [@loopstack/agent](/docs/registry/agent) — Built-in agent workflow module
 - [@loopstack/code-agent](/docs/registry/code-agent) — Code exploration agent (ExploreTask) built on @loopstack/agent
-- [tool-errors-example-workflow](/docs/examples/agent#tool-errors) — Example demonstrating tool error handling and recovery
+- [Tool Errors example](/docs/examples/agent#tool-errors) — Example demonstrating tool error handling and recovery

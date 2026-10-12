@@ -161,5 +161,5 @@ needsAuth(state: MyState): boolean {
 
 ## Registry References
 
-- [dynamic-routing-example-workflow](/docs/examples/advanced-workflows#dynamic-routing) — Multi-level guard-based routing with cascading forks
-- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — Guard-based routing for LLM tool call detection
+- [Dynamic Routing example](/docs/examples/advanced-workflows#dynamic-routing) — Multi-level guard-based routing with cascading forks
+- [Custom Agent example](/docs/examples/agent#custom-agent) — Guard-based routing for LLM tool call detection

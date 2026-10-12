@@ -130,5 +130,5 @@ respond(state: ChatState) {}
 
 ## Registry References
 
-- [chat-example-workflow](/docs/examples/hitl#prompt-input-chat) — Multi-turn chat with Claude, system message, and prompt-input widget
-- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — Chat with tool calling loop
+- [Prompt Input Chat example](/docs/examples/hitl#prompt-input-chat) — Multi-turn chat loop with the prompt-input widget, without an LLM
+- [Custom Agent example](/docs/examples/agent#custom-agent) — Tool calling loop built from the delegate primitives

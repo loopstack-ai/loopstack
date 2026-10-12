@@ -343,8 +343,8 @@ src/
 
 ## Registry References
 
-- [custom-tool-example-module](/docs/examples/advanced-workflows#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
-- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — GetWeather tool exposed to the LLM for function calling
+- [Custom Tool example](/docs/examples/advanced-workflows#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
+- [Custom Agent example](/docs/examples/agent#custom-agent) — `weather_lookup` and `calculator` tools exposed to the LLM for function calling
 
 ---
 

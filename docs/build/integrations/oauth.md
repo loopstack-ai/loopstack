@@ -189,5 +189,5 @@ The token store also reads `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` — 
 
 ## Registry References
 
-- [google-workspace-examples](/docs/examples/google-workspace) — Google Calendar fetch with OAuth sub-workflow and Google Workspace agent with tool calling
-- [github-examples](/docs/examples/github) — GitHub OAuth integration with repos overview and GitHub agent with 25+ tools
+- [Google Workspace examples](/docs/examples/google-workspace) — Google Calendar fetch with OAuth sub-workflow and Google Workspace agent with tool calling
+- [GitHub examples](/docs/examples/github) — GitHub OAuth integration with repos overview and GitHub agent with 25 tools

@@ -210,4 +210,4 @@ export class OrderProcessingService {
 
 ## Registry References
 
-- [scheduling-examples](/docs/examples/scheduling) — Runnable examples of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.
+- [Scheduling examples](/docs/examples/scheduling) — Runnable examples of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.

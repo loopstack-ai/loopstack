@@ -435,12 +435,12 @@ src/
 
 ## Registry References
 
-- [chat-example-workflow](/docs/examples/hitl#prompt-input-chat) — Multi-turn chat workflow (the minimal example on this page)
-- [prompt-example-workflow](/docs/examples/llm#prompt) — Simple single-turn prompt workflow
-- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — Tool calling loop with guards and conditional routing
-- [dynamic-routing-example-workflow](/docs/examples/advanced-workflows#dynamic-routing) — Multi-level guard-based routing
-- [workflow-state-example-workflow](/docs/examples/advanced-workflows#workflow-state) — State management with typed state interface
-- [run-sub-workflow-example](/docs/examples/advanced-workflows#sub-workflow) — Sub-workflow execution with callbacks
+- [Prompt Input Chat example](/docs/examples/hitl#prompt-input-chat) — Multi-turn chat loop with the prompt-input widget, without an LLM
+- [Prompt example](/docs/examples/llm#prompt) — Simple single-turn prompt workflow
+- [Custom Agent example](/docs/examples/agent#custom-agent) — Tool calling loop with guards and conditional routing
+- [Dynamic Routing example](/docs/examples/advanced-workflows#dynamic-routing) — Multi-level guard-based routing
+- [Workflow State example](/docs/examples/advanced-workflows#workflow-state) — State management with typed state interface
+- [Sub-Workflow example](/docs/examples/advanced-workflows#sub-workflow) — Sub-workflow execution with callbacks
 
 ---
 
