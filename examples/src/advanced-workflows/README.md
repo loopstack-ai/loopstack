@@ -101,8 +101,8 @@ Five workflow files demonstrating sub-workflow composition:
 
 - `sub-workflow-parent.workflow.ts` — basic parent that launches a child via `.run()`
 - `sub-workflow-sub.workflow.ts` — the child workflow
-- `sub-workflow-failing-sub.workflow.ts` — a child that always fails (used by error-handling)
-- `sub-workflow-error-handling.workflow.ts` — parent handles failed children via `input.hasError` / `input.errorMessage`
+- `sub-workflow-failing-sub.workflow.ts` — a child that fails unless started with `fail: false` (used by error-handling)
+- `sub-workflow-error-handling.workflow.ts` — parent reads the child's outcome via `input.hasError` / `input.status` / `input.errorMessage`; pass `fail: false` to see the success branch
 - `sub-workflow-show-modes.workflow.ts` — every `show` mode (`inline`, `link`, `hidden`) in one flow
 
 For parallel and sequential composition see [Fan-Out](#fan-out) and [Sequence](#sequence).
