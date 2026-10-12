@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { StudioApp } from '@loopstack/common';
 import { RemoteClientModule } from '@loopstack/remote-client';
 import { RemoteFileExplorerModule } from '@loopstack/remote-file-explorer';
+import { FileSearchExampleWorkflow } from './workflows/file-search/file-search-example.workflow';
 import { RemoteClientExampleWorkflow } from './workflows/remote-client/remote-client-example.workflow';
-import { RemoteFileExplorerExampleWorkflow } from './workflows/remote-file-explorer/remote-file-explorer-example.workflow';
 
-const WORKFLOWS = [RemoteClientExampleWorkflow, RemoteFileExplorerExampleWorkflow];
+const WORKFLOWS = [RemoteClientExampleWorkflow, FileSearchExampleWorkflow];
 
 @StudioApp({
   title: 'Remote Client Examples',
