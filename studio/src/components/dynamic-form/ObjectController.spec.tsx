@@ -116,3 +116,61 @@ describe('ObjectController', () => {
     expect(screen.getByText('Packages').className).toContain("after:content-['*']");
   });
 });
+
+describe('ObjectController with a multi-select', () => {
+  // The shape a gate document's `units` has in its JSON schema: an object holding the list and the picks.
+  const UNITS_SCHEMA = {
+    type: 'object',
+    properties: {
+      units: {
+        type: 'object',
+        properties: {
+          options: { type: 'array', items: { type: 'string' } },
+          selected: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['options', 'selected'],
+      },
+    },
+    required: [],
+  };
+
+  function renderUnits(units: { options: string[]; selected: string[] }) {
+    const submitted = vi.fn();
+    const Harness = () => {
+      const form = useForm<Record<string, unknown>>({ defaultValues: { units } });
+      return (
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(submitted)}>
+            <ObjectController
+              name={null}
+              parentKey={null}
+              schema={UNITS_SCHEMA as unknown as SchemaProperties}
+              ui={{ properties: { units: { title: 'Units', widget: 'multi-select', required: true } } } as never}
+              form={form}
+              disabled={false}
+              required={true}
+              viewOnly={false}
+            />
+            <button type="submit">Run</button>
+          </form>
+        </FormProvider>
+      );
+    };
+    render(<Harness />);
+    return { submitted };
+  }
+
+  it('draws an object field the widget names as that widget, not as its nested fields', () => {
+    renderUnits({ options: ['engineer'], selected: ['engineer'] });
+    expect(screen.getByRole('button', { name: 'Units' })).toBeInTheDocument();
+    expect(screen.queryByText('options')).not.toBeInTheDocument();
+    expect(screen.queryByText('selected')).not.toBeInTheDocument();
+  });
+
+  it('holds back a required field with nothing picked', async () => {
+    const { submitted } = renderUnits({ options: ['engineer'], selected: [] });
+    screen.getByText('Run').click();
+    expect(await screen.findByRole('alert')).toHaveTextContent('This field is required');
+    expect(submitted).not.toHaveBeenCalled();
+  });
+});

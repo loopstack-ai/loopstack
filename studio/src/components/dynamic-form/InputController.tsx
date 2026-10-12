@@ -10,6 +10,8 @@ import { MarkdownCollapsedField } from './fields/MarkdownCollapsedField';
 import type { MarkdownCollapsedFieldSchema } from './fields/MarkdownCollapsedField';
 import { MarkdownViewField } from './fields/MarkdownViewField';
 import type { MarkdownFieldSchema } from './fields/MarkdownViewField';
+import { MultiSelectField } from './fields/MultiSelectField';
+import type { MultiSelectFieldSchema } from './fields/MultiSelectField';
 import { OptionPickerField } from './fields/OptionPickerField';
 import type { OptionPickerFieldSchema } from './fields/OptionPickerField';
 import { RadioField } from './fields/RadioField';
@@ -33,6 +35,7 @@ type WidgetType =
   | 'markdown-view'
   | 'markdown-collapsed'
   | 'option-picker'
+  | 'multi-select'
   | 'textarea';
 
 type FieldSchema =
@@ -46,7 +49,8 @@ type FieldSchema =
   | CodeFieldSchema
   | MarkdownFieldSchema
   | MarkdownCollapsedFieldSchema
-  | OptionPickerFieldSchema;
+  | OptionPickerFieldSchema
+  | MultiSelectFieldSchema;
 
 const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { schema: any }>> = {
   checkbox: CheckboxField,
@@ -60,6 +64,7 @@ const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { sch
   'markdown-view': MarkdownViewField,
   'markdown-collapsed': MarkdownCollapsedField,
   'option-picker': OptionPickerField,
+  'multi-select': MultiSelectField,
 } as const;
 
 const WIDGET_NAMES = Object.keys(WIDGET_REGISTRY) as WidgetType[];
