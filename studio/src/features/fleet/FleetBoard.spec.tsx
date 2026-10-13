@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
@@ -11,6 +11,8 @@ import type { FleetQuery } from './useFleet.ts';
 
 const batchDelete = vi.fn();
 const fleetQueries: FleetQuery[] = [];
+/** How many workspaces the API reports — more than the fixture holds when a test needs a second page. */
+let fleetTotal = 0;
 
 vi.mock('@/providers/StudioProvider.tsx', () => ({
   useStudio: () => ({
@@ -32,7 +34,7 @@ vi.mock('./WorkspaceActionsMenu.tsx', () => ({ default: () => null }));
 vi.mock('./useFleet.ts', () => ({
   useFleet: (query: FleetQuery) => {
     fleetQueries.push(query);
-    return { entries, counts: countStates(entries), total: entries.length, isLoading: false, error: null };
+    return { entries, counts: countStates(entries), total: fleetTotal, isLoading: false, error: null };
   },
 }));
 
@@ -101,6 +103,7 @@ beforeEach(() => {
   localStorage.clear();
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ fleetDensity: 'list' }));
   fleetQueries.length = 0;
+  fleetTotal = entries.length;
   batchDelete.mockClear();
 });
 
@@ -132,7 +135,13 @@ describe('FleetBoard batch delete', () => {
 describe('FleetBoard search and filters', () => {
   it('asks the API for every workspace by default', () => {
     renderBoard();
-    expect(lastQuery()).toEqual({ search: undefined, appName: [], favouritesOnly: false, activity: [] });
+    expect(lastQuery()).toEqual({
+      search: undefined,
+      appName: [],
+      favouritesOnly: false,
+      activity: [],
+      page: { sort: { field: 'title', order: 'ASC' }, index: 0, size: 25 },
+    });
   });
 
   it('asks the API for the chosen states, and remembers them', async () => {
@@ -169,14 +178,72 @@ describe('FleetBoard search and filters', () => {
   });
 });
 
-describe('FleetBoard order', () => {
-  it('keeps a workspace the filters hide in its saved place when a row is dragged', () => {
+describe('FleetBoard list view', () => {
+  it('shows the workspaces as a table with column headers', () => {
+    renderBoard();
+    for (const name of ['State', 'Title', 'App', 'Run', 'Active runs', 'Started', 'Created', 'Favourite']) {
+      expect(screen.getByRole('columnheader', { name })).toBeInTheDocument();
+    }
+    expect(screen.getAllByRole('row')).toHaveLength(1 + entries.length + 1);
+  });
+
+  it('asks the API for the order of a column when its header is clicked, and remembers it', () => {
+    renderBoard();
+    fireEvent.click(screen.getByRole('button', { name: 'Created' }));
+    expect(lastQuery().page?.sort).toEqual({ field: 'createdAt', order: 'ASC' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Created' }));
+    expect(lastQuery().page?.sort).toEqual({ field: 'createdAt', order: 'DESC' });
+    expect(screen.getByRole('columnheader', { name: 'Created' })).toHaveAttribute('aria-sort', 'descending');
+    expect(savedPreferences().fleetListSort).toEqual({ field: 'createdAt', order: 'DESC' });
+  });
+
+  it('sorts by none of the columns computed from runs', () => {
+    renderBoard();
+    for (const name of ['State', 'Run', 'Active runs', 'Started']) {
+      expect(within(screen.getByRole('columnheader', { name })).queryByRole('button')).not.toBeInTheDocument();
+    }
+  });
+
+  it('asks the API for the next page, and for the first again when the sort changes', () => {
+    fleetTotal = 60;
+    renderBoard();
+    fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
+    expect(lastQuery().page?.index).toBe(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'App' }));
+    expect(lastQuery().page).toEqual({ sort: { field: 'appName', order: 'ASC' }, index: 0, size: 25 });
+  });
+
+  it('says its state counts cover only the page when there are more', () => {
+    fleetTotal = 60;
+    renderBoard();
+    expect(screen.getByText('2 working · 1 idle on this page')).toBeInTheDocument();
+  });
+
+  it('offers no drag', () => {
+    renderBoard();
+    expect(screen.queryByLabelText('Reorder Charlie')).not.toBeInTheDocument();
+  });
+});
+
+describe('FleetBoard card view', () => {
+  beforeEach(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ fleetDensity: 'grid' }));
+  });
+
+  it('asks the API for the cards without a page, so their dragged order applies', () => {
+    renderBoard();
+    expect(lastQuery().page).toBeUndefined();
+  });
+
+  it('keeps a workspace the filters hide in its saved place when a card is dragged', () => {
     // x is ranked but not loaded — filtered out by the API, so the board never sees it.
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ fleetDensity: 'list', fleetOrder: ['x', 'h', 'a', 'c'] }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ fleetDensity: 'grid', fleetOrder: ['x', 'h', 'a', 'c'] }));
     renderBoard();
 
     const dataTransfer = { setData: vi.fn(), effectAllowed: '', dropEffect: '' };
-    const target = screen.getByText('Alpha').closest('li')!;
+    const target = screen.getByText('Alpha').closest('[data-slot="card"]')!;
     fireEvent.dragStart(screen.getByLabelText('Reorder Charlie'), { dataTransfer });
     fireEvent.dragOver(target, { dataTransfer });
     fireEvent.drop(target, { dataTransfer });

@@ -6,16 +6,24 @@ import type {
   WorkspaceActivity,
   WorkspaceFilterInterface,
   WorkspaceInterface,
+  WorkspaceSortByInterface,
 } from '@loopstack/contracts/api';
 import { SortOrder } from '@loopstack/contracts/enums';
 import { useLoopstackClient } from '@loopstack/react';
 import { ACTIVE_RUN_STATES } from '@/lib/run-status.ts';
 import { useStudioPreferences } from '@/providers/StudioPreferencesProvider.tsx';
-import { type FleetCounts, type FleetEntry, classifyWorkspace, countStates, orderEntries } from './fleet-model.ts';
+import {
+  type FleetCounts,
+  type FleetEntry,
+  type FleetSort,
+  classifyWorkspace,
+  countStates,
+  orderEntries,
+} from './fleet-model.ts';
 
 /**
- * How many workspaces the board shows at once. Beyond this it reports the overflow rather than implying
- * the page is the whole fleet; search and the filters reach the rest.
+ * How many workspaces the cards show at once. Beyond this they report the overflow rather than implying
+ * the page is the whole fleet; search, the filters and the list view's pages reach the rest.
  */
 export const FLEET_PAGE_SIZE = 100;
 
@@ -48,6 +56,30 @@ export interface FleetQuery {
   favouritesOnly?: boolean;
   /** Workspaces in any of these states, by the same rule that colours the cards. */
   activity?: WorkspaceActivity[];
+  /**
+   * One page in the API's order, for the list view. Without it the board loads the first
+   * {@link FLEET_PAGE_SIZE} workspaces and lays them out in the order the cards were dragged into.
+   */
+  page?: FleetPage;
+}
+
+export interface FleetPage {
+  sort: FleetSort;
+  /** Zero-based. */
+  index: number;
+  size: number;
+}
+
+/**
+ * The API's order for a sort. Title and then id break ties, so a page holds the same workspaces each
+ * time it is fetched, however many share an app or a favourite.
+ */
+export function workspaceSortBy(sort: FleetSort): WorkspaceSortByInterface[] {
+  return [
+    { field: sort.field, order: sort.order === 'ASC' ? SortOrder.ASC : SortOrder.DESC },
+    ...(sort.field === 'title' ? [] : [{ field: 'title', order: SortOrder.ASC }]),
+    { field: 'id', order: SortOrder.ASC },
+  ];
 }
 
 function workspaceFilter(query: FleetQuery): WorkspaceFilterInterface | undefined {
@@ -71,6 +103,9 @@ export interface Fleet {
 /**
  * The board's data: the workspaces the query selects, each with its own active-run query.
  *
+ * The cards ask for the first {@link FLEET_PAGE_SIZE} workspaces by title and order them as they were
+ * dragged; the list view asks for one page, sorted, and keeps the API's order.
+ *
  * One query per workspace rather than one wide run list, because the wide version would have to be a
  * window over recent activity — and a run parked for days has an *old* `updatedAt`, so it is exactly what
  * a newest-N window drops. A workspace waiting on someone must never read as idle.
@@ -92,9 +127,9 @@ export function useFleet(query: FleetQuery = {}): Fleet {
     ...client.queries.workspaceList({
       ...(filter ? { filter } : {}),
       ...(query.search ? { search: query.search } : {}),
-      sortBy: [{ field: 'title', order: SortOrder.ASC }],
-      page: 0,
-      limit: FLEET_PAGE_SIZE,
+      sortBy: workspaceSortBy(query.page?.sort ?? { field: 'title', order: 'ASC' }),
+      page: query.page?.index ?? 0,
+      limit: query.page?.size ?? FLEET_PAGE_SIZE,
     }),
     // A new search or filter keeps the board on screen until the answer arrives, rather than blanking it.
     placeholderData: keepPreviousData,
@@ -123,16 +158,13 @@ export function useFleet(query: FleetQuery = {}): Fleet {
     return map;
   }, [workspaces, runs.data]);
 
-  const entries = useMemo(
-    () =>
-      orderEntries(
-        workspaces.map((workspace, index) =>
-          classifyWorkspace(workspace, runsByWorkspace.get(workspace.id) ?? NO_RUNS, runs.isPending[index] ?? false),
-        ),
-        preferences.fleetOrder,
-      ),
-    [workspaces, runsByWorkspace, preferences.fleetOrder, runs.isPending],
-  );
+  const manualOrder = query.page ? undefined : preferences.fleetOrder;
+  const entries = useMemo(() => {
+    const classified = workspaces.map((workspace, index) =>
+      classifyWorkspace(workspace, runsByWorkspace.get(workspace.id) ?? NO_RUNS, runs.isPending[index] ?? false),
+    );
+    return manualOrder ? orderEntries(classified, manualOrder) : classified;
+  }, [workspaces, runsByWorkspace, manualOrder, runs.isPending]);
 
   return {
     entries,

@@ -44,7 +44,13 @@ const DataTablePagination: React.FC<DataTablePaginationProps> = ({
       </div>
 
       <div className="flex items-center space-x-2">
-        <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={page === 0}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 0}
+          aria-label="Previous page"
+        >
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
@@ -52,7 +58,13 @@ const DataTablePagination: React.FC<DataTablePaginationProps> = ({
           Page {totalItems === 0 ? 0 : page + 1} of {totalPages}
         </span>
 
-        <Button variant="outline" size="sm" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages - 1}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages - 1}
+          aria-label="Next page"
+        >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

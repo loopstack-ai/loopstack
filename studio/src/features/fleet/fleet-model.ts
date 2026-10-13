@@ -34,6 +34,17 @@ export interface FleetEntry {
   isLoading: boolean;
 }
 
+/**
+ * The columns the list view sorts by: the workspace's own fields, which the workspace API orders. A run's
+ * state or age is computed in the browser for one page only, so the list cannot sort by it.
+ */
+export type FleetSortField = 'title' | 'appName' | 'isFavourite' | 'createdAt';
+
+export interface FleetSort {
+  field: FleetSortField;
+  order: 'ASC' | 'DESC';
+}
+
 export interface FleetCounts {
   waiting: number;
   working: number;
