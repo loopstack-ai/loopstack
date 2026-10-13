@@ -1,5 +1,5 @@
 import { type Edge, type Node } from '@xyflow/react';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import type { WorkflowConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import type { WorkflowInterface } from '@loopstack/contracts/types';
 import { useWorkflow, useWorkflowCheckpoints } from '@/hooks/useWorkflows.ts';
@@ -39,7 +39,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   const fetchWorkflow = useWorkflow(workflow.id);
   const workflowData = fetchWorkflow.data;
   const checkpointsQuery = useWorkflowCheckpoints(workflow.id);
-  const checkpoints = checkpointsQuery.data ?? [];
+  const checkpoints = useMemo(() => checkpointsQuery.data ?? [], [checkpointsQuery.data]);
   const prevDataRef = useRef<string | null>(null);
 
   const isLoading = fetchWorkflow.isLoading || checkpointsQuery.isLoading;

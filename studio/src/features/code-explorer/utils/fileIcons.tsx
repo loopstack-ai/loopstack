@@ -1,4 +1,13 @@
-import { File, FileCode, FileJson, FileText, Folder, FolderOpen, type LucideIcon } from 'lucide-react';
+import {
+  File,
+  FileCode,
+  FileJson,
+  FileText,
+  Folder,
+  FolderOpen,
+  type LucideIcon,
+  type LucideProps,
+} from 'lucide-react';
 
 const EXTENSION_ICON_MAP: Record<string, LucideIcon> = {
   // TypeScript
@@ -44,11 +53,13 @@ const EXTENSION_ICON_MAP: Record<string, LucideIcon> = {
   '.env': FileText,
 };
 
-export function getFileIcon(fileName: string): LucideIcon {
+/** The icon for a file, chosen by its extension. */
+export function FileIcon({ fileName, ...props }: LucideProps & { fileName: string }) {
   const ext = fileName.includes('.') ? fileName.slice(fileName.lastIndexOf('.')).toLowerCase() : '';
-  return EXTENSION_ICON_MAP[ext] ?? File;
+  const Icon = EXTENSION_ICON_MAP[ext] ?? File;
+  return <Icon {...props} />;
 }
 
-export function getFolderIcon(isOpen: boolean): LucideIcon {
-  return isOpen ? FolderOpen : Folder;
+export function FolderIcon({ isOpen, ...props }: LucideProps & { isOpen: boolean }) {
+  return isOpen ? <FolderOpen {...props} /> : <Folder {...props} />;
 }

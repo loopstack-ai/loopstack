@@ -38,6 +38,27 @@ interface FileExplorerProviderProps {
   children: ReactNode;
 }
 
+/** Finds a requested path in the tree by its repo-relative tail, with the ids of the folders above it. */
+function findRequestedFile(
+  nodes: FileExplorerNode[],
+  requestedPath: string,
+): { node: FileExplorerNode; trail: string[] } | null {
+  const norm = (p: string) => p.replace(/^\/?workspace\//, '').replace(/^\/+/, '');
+  const target = norm(requestedPath);
+  const find = (nodes: FileExplorerNode[], trail: string[]): { node: FileExplorerNode; trail: string[] } | null => {
+    for (const node of nodes) {
+      if (node.type === 'file') {
+        if (norm(node.path) === target) return { node, trail };
+      } else if (node.children?.length) {
+        const found = find(node.children, [...trail, node.id]);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  return find(nodes, []);
+}
+
 export function FileExplorerProvider({
   variant,
   workspaceId,
@@ -86,28 +107,21 @@ export function FileExplorerProvider({
   // Deep-open: when another panel requested a path, resolve it against the loaded tree (matching on the
   // repo-relative tail, so a container-absolute `/workspace/...` tree path still matches), expand its
   // folders, select it, then clear the request. Cleared even when not found so it doesn't retry forever.
-  useEffect(() => {
-    if (!requestedFilePath || !treeQuery.data) return;
-    const norm = (p: string) => p.replace(/^\/?workspace\//, '').replace(/^\/+/, '');
-    const target = norm(requestedFilePath);
-    const find = (nodes: FileExplorerNode[], trail: string[]): { node: FileExplorerNode; trail: string[] } | null => {
-      for (const node of nodes) {
-        if (node.type === 'file') {
-          if (norm(node.path) === target) return { node, trail };
-        } else if (node.children?.length) {
-          const found = find(node.children, [...trail, node.id]);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    const match = find(treeQuery.data, []);
+  // Opening is this provider's own state, adjusted during render; clearing the request is the effect's.
+  const request = requestedFilePath || null;
+  const deepOpenReady = !!request && !!treeQuery.data;
+  const [deepOpened, setDeepOpened] = useState<string | null>(null);
+  if (request !== deepOpened && (deepOpenReady || !request)) {
+    setDeepOpened(request);
+    const match = request && treeQuery.data ? findRequestedFile(treeQuery.data, request) : null;
     if (match) {
       if (match.trail.length) setExpandedFolders((prev) => new Set([...prev, ...match.trail]));
       selectFile(match.node);
     }
-    onRequestConsumed?.();
-  }, [requestedFilePath, treeQuery.data, selectFile, onRequestConsumed]);
+  }
+  useEffect(() => {
+    if (deepOpenReady) onRequestConsumed?.();
+  }, [deepOpenReady, onRequestConsumed]);
 
   const closeFile = useCallback(
     (node: FileExplorerNode) => {

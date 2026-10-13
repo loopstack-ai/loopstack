@@ -1,6 +1,6 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, CheckIcon, ChevronDown, Loader2, Plus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { StudioWorkflowConfig } from '@loopstack/contracts/api';
 import type { StudioEnvironmentSlot } from '@/api/types';
@@ -29,17 +29,18 @@ export function NewRunDialog({ open, onOpenChange, onSuccess }: NewRunDialogProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[80vh] min-h-[300px] !max-w-2xl">
         <DialogTitle>New Run</DialogTitle>
-        <NewRunDialogContent open={open} onSuccess={onSuccess} />
+        <NewRunDialogContent onSuccess={onSuccess} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (workflowId: string) => void }) {
+// The dialog unmounts its content when it closes, so every opening starts from a fresh state.
+function NewRunDialogContent({ onSuccess }: { onSuccess: (workflowId: string) => void }) {
   const [activeSection, setActiveSection] = useState<Section | null>('workspace');
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
-  const [selectedWorkflowName, setSelectedWorkflowName] = useState<string>('');
+  const [pickedWorkspaceId, setPickedWorkspaceId] = useState<string>('');
+  const [pickedWorkflowName, setPickedWorkflowName] = useState<string>('');
 
   const { CreateWorkspace: CreateWorkspaceOverride } = useComponentOverrides();
   const CreateWorkspace = CreateWorkspaceOverride ?? DefaultCreateWorkspace;
@@ -48,6 +49,8 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
   const fetchWorkspaces = useFilterWorkspaces(undefined, {}, 'title', 'ASC', 0, 100);
   const workspaces = fetchWorkspaces.data?.data ?? [];
 
+  // Until the user picks one, the first workspace is selected.
+  const selectedWorkspaceId = pickedWorkspaceId || (workspaces[0]?.id ?? '');
   const selectedWorkspace = workspaces.find((w) => w.id === selectedWorkspaceId);
 
   // Find the studio app matching this workspace's module
@@ -80,15 +83,6 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
     mode: 'onChange',
   });
 
-  // Selected workflow config
-  const selectedWorkflow: StudioWorkflowConfig | undefined = useMemo(() => {
-    if (!selectedWorkflowName) return undefined;
-    return appWorkflows.find((wf) => wf.workflowName === selectedWorkflowName);
-  }, [selectedWorkflowName, appWorkflows]);
-
-  const selectedSchema = selectedWorkflow?.schema;
-  const hasArguments = !!selectedSchema;
-
   // Workflow options
   const workflowOptions = useMemo(() => {
     return appWorkflows.map((wf) => ({
@@ -98,50 +92,42 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
     }));
   }, [appWorkflows]);
 
-  // Auto-select first workspace
-  useEffect(() => {
-    if (!selectedWorkspaceId && workspaces.length > 0) {
-      setSelectedWorkspaceId(workspaces[0].id);
-    }
-  }, [workspaces, selectedWorkspaceId]);
+  // Until the user picks one of the app's workflows, the first one is selected.
+  const selectedWorkflowName = workflowOptions.some((o) => o.key === pickedWorkflowName)
+    ? pickedWorkflowName
+    : (workflowOptions[0]?.key ?? '');
 
-  // Auto-select first workflow option
-  useEffect(() => {
-    if (workflowOptions.length > 0 && !workflowOptions.find((o) => o.key === selectedWorkflowName)) {
-      setSelectedWorkflowName(workflowOptions[0].key);
-    }
-  }, [workflowOptions, selectedWorkflowName]);
+  // Selected workflow config
+  const selectedWorkflow: StudioWorkflowConfig | undefined = useMemo(() => {
+    if (!selectedWorkflowName) return undefined;
+    return appWorkflows.find((wf) => wf.workflowName === selectedWorkflowName);
+  }, [selectedWorkflowName, appWorkflows]);
 
-  // Reset state when dialog closes
-  useEffect(() => {
-    if (!open) {
-      setActiveSection('workspace');
-      setShowCreateWorkspace(false);
-      setSelectedWorkspaceId('');
-      setSelectedWorkflowName('');
-      form.reset({});
-      startWorkflow.reset();
-    }
-  }, [open]);
+  const selectedSchema = selectedWorkflow?.schema;
+  const hasArguments = !!selectedSchema;
 
   // Auto-advance: workspace selected -> open automation
   const handleWorkspaceChange = (id: string) => {
-    setSelectedWorkspaceId(id);
-    setSelectedWorkflowName('');
+    setPickedWorkspaceId(id);
+    setPickedWorkflowName('');
     setActiveSection('automation');
   };
 
   const handleBlockNameChange = (name: string) => {
-    setSelectedWorkflowName(name);
+    setPickedWorkflowName(name);
     form.reset({});
   };
 
-  // When selection changes and has arguments, open config section
-  useEffect(() => {
+  // When the selection changes to a workflow with arguments, open the config section. Adjusted during
+  // render, as the selection is derived from loaded data rather than set by one handler.
+  const selectionKey = `${selectedWorkspaceId}/${selectedWorkflowName}/${hasArguments}`;
+  const [previousSelectionKey, setPreviousSelectionKey] = useState('');
+  if (selectionKey !== previousSelectionKey) {
+    setPreviousSelectionKey(selectionKey);
     if (selectedWorkflowName && hasArguments) {
       setActiveSection('config');
     }
-  }, [selectedWorkflowName, hasArguments]);
+  }
 
   const handleRunNow = () => {
     const run = (args?: Record<string, any>) => {

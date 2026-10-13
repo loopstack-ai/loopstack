@@ -78,9 +78,12 @@ export function useLlmStreamingDocuments(workflowId: string, place: string | und
   const [revealed, setRevealed] = useState<Record<string, RevealedState>>({});
   const drainTimeout = useRef<number | null>(null);
 
-  useEffect(() => {
+  // Reset the reveal when the workflow changes, during render so no frame shows the previous one.
+  const [revealedFor, setRevealedFor] = useState(workflowId);
+  if (revealedFor !== workflowId) {
+    setRevealedFor(workflowId);
     setRevealed({});
-  }, [workflowId]);
+  }
 
   useEffect(() => {
     const hasPending = Object.values(streams).some((stream) => !isFullyRevealed(stream, revealed[stream.messageId]));

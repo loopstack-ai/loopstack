@@ -1,7 +1,7 @@
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { Loader2, Star } from 'lucide-react';
 import * as React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { AppConfigInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import { Button } from '../../../components/ui/button.tsx';
@@ -27,17 +27,18 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
   const replaceEnvironments = useReplaceEnvironments();
   const { data: existingEnvironments } = useWorkspaceEnvironments(workspace?.id);
 
-  const [workspaceType, setWorkspaceType] = useState(types[0]?.appName ?? '');
+  const [pickedWorkspaceType, setPickedWorkspaceType] = useState('');
   const [isFavourite, setIsFavourite] = useState(workspace?.isFavourite ?? false);
-  const [envSelections, setEnvSelections] = useState<Record<string, string>>({});
+  const [pickedEnvironments, setPickedEnvironments] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    setWorkspaceType(types[0]?.appName ?? '');
-  }, [types]);
+  // Until the user picks one of the given types, the first one is selected.
+  const workspaceType = types.some((t) => t.appName === pickedWorkspaceType)
+    ? pickedWorkspaceType
+    : (types[0]?.appName ?? '');
 
   // Get environment slots for the selected workspace type
   const selectedConfig = useMemo(() => types.find((t) => t.appName === workspaceType), [types, workspaceType]);
-  const slots = selectedConfig?.environments ?? [];
+  const slots = useMemo(() => selectedConfig?.environments ?? [], [selectedConfig]);
 
   const { data: availableEnvironments } = useAvailableEnvironments({ enabled: slots.length > 0 });
 
@@ -49,37 +50,41 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
 
   const hasEnvironments = environments.length > 0 && slots.length > 0;
 
-  // Auto-select first matching environment per slot
-  useEffect(() => {
-    if (environments.length === 0 || slots.length === 0) return;
+  // Auto-select first matching environment per slot; the user's picks override it.
+  const autoSelections = useMemo(() => {
+    const selections: Record<string, string> = {};
+    if (environments.length === 0 || slots.length === 0) return selections;
 
-    const autoSelections: Record<string, string> = {};
     for (const slot of slots) {
       // If editing, pre-populate from existing environments
       if (existingEnvironments) {
         const existing = existingEnvironments.find((e) => e.slotId === slot.id);
         if (existing) {
-          autoSelections[slot.id] = existing.remoteEnvironmentId;
+          selections[slot.id] = existing.remoteEnvironmentId;
           continue;
         }
       }
       // Auto-select first match
       const match = environments.find((env) => !slot.type || env.type === slot.type);
       if (match) {
-        autoSelections[slot.id] = match.id;
+        selections[slot.id] = match.id;
       }
     }
-    setEnvSelections(autoSelections);
+    return selections;
   }, [environments, slots, existingEnvironments]);
+  const envSelections = useMemo(
+    () => ({ ...autoSelections, ...pickedEnvironments }),
+    [autoSelections, pickedEnvironments],
+  );
 
   // Reset env selections when workspace type changes
   const handleWorkspaceTypeChange = (value: string) => {
-    setWorkspaceType(value);
-    setEnvSelections({});
+    setPickedWorkspaceType(value);
+    setPickedEnvironments({});
   };
 
   const handleSelectEnvironment = useCallback((slotId: string, environmentId: string) => {
-    setEnvSelections((prev) => ({ ...prev, [slotId]: environmentId }));
+    setPickedEnvironments((prev) => ({ ...prev, [slotId]: environmentId }));
   }, []);
 
   const buildEnvironments = useCallback((): WorkspaceEnvironmentInterface[] | undefined => {

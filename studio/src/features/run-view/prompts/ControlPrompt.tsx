@@ -13,7 +13,7 @@ import { promptRegistry } from './registry.tsx';
 export function ControlPrompt({ view, workspaceId }: { view: ParkView; workspaceId?: string }) {
   const runWorkflow = useRunWorkflow();
   const { isPending, markSubmitted, cancel } = usePendingTransition(view.transitions);
-  const Component = view.widget ? promptRegistry.get(view.widget) : undefined;
+  const Component = view.widget ? promptRegistry[view.widget] : undefined;
   if (!Component) return null;
 
   const submit = (payload: unknown, transitionId?: string) => {

@@ -68,9 +68,9 @@ export function RunView({ workflowId, settings }: { workflowId: string | undefin
   // `run` resolves once the transition is queued, so the mutation alone cannot say whether the
   // answer landed — the prompt stays busy until it stops offering the transition that was sent.
   const { isPending, markSubmitted, cancel } = usePendingTransition(picked?.view.transitions ?? []);
-  const PromptComponent = picked?.view.widget ? promptRegistry.get(picked.view.widget) : undefined;
+  const PromptComponent = picked?.view.widget ? promptRegistry[picked.view.widget] : undefined;
   const idle = prompts.idlePrompt;
-  const IdleComponent = idle?.view.widget ? promptRegistry.get(idle.view.widget) : undefined;
+  const IdleComponent = idle?.view.widget ? promptRegistry[idle.view.widget] : undefined;
 
   // The CLI's offerRetry fallback: a failed workflow without an answerable recovery
   // prompt (those take precedence via the canonical rules) offers a plain re-run.

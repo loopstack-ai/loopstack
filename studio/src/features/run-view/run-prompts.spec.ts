@@ -10,7 +10,7 @@ import { promptRegistry } from './prompts/registry.tsx';
 import { controlsBeside, toWidgetConfig } from './useRunPrompts.ts';
 
 const eligible = (candidate: { widget?: { widget: string } }) =>
-  !!candidate.widget && promptRegistry.has(candidate.widget.widget);
+  !!candidate.widget && candidate.widget.widget in promptRegistry;
 
 const docConfigs = (config: ParkViewWidgetConfig) => new Map([['ask_user', config]]);
 

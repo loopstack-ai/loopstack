@@ -33,11 +33,10 @@ export function usePendingTransition(
   const [submitted, setSubmitted] = useState<string | null>(null);
   const isPending = submitted !== null && availableTransitions.includes(submitted);
 
-  // Forget the transition the moment it is applied. Without this a workflow that loops back to the
-  // same prompt (a chat turn answering into the same waiting place) would re-arm the spinner.
-  useEffect(() => {
-    if (submitted !== null && !isPending) setSubmitted(null);
-  }, [submitted, isPending]);
+  // Forget the transition the moment it is applied, during render so no frame sees it stale. Without this
+  // a workflow that loops back to the same prompt (a chat turn answering into the same waiting place) would
+  // re-arm the spinner.
+  if (submitted !== null && !isPending) setSubmitted(null);
 
   useEffect(() => {
     if (submitted === null) return;

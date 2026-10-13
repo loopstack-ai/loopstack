@@ -35,11 +35,9 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflo
   const { result, open, reset } = useOAuthPopup();
   const submittedRef = useRef(false);
 
-  const availableTransitions = workflow.availableTransitions?.map((t) => t.id) ?? [];
-
   const triggerTransition = useCallback(
     (code: string, state: string) => {
-      if (!transitionId || !availableTransitions.includes(transitionId)) return;
+      if (!transitionId || !workflow.availableTransitions?.some((t) => t.id === transitionId)) return;
 
       runWorkflow.mutate({
         workflowId: parentWorkflow.id,
@@ -52,7 +50,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflo
         },
       });
     },
-    [transitionId, availableTransitions, runWorkflow, parentWorkflow.id, workflow.id],
+    [transitionId, workflow.availableTransitions, runWorkflow, parentWorkflow.id, workflow.id],
   );
 
   // When popup succeeds, trigger the backend transition

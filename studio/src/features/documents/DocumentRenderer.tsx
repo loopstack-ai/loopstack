@@ -6,6 +6,7 @@ import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper
 import { useFeatureRegistry } from '@/features/feature-registry';
 import { OAuthPromptRenderer } from '@/features/oauth';
 import { useDocumentConfigs } from '@/hooks/useConfig';
+import { lookupTable } from '@/lib/lookup-table.ts';
 import AiMessage from './renderers/AiMessage.tsx';
 import ChoicesRenderer from './renderers/ChoicesRenderer.tsx';
 import ConfirmPromptRenderer from './renderers/ConfirmPromptRenderer.tsx';
@@ -35,72 +36,49 @@ type WidgetRenderer = ComponentType<DocumentRendererProps>;
  * To add a new document widget, register it here — no changes to DocumentRenderer needed.
  * Feature modules can also register renderers via the FeatureRegistryProvider.
  */
-const coreRendererRegistry = new Map<string, WidgetRenderer>([
-  ['ai-message', ({ document, isLastItem }) => <AiMessage document={document} isLastItem={isLastItem} />],
-  ['llm-message', ({ document, isLastItem }) => <LlmMessage document={document} isLastItem={isLastItem} />],
-  [
-    'debug',
-    ({ document }) => (
-      <div className="mb-4 flex">
-        <DocumentDebugRenderer document={document} />
-      </div>
-    ),
-  ],
-  [
-    'form',
-    ({ parentWorkflow, workflow, document, isActive }) => (
-      <CompletionMessagePaper role={'document'} fullWidth={true} timestamp={new Date(document.createdAt)}>
-        <DocumentFormRenderer
-          parentWorkflow={parentWorkflow}
-          workflow={workflow}
-          document={document}
-          enabled={isActive}
-          viewOnly={!isActive}
-        />
-      </CompletionMessagePaper>
-    ),
-  ],
-  ['message', ({ document }) => <DocumentMessageRenderer document={document} />],
-  ['error', ({ document }) => <ErrorMessageRenderer document={document} />],
-  ['plain', ({ document }) => <PlainMessageRenderer document={document} />],
-  ['markdown', ({ document }) => <MarkdownMessageRenderer document={document} />],
-  ['terminal', ({ document }) => <TerminalMessageRenderer document={document} />],
-  ['link', ({ workflow, document }) => <LinkMessageRenderer workflow={workflow} document={document} />],
-  [
-    'oauth-prompt',
-    ({ parentWorkflow, workflow, document, isActive }) => (
-      <OAuthPromptRenderer
+const coreRendererRegistry = lookupTable<WidgetRenderer>({
+  'ai-message': ({ document, isLastItem }) => <AiMessage document={document} isLastItem={isLastItem} />,
+  'llm-message': ({ document, isLastItem }) => <LlmMessage document={document} isLastItem={isLastItem} />,
+  debug: ({ document }) => (
+    <div className="mb-4 flex">
+      <DocumentDebugRenderer document={document} />
+    </div>
+  ),
+  form: ({ parentWorkflow, workflow, document, isActive }) => (
+    <CompletionMessagePaper role={'document'} fullWidth={true} timestamp={new Date(document.createdAt)}>
+      <DocumentFormRenderer
         parentWorkflow={parentWorkflow}
         workflow={workflow}
         document={document}
-        isActive={isActive}
+        enabled={isActive}
+        viewOnly={!isActive}
       />
-    ),
-  ],
-  [
-    'text-prompt',
-    ({ parentWorkflow, workflow, document, isActive }) => (
-      <TextPromptRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
-    ),
-  ],
-  [
-    'choices',
-    ({ parentWorkflow, workflow, document, isActive }) => (
-      <ChoicesRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
-    ),
-  ],
-  [
-    'confirm-prompt',
-    ({ parentWorkflow, workflow, document, isActive }) => (
-      <ConfirmPromptRenderer
-        parentWorkflow={parentWorkflow}
-        workflow={workflow}
-        document={document}
-        isActive={isActive}
-      />
-    ),
-  ],
-]);
+    </CompletionMessagePaper>
+  ),
+  message: ({ document }) => <DocumentMessageRenderer document={document} />,
+  error: ({ document }) => <ErrorMessageRenderer document={document} />,
+  plain: ({ document }) => <PlainMessageRenderer document={document} />,
+  markdown: ({ document }) => <MarkdownMessageRenderer document={document} />,
+  terminal: ({ document }) => <TerminalMessageRenderer document={document} />,
+  link: ({ workflow, document }) => <LinkMessageRenderer workflow={workflow} document={document} />,
+  'oauth-prompt': ({ parentWorkflow, workflow, document, isActive }) => (
+    <OAuthPromptRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
+  ),
+  'text-prompt': ({ parentWorkflow, workflow, document, isActive }) => (
+    <TextPromptRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
+  ),
+  choices: ({ parentWorkflow, workflow, document, isActive }) => (
+    <ChoicesRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
+  ),
+  'confirm-prompt': ({ parentWorkflow, workflow, document, isActive }) => (
+    <ConfirmPromptRenderer
+      parentWorkflow={parentWorkflow}
+      workflow={workflow}
+      document={document}
+      isActive={isActive}
+    />
+  ),
+});
 
 /** Extract the primary widget name from a UI config object. */
 function resolveWidgetName(ui: unknown): string {
@@ -121,19 +99,12 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = (props) => {
   const docConfig = documentConfigs.get(doc.documentName);
   const widget = resolveWidgetName(docConfig?.ui);
 
-  const featureRenderers = useMemo(() => {
-    const map = new Map<string, WidgetRenderer>();
-    for (const feature of features) {
-      if (feature.documentRenderers) {
-        for (const [key, renderer] of Object.entries(feature.documentRenderers)) {
-          map.set(key, renderer);
-        }
-      }
-    }
-    return map;
-  }, [features]);
+  const featureRenderers = useMemo(
+    () => lookupTable<WidgetRenderer>(...features.map((feature) => feature.documentRenderers ?? {})),
+    [features],
+  );
 
-  const Renderer = coreRendererRegistry.get(widget) ?? featureRenderers.get(widget);
+  const Renderer = coreRendererRegistry[widget] ?? featureRenderers[widget];
 
   return <div>{Renderer ? <Renderer {...props} /> : <>unknown document type</>}</div>;
 };
