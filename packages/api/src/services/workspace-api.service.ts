@@ -71,10 +71,7 @@ export class WorkspaceApiService {
     user: string,
     filter: WorkspaceFilterInterface | undefined,
     sortBy: WorkspaceSortByInterface[] | undefined,
-    pagination: {
-      page: number | undefined;
-      limit: number | undefined;
-    },
+    pagination: { page?: number; limit?: number },
     search?: string,
   ): Promise<{
     data: WorkspaceEntity[];
