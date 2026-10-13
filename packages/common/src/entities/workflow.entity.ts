@@ -18,6 +18,10 @@ import { User } from './user.entity.js';
 import { WorkspaceEntity } from './workspace.entity.js';
 
 @Entity({ name: 'core_workflow' })
+// A workspace's runs by state (the workspace list's activity filter) and a run's children by state (that
+// filter and the run list's child counts): without them, each lookup reads every run in the table.
+@Index(['workspaceId', 'status'])
+@Index(['parentId', 'status'])
 export class WorkflowEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
