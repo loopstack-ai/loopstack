@@ -1,5 +1,27 @@
 # @loopstack/common
 
+## 0.46.0
+
+### Minor Changes
+
+- [#439](https://github.com/loopstack-ai/loopstack/pull/439) [`697b185`](https://github.com/loopstack-ai/loopstack/commit/697b1850de1438c4f46dc0ccba6af9b0b6765db2) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Workspaces carry free-form labels an application uses to find and group them, e.g. `ticket:owner/repo#12`.
+  - `@loopstack/contracts` and `@loopstack/common`: `WorkspaceSchema` and `WorkspaceEntity` have a `labels: string[]`
+    column. `WorkspaceCreateSchema` and `WorkspaceUpdateSchema` take `labels`; an update replaces the whole set.
+  - `@loopstack/api`: the workspace filter takes `labels` and returns only workspaces that carry every one of them.
+  - `@loopstack/core`: `WorkspaceService.findByLabels(appName, labels, user)` returns the user's oldest workspace of that
+    app that carries every one of the labels.
+  - `@loopstack/loopstack-studio`: the dashboard shows a workspace's labels as badges on its card and in its list row.
+
+### Patch Changes
+
+- [#439](https://github.com/loopstack-ai/loopstack/pull/439) [`0389ffd`](https://github.com/loopstack-ai/loopstack/commit/0389ffd06c1a0321118f5e42bf236832c0beaf19) Thanks [@jakobklippel](https://github.com/jakobklippel)! - The workspace list's activity filter and the run list no longer read the whole run table on every request.
+  - `@loopstack/common`: `core_workflow` is indexed on `(workspace_id, status)` and `(parent_id, status)`. A synchronized
+    schema creates both indexes on the next boot.
+  - `@loopstack/api`: the run list counts the active children of the runs on its page only, not of every run.
+
+- Updated dependencies [[`f67bc4a`](https://github.com/loopstack-ai/loopstack/commit/f67bc4ae7854ea2579288dae57079f11428ed935), [`697b185`](https://github.com/loopstack-ai/loopstack/commit/697b1850de1438c4f46dc0ccba6af9b0b6765db2)]:
+  - @loopstack/contracts@0.46.0
+
 ## 0.45.0
 
 ### Minor Changes

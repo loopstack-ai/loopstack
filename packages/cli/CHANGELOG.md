@@ -1,5 +1,13 @@
 # @loopstack/cli
 
+## 0.23.3
+
+### Patch Changes
+
+- Updated dependencies [[`f67bc4a`](https://github.com/loopstack-ai/loopstack/commit/f67bc4ae7854ea2579288dae57079f11428ed935), [`697b185`](https://github.com/loopstack-ai/loopstack/commit/697b1850de1438c4f46dc0ccba6af9b0b6765db2)]:
+  - @loopstack/contracts@0.46.0
+  - @loopstack/client@0.46.0
+
 ## 0.23.2
 
 ### Patch Changes
