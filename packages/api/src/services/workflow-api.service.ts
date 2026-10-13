@@ -58,8 +58,9 @@ export class WorkflowApiService {
       .loadRelationCountAndMap('workflow.hasChildren', 'workflow.children')
       // What a `waiting` run is waiting ON: with active children it is waiting on machinery, without them
       // it is waiting on a person. The status alone cannot tell those apart — every parked run carries it.
+      // `andWhere`: a `where` would replace the count's own `parent_id IN (…)`, and count every run's children.
       .loadRelationCountAndMap('workflow.activeChildren', 'workflow.children', 'activeChild', (qb) =>
-        qb.where('activeChild.status IN (:...activeStates)', {
+        qb.andWhere('activeChild.status IN (:...activeStates)', {
           activeStates: [WorkflowState.Running, WorkflowState.Waiting, WorkflowState.Pending],
         }),
       );

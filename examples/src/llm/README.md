@@ -139,8 +139,7 @@ Sends the same prompt to Claude and OpenAI and renders responses side by side fo
 
 - Using the same tool class (`LlmGenerateTextTool`) for multiple providers
 - Selecting provider and model at call time via `{ config: { provider, model } }`
-- Opting out of auto-save with `config: { save: false }` to control message formatting
-- Custom start-form widget via `widget: './multi-provider.ui.yaml'`
+- Opting out of auto-save with `config: { save: false }`, so the workflow saves each reply itself with a provider label
 
 ### Key code
 
@@ -167,7 +166,6 @@ The `save: false` opt-out lets us prefix each response with the provider name so
 ### Files
 
 - `multi-provider-example.workflow.ts` — workflow class
-- `multi-provider.ui.yaml` — Studio start-form widget
 
 ## Web Fetch
 

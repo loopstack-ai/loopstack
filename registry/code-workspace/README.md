@@ -1,11 +1,11 @@
 ---
 title: Code Workspace Module
-description: '@loopstack/code-workspace — isolated per-run checkouts from shared generational bases, worked in disposable Docker containers. Provisioning, inventory and reclamation of repos, checkouts, containers and volumes with CodeWorkspaceModule and CodeWorkspaceMaintenanceModule.'
+description: '@loopstack/code-workspace — one checkout per workspace from shared generational bases, worked in disposable Docker containers. Provisioning, inventory and reclamation of repos, checkouts, containers and volumes with CodeWorkspaceModule and CodeWorkspaceMaintenanceModule.'
 ---
 
 # @loopstack/code-workspace
 
-Isolated per-run checkouts of a codebase, cloned from a shared base and worked in disposable Docker
+One checkout of a codebase per workspace, cloned from a shared base and worked in disposable Docker
 containers. Provisioning, inventory and reclamation — the whole life of that state.
 
 Domain-neutral: it knows about repos, checkouts, containers and volumes, and nothing about what you do in
@@ -60,25 +60,27 @@ constructor(@Inject(CODE_WORKSPACE_PROVISIONER) private readonly workspace: Code
   itself. A second provision of a base already being built is refused, not queued. Several workspaces with the same config share one, and a published
   generation is never mutated: a refresh copies it, updates the copy, and swaps a `current` pointer, so a
   checkout reads the generation it resolved and nothing else changes under it.
-- **Checkouts** are one clone of a base per run, cheap (the git object store and the build output are cloned
-  copy-on-write or hardlinked) and safe (git and npm unlink and rewrite, so a run never mutates the base).
-- **Containers** mount a checkout and are explicitly torn down, so a crashed one keeps its logs until
-  something removes it.
+- **Checkouts** are one clone of a base per workspace, created by the first run that needs it and used as it
+  is by every later run in that workspace — nothing fetches, resets or re-clones it. Cheap (the git object
+  store and the build output are cloned copy-on-write or hardlinked) and safe (git and npm unlink and
+  rewrite, so a workspace never mutates the base).
+- **Containers** mount the checkout and are explicitly torn down, so a crashed one keeps its logs until
+  something removes it. Containers and dind volumes belong to the run that started them.
 
 ## Reclamation
 
 Three ways, and the first needs nothing from you:
 
-1. **Automatic.** A listener on `workspace.deleted` and `workflow.deleted` releases that workspace's or that
-   run's containers, volumes and files. It runs in the background — `emit` does not await an async listener —
-   and never throws, because nothing is waiting to catch it.
+1. **Automatic.** A listener on `workspace.deleted` releases that workspace's containers, volumes and files.
+   It runs in the background — `emit` does not await an async listener — and never throws, because nothing
+   is waiting to catch it. A run owns no files; it tears its own containers down.
 2. **By inventory.** `WorkspaceInventoryService.scan()` returns what exists on disk and in Docker, joined
    against the workflow and workspace tables, and `orphanPlan(inventory, knownBaseKeys)` says what has no
-   owner left: state whose row was deleted, and bases no config declares any more. `renderInventory` and
-   `renderOrphanPlan` give you the Markdown.
-3. **Directly.** `removeWorkflowCheckout`, `removeWorkspaceState`, `removeBase` and
-   `collectBaseGenerations`, all idempotent, all in dependency order: containers, then volumes, then files,
-   so a failure at any step leaves the operation re-runnable.
+   owner left: workspace state whose row was deleted, containers and volumes of deleted runs, and bases no
+   config declares any more. `renderInventory` and `renderOrphanPlan` give you the Markdown.
+3. **Directly.** `removeWorkspaceState`, `removeWorkflowContainers` with `removeWorkflowVolumes`,
+   `removeBase` and `collectBaseGenerations`, all idempotent, all in dependency order: containers, then
+   volumes, then files, so a failure at any step leaves the operation re-runnable.
 
 Nothing here asks before it removes. **Whether to confirm is the application's decision** — put a
 confirmation in front of calls 2 and 3 if your users should have one.

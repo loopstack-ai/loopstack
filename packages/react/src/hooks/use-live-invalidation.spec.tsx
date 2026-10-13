@@ -35,10 +35,11 @@ describe('useLiveInvalidation', () => {
     expect(invalidate).not.toHaveBeenCalled();
     vi.advanceTimersByTime(300);
 
-    expect(invalidate).toHaveBeenCalledTimes(3);
+    expect(invalidate).toHaveBeenCalledTimes(4);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workflow', TEST_ENV_KEY, 'wf-1'] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workflowStatus', TEST_ENV_KEY, 'wf-1'] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workflows', TEST_ENV_KEY] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['workspaces', TEST_ENV_KEY] });
   });
 
   it('measures the window from the first event, so a later one cannot postpone it', () => {
@@ -54,7 +55,7 @@ describe('useLiveInvalidation', () => {
     expect(invalidate).not.toHaveBeenCalled();
     // 300 ms after the *first* event — the second one rides along rather than restarting the window.
     vi.advanceTimersByTime(100);
-    expect(invalidate).toHaveBeenCalledTimes(3);
+    expect(invalidate).toHaveBeenCalledTimes(4);
   });
 
   it('keeps refreshing while events keep arriving faster than the window', () => {

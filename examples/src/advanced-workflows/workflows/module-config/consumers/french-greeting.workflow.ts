@@ -2,8 +2,7 @@ import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/
 import { GreeterTool } from '../greeter/index.js';
 
 /**
- * Scenario 3: forFeature override with French config.
- * Runs alongside GermanGreetingWorkflow to prove per-module isolation.
+ * Scenario 2: forFeature override with French config.
  */
 @Workflow({ name: 'french_greeting', title: 'Advanced - Module Config (French)' })
 export class FrenchGreetingWorkflow extends BaseWorkflow {

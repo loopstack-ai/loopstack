@@ -360,7 +360,7 @@ See [`@loopstack/hitl`](/docs/registry/hitl) for the full tool args reference.
 
 ## Registry References
 
-- [hitl-example-module](/docs/examples/hitl) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
+- [HITL examples](/docs/examples/hitl) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
 - [@loopstack/hitl](/docs/registry/hitl) — The underlying HITL module: `AskUserWorkflow`, `ConfirmUserWorkflow`, `ask_clarification`, `ask_for_approval`
-- [meeting-notes-example-workflow](/docs/examples/hitl#meeting-notes) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
-- [chat-example-workflow](/docs/examples/hitl#prompt-input-chat) — Chat input pattern with prompt-input widget
+- [Meeting Notes example](/docs/examples/hitl#meeting-notes) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
+- [Prompt Input Chat example](/docs/examples/hitl#prompt-input-chat) — Chat input pattern with prompt-input widget

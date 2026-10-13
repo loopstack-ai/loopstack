@@ -73,6 +73,7 @@ When falling back to documents, the tool:
 - Filters `DocumentEntity` records by `doc.tags.includes(messagesSearchTag)`
 - Excludes any document with `doc.isInvalidated === true`
 - Sorts by `doc.index` to preserve chronological order
+- Replays an assistant message's native response (`doc.meta.response`) when the same provider wrote it, and otherwise rebuilds the message from its normalized content — see [LLM Providers — Switching Provider Within a Conversation](./llm-providers.md#switching-provider-within-a-conversation)
 
 This means you can run parallel conversation threads in the same workflow by saving messages under different tags and switching `messagesSearchTag` per call:
 
@@ -129,5 +130,5 @@ respond(state: ChatState) {}
 
 ## Registry References
 
-- [chat-example-workflow](/docs/examples/hitl#prompt-input-chat) — Multi-turn chat with Claude, system message, and prompt-input widget
-- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — Chat with tool calling loop
+- [Prompt Input Chat example](/docs/examples/hitl#prompt-input-chat) — Multi-turn chat loop with the prompt-input widget, without an LLM
+- [Custom Agent example](/docs/examples/agent#custom-agent) — Tool calling loop built from the delegate primitives

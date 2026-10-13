@@ -330,9 +330,9 @@ const result = await this.llmGenerateObject.call(
 
 ## Registry References
 
-- [prompt-structured-output-example-workflow](/docs/examples/llm#structured-output) — FileDocument with code-view widget for AI-generated code
-- [meeting-notes-example-workflow](/docs/examples/hitl#meeting-notes) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
-- [test-ui-documents-example-workflow](/docs/examples/advanced-workflows#ui-documents) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
+- [Structured Output example](/docs/examples/llm#structured-output) — FileDocument with code-view widget for AI-generated code
+- [Meeting Notes example](/docs/examples/hitl#meeting-notes) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
+- [UI Documents example](/docs/examples/advanced-workflows#ui-documents) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
 
 ---
 

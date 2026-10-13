@@ -66,6 +66,11 @@ function injectDocker(provisioner: LocalDockerProvisioner, docker: ReturnType<ty
   (provisioner as unknown as { docker: unknown }).docker = docker;
 }
 
+/** The branch a repo's HEAD is on. */
+function currentBranch(repoDir: string): string {
+  return execFileSync('git', ['-C', repoDir, 'rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim();
+}
+
 function git(cwd: string, args: string[]): void {
   execFileSync('git', args, {
     cwd,
@@ -210,9 +215,8 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       // Caches and seed tars are global for the same reason: identical for every workspace, and large.
       expect(provisioner.resolveNpmCacheDir()).toBe(path.join(stateDir, '_cache', 'npm'));
       expect(provisioner.resolveSeedImagesDir()).toBe(path.join(stateDir, '_seed-images'));
-      expect(provisioner.resolveWorkflowDir(WORKSPACE_ID, WORKFLOW_ID)).toBe(
-        path.join(stateDir, WORKSPACE_ID, 'workflows', WORKFLOW_ID),
-      );
+      // A checkout belongs to its workspace, so its dir is the workspace's state dir — no run in the path.
+      expect(provisioner.resolveCheckoutDir(WORKSPACE_ID)).toBe(path.join(stateDir, WORKSPACE_ID));
     });
 
     it('reports the base as unprovisioned until a generation is published', async () => {
@@ -226,33 +230,24 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
     });
   });
 
-  describe('ensureWorkflowCheckout', () => {
+  describe('ensureCheckout', () => {
     it('throws when the base is not provisioned', async () => {
-      await expect(provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS)).rejects.toThrow(
-        /not provisioned/i,
-      );
+      await expect(provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS)).rejects.toThrow(/not provisioned/i);
     });
 
-    it('creates an isolated checkout on a wf/ branch with hardlinked node_modules, without mutating the base', async () => {
+    it('creates the workspace checkout on the base branch with hardlinked node_modules, without mutating the base', async () => {
       const generation = await openGeneration(provisioner);
-      const { nodeModulesFile } = seedBase(provisioner, generation);
+      const { baseRepo, nodeModulesFile } = seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
 
-      const { workspaceDir, created } = await provisioner.ensureWorkflowCheckout(
-        WORKSPACE_ID,
-        WORKFLOW_ID,
-        BASE_KEY,
-        REPOS,
-      );
+      const { workspaceDir, created } = await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
 
       expect(created).toBe(true);
-      expect(workspaceDir).toBe(path.join(stateDir, WORKSPACE_ID, 'workflows', WORKFLOW_ID, 'workspace'));
-      // Tracked file is present (real clone), and it is a git repo on its own wf/ branch.
+      expect(workspaceDir).toBe(path.join(stateDir, WORKSPACE_ID, 'workspace'));
+      // Tracked file is present (real clone), and it is a git repo on the branch the base is on: a checkout
+      // creates no branch of its own — a run that publishes cuts its branch at HEAD when it does.
       expect(existsSync(path.join(workspaceDir, 'package.json'))).toBe(true);
-      const branch = execFileSync('git', ['-C', workspaceDir, 'rev-parse', '--abbrev-ref', 'HEAD'], {
-        encoding: 'utf8',
-      }).trim();
-      expect(branch).toBe(`wf/${WORKFLOW_ID}`);
+      expect(currentBranch(workspaceDir)).toBe(currentBranch(baseRepo));
 
       // node_modules was restored by hardlink — same inode as the base, so no data was duplicated.
       const checkoutNm = path.join(workspaceDir, 'node_modules', 'left-pad', 'index.js');
@@ -269,30 +264,24 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       expect(existsSync(nodeModulesFile)).toBe(true);
     });
 
-    it('builds the checkout through the staged API (clone -> link -> branch) and reflects existence', async () => {
+    it('builds the checkout through the staged API (clone -> link) and reflects existence', async () => {
       const generation = await openGeneration(provisioner);
       const { nodeModulesFile } = seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
 
-      expect(provisioner.workflowCheckoutExists(WORKSPACE_ID, WORKFLOW_ID)).toBe(false);
+      expect(provisioner.checkoutExists(WORKSPACE_ID)).toBe(false);
 
-      await provisioner.cloneBaseIntoWorkflow(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
-      const workspaceDir = provisioner.resolveRepoDir(WORKSPACE_ID, WORKFLOW_ID);
+      await provisioner.cloneBase(WORKSPACE_ID, BASE_KEY, REPOS);
+      const workspaceDir = provisioner.resolveRepoDir(WORKSPACE_ID);
       expect(existsSync(path.join(workspaceDir, 'package.json'))).toBe(true);
-      expect(provisioner.workflowCheckoutExists(WORKSPACE_ID, WORKFLOW_ID)).toBe(true);
+      expect(provisioner.checkoutExists(WORKSPACE_ID)).toBe(true);
 
-      await provisioner.linkWorkflowArtifacts(WORKSPACE_ID, WORKFLOW_ID);
+      await provisioner.linkArtifacts(WORKSPACE_ID);
       const checkoutNm = path.join(workspaceDir, 'node_modules', 'left-pad', 'index.js');
       expect(readFileSync(checkoutNm, 'utf8')).toBe(readFileSync(nodeModulesFile, 'utf8'));
 
-      await provisioner.checkoutWorkflowBranch(WORKSPACE_ID, WORKFLOW_ID);
-      const branch = execFileSync('git', ['-C', workspaceDir, 'rev-parse', '--abbrev-ref', 'HEAD'], {
-        encoding: 'utf8',
-      }).trim();
-      expect(branch).toBe(`wf/${WORKFLOW_ID}`);
-
-      await provisioner.discardWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID);
-      expect(provisioner.workflowCheckoutExists(WORKSPACE_ID, WORKFLOW_ID)).toBe(false);
+      await provisioner.discardCheckout(WORKSPACE_ID);
+      expect(provisioner.checkoutExists(WORKSPACE_ID)).toBe(false);
     });
 
     it('clones a nested repo as its own clean checkout, not as a copy of the base working tree', async () => {
@@ -315,23 +304,19 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
         { key: 'loopstack', dir: 'loopstack', primary: true },
         { key: 'guest', dir: 'loopstack/sandbox/guest' },
       ];
-      await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, repos);
+      await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, repos);
 
-      const outerDir = provisioner.resolveRepoDir(WORKSPACE_ID, WORKFLOW_ID);
-      const innerDir = provisioner.resolveRepoDir(WORKSPACE_ID, WORKFLOW_ID, 'guest');
+      const outerDir = provisioner.resolveRepoDir(WORKSPACE_ID);
+      const innerDir = provisioner.resolveRepoDir(WORKSPACE_ID, 'guest');
       expect(innerDir).toBe(path.join(outerDir, 'sandbox', 'guest'));
 
       // A real clone of the nested repo: tracked content present, base's uncommitted file absent.
       expect(existsSync(path.join(innerDir, 'package.json'))).toBe(true);
       expect(existsSync(path.join(innerDir, 'dirty.txt'))).toBe(false);
 
-      // Both repos are on the run's branch, under one name.
-      for (const dir of [outerDir, innerDir]) {
-        const branch = execFileSync('git', ['-C', dir, 'rev-parse', '--abbrev-ref', 'HEAD'], {
-          encoding: 'utf8',
-        }).trim();
-        expect(branch).toBe(`wf/${WORKFLOW_ID}`);
-      }
+      // Both repos stay on the branch their base is on.
+      expect(currentBranch(outerDir)).toBe(currentBranch(outer.baseRepo));
+      expect(currentBranch(innerDir)).toBe(currentBranch(inner.baseRepo));
 
       // Each repo got its own artifacts, so the nested one is usable in its own right.
       expect(existsSync(path.join(outerDir, 'node_modules', 'left-pad', 'index.js'))).toBe(true);
@@ -347,17 +332,17 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
         { key: 'loopstack', dir: 'loopstack', primary: true },
         { key: 'guest', dir: 'loopstack/sandbox/guest' },
       ];
-      await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, repos);
+      await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, repos);
 
-      writeFileSync(path.join(provisioner.resolveRepoDir(WORKSPACE_ID, WORKFLOW_ID), 'touched.ts'), 'x');
-      writeFileSync(path.join(provisioner.resolveRepoDir(WORKSPACE_ID, WORKFLOW_ID, 'guest'), 'other.ts'), 'y');
+      writeFileSync(path.join(provisioner.resolveRepoDir(WORKSPACE_ID), 'touched.ts'), 'x');
+      writeFileSync(path.join(provisioner.resolveRepoDir(WORKSPACE_ID, 'guest'), 'other.ts'), 'y');
 
-      const changes = await provisioner.listChangedFiles(WORKSPACE_ID, WORKFLOW_ID);
+      const changes = await provisioner.listChangedFiles(WORKSPACE_ID);
       expect(changes.map((c) => c.repoKey).sort()).toEqual(['guest', 'loopstack']);
       const guest = changes.find((c) => c.repoKey === 'guest')!;
       // Paths are relative to the repo, and the root is the repo — which is what a per-repo diff needs.
       expect(guest.paths).toEqual(['other.ts']);
-      expect(guest.hostRoot).toBe(provisioner.resolveRepoDir(WORKSPACE_ID, WORKFLOW_ID, 'guest'));
+      expect(guest.hostRoot).toBe(provisioner.resolveRepoDir(WORKSPACE_ID, 'guest'));
     });
 
     it('reuses an existing checkout on a second call (created = false)', async () => {
@@ -365,9 +350,9 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
 
-      const first = await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
+      const first = await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
       expect(first.created).toBe(true);
-      const second = await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
+      const second = await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
       expect(second.created).toBe(false);
       expect(second.workspaceDir).toBe(first.workspaceDir);
     });
@@ -386,7 +371,7 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       await provisioner.publishBaseGeneration(BASE_KEY, first);
 
       // A run clones its checkout off the published generation…
-      await provisioner.cloneBaseIntoWorkflow(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
+      await provisioner.cloneBase(WORKSPACE_ID, BASE_KEY, REPOS);
 
       // …and a refresh publishes a new one underneath it, mid-run.
       const second = await provisioner.beginBaseGeneration(BASE_KEY, {}, BUILDER);
@@ -395,8 +380,8 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       expect(provisioner.currentBaseGeneration(BASE_KEY)).toBe(second.generation);
 
       // The run's remaining stages still read the tree it cloned from.
-      await provisioner.linkWorkflowArtifacts(WORKSPACE_ID, WORKFLOW_ID);
-      const checkout = provisioner.resolveRepoDir(WORKSPACE_ID, WORKFLOW_ID);
+      await provisioner.linkArtifacts(WORKSPACE_ID);
+      const checkout = provisioner.resolveRepoDir(WORKSPACE_ID);
       expect(readFileSync(path.join(checkout, 'generation.txt'), 'utf8')).toBe('first');
       // And the artifacts came from that generation too, not from the new one.
       expect(existsSync(path.join(checkout, 'node_modules', 'left-pad', 'index.js'))).toBe(true);
@@ -500,7 +485,7 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       seedBase(provisioner, first);
       await provisioner.publishBaseGeneration(BASE_KEY, first);
       // A live checkout pins the generation it was built from.
-      await provisioner.cloneBaseIntoWorkflow(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
+      await provisioner.cloneBase(WORKSPACE_ID, BASE_KEY, REPOS);
 
       const second = await provisioner.beginBaseGeneration(BASE_KEY, {}, BUILDER);
       await provisioner.publishBaseGeneration(BASE_KEY, second.generation);
@@ -534,7 +519,7 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       const generation = await openGeneration(provisioner);
       seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
-      await provisioner.cloneBaseIntoWorkflow(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
+      await provisioner.cloneBase(WORKSPACE_ID, BASE_KEY, REPOS);
 
       await expect(provisioner.removeBase(BASE_KEY)).rejects.toThrow(/live checkout/);
       expect(existsSync(path.join(stateDir, '_bases', BASE_KEY))).toBe(true);
@@ -552,13 +537,13 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       const generation = await openGeneration(provisioner);
       seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
-      await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
+      await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
 
-      await provisioner.setRepoIdentity(WORKSPACE_ID, WORKFLOW_ID, 'Jakob Klippel', 'jakob@example.com');
+      await provisioner.setRepoIdentity(WORKSPACE_ID, 'Jakob Klippel', 'jakob@example.com');
 
       // Read it back the way git itself resolves it for a commit made in this checkout — local config,
       // which is what beats whatever global identity the container image happens to carry.
-      const repoDir = provisioner.resolveRepoDir(WORKSPACE_ID, WORKFLOW_ID);
+      const repoDir = provisioner.resolveRepoDir(WORKSPACE_ID);
       const name = execFileSync('git', ['-C', repoDir, 'config', '--local', 'user.name']).toString().trim();
       const email = execFileSync('git', ['-C', repoDir, 'config', '--local', 'user.email']).toString().trim();
       expect(name).toBe('Jakob Klippel');
@@ -566,31 +551,39 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
     });
   });
 
-  describe('removeWorkflowCheckout', () => {
-    it('deletes the workflow dir locally (no container), leaving the base untouched', async () => {
+  describe('removeWorkspaceState', () => {
+    it('refuses an id that resolves to the state root itself or climbs out of it', async () => {
+      // The guard is checked against the state root, not against a path derived from the same id, so these
+      // cannot turn into `rm -rf <stateDir>` or `rm -rf <stateDir>/..`.
+      for (const id of ['', '.', '..', '../other', 'ws/../..']) {
+        await expect(provisioner.removeWorkspaceState(id)).rejects.toThrow(/outside the workspace state dir/);
+      }
+      expect(docker.listContainers).not.toHaveBeenCalled();
+      expect(existsSync(stateDir)).toBe(true);
+    });
+
+    it('deletes the state dir locally (no container), leaving the base untouched', async () => {
       const generation = await openGeneration(provisioner);
       const { baseRepo } = seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
-      await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
-      const workflowDir = provisioner.resolveWorkflowDir(WORKSPACE_ID, WORKFLOW_ID);
-      expect(existsSync(workflowDir)).toBe(true);
+      await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
+      const stateDirOfWorkspace = provisioner.resolveCheckoutDir(WORKSPACE_ID);
+      expect(existsSync(stateDirOfWorkspace)).toBe(true);
 
       // No throwaway container: files are host-owned, so removal is a local rm.
       const provisionSpy = vi.spyOn(provisioner, 'provision');
       const teardownSpy = vi.spyOn(provisioner, 'teardown');
 
-      await provisioner.removeWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID);
+      await provisioner.removeWorkspaceState(WORKSPACE_ID);
 
       expect(provisionSpy).not.toHaveBeenCalled();
       expect(teardownSpy).not.toHaveBeenCalled();
-      // Workflow dir gone; base kept.
-      expect(existsSync(workflowDir)).toBe(false);
+      // State dir gone; base kept.
+      expect(existsSync(stateDirOfWorkspace)).toBe(false);
       expect(existsSync(baseRepo)).toBe(true);
-      // The checkout's dind volumes are swept with it (label-filtered; none here, so nothing removed).
+      // The workspace's dind volumes are swept with it (label-filtered; none here, so nothing removed).
       expect(docker.listVolumes).toHaveBeenCalledWith({
-        filters: {
-          label: [`${WS_LABEL}=${WORKSPACE_ID}`, `${WF_LABEL}=${WORKFLOW_ID}`],
-        },
+        filters: { label: [`${WS_LABEL}=${WORKSPACE_ID}`] },
       });
     });
 
@@ -598,8 +591,8 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       const generation = await openGeneration(provisioner);
       seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
-      await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
-      const workflowDir = provisioner.resolveWorkflowDir(WORKSPACE_ID, WORKFLOW_ID);
+      await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
+      const stateDirOfWorkspace = provisioner.resolveCheckoutDir(WORKSPACE_ID);
 
       // A zombie container holds the dind volume: containers are force-removed first, then the volume
       // removal still fails (in-use elsewhere) — the files must survive so the reclaim can be retried.
@@ -614,18 +607,18 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
         }),
       });
 
-      await expect(provisioner.removeWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID)).rejects.toThrow(/in use/);
+      await expect(provisioner.removeWorkspaceState(WORKSPACE_ID)).rejects.toThrow(/in use/);
       expect(containerRemove).toHaveBeenCalledWith({ force: true });
       // Durable record last: the failed volume removal must NOT have cost us the checkout.
-      expect(existsSync(workflowDir)).toBe(true);
+      expect(existsSync(stateDirOfWorkspace)).toBe(true);
 
       // Once the volume frees up, the same call succeeds — cleanly re-runnable.
       docker.listVolumes.mockResolvedValue({ Volumes: [] });
-      await provisioner.removeWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID);
-      expect(existsSync(workflowDir)).toBe(false);
+      await provisioner.removeWorkspaceState(WORKSPACE_ID);
+      expect(existsSync(stateDirOfWorkspace)).toBe(false);
     });
 
-    it('force-removes labeled containers, tolerating already-gone ones', async () => {
+    it('force-removes a run’s labeled containers, tolerating already-gone ones', async () => {
       const removedOk = vi.fn(async () => {});
       const removed404 = vi.fn(async () => {
         throw Object.assign(new Error('no such container'), { statusCode: 404 });
@@ -647,22 +640,28 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
     });
   });
 
-  describe('discardWorkflowCheckout', () => {
-    it('removes the whole workflow dir, including claude-state and the repo marker', async () => {
+  describe('discardCheckout', () => {
+    it('removes the clone and both markers, and keeps the state a caller holds beside them', async () => {
       const generation = await openGeneration(provisioner);
       seedBase(provisioner, generation, 'repo');
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
-      await provisioner.cloneBaseIntoWorkflow(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, [{ key: 'main', dir: 'repo' }]);
-      const workflowDir = provisioner.resolveWorkflowDir(WORKSPACE_ID, WORKFLOW_ID);
-      // Simulate the sibling state a run creates beside the workspace (outside the mount).
-      mkdirSync(path.join(workflowDir, 'claude-state'), { recursive: true });
-      writeFileSync(path.join(workflowDir, 'claude-state', 'config.json'), '{}');
-      expect(existsSync(path.join(workflowDir, '.repos.json'))).toBe(true);
+      await provisioner.cloneBase(WORKSPACE_ID, BASE_KEY, [{ key: 'main', dir: 'repo' }]);
+      const checkoutDir = provisioner.resolveCheckoutDir(WORKSPACE_ID);
+      // The sibling state a run keeps beside the clone (outside the mount): the sessions of every run this
+      // workspace had so far. A re-clone that fails is no reason to lose them.
+      mkdirSync(path.join(checkoutDir, 'claude-state'), { recursive: true });
+      writeFileSync(path.join(checkoutDir, 'claude-state', 'config.json'), '{}');
+      expect(existsSync(path.join(checkoutDir, '.repos.json'))).toBe(true);
+      expect(existsSync(path.join(checkoutDir, '.base.json'))).toBe(true);
 
-      await provisioner.discardWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID);
+      await provisioner.discardCheckout(WORKSPACE_ID);
 
-      // No half-discard residue: the entire dir is gone, not just its workspace subdir.
-      expect(existsSync(workflowDir)).toBe(false);
+      // No half-discard residue: a marker left behind would read as a checkout on the next ensure.
+      expect(existsSync(path.join(checkoutDir, 'workspace'))).toBe(false);
+      expect(existsSync(path.join(checkoutDir, '.repos.json'))).toBe(false);
+      expect(existsSync(path.join(checkoutDir, '.base.json'))).toBe(false);
+      expect(provisioner.checkoutExists(WORKSPACE_ID)).toBe(false);
+      expect(existsSync(path.join(checkoutDir, 'claude-state', 'config.json'))).toBe(true);
     });
   });
 
@@ -807,28 +806,34 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
   });
 
   describe('workspace-level inventory + reclaim', () => {
-    it('lists workspace states with their checkouts and sizes', async () => {
+    it('lists workspace states with their checkout and sizes', async () => {
       const generation = await openGeneration(provisioner);
       seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
-      await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
+      await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
 
       const states = await provisioner.listWorkspaceStates();
       expect(states).toHaveLength(1);
       expect(states[0].workspaceId).toBe(WORKSPACE_ID);
       expect(states[0].sizeBytes).toBeGreaterThan(0);
-      expect(states[0].checkouts).toHaveLength(1);
-      expect(states[0].checkouts[0].workflowId).toBe(WORKFLOW_ID);
-      expect(states[0].checkouts[0].sizeBytes).toBeGreaterThan(0);
-      expect(states[0].checkouts[0].modifiedAt).toMatch(/^\d{4}-/);
+      expect(states[0].checkout?.sizeBytes).toBeGreaterThan(0);
+      expect(states[0].checkout?.modifiedAt).toMatch(/^\d{4}-/);
+    });
+
+    it('lists a workspace without a checkout as such', async () => {
+      mkdirSync(path.join(stateDir, WORKSPACE_ID, 'claude-state'), { recursive: true });
+
+      const states = await provisioner.listWorkspaceStates();
+      expect(states).toHaveLength(1);
+      expect(states[0].checkout).toBeUndefined();
     });
 
     it('removeWorkspaceState reclaims containers and volumes by workspace label, then the whole dir', async () => {
       const generation = await openGeneration(provisioner);
       seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
-      await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
-      const wsDir = provisioner.resolveWorkflowDir(WORKSPACE_ID, WORKFLOW_ID);
+      await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
+      const wsDir = provisioner.resolveCheckoutDir(WORKSPACE_ID);
       expect(existsSync(wsDir)).toBe(true);
 
       await provisioner.removeWorkspaceState(WORKSPACE_ID);
@@ -854,8 +859,8 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       seedBase(provisioner, generation);
       await provisioner.publishBaseGeneration(BASE_KEY, generation);
       // Two workspaces sharing the one base — which is the point of keying a base by what it provisions.
-      await provisioner.ensureWorkflowCheckout(WORKSPACE_ID, WORKFLOW_ID, BASE_KEY, REPOS);
-      await provisioner.ensureWorkflowCheckout('ws-2', WORKFLOW_ID, BASE_KEY, REPOS);
+      await provisioner.ensureCheckout(WORKSPACE_ID, BASE_KEY, REPOS);
+      await provisioner.ensureCheckout('ws-2', BASE_KEY, REPOS);
 
       const scoped = await provisioner.listWorkspaceStates(WORKSPACE_ID);
       expect(scoped.map((s) => s.workspaceId)).toEqual([WORKSPACE_ID]);

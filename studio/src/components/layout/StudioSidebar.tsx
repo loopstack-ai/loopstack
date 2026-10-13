@@ -1,4 +1,4 @@
-import { Boxes, LayoutDashboard, LayoutGrid, Moon, MoreHorizontal, PanelLeftIcon, Play, Star, Sun } from 'lucide-react';
+import { Boxes, LayoutDashboard, Moon, MoreHorizontal, PanelLeftIcon, Play, Star, Sun } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -94,7 +94,6 @@ const MainNav = () => {
   const { router } = useStudio();
   const dashboardPath = router.getDashboard();
   const applicationsPath = router.getApplications();
-  const workspacesPath = router.getWorkspaces();
   const runsPath = router.getRuns();
 
   return (
@@ -114,14 +113,6 @@ const MainNav = () => {
               <Link to={applicationsPath}>
                 <Boxes />
                 <span>Applications</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={location.pathname === workspacesPath} tooltip="Workspaces">
-              <Link to={workspacesPath}>
-                <LayoutGrid />
-                <span>Workspaces</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -146,7 +137,8 @@ const MainNav = () => {
 const FavouritesNav = () => {
   const location = useLocation();
   const { router } = useStudio();
-  const workspacesPath = router.getWorkspaces();
+  // The rest of them: the dashboard, filtered to favourites.
+  const moreFavouritesPath = `${router.getDashboard()}?favourites=true`;
 
   const fetchFavourites = useFilterWorkspaces(undefined, { isFavourite: true }, 'createdAt', 'ASC', 0, 10);
 
@@ -179,7 +171,7 @@ const FavouritesNav = () => {
           {(fetchFavourites.data?.total ?? 0) > 10 && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="More favourites">
-                <Link to={workspacesPath}>
+                <Link to={moreFavouritesPath}>
                   <MoreHorizontal className="h-4 w-4" />
                   <span>More</span>
                 </Link>

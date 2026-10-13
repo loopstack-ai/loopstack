@@ -32,7 +32,7 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-Examples that exercise LLM tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool` — used by Sub-Workflow, Fan-Out, Sequence, Batch Processing, Custom Tool, Module Config) call into `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
+Examples that exercise LLM tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool` — used by Sub-Workflow, Fan-Out, Sequence, Batch Processing, Custom Tool, Server Tool, Module Config) call into `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -56,18 +56,20 @@ Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
 
 ## Examples
 
-| Example                               | Studio title                                    | Description                                                                             |
-| ------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [Workflow State](#workflow-state)     | `Advanced - Workflow State Example`             | Persist typed state across transitions via `assignState()`                              |
-| [Workflow Result](#workflow-result)   | `Advanced - Workflow Result Example`            | Publish a result for callers via `assignResult()`, kept apart from private state        |
-| [Dynamic Routing](#dynamic-routing)   | `Advanced - Dynamic Routing Example`            | Conditional routing with `@Guard` decorators and transition priorities                  |
-| [Sub-Workflow](#sub-workflow)         | `Advanced - Sub-Workflow Example`               | Launch a child workflow via `.run()` and resume on callback                             |
-| [Fan-Out](#fan-out)                   | `Advanced - Fan-Out Example`                    | Parallel sub-workflows with single aggregated callback (`FanOutWorkflow`)               |
-| [Sequence](#sequence)                 | `Advanced - Sequence Example`                   | Sequential sub-workflows with single aggregated callback (`SequenceWorkflow`)           |
-| [Batch Processing](#batch-processing) | `Advanced - Batch Processing Example`           | Chunked processing of a list in fixed-size batches                                      |
-| [Custom Tool](#custom-tool)           | `Advanced - Custom Tool Example`                | Authoring custom tools — stateless + stateful, `@Tool()`, Zod schemas, NestJS injection |
-| [Module Config](#module-config)       | `Advanced - Module Config (Default/German/...)` | `forRoot` / `forFeature` patterns for configurable modules                              |
-| [UI Documents](#ui-documents)         | `Advanced - UI Documents Example`               | Smoke test for built-in document types (Message, Error, Markdown, Plain)                |
+| Example                               | Studio title                                       | Description                                                                             |
+| ------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [Workflow State](#workflow-state)     | `Advanced - Workflow State Example`                | Persist typed state across transitions via `assignState()`                              |
+| [Workflow Result](#workflow-result)   | `Advanced - Workflow Result Example`               | Publish a result for callers via `assignResult()`, kept apart from private state        |
+| [Dynamic Routing](#dynamic-routing)   | `Advanced - Dynamic Routing Example`               | Conditional routing with `@Guard` decorators and transition priorities                  |
+| [Sub-Workflow](#sub-workflow)         | `Advanced - Sub-Workflow Example`                  | Launch a child workflow via `.run()` and resume on callback                             |
+| [Fan-Out](#fan-out)                   | `Advanced - Fan-Out Example`                       | Parallel sub-workflows with single aggregated callback (`FanOutWorkflow`)               |
+| [Sequence](#sequence)                 | `Advanced - Sequence Example`                      | Sequential sub-workflows with single aggregated callback (`SequenceWorkflow`)           |
+| [Batch Processing](#batch-processing) | `Advanced - Batch Processing Example`              | Chunked processing of a list in fixed-size batches                                      |
+| [Custom Tool](#custom-tool)           | `Advanced - Custom Tool Example`                   | Authoring custom tools — stateless + stateful, `@Tool()`, Zod schemas, NestJS injection |
+| [Server Tool](#server-tool)           | `Advanced - Server Tool Example`                   | Authoring a server tool — a tool the LLM provider runs, via `ServerTool`                |
+| [Tool Documents](#tool-documents)     | `Advanced - Tool Documents Example`                | A tool that declares a document on its result envelope instead of saving it             |
+| [Module Config](#module-config)       | `Advanced - Module Config (Default/French/Nested)` | `forRoot` / `forFeature` patterns for configurable modules                              |
+| [UI Documents](#ui-documents)         | `Advanced - UI Documents Example`                  | Smoke test for built-in document types (Message, Error, Markdown, Plain)                |
 
 ---
 
@@ -101,8 +103,8 @@ Five workflow files demonstrating sub-workflow composition:
 
 - `sub-workflow-parent.workflow.ts` — basic parent that launches a child via `.run()`
 - `sub-workflow-sub.workflow.ts` — the child workflow
-- `sub-workflow-failing-sub.workflow.ts` — a child that always fails (used by error-handling)
-- `sub-workflow-error-handling.workflow.ts` — parent handles failed children via `input.hasError` / `input.errorMessage`
+- `sub-workflow-failing-sub.workflow.ts` — a child that fails unless started with `fail: false` (used by error-handling)
+- `sub-workflow-error-handling.workflow.ts` — parent reads the child's outcome via `input.hasError` / `input.status` / `input.errorMessage`; pass `fail: false` to see the success branch
 - `sub-workflow-show-modes.workflow.ts` — every `show` mode (`inline`, `link`, `hidden`) in one flow
 
 For parallel and sequential composition see [Fan-Out](#fan-out) and [Sequence](#sequence).
@@ -149,21 +151,51 @@ Demonstrates authoring custom tools by extending `BaseTool`:
 - `tools/counter.tool.ts` (stateful)
 - `services/math.service.ts`
 
-## Module Config
+## Server Tool
 
-Four scenarios for configurable modules:
+Demonstrates authoring a server tool by extending `ServerTool` — a tool the LLM provider runs itself, not your app:
 
-1. **Default Greeting** — no `forFeature` override; uses `forRoot` global defaults
-2. **German Greeting** — `forFeature` override per module
-3. **French Greeting** — independent `forFeature`, proves per-module isolation
-4. **Nested Greeting** — config passed through a wrapper module (`GreeterAgentModule.forFeature`)
+- `CodeExecutionTool` (`example_code_execution`) — has no `handle()` and no `call()`. It only implements `toServerToolConfig()`, which returns the provider-native tool spec (here Anthropic's `code_execution`).
+- The workflow lists the tool by name in the `tools` config of an `llm_generate_text` call. It never calls the tool itself: Claude runs the code in Anthropic's sandbox, inside that same call.
+- The reply carries Claude's use of the tool as a `server_tool_use` block and its output as a `server_tool_result` block. The workflow reads the code and its stdout from these blocks, and Studio shows them as one tool call with its result.
 
-Each consumer module registers its own `@Workflow` so all four show up in the sidebar.
+A server tool runs only on the provider whose native spec it returns — this one on Claude. Other providers reject a call that lists it. The spec fakes only the Anthropic client, so `toServerToolConfig()` and the Claude provider run in the test.
 
 ### Files
 
-- `greeter/` — configurable module (`forRoot`, `forFeature`, constants, tool)
-- `consumers/` — four module + workflow pairs, one per scenario
+- `server-tool-example.workflow.ts`
+- `tools/code-execution.tool.ts`
+
+## Tool Documents
+
+Demonstrates a tool that produces a document without writing it:
+
+- `ReceiptTool` (`create_receipt`) — totals a list of items and returns the total as `data`. It returns the receipt in `documents` on its result envelope: the document name, the content, and the same options as `documentStore.save()`. It gets the name with `resolveDocumentName(ReceiptDocument)`, so the name always matches the registered class.
+- `ReceiptDocument` (`receipt`) — a registered `@Document` that Studio renders as Markdown. A declared document must be a registered `@Document`. Otherwise the tool call fails with `Unknown document`.
+- The workflow only calls the tool and publishes the total. It saves no document itself: the tool pipeline saves the declared receipt after the call.
+
+The pipeline saves declared documents after any interceptor or replay. So a replayed call saves the documents of its recorded envelope, as a live call would. The spec shows both: a live run saves the receipt the tool built, and a replayed run saves the receipt from the recording.
+
+### Files
+
+- `tool-documents-example.workflow.ts`
+- `tools/receipt.tool.ts`
+- `documents/receipt-document.ts`
+
+## Module Config
+
+Three scenarios for configurable modules, each a workflow that calls `GreeterTool` and saves the greeting it gets back:
+
+1. **Default Greeting** (`default_greeting`) — no `forFeature` override; uses the app's `forRoot({ language: 'en' })` → `Hello, World! [language=en]`
+2. **French Greeting** (`french_greeting`) — a `forFeature({ language: 'fr' })` override in its own module → `Bonjour, Monde! [language=fr]`
+3. **Nested Greeting** (`nested_greeting`) — config passed through a wrapper module (`GreeterAgentModule.forFeature`) → `Hola, Mundo! [language=es]`
+
+All three run side by side in one app, each with its own resolved config. Each consumer module provides its own workflow, so the workflows get the `GreeterTool` of that module's scope. The `@StudioApp` `workflows` list names them, so they can be started from Studio, the API and the CLI. They are not listed again in the module's `providers`, because a second instance there would resolve the global config.
+
+### Files
+
+- `greeter/` — configurable module (`forRoot`, `forFeature`, constants, tool) and the `GreeterAgentModule` wrapper
+- `consumers/` — three module + workflow pairs, one per scenario
 
 ## UI Documents
 

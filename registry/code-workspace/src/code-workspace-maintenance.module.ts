@@ -43,7 +43,7 @@ import { StateReportWorkflow } from './state-report.workflow.js';
         options: {
           workflow: 'cleanup_orphaned',
           title: 'Reclaim orphaned state',
-          subtitle: 'Find checkouts, containers, volumes and bases that nothing owns — and remove them.',
+          subtitle: 'Find workspace state, containers, volumes and bases that nothing owns — and remove them.',
           label: 'Clean Up',
         },
       },

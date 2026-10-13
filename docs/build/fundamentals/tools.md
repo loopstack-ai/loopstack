@@ -284,7 +284,7 @@ export class ClaudeNativeWebSearchTool extends ServerTool<Config> {
 }
 ```
 
-List the server tool in the LLM `tools` config the same way as a regular tool — the framework picks the right code path based on the class.
+List the server tool in the LLM `tools` config the same way as a regular tool — the framework picks the right code path based on the class. A server tool runs only on the provider whose native spec it returns; a provider that cannot run it rejects the call.
 
 ```typescript
 await this.llmGenerateText.call(
@@ -343,8 +343,9 @@ src/
 
 ## Registry References
 
-- [custom-tool-example-module](/docs/examples/advanced-workflows#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
-- [tool-call-example-workflow](/docs/examples/agent#custom-agent) — GetWeather tool exposed to the LLM for function calling
+- [Custom Tool example](/docs/examples/advanced-workflows#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
+- [Server Tool example](/docs/examples/advanced-workflows#server-tool) — a code-execution `ServerTool` listed in an `llm_generate_text` call, with the code and its output read from the reply blocks
+- [Custom Agent example](/docs/examples/agent#custom-agent) — `weather_lookup` and `calculator` tools exposed to the LLM for function calling
 
 ---
 

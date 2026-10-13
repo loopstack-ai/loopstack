@@ -123,8 +123,12 @@ describe('OpenAiLlmProvider', () => {
         {
           messages: [
             { role: 'user', text: 'Question' },
-            { role: 'assistant', text: 'Answer' },
-            { role: 'user', blocks: [{ type: 'text', text: 'ignored' }] },
+            { role: 'assistant', text: '', blocks: [{ type: 'tool_call', id: 't1', name: 'lookup', args: { q: 1 } }] },
+            {
+              role: 'user',
+              blocks: [{ type: 'tool_result', toolCallId: 't1', content: 'found', isError: false }],
+            },
+            { role: 'user', blocks: [{ type: 'text', text: 'Thanks' }] },
           ],
         },
         ctx,
@@ -132,8 +136,13 @@ describe('OpenAiLlmProvider', () => {
 
       expect(lastRequest().messages).toEqual([
         { role: 'user', content: 'Question' },
-        { role: 'assistant', content: 'Answer' },
-        { role: 'user', content: '' },
+        {
+          role: 'assistant',
+          content: null,
+          tool_calls: [{ id: 't1', type: 'function', function: { name: 'lookup', arguments: '{"q":1}' } }],
+        },
+        { role: 'tool', tool_call_id: 't1', content: 'found' },
+        { role: 'user', content: 'Thanks' },
       ]);
     });
 
@@ -156,7 +165,7 @@ describe('OpenAiLlmProvider', () => {
         doc({
           index: 1,
           content: { role: 'assistant', text: '' },
-          meta: { response: completion(nativeMessage as OpenAI.ChatCompletionMessage) },
+          meta: { response: completion(nativeMessage as OpenAI.ChatCompletionMessage), provider: 'openai' },
         }),
         doc({ index: 0, content: { role: 'user', text: 'Find it' } }),
         doc({ index: 3, content: { role: 'user', text: 'stale' }, isInvalidated: true }),
@@ -172,6 +181,94 @@ describe('OpenAiLlmProvider', () => {
       ]);
     });
 
+    it('replays a Claude-written assistant message from its normalized form', async () => {
+      const claudeResponse = {
+        id: 'msg_1',
+        type: 'message',
+        role: 'assistant',
+        content: [
+          { type: 'thinking', thinking: 'Let me look', signature: 'sig' },
+          { type: 'text', text: 'Looking it up.' },
+          { type: 'tool_use', id: 'toolu_1', name: 'lookup', input: { q: 'x' } },
+        ],
+      };
+      const documents = [
+        doc({ index: 0, content: { role: 'user', text: 'Find it' } }),
+        doc({
+          index: 1,
+          content: {
+            role: 'assistant',
+            text: 'Looking it up.',
+            blocks: [
+              { type: 'thinking', text: 'Let me look' },
+              { type: 'text', text: 'Looking it up.' },
+              { type: 'tool_call', id: 'toolu_1', name: 'lookup', args: { q: 'x' } },
+            ],
+          },
+          meta: { response: claudeResponse, provider: 'claude' },
+        }),
+        doc({
+          index: 2,
+          content: {
+            role: 'user',
+            text: '',
+            blocks: [{ type: 'tool_result', toolCallId: 'toolu_1', content: 'found', isError: false }],
+          },
+        }),
+      ];
+
+      await provider.generateText({}, { documents });
+
+      expect(lastRequest().messages).toEqual([
+        { role: 'user', content: 'Find it' },
+        {
+          role: 'assistant',
+          content: 'Looking it up.',
+          tool_calls: [{ id: 'toolu_1', type: 'function', function: { name: 'lookup', arguments: '{"q":"x"}' } }],
+        },
+        { role: 'tool', tool_call_id: 'toolu_1', content: 'found' },
+      ]);
+    });
+
+    it('rebuilds a stored response without a provider from its normalized form', async () => {
+      const documents = [
+        doc({
+          content: { role: 'assistant', text: 'normalized', blocks: [{ type: 'text', text: 'normalized' }] },
+          meta: { response: completion({ content: 'native' }) },
+        }),
+      ];
+
+      await provider.generateText({}, { documents });
+
+      expect(lastRequest().messages).toEqual([{ role: 'assistant', content: 'normalized' }]);
+    });
+
+    it('leaves out an assistant message with nothing OpenAI can replay', async () => {
+      const documents = [
+        doc({ index: 0, content: { role: 'user', text: 'Search' } }),
+        doc({
+          index: 1,
+          content: {
+            role: 'assistant',
+            text: '',
+            blocks: [
+              { type: 'server_tool_use', id: 'srv_1', name: 'web_search', input: { query: 'x' } },
+              { type: 'server_tool_result', toolUseId: 'srv_1', content: [] },
+            ],
+          },
+          meta: { response: { id: 'msg_1', type: 'message', role: 'assistant', content: [] }, provider: 'claude' },
+        }),
+        doc({ index: 2, content: { role: 'user', text: 'And now?' } }),
+      ];
+
+      await provider.generateText({}, { documents });
+
+      expect(lastRequest().messages).toEqual([
+        { role: 'user', content: 'Search' },
+        { role: 'user', content: 'And now?' },
+      ]);
+    });
+
     it('uses messagesSearchTag to select history documents', async () => {
       const documents = [
         doc({ index: 0, content: { role: 'user', text: 'default' } }),
@@ -183,17 +280,11 @@ describe('OpenAiLlmProvider', () => {
       expect(lastRequest().messages).toEqual([{ role: 'user', content: 'custom' }]);
     });
 
-    it('maps function tools and drops server tools', async () => {
+    it('maps function tools', async () => {
       const inputSchema = { type: 'object', properties: { q: { type: 'string' } } };
 
       await provider.generateText(
-        {
-          prompt: 'Hi',
-          tools: [
-            { type: 'tool', name: 'search', description: 'Search things', inputSchema },
-            { type: 'server_tool', name: 'web_search', config: {} },
-          ],
-        },
+        { prompt: 'Hi', tools: [{ type: 'tool', name: 'search', description: 'Search things', inputSchema }] },
         ctx,
       );
 
@@ -204,13 +295,21 @@ describe('OpenAiLlmProvider', () => {
       });
     });
 
-    it('omits tools when only server tools are given', async () => {
-      await provider.generateText(
-        { prompt: 'Hi', tools: [{ type: 'server_tool', name: 'web_search', config: {} }] },
-        ctx,
-      );
+    it('rejects server tools', async () => {
+      await expect(
+        provider.generateText(
+          {
+            prompt: 'Hi',
+            tools: [
+              { type: 'tool', name: 'search', description: 'Search things', inputSchema: { type: 'object' } },
+              { type: 'server_tool', name: 'claude_native_web_search', config: {} },
+            ],
+          },
+          ctx,
+        ),
+      ).rejects.toThrow("Server tool 'claude_native_web_search' is not supported by the openai provider");
 
-      expect(lastRequest()).not.toHaveProperty('tools');
+      expect(create).not.toHaveBeenCalled();
     });
 
     it('normalizes a text response and returns the native response', async () => {
@@ -457,6 +556,26 @@ describe('OpenAiLlmProvider', () => {
   describe('toProviderMessage', () => {
     it.each(['user', 'assistant'] as const)('maps a %s text message', (role) => {
       expect(provider.toProviderMessage({ role, text: 'Hello' })).toEqual({ role, content: 'Hello' });
+    });
+
+    it('maps tool_call blocks and leaves out thinking and server tool blocks', () => {
+      expect(
+        provider.toProviderMessage({
+          role: 'assistant',
+          text: 'Here you go.',
+          blocks: [
+            { type: 'thinking', text: 'hmm' },
+            { type: 'server_tool_use', id: 'srv_1', name: 'web_search', input: { query: 'x' } },
+            { type: 'server_tool_result', toolUseId: 'srv_1', content: [] },
+            { type: 'text', text: 'Here you go.' },
+            { type: 'tool_call', id: 'call_1', name: 'lookup', args: { q: 'x' } },
+          ],
+        }),
+      ).toEqual({
+        role: 'assistant',
+        content: 'Here you go.',
+        tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'lookup', arguments: '{"q":"x"}' } }],
+      });
     });
   });
 });

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { SortBySchema } from './common.schema.js';
 import type { SortByInterface } from './common.schema.js';
+import { oneOrMany } from './one-or-many.js';
 
 export interface EnvironmentConfigInterface {
   id: string;
@@ -17,6 +18,8 @@ export const WorkspaceSchema = z.object({
   appName: z.string(),
   title: z.string(),
   isFavourite: z.boolean(),
+  /** Free-form labels an application sets to find and group workspaces. */
+  labels: z.array(z.string()),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
@@ -26,12 +29,15 @@ export const WorkspaceCreateSchema = z.object({
   title: z.string().max(200).optional(),
   appName: z.string().min(1).max(200),
   isFavourite: z.boolean().optional(),
+  labels: z.array(z.string().min(1).max(200)).optional(),
 });
 export type WorkspaceCreateInterface = z.infer<typeof WorkspaceCreateSchema>;
 
 export const WorkspaceUpdateSchema = z.object({
   title: z.string().max(200).optional(),
   isFavourite: z.boolean().optional(),
+  /** Replaces the whole label set. */
+  labels: z.array(z.string().min(1).max(200)).optional(),
 });
 export type WorkspaceUpdateInterface = z.infer<typeof WorkspaceUpdateSchema>;
 
@@ -40,9 +46,20 @@ export const WorkspaceFavouriteSchema = z.object({
 });
 export type WorkspaceFavouriteInterface = z.infer<typeof WorkspaceFavouriteSchema>;
 
+/**
+ * What a workspace is doing, judged by its most urgent active run: one waiting on a person, then one
+ * the machinery is working on, then one queued. With no active run at all it is `idle`.
+ */
+export const WorkspaceActivitySchema = z.enum(['waiting', 'working', 'queued', 'idle']);
+export type WorkspaceActivity = z.infer<typeof WorkspaceActivitySchema>;
+
 export const WorkspaceFilterSchema = z.object({
-  appName: z.string().optional(),
+  appName: oneOrMany(z.string()).optional(),
   isFavourite: z.boolean().optional(),
+  /** Only workspaces that carry every one of these labels. */
+  labels: z.array(z.string()).min(1).optional(),
+  /** Workspaces in any of these states — computed from their runs, not a column. */
+  activity: oneOrMany(WorkspaceActivitySchema).optional(),
 });
 export type WorkspaceFilterInterface = z.infer<typeof WorkspaceFilterSchema>;
 

@@ -27,12 +27,17 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'dynamic_routing_example', expect: 'completed' },
   { workflow: 'test_ui_documents', expect: 'completed' },
   { workflow: 'batch_processing_example', expect: 'completed' },
+  { workflow: 'tool_documents_example', expect: 'completed' },
   // Sub-workflows — child completion delivered to the parent as a queued callback
   { workflow: 'run_sub_workflow_example_parent', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_error_handling', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_show_modes', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_fan_out', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_sequence', expect: 'completed' },
+  // Module config — forRoot / forFeature scopes mounted side by side in one app
+  { workflow: 'default_greeting', expect: 'completed' },
+  { workflow: 'french_greeting', expect: 'completed' },
+  { workflow: 'nested_greeting', expect: 'completed' },
   // Error handling — auto-retries run on the queue backoff and succeed; the other modes end failed as designed
   { workflow: 'auto_retry_example', expect: 'completed' },
   { workflow: 'retry_target_example', expect: 'completed' },
@@ -49,6 +54,7 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'tracing_example', expect: 'completed' },
   { workflow: 'custom_calculator_example', expect: 'completed' },
   { workflow: 'audit_log_example', expect: 'completed' },
+  { workflow: 'checkpoints_example', expect: 'completed' },
   // Filesystem
   { workflow: 'local_file_explorer_example', expect: 'completed' },
   // Human-in-the-loop — the run parks waiting for input

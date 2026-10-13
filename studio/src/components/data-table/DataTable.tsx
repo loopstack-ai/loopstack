@@ -1,10 +1,11 @@
-import { ArrowDown, ArrowUp, Edit, Eye, Loader2, Trash2 } from 'lucide-react';
+import { Edit, Eye, Loader2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import ConfirmDialog from '../data-table/ConfirmDialog';
 import DataTableBatchActions from '../data-table/DataTableBatchAction';
 import DataTableFilters from '../data-table/DataTableFilters';
 import DataTablePagination from '../data-table/DataTablePagination';
 import DataTableToolbar from '../data-table/DataTableToolbar';
+import SortableTableHead from '../data-table/SortableTableHead';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
@@ -124,11 +125,6 @@ export function DataTable<T extends { id: string }>({
     }
   };
 
-  const getSortIcon = (columnId: string) => {
-    if (sortBy !== columnId) return null;
-    return sortOrder === 'ASC' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
-  };
-
   const activeFilterCount = Object.values(filters).filter(hasFilterValue).length;
 
   // Build the list of default actions
@@ -229,28 +225,24 @@ export function DataTable<T extends { id: string }>({
                     />
                   </TableHead>
                 )}
-                {columns.map((column) => (
-                  <TableHead
-                    key={column.id}
-                    className={`${
-                      column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''
-                    }`}
-                    style={{ minWidth: column.minWidth }}
-                  >
-                    {column.sortable !== false ? (
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleSort(column.id)}
-                        className="h-auto p-0 font-semibold hover:bg-transparent"
-                      >
-                        {column.label}
-                        {getSortIcon(column.id)}
-                      </Button>
-                    ) : (
+                {columns.map((column) => {
+                  const className =
+                    column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : '';
+                  return column.sortable !== false ? (
+                    <SortableTableHead
+                      key={column.id}
+                      className={className}
+                      style={{ minWidth: column.minWidth }}
+                      label={column.label}
+                      sorted={sortBy === column.id ? sortOrder : undefined}
+                      onSort={() => handleSort(column.id)}
+                    />
+                  ) : (
+                    <TableHead key={column.id} className={className} style={{ minWidth: column.minWidth }}>
                       <span className="font-semibold">{column.label}</span>
-                    )}
-                  </TableHead>
-                ))}
+                    </TableHead>
+                  );
+                })}
                 {showActionsColumn && <TableHead className="text-center">Actions</TableHead>}
               </TableRow>
             </TableHeader>

@@ -29,7 +29,7 @@ export default function WorkbenchPage({
   const resolvedGetEnvironmentPreviewUrl = getEnvironmentPreviewUrl ?? defaultGetEnvironmentPreviewUrl;
 
   const breadcrumbData = [
-    { label: 'Workspaces', href: router.getWorkspaces() },
+    { label: 'Dashboard', href: router.getDashboard() },
     {
       label: fetchWorkspace.data?.title ?? '',
       href: workspaceId ? router.getWorkspace(workspaceId) : undefined,

@@ -112,7 +112,7 @@ const result = await this.oAuth.run(
 );
 ```
 
-See [the [google-workspace examples](/docs/examples/google-workspace)](/docs/examples/google-workspace#google-calendar-summary) for a complete implementation of this pattern.
+See the [Google Calendar Summary example](/docs/examples/google-workspace#google-calendar-summary) for a complete implementation of this pattern.
 
 ## Tools Reference
 

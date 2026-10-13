@@ -11,6 +11,7 @@ import {
   WorkflowItemSchema,
   WorkflowUpdateSchema,
 } from './workflow.schema.js';
+import { WorkspaceFilterSchema } from './workspace.schema.js';
 
 const UUID = '123e4567-e89b-12d3-a456-426614174000';
 
@@ -74,6 +75,21 @@ describe('WorkflowFilterSchema', () => {
     // An empty list is not "match nothing", it is a caller bug — a filter that silently matched
     // everything would be worse than a rejection.
     expect(WorkflowFilterSchema.safeParse({ status: [] }).success).toBe(false);
+  });
+});
+
+describe('WorkspaceFilterSchema', () => {
+  it('accepts one app or several', () => {
+    expect(WorkspaceFilterSchema.safeParse({ appName: 'a' }).success).toBe(true);
+    expect(WorkspaceFilterSchema.safeParse({ appName: ['a', 'b'] }).success).toBe(true);
+    expect(WorkspaceFilterSchema.safeParse({ appName: [] }).success).toBe(false);
+  });
+
+  it('accepts the workspace states and nothing else', () => {
+    expect(WorkspaceFilterSchema.safeParse({ activity: 'idle' }).success).toBe(true);
+    expect(WorkspaceFilterSchema.safeParse({ activity: ['waiting', 'working', 'queued'] }).success).toBe(true);
+    expect(WorkspaceFilterSchema.safeParse({ activity: ['waiting', 'running'] }).success).toBe(false);
+    expect(WorkspaceFilterSchema.safeParse({ activity: [] }).success).toBe(false);
   });
 });
 

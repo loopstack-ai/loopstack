@@ -1,20 +1,20 @@
 ---
 title: Secrets Examples
-description: Workflow examples for secrets management in Loopstack — deterministic request/verify flow and an agentic LLM flow using get_secret_keys and request_secrets_task tools
+description: Workflow examples for secrets management in Loopstack — deterministic request/verify flow and a chat agent using the get_secret_keys and request_secrets_task tools
 ---
 
 # Secrets Examples
 
 > Secrets workflow examples for the [Loopstack](https://loopstack.ai) automation framework.
 
-Two ways to manage workspace secrets: a scripted request/verify flow, and an agent loop where the LLM decides when to ask the user for credentials.
+Two ways to manage workspace secrets: a scripted request/verify flow, and a chat agent that decides when to ask the user for credentials.
 
 ## Use in Your App
 
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude @loopstack/common @loopstack/llm-provider @loopstack/secrets
+npm install @loopstack/agent @loopstack/claude @loopstack/common @loopstack/secrets
 ```
 
 Register the module:
@@ -32,7 +32,7 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-The Agentic example calls `LlmGenerateTextTool` from `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
+The Agentic example launches `ChatAgentWorkflow` from `@loopstack/agent`, which calls the LLM through `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -50,7 +50,7 @@ import { SecretsExamplesModule } from './secrets/secrets-examples.module';
 export class AppModule {}
 ```
 
-`SecretsExamplesModule` already re-imports `ClaudeModule` (provider) and `SecretsModule.forFeature()` (entity + REST surface). `LlmProviderModule.forRoot(...)` sets the default model the agent dispatches to. The Deterministic example doesn't call an LLM and works without it.
+`SecretsExamplesModule` already imports `AgentModule` (the agent workflows), `ClaudeModule` (provider) and `SecretsModule.forFeature()` (entity + REST surface). `LlmProviderModule.forRoot(...)` sets the default model the agent uses. The Deterministic example doesn't call an LLM and works without it.
 
 ## Environment
 
@@ -62,10 +62,10 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ## Examples
 
-| Example                         | Studio title                      | Description                                                          |
-| ------------------------------- | --------------------------------- | -------------------------------------------------------------------- |
-| [Deterministic](#deterministic) | `Secrets - Deterministic Example` | Scripted request/verify flow — no LLM involved                       |
-| [Agentic](#agentic)             | `Secrets - Agentic Example`       | LLM agent that checks, requests, and verifies secrets via tool calls |
+| Example                         | Studio title                      | Description                                                |
+| ------------------------------- | --------------------------------- | ---------------------------------------------------------- |
+| [Deterministic](#deterministic) | `Secrets - Deterministic Example` | Scripted request/verify flow — no LLM involved             |
+| [Agentic](#agentic)             | `Secrets - Agentic Example`       | Chat agent that checks and requests secrets via tool calls |
 
 ---
 
@@ -103,52 +103,42 @@ async secretsSubmitted() {
 
 ## Agentic
 
-An agent workflow where the LLM decides when to check for existing secrets and when to request new ones. The user can also send follow-up messages mid-loop.
+Launches `ChatAgentWorkflow` with the `get_secret_keys` and `request_secrets_task` tools. The agent checks which secrets the workspace already has and asks the user for the missing ones through a secure form. The values go straight to storage; the LLM only ever sees the key names. The user can chat with the agent until it calls `agent_finish`, which ends the run with a one-sentence summary.
 
 ### What it demonstrates
 
-- Configuring an LLM call with allowed tools via `config: { tools: ['get_secret_keys', 'request_secrets_task'] }`
-- A delegate/tool-result loop using `LlmDelegateToolCallsTool` + `LlmUpdateToolResultTool`, which executes only the tools the LLM was offered
-- Guard-based routing on `stopReason === 'tool_use'` vs end-of-turn
-- A `prompt-input` widget that lets the user inject messages while the agent runs
+- Giving an agent the secrets tools by name: `tools: ['get_secret_keys', 'request_secrets_task']`
+- `request_secrets_task` as a task tool: it opens the `SecretsRequestWorkflow` form, and the agent continues once the user has submitted it
+- `taskMode: true`, which offers the agent `agent_finish`; the agent's result arrives in the parent's `agentFinished` callback
 
 ### Key code
 
 ```ts
-@Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn() {
-  const result = await this.llmGenerateText.call(
-    {},
+@Transition({ to: 'running' })
+async start() {
+  await this.chatAgentWorkflow.run(
     {
-      config: {
-        provider: 'claude',
-        model: 'claude-haiku-4-5-20251001',
-        tools: ['get_secret_keys', 'request_secrets_task'],
-        system: this.render(join(__dirname, 'templates', 'system.md')),
-      },
+      system: this.render(join(__dirname, 'templates', 'system.md')),
+      tools: ['get_secret_keys', 'request_secrets_task'],
+      userMessage: this.render(join(__dirname, 'templates', 'userMessage.md')),
+      taskMode: true,
     },
+    { callback: { transition: 'agentFinished' }, show: 'inline', label: 'Secrets Agent' },
   );
-  this.assignState({ llmResult: result.data });
 }
 
-@Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
-@Guard('hasToolCalls')
-async executeToolCalls(state) {
-  const result = await this.llmDelegateToolCalls.call({
-    message: state.llmResult!.message,
-    tools: ['get_secret_keys', 'request_secrets_task'],
-    callback: { transition: 'toolResultReceived' },
-  });
-  this.assignState({ delegateResult: result.data });
+@Transition({ from: 'running', to: 'end', wait: true, schema: SecretsSummarySchema })
+async agentFinished(_state: Record<string, unknown>, input: TransitionInput<SecretsSummary>) {
+  await this.documentStore.save(MessageDocument, { role: 'assistant', text: input.data.summary });
+  this.setResult(input.data);
 }
 ```
 
 ### Files
 
 - `agentic-example.workflow.ts` — workflow class
-- `agentic-example.ui.yaml` — `prompt-input` widget for follow-up messages
-- `templates/system.md` — system prompt
-- `templates/systemMessage.md` — initial user/context message
+- `templates/system.md` — system prompt, including how to call `agent_finish`
+- `templates/userMessage.md` — the agent's first user message
 
 ## About
 

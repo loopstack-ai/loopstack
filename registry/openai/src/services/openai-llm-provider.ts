@@ -51,6 +51,12 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
 
     const resolvedTools = args.tools ?? undefined;
 
+    // Server tools carry another provider's native tool spec — OpenAI cannot run them.
+    const serverTool = resolvedTools?.find((t) => t.type === 'server_tool');
+    if (serverTool) {
+      throw new Error(`Server tool '${serverTool.name}' is not supported by the ${this.providerId} provider`);
+    }
+
     const tools = resolvedTools
       ? resolvedTools
           .filter((t) => t.type === 'tool')
@@ -168,8 +174,40 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
   // toProviderMessage
   // ---------------------------------------------------------------------------
 
+  /**
+   * Maps text and tool_call blocks. Thinking and server tool blocks have no Chat Completions
+   * equivalent and are left out; tool_result blocks become `role: 'tool'` messages in resolveMessages.
+   */
   toProviderMessage(message: LlmNormalizedMessage): OpenAI.ChatCompletionMessageParam {
-    return { role: message.role as 'user' | 'assistant', content: message.text };
+    const blocks = message.blocks ?? [];
+    if (blocks.length === 0) {
+      return { role: message.role as 'user' | 'assistant', content: message.text ?? '' };
+    }
+
+    const text = blocks
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text)
+      .join('\n');
+
+    if (message.role !== 'assistant') {
+      return { role: 'user', content: text };
+    }
+
+    const toolCalls = blocks
+      .filter((b) => b.type === 'tool_call')
+      .map(
+        (b): OpenAI.ChatCompletionMessageToolCall => ({
+          id: b.id,
+          type: 'function',
+          function: { name: b.name, arguments: JSON.stringify(b.args) },
+        }),
+      );
+
+    return {
+      role: 'assistant',
+      content: text || null,
+      ...(toolCalls.length ? { tool_calls: toolCalls } : {}),
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -185,11 +223,8 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
     }
 
     if (args.messages?.length) {
-      return args.messages.map(
-        (msg): OpenAI.ChatCompletionMessageParam => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.text ?? '',
-        }),
+      return args.messages.flatMap((m) =>
+        this.toOpenAiMessages({ role: m.role, text: m.text ?? '', blocks: m.blocks } as LlmNormalizedMessage),
       );
     }
 
@@ -202,31 +237,46 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
 
     for (const doc of docs) {
       const message = doc.content as LlmNormalizedMessage;
+      // Only a response this provider wrote is in OpenAI's format; any other is rebuilt from the normalized message
+      const ownResponse = doc.meta?.provider === this.providerId ? doc.meta.response : undefined;
 
-      // Tool result document — map to OpenAI's tool role messages
-      if (message.blocks?.[0]?.type === 'tool_result') {
-        const blocks = message.blocks as Array<{
-          type: 'tool_result';
-          toolCallId: string;
-          content: string;
-          isError: boolean;
-        }>;
-        for (const tr of blocks) {
-          msgs.push({ role: 'tool', tool_call_id: tr.toolCallId, content: tr.content });
-        }
-      } else if (doc.meta?.response) {
+      if (message.blocks?.[0]?.type !== 'tool_result' && ownResponse) {
         // Assistant message — pass native response message directly back to API
-        const native = doc.meta.response as OpenAI.ChatCompletion;
+        const native = ownResponse as OpenAI.ChatCompletion;
         const msg = native.choices[0]?.message;
         if (msg) {
           msgs.push(msg as OpenAI.ChatCompletionMessageParam);
         }
       } else {
-        msgs.push(this.toProviderMessage(message));
+        msgs.push(...this.toOpenAiMessages(message));
       }
     }
 
     return msgs;
+  }
+
+  /**
+   * Converts a normalized message to OpenAI messages. Tool results become one `role: 'tool'` message
+   * each; an assistant message with neither content nor tool calls is left out.
+   */
+  private toOpenAiMessages(message: LlmNormalizedMessage): OpenAI.ChatCompletionMessageParam[] {
+    if (message.blocks?.[0]?.type === 'tool_result') {
+      return message.blocks
+        .filter((b) => b.type === 'tool_result')
+        .map(
+          (tr): OpenAI.ChatCompletionMessageParam => ({
+            role: 'tool',
+            tool_call_id: tr.toolCallId,
+            content: tr.content,
+          }),
+        );
+    }
+
+    const msg = this.toProviderMessage(message);
+    if (msg.role === 'assistant' && !msg.content && !msg.tool_calls?.length) {
+      return [];
+    }
+    return [msg];
   }
 
   private normalizeResponse(choice: OpenAI.ChatCompletion.Choice, responseId: string): LlmNormalizedMessage {

@@ -85,7 +85,7 @@ This means you register tools once in the module and they're available to the ag
 
 ## Error Handling
 
-Tool errors are handled automatically. When a tool call fails (schema validation or runtime error), the error is returned to the LLM as an `is_error` tool result. The LLM sees the error message and can self-correct on the next turn.
+Tool errors are handled automatically. When a tool call fails (schema validation, a runtime error, or a failed sub-workflow), the error is returned to the LLM as an `is_error` tool result. The LLM sees the error message and can self-correct on the next turn.
 
 The `LlmDelegateResult` includes error metadata:
 
@@ -278,4 +278,4 @@ This enables multi-agent architectures where an orchestrator agent delegates tas
 
 - [@loopstack/agent](/docs/registry/agent) — Built-in agent workflow module
 - [@loopstack/code-agent](/docs/registry/code-agent) — Code exploration agent (ExploreTask) built on @loopstack/agent
-- [delegate-error-example-workflow](/docs/examples/agent#custom-agent) — Example demonstrating tool error handling and recovery
+- [Tool Errors example](/docs/examples/agent#tool-errors) — Example demonstrating tool error handling and recovery

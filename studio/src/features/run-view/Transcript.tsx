@@ -10,6 +10,7 @@ import LlmMessage from '@/features/documents/renderers/LlmMessage.tsx';
 import MarkdownMessageRenderer from '@/features/documents/renderers/MarkdownMessageRenderer.tsx';
 import PlainMessageRenderer from '@/features/documents/renderers/PlainMessageRenderer.tsx';
 import { useFeatureRegistry } from '@/features/feature-registry';
+import { type LookupTable, lookupTable } from '@/lib/lookup-table.ts';
 import { InertPromptEntry } from './prompts/cards.tsx';
 import type { TranscriptEntry } from './transcript-model.ts';
 
@@ -38,7 +39,7 @@ function TranscriptDocument({
 }: {
   entry: TranscriptEntry;
   isLastItem: boolean;
-  featureRenderers: Map<string, React.ComponentType<DocumentRendererProps>>;
+  featureRenderers: LookupTable<React.ComponentType<DocumentRendererProps>>;
   workflows: Map<string, WorkflowFullInterface>;
   rootWorkflow?: WorkflowFullInterface;
 }) {
@@ -66,7 +67,7 @@ function TranscriptDocument({
   // Feature-registered renderers (e.g. secret-input) render as inert history:
   // isActive={false} disables their submit paths; the one *picked* prompt stays
   // run-view-native at the bottom.
-  const FeatureRenderer = entry.widget ? featureRenderers.get(entry.widget) : undefined;
+  const FeatureRenderer = entry.widget ? featureRenderers[entry.widget] : undefined;
   if (FeatureRenderer && workflow) {
     return (
       <FeatureRenderer
@@ -113,15 +114,10 @@ export function Transcript({
   debug?: boolean;
 }) {
   const features = useFeatureRegistry();
-  const featureRenderers = useMemo(() => {
-    const map = new Map<string, React.ComponentType<DocumentRendererProps>>();
-    for (const feature of features) {
-      for (const [widget, renderer] of Object.entries(feature.documentRenderers ?? {})) {
-        map.set(widget, renderer);
-      }
-    }
-    return map;
-  }, [features]);
+  const featureRenderers = useMemo(
+    () => lookupTable<React.ComponentType<DocumentRendererProps>>(...features.map((f) => f.documentRenderers ?? {})),
+    [features],
+  );
 
   return (
     <div className="space-y-3">

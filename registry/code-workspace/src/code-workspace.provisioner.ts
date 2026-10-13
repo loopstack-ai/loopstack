@@ -1,5 +1,5 @@
 /**
- * The `code-workspace` provider port: base provisioning, per-workflow hardlinked checkouts, and the
+ * The `code-workspace` provider port: base provisioning, one hardlinked checkout per workspace, and the
  * disposable-container lifecycle that runs them. Domain-neutral — it knows nothing about Claude, the
  * app-runner, or any specific agent. A local-Docker implementation ({@link LocalDockerProvisioner}) backs
  * it today; a remote implementation could swap in behind the same interface (bind a different class to
@@ -67,25 +67,25 @@ export interface RepoChanges {
   paths: string[];
 }
 
-/** Outcome of materializing a workflow's isolated checkout from the workspace base. */
-export interface WorkflowCheckout {
-  /** Host dir mounted at `/workspace` for this workflow's containers. */
+/** Outcome of materializing a workspace's checkout from the base. */
+export interface Checkout {
+  /** Host dir mounted at `/workspace` for the workspace's containers. */
   workspaceDir: string;
-  /** True when this call created the checkout; false when a prior run's checkout was reused. */
+  /** True when this call created the checkout; false when the workspace's existing checkout was reused. */
   created: boolean;
 }
 
 /** One workspace's on-disk state, as inventoried for cleanup/reporting. */
 export interface WorkspaceStateInfo {
   workspaceId: string;
-  /** Total disk usage of `<stateDir>/<workspaceId>` — its checkouts, which is all a workspace owns. */
+  /** Total disk usage of `<stateDir>/<workspaceId>` — its checkout and the state beside it. */
   sizeBytes: number;
-  checkouts: CheckoutInfo[];
+  /** The workspace's checkout, when it has one. */
+  checkout?: CheckoutInfo;
 }
 
-/** One workflow checkout on disk. */
+/** A workspace's checkout on disk. */
 export interface CheckoutInfo {
-  workflowId: string;
   sizeBytes: number;
   /** Filesystem mtime of the checkout dir (ISO) — a rough "last used". */
   modifiedAt: string;
@@ -153,16 +153,16 @@ export interface VolumeInfo {
  * - `_bases/<key>/gen-*` + `current` — shared, immutable, generational bases keyed by the hash of their
  *   provision config (repos, setup commands, seed images). `current` points at the generation checkouts
  *   are cloned from; superseded generations stay until GC.
- * - `<workspaceId>/workflows/<workflowId>/workspace` — one isolated clone of a base per workflow instance,
- *   plus sibling marker files and a `<workflowId>/…` state dir the caller mounts. Checkouts are all a
- *   workspace owns.
+ * - `<workspaceId>/workspace` — the workspace's one clone of a base, created by the first run that needs it
+ *   and reused as it is by every later run in that workspace. Beside it sit the marker files
+ *   (`.repos.json`, `.base.json`) and whatever state the caller keeps outside the mount.
  * - `_seed-images` — global, digest-keyed `<slug>.tar` exports of host images, loaded into the dind
  *   containers' inner daemons at boot.
  * - `_cache/npm` — one global npm cache shared by every base build and lockfile regeneration.
  *
  * Checkouts are cheap (git object store + build artifacts are cloned copy-on-write or hardlinked from the
- * base) and safe (git/npm unlink-and-rewrite, so a workflow never mutates the shared base), so many
- * workflows across many workspaces run in parallel off one provisioned base.
+ * base) and safe (git/npm unlink-and-rewrite, so a workspace never mutates the shared base), so many
+ * workspaces run in parallel off one provisioned base.
  */
 export interface CodeWorkspaceProvisioner {
   /** Provision a disposable container, mounting `mountDir` at `/workspace` (+ any `extraBinds`). */
@@ -276,8 +276,10 @@ export interface CodeWorkspaceProvisioner {
   resolveDindVolumeName(workspaceId: string, workflowId: string, role: 'agent' | 'app'): string;
   /**
    * Force-remove all containers labeled with this workflow (e.g. a crashed run's zombie session
-   * container). Tolerates already-gone containers. Runs first in {@link removeWorkflowCheckout} so a
-   * leftover container can never hold a dind volume hostage (409 in-use).
+   * container). Tolerates already-gone containers. Containers and volumes keep the **run** as their unit —
+   * a session container belongs to the run that started it, and two daemons cannot share a dind data-root
+   * — so these two are the reclaim for a run that is gone while its workspace stays. Run containers first,
+   * so a leftover container can never hold a dind volume hostage (409 in-use).
    */
   removeWorkflowContainers(workspaceId: string, workflowId: string): Promise<void>;
   /**
@@ -287,113 +289,93 @@ export interface CodeWorkspaceProvisioner {
    */
   removeWorkflowVolumes(workspaceId: string, workflowId: string): Promise<void>;
 
-  /** Absolute host path of a workflow's checkout dir (`<stateDir>/<workspaceId>/workflows/<workflowId>`). */
-  resolveWorkflowDir(workspaceId: string, workflowId: string): string;
+  // ── Checkouts: one per workspace ───────────────────────────────────────────────────────────────────
+  //
+  // A checkout belongs to the **workspace**, not to a run. The first run that needs one clones it from the
+  // base; every later run in the same workspace finds it and works on it as it is — the tree an analysis
+  // was made on is the tree the implementation edits. Nothing here fetches, resets or re-clones an existing
+  // checkout: whether it is current is the caller's business, decided before the run started.
+
+  /** Absolute host path of a workspace's state dir (`<stateDir>/<workspaceId>`), which holds its checkout. */
+  resolveCheckoutDir(workspaceId: string): string;
   /**
    * The repos this checkout was created with, as persisted at creation — so every read-side operation
    * resolves them without the caller supplying them again.
    */
-  listRepos(workspaceId: string, workflowId: string): CheckoutRepo[];
+  listRepos(workspaceId: string): CheckoutRepo[];
   /**
-   * Absolute host path of one repo within a workflow's checkout (`<workspace>/<dir>`). Repos are cloned
+   * Absolute host path of one repo within the workspace's checkout (`<workspace>/<dir>`). Repos are cloned
    * into sub-paths of the mounted workspace, so fixtures can sit at the workspace root outside all of
    * them. `key` omitted resolves the **primary** repo, which is what single-repo callers want.
    */
-  resolveRepoDir(workspaceId: string, workflowId: string, key?: string): string;
-  /** True when this workflow already has a materialized checkout (a prior run of the same workflow). */
-  workflowCheckoutExists(workspaceId: string, workflowId: string): boolean;
-  /** Materialize (or reuse) a workflow's isolated checkout from the base — clone + link artifacts + branch. */
-  ensureWorkflowCheckout(
-    workspaceId: string,
-    workflowId: string,
-    baseKey: string,
-    repos: CheckoutRepo[],
-  ): Promise<WorkflowCheckout>;
+  resolveRepoDir(workspaceId: string, key?: string): string;
+  /** True when this workspace already has a materialized checkout. */
+  checkoutExists(workspaceId: string): boolean;
+  /** Materialize (or reuse) the workspace's checkout from the base — clone + link artifacts. */
+  ensureCheckout(workspaceId: string, baseKey: string, repos: CheckoutRepo[]): Promise<Checkout>;
   /**
    * Stage 1 — clone each base repo into `<workspace>/<dir>`, outer-first, and persist the repo set plus
    * the **generation** it was cloned from. Recording the generation is what makes a mid-run swap harmless:
    * every later stage reads the same tree this one did.
    */
-  cloneBaseIntoWorkflow(workspaceId: string, workflowId: string, baseKey: string, repos: CheckoutRepo[]): Promise<void>;
+  cloneBase(workspaceId: string, baseKey: string, repos: CheckoutRepo[]): Promise<void>;
   /**
    * Stage 2 — hardlink each base repo's git-ignored build artifacts (node_modules, dist, …) into the
    * checkout. A repo nested inside another is **skipped** by its parent's sweep: it is git-ignored there,
    * so the sweep would otherwise drag it in as a copy of the base's working state instead of the clean
    * clone stage 1 made of it.
    */
-  linkWorkflowArtifacts(workspaceId: string, workflowId: string): Promise<void>;
-  /** Stage 3 — check out the per-workflow `wf/<workflowId>` branch in **every** repo, under one name. */
-  checkoutWorkflowBranch(workspaceId: string, workflowId: string): Promise<void>;
+  linkArtifacts(workspaceId: string): Promise<void>;
   /**
-   * Write an executable git hook (e.g. `pre-commit`) into the workflow's checkout repo (`.git/hooks/<name>`).
-   * Lives inside `.git`, so it is never tracked/committed and does not conflict with the repo's own hooks
-   * (a `git clone --local` checkout doesn't inherit `core.hooksPath`). Use to enforce a commit policy that
+   * Write an executable git hook (e.g. `pre-commit`) into a checkout repo (`.git/hooks/<name>`). Lives
+   * inside `.git`, so it is never tracked/committed and does not conflict with the repo's own hooks (a
+   * `git clone --local` checkout doesn't inherit `core.hooksPath`). Use to enforce a commit policy that
    * fails loudly inside the agent's container. Overwrites any existing hook of that name.
    */
-  writeRepoGitHook(
-    workspaceId: string,
-    workflowId: string,
-    repoKey: string,
-    name: string,
-    script: string,
-  ): Promise<void>;
+  writeRepoGitHook(workspaceId: string, repoKey: string, name: string, script: string): Promise<void>;
   /**
-   * Set the git author identity on the workflow's checkout (`.git/config`), so every commit made in it is
-   * attributed correctly whatever the agent does. Repo-local, which beats any global the image carries —
-   * and the host knows the identity, so it is not something to ask an agent to configure.
+   * Set the git author identity on the checkout (`.git/config`), so every commit made in it is attributed
+   * correctly whatever the agent does. Repo-local, which beats any global the image carries — and the host
+   * knows the identity, so it is not something to ask an agent to configure.
    */
-  setRepoIdentity(workspaceId: string, workflowId: string, name: string, email: string): Promise<void>;
+  setRepoIdentity(workspaceId: string, name: string, email: string): Promise<void>;
   /**
    * Copy fixture files into the workspace root (outside the repo, so they never touch the repo's git) —
    * e.g. a `CLAUDE.md` of the coding rules. Idempotent: overwrites each run so a fixture update propagates.
    */
-  applyFixtures(workspaceId: string, workflowId: string, fixtures: { src: string; dest: string }[]): Promise<void>;
+  applyFixtures(workspaceId: string, fixtures: { src: string; dest: string }[]): Promise<void>;
   /**
-   * What changed in each repo of a workflow's checkout (working tree, incl. untracked). One entry per repo
-   * that has changes — each carrying its own host root, because a review tree (and a per-repo diff) is
-   * rooted at the repo, not at the workspace.
+   * What changed in each repo of the checkout (working tree, incl. untracked). One entry per repo that has
+   * changes — each carrying its own host root, because a review tree (and a per-repo diff) is rooted at
+   * the repo, not at the workspace.
    */
-  listChangedFiles(workspaceId: string, workflowId: string): Promise<RepoChanges[]>;
+  listChangedFiles(workspaceId: string): Promise<RepoChanges[]>;
   /**
-   * The commit one repo of a checkout is at — what a run read, recorded so a later run can ask what moved
+   * The commit one repo of the checkout is at — what a run read, recorded so a later run can ask what moved
    * since (`git log <sha>..HEAD`). Undefined for a blank repo with no commits.
    */
-  repoHead(workspaceId: string, workflowId: string, repoKey: string): Promise<string | undefined>;
+  repoHead(workspaceId: string, repoKey: string): Promise<string | undefined>;
   /**
-   * The numbers a run's commits changed in one repo against the branch it was cut from: files, lines added
-   * and removed, commits. The host's own measure of a round, beside whatever the agent says about it. All
-   * zero when the ref is unknown (a blank repo).
+   * The numbers the commits in one repo changed against the branch it was cut from: files, lines added and
+   * removed, commits. The host's own measure of a round, beside whatever the agent says about it. All zero
+   * when the ref is unknown (a blank repo).
    */
-  countRepoChangesSinceBase(
-    workspaceId: string,
-    workflowId: string,
-    repoKey: string,
-    baseBranch: string,
-  ): Promise<RepoChangeCount>;
+  countRepoChangesSinceBase(workspaceId: string, repoKey: string, baseBranch: string): Promise<RepoChangeCount>;
   /**
    * The committed diff of one repo against the branch it was cut from, as `git diff` prints it, cut at
    * `maxChars` with a note saying so. Empty when the ref is unknown or nothing changed.
    */
-  diffSinceBase(
-    workspaceId: string,
-    workflowId: string,
-    repoKey: string,
-    baseBranch: string,
-    maxChars: number,
-  ): Promise<string>;
-  /** Discard a (possibly partial) checkout — the whole workflow dir, host-side only, base untouched. */
-  discardWorkflowCheckout(workspaceId: string, workflowId: string): Promise<void>;
+  diffSinceBase(workspaceId: string, repoKey: string, baseBranch: string, maxChars: number): Promise<string>;
   /**
-   * Reclaim everything a workflow owns, in dependency order: labeled containers (force), then dind
-   * volumes, then the checkout directory. The directory — the durable record — goes last, so any failure
-   * leaves the operation cleanly re-runnable. Throws on failure. Idempotent: a missing checkout dir (e.g.
-   * docker leftovers whose files are already gone) is fine.
+   * Discard a (possibly partial) checkout — the clone and its markers, host-side only, base untouched.
+   * State the caller keeps beside the checkout (sessions, for instance) stays: a workspace that already ran
+   * has a history worth more than a clean directory.
    */
-  removeWorkflowCheckout(workspaceId: string, workflowId: string): Promise<void>;
+  discardCheckout(workspaceId: string): Promise<void>;
 
   // ── Inventory + workspace-level reclaim (the cleanup/maintenance surface) ───────────────────────────
 
-  /** Workspace state dirs on disk, with sizes and checkouts — all of them, or just `workspaceId`. Read-only. */
+  /** Workspace state dirs on disk, with sizes and their checkout — all of them, or just `workspaceId`. Read-only. */
   listWorkspaceStates(workspaceId?: string): Promise<WorkspaceStateInfo[]>;
   /** The shared state — every base with its generations, the seed tars, the npm cache — with sizes. Read-only. */
   listSharedState(): Promise<SharedStateInfo>;
@@ -403,10 +385,11 @@ export interface CodeWorkspaceProvisioner {
   listVolumes(workspaceId?: string): Promise<VolumeInfo[]>;
   /**
    * Reclaim everything a workspace owns — all its labeled containers (force), all its volumes, then the
-   * whole `<stateDir>/<workspaceId>` dir (every checkout — the only disk state a workspace owns) last.
-   * Shared bases, seed tars and the npm cache belong to no workspace and are untouched. Same ordering
-   * contract and idempotence as {@link removeWorkflowCheckout}, one level up. The workspace's DB rows are
-   * NOT touched — this is the disk/docker half, used after (or independent of) a Studio workspace deletion.
+   * whole `<stateDir>/<workspaceId>` dir (its checkout and the state beside it) last. The directory — the
+   * durable record — goes last, so any failure leaves the operation cleanly re-runnable. Shared bases,
+   * seed tars and the npm cache belong to no workspace and are untouched. Idempotent: a missing state dir is
+   * fine. The workspace's DB rows are NOT touched — this is the disk/docker half, used after (or
+   * independent of) a Studio workspace deletion.
    */
   removeWorkspaceState(workspaceId: string): Promise<void>;
 }

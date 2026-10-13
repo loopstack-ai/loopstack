@@ -97,4 +97,4 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
 
 ## Registry References
 
-- [secrets-example-workflow](/docs/examples/secrets) — Request secrets from user, verify storage, and display results with both direct workflow and agent-based approaches
+- [Secrets examples](/docs/examples/secrets) — Request secrets from user, verify storage, and display results with both direct workflow and agent-based approaches

@@ -116,6 +116,7 @@ export const sidebar: StarlightUserConfig['sidebar'] = [
           'docs/build/integrations/sandbox',
           'docs/build/integrations/secrets',
           { label: 'Scheduling & Programmatic Execution', slug: 'docs/build/integrations/programmatic-execution' },
+          'docs/build/integrations/lifecycle-events',
         ],
       },
       'docs/build/testing',

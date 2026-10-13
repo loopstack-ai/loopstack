@@ -1,4 +1,6 @@
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
+import type { FilterValue } from '../components/data-table/data-table';
+import type { FleetSort } from '../features/fleet/fleet-model';
 import type { PanelId, PanelSize } from '../features/workbench/providers/WorkbenchLayoutProvider';
 
 const STORAGE_KEY = 'loopstack:studio-preferences';
@@ -9,10 +11,14 @@ interface StudioPreferences {
   panelSizes: Partial<Record<PanelId, PanelSize>>;
   /** Workbench workflow area: legacy document tree or the canonical run view. */
   workbenchView: 'classic' | 'run';
-  /** Dashboard density: cards, or one compact row per workspace. */
+  /** Dashboard density: cards, or a table with one row per workspace. */
   fleetDensity: 'grid' | 'list';
-  /** Workspace ids in the order the dashboard was dragged into. Unlisted workspaces follow, by title. */
+  /** Workspace ids in the order the dashboard's cards were dragged into. Unlisted workspaces follow, by title. */
   fleetOrder: string[];
+  /** The column the dashboard's list view is sorted by. The cards keep their dragged order. */
+  fleetListSort: FleetSort;
+  /** Dashboard filters (state, app, favourites), kept between visits. The search is not. */
+  fleetFilters: Record<string, FilterValue>;
 }
 
 const DEFAULTS: StudioPreferences = {
@@ -22,6 +28,8 @@ const DEFAULTS: StudioPreferences = {
   workbenchView: 'classic',
   fleetDensity: 'grid',
   fleetOrder: [],
+  fleetListSort: { field: 'title', order: 'ASC' },
+  fleetFilters: {},
 };
 
 interface StudioPreferencesContextType {

@@ -1,6 +1,6 @@
 /**
- * `code-workspace` — an in-project, package-style module that provisions isolated per-workflow checkouts of
- * a codebase from a shared base and runs them in disposable containers. Domain-neutral: no Claude, no
+ * `code-workspace` — an in-project, package-style module that gives every workspace one checkout of a
+ * codebase, cloned from a shared base and worked in disposable containers. Domain-neutral: no Claude, no
  * app-runner, no agent specifics. Consume it via the {@link CODE_WORKSPACE_PROVISIONER} token.
  */
 export { CodeWorkspaceModule } from './code-workspace.module.js';
@@ -30,6 +30,7 @@ export type {
   BaseBuildOwner,
   BaseGenerationInfo,
   BaseStateInfo,
+  Checkout,
   CheckoutInfo,
   CheckoutRepo,
   CodeWorkspaceProvisioner,
@@ -39,6 +40,5 @@ export type {
   ProvisionedContainer,
   RepoChanges,
   SharedStateInfo,
-  WorkflowCheckout,
   WorkspaceStateInfo,
 } from './code-workspace.provisioner.js';

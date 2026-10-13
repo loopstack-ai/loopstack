@@ -8,13 +8,13 @@ const InputSchema = z.object({});
 type InputArgs = z.infer<typeof InputSchema>;
 
 /**
- * Read-only inventory: every workspace's state directory with its sizes and checkouts, every container and
+ * Read-only inventory: every workspace's state directory with its size and its checkout, every container and
  * volume this module created, and the shared bases and caches — each joined against the workflow and
  * workspace tables, with orphans (the owning row deleted) flagged.
  *
  * This is what to read before deleting anything: it is the only view that shows state which is **not** an
- * orphan — "this workspace holds 12 GB in three checkouts" — which is the figure you decide against, since
- * deleting a workspace is what reclaims its disk. The sweep beside it shows only what it would remove.
+ * orphan — "this workspace holds 12 GB" — which is the figure you decide against, since deleting a
+ * workspace is what reclaims its disk. The sweep beside it shows only what it would remove.
  *
  * Run it any time; nothing is modified.
  */
@@ -54,7 +54,7 @@ export class StateReportWorkflow extends BaseWorkflow<InputArgs> {
       containers: inventory.containers.length,
       volumes: inventory.volumes.length,
       orphanedWorkspaces: plan.workspaceIds.length,
-      orphanedCheckouts: plan.checkouts.length,
+      orphanedRuns: plan.runs.length,
       orphanedBases: plan.bases.length,
     } as unknown as Record<string, unknown>);
   }

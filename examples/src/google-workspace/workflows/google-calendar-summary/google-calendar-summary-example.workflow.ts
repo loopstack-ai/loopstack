@@ -2,11 +2,11 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
+import { GoogleCalendarFetchEventsTool } from '@loopstack/google-workspace';
 import { OAuthWorkflow } from '@loopstack/oauth';
-import { GoogleCalendarFetchEventsTool } from '../../shared/google';
 
 interface CalendarSummaryState {
-  events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
+  events?: Array<{ id: string; summary?: string; start?: string; end?: string }>;
   requiresAuthentication?: boolean;
 }
 
@@ -45,9 +45,6 @@ export class GoogleCalendarSummaryExampleWorkflow extends BaseWorkflow<CalendarS
       });
       this.assignState({ requiresAuthentication: false, events: result.data.events });
     } catch (error) {
-      // The Google tools throw with their human-readable message on auth failure
-      // ("No valid Google token found. Please authenticate first." / "Google token was rejected. Please re-authenticate.").
-      // Both contain "authenticate" — match on that to route through the OAuth sub-workflow.
       if (error instanceof Error && /authenticate/i.test(error.message)) {
         this.assignState({ requiresAuthentication: true });
         return;
@@ -56,7 +53,9 @@ export class GoogleCalendarSummaryExampleWorkflow extends BaseWorkflow<CalendarS
     }
   }
 
-  // If unauthorized -> launch OAuth as sub-workflow
+  // --- Sign in to Google and retry ---
+  // The same sign-in-and-retry flow as the GitHub overview example (examples/src/github), which explains it.
+
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired() {
@@ -70,8 +69,6 @@ export class GoogleCalendarSummaryExampleWorkflow extends BaseWorkflow<CalendarS
     return !!state.requiresAuthentication;
   }
 
-  // Auth sub-workflow completed -> retry from start. A failed or canceled OAuth sub-workflow routes
-  // to `auth_failed` instead, so a sign-in that cannot succeed ends the run rather than relaunching it.
   @Transition({
     from: 'awaiting_auth',
     to: 'start',
@@ -80,11 +77,11 @@ export class GoogleCalendarSummaryExampleWorkflow extends BaseWorkflow<CalendarS
   })
   authCompleted(_state: CalendarSummaryState, _input: TransitionInput) {}
 
-  // Auth failed -> the user retries once the OAuth app is configured
   @Transition({ from: 'auth_failed', to: 'start', wait: true })
   retryAuth() {}
 
-  // Success -> display summary
+  // --- Display the summary ---
+
   @Transition({ from: 'calendar_fetched', to: 'end' })
   async displayResults(state: CalendarSummaryState) {
     await this.documentStore.save(MarkdownDocument, {

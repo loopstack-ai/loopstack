@@ -1,6 +1,6 @@
 ---
 title: Creating Custom LLM Providers
-description: Implementing a new LLM provider by extending LlmProviderInterface and registering with LlmProviderRegistry. Covers the provider architecture, required methods, and module setup.
+description: Implementing a new LLM provider by extending LlmProviderInterface and registering with LlmProviderRegistry. Covers the provider architecture, required methods, replaying message history written by other providers (meta.response, meta.provider, toProviderMessage), rejecting unsupported server tools, and module setup.
 ---
 
 # Creating LLM Providers
@@ -115,12 +115,27 @@ interface LlmProviderInterface<TProviderConfig = Record<string, unknown>> {
 
 ### Method responsibilities
 
-| Method              | Purpose                                                                               |
-| ------------------- | ------------------------------------------------------------------------------------- |
-| `generateText`      | Call the LLM API, return normalized `LlmNormalizedMessage` + native response          |
-| `generateObject`    | Same but force structured output matching `args.outputSchema`                         |
-| `extractUsage`      | Parse token usage from native response (for logging/quota)                            |
-| `toProviderMessage` | Convert normalized messages back to provider format (for message history round-trips) |
+| Method              | Purpose                                                                                   |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `generateText`      | Call the LLM API, return normalized `LlmNormalizedMessage` + native response              |
+| `generateObject`    | Same but force structured output matching `args.outputSchema`                             |
+| `extractUsage`      | Parse token usage from native response (for logging/quota)                                |
+| `toProviderMessage` | Convert a normalized message to provider format (for history this provider did not write) |
+
+### Replaying history
+
+A conversation may switch provider between turns, so the history your provider reads can hold messages another provider wrote. Follow these rules in your message resolution:
+
+1. **Replay `meta.response` only when you wrote it.** `LlmGenerateTextTool` saves the native response in `doc.meta.response` and your `providerId` in `doc.meta.provider`. Pass the native response back to your API only when `doc.meta.provider === this.providerId`; any other response is in another provider's format.
+2. **Convert everything else with `toProviderMessage`.** Map every block your API can express — `text`, `tool_call`, `tool_result` — and leave out the blocks it cannot, such as another provider's `thinking` or `server_tool_use` / `server_tool_result` blocks.
+3. **Reject server tools you cannot run.** A `server_tool` entry in `args.tools` carries one provider's native tool spec in `config`. Throw an error that names the tool instead of dropping it.
+
+```typescript
+const ownResponse = doc.meta?.provider === this.providerId ? doc.meta.response : undefined;
+const message = ownResponse
+  ? this.fromNativeResponse(ownResponse)
+  : this.toProviderMessage(doc.content as LlmNormalizedMessage);
+```
 
 ### What you DON'T implement
 
@@ -176,6 +191,9 @@ Content blocks are a union of:
 - `{ type: 'text', text: string }` — text output
 - `{ type: 'thinking', text: string }` — reasoning/thinking output
 - `{ type: 'tool_call', id: string, name: string, args: Record<string, unknown> }` — tool call
+- `{ type: 'tool_result', toolCallId: string, content: string, isError: boolean }` — tool result
+- `{ type: 'server_tool_use', id: string, name: string, input: Record<string, unknown> }` — a server tool call the provider ran
+- `{ type: 'server_tool_result', toolUseId: string, content: unknown }` — the result of that server tool call
 
 ## Create the module
 

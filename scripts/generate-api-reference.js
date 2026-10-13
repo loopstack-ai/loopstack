@@ -18,6 +18,9 @@
  * compiles it and emits declarations in memory with JSDoc preserved (the repo
  * build sets `removeComments: true`, which strips tags from the on-disk
  * `.d.ts`). Packages do NOT need to be pre-built.
+ *
+ * Each page is formatted with the repo's prettier config before it is written,
+ * so the output matches the committed pages and passes `npm run format:check`.
  */
 
 const fs = require('fs');
@@ -26,9 +29,10 @@ const path = require('path');
 const ROOT_DIR = path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(__dirname, 'api-reference.config.json');
 
-// Resolve the TypeScript compiler API from the loopstack workspace so this
-// script stays dependency-free at the repo root.
+// Resolve the TypeScript compiler API and prettier from the loopstack workspace
+// so this script stays dependency-free at the repo root.
 const ts = require(require.resolve('typescript', { paths: [ROOT_DIR] }));
+const prettier = require(require.resolve('prettier', { paths: [ROOT_DIR] }));
 
 const KIND_SECTIONS = [
   { kind: ts.SyntaxKind.ClassDeclaration, title: 'Classes' },
@@ -243,7 +247,7 @@ function renderMarkdown(pkg, symbols) {
   return lines.join('\n');
 }
 
-function main() {
+async function main() {
   const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
   const outputDir = path.join(ROOT_DIR, config.outputDir);
   fs.mkdirSync(outputDir, { recursive: true });
@@ -274,11 +278,16 @@ function main() {
 
     const shortName = pkg.name.replace(/^@loopstack\//, '');
     const outFile = path.join(outputDir, `${shortName}.md`);
-    fs.writeFileSync(outFile, renderMarkdown(pkg, symbols), 'utf8');
+    const prettierConfig = await prettier.resolveConfig(outFile);
+    const markdown = await prettier.format(renderMarkdown(pkg, symbols), { ...prettierConfig, filepath: outFile });
+    fs.writeFileSync(outFile, markdown, 'utf8');
     console.log(`  ${pkg.name}: ${symbols.length} @public symbol(s) -> ${path.relative(ROOT_DIR, outFile)}`);
   }
 
   console.log('Done.');
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});

@@ -249,9 +249,11 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
           ];
         }
 
-        if (doc.meta?.response) {
+        // Only a response this provider wrote is in Anthropic's format; any other is rebuilt from the normalized message
+        const ownResponse = doc.meta?.provider === this.providerId ? doc.meta.response : undefined;
+        if (ownResponse) {
           // Assistant message — pass native response directly back to API
-          const native = doc.meta.response as Anthropic.Message;
+          const native = ownResponse as Anthropic.Message;
           return [{ role: native.role, content: native.content }] as Anthropic.MessageParam[];
         }
 
@@ -283,6 +285,11 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
             input: block.input as Record<string, unknown>,
           };
         case 'web_search_tool_result':
+        case 'web_fetch_tool_result':
+        case 'code_execution_tool_result':
+        case 'bash_code_execution_tool_result':
+        case 'text_editor_code_execution_tool_result':
+        case 'tool_search_tool_result':
           return {
             type: 'server_tool_result' as const,
             toolUseId: block.tool_use_id,

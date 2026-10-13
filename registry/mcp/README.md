@@ -49,7 +49,7 @@ LINEAR_MCP_TOKEN="Bearer lin_oauth_..."
 
 ## Quick Start
 
-This example mirrors the the [agent examples](/docs/examples/agent) package. It starts a `ChatAgentWorkflow` sub-workflow with both MCP tools available.
+This example mirrors the Linear workflow in the [MCP examples](/docs/examples/mcp). It starts a `ChatAgentWorkflow` sub-workflow with both MCP tools available.
 
 ```ts
 // mcp-linear.module.ts
@@ -78,7 +78,6 @@ import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { McpCallTool, McpListToolsTool } from '@loopstack/mcp';
 
 const ArgsSchema = z.object({
   initialMessage: z.string().optional().default('List available Linear tools, then fetch my top 5 issues.'),
@@ -90,11 +89,7 @@ const ArgsSchema = z.object({
   schema: ArgsSchema,
 })
 export class McpLinearWorkflow extends BaseWorkflow<z.infer<typeof ArgsSchema>> {
-  constructor(
-    private readonly chatAgentWorkflow: ChatAgentWorkflow,
-    private readonly mcpListTools: McpListToolsTool,
-    private readonly mcpCallTool: McpCallTool,
-  ) {
+  constructor(private readonly chatAgentWorkflow: ChatAgentWorkflow) {
     super();
   }
 
@@ -304,7 +299,7 @@ Override `MCP_METRICS` for custom metric collection:
 
 ## Related
 
-- [the [agent examples](/docs/examples/agent)](https://loopstack.ai/docs/examples/agent#mcp-linear) — Full working example connecting a ChatAgentWorkflow to Linear via MCP.
+- [MCP Linear example](https://loopstack.ai/docs/examples/mcp#linear) — Full working example connecting a ChatAgentWorkflow to Linear via MCP.
 - [Agent Workflows](https://loopstack.ai/docs/build/ai/agent-workflows) — How `ChatAgentWorkflow` and tool resolution work.
 - [Tool Configuration](https://loopstack.ai/docs/build/fundamentals/tools) — How `configSchema` and `options.config` are merged at call time.
 - [`@loopstack/claude`](https://loopstack.ai/docs/registry/claude) — LLM provider that powers the agent loop calling MCP tools.

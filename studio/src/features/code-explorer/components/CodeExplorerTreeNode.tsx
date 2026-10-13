@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import type { FileExplorerNode } from '../types';
-import { getFileIcon, getFolderIcon } from '../utils/fileIcons';
+import { FileIcon, FolderIcon } from '../utils/fileIcons';
 
 interface CodeExplorerTreeNodeProps {
   node: FileExplorerNode;
@@ -13,12 +13,13 @@ interface CodeExplorerTreeNodeProps {
   onCloseFile?: (node: FileExplorerNode) => void;
   isSelected?: boolean;
   selectedFileId?: string;
-  expandedFolders?: Set<string>;
+  expandedFolders?: ReadonlySet<string>;
   toggleFolder?: (folderId: string) => void;
 }
 
 const INDENT_PX = 16;
 const BASE_PADDING_PX = 8;
+const NO_EXPANDED_FOLDERS: ReadonlySet<string> = new Set();
 
 export function CodeExplorerTreeNode({
   node,
@@ -28,7 +29,7 @@ export function CodeExplorerTreeNode({
   onCloseFile,
   isSelected = false,
   selectedFileId,
-  expandedFolders = new Set(),
+  expandedFolders = NO_EXPANDED_FOLDERS,
   toggleFolder,
 }: CodeExplorerTreeNodeProps) {
   const isOpen = expandedFolders.has(node.id);
@@ -37,7 +38,6 @@ export function CodeExplorerTreeNode({
   const nodeIsSelected = selectedFileId === node.id || isSelected;
 
   if (node.type === 'file') {
-    const Icon = getFileIcon(node.name);
     return (
       <div
         className={cn(
@@ -56,7 +56,7 @@ export function CodeExplorerTreeNode({
           onClick={() => onSelectFile?.(node)}
           aria-label={`Select file ${node.name}`}
         >
-          <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+          <FileIcon fileName={node.name} className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           <span className="truncate">{node.name}</span>
         </button>
         {nodeIsSelected && (onCloseFile || onClearSelection) && (
@@ -82,7 +82,6 @@ export function CodeExplorerTreeNode({
   }
 
   const hasChildren = node.children && node.children.length > 0;
-  const FolderIcon = getFolderIcon(isOpen);
 
   const handleToggle = () => {
     if (toggleFolder) {
@@ -111,7 +110,7 @@ export function CodeExplorerTreeNode({
         ) : (
           <span className="w-4 shrink-0" aria-hidden />
         )}
-        <FolderIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+        <FolderIcon isOpen={isOpen} className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
         <span className="truncate">{node.name}</span>
       </CollapsibleTrigger>
       {hasChildren && (

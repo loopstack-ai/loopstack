@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AgentModule } from '@loopstack/agent';
 import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { SecretsModule } from '@loopstack/secrets';
@@ -10,7 +11,7 @@ import { DeterministicExampleWorkflow } from './workflows/deterministic/determin
   workflows: [DeterministicExampleWorkflow, AgenticExampleWorkflow],
 })
 @Module({
-  imports: [ClaudeModule, SecretsModule.forFeature()],
+  imports: [AgentModule, ClaudeModule, SecretsModule.forFeature()],
   providers: [DeterministicExampleWorkflow, AgenticExampleWorkflow],
   exports: [DeterministicExampleWorkflow, AgenticExampleWorkflow],
 })

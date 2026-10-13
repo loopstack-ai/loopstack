@@ -1,6 +1,6 @@
 ---
 title: LLM Providers
-description: Using multiple LLM providers (Claude, OpenAI) through the runtime provider registry. Covers LlmProviderModule setup, provider selection per-call, and switching providers without code changes.
+description: Using multiple LLM providers (Claude, OpenAI) through the runtime provider registry. Covers LlmProviderModule setup, provider selection per-call, switching providers without code changes, and which message history (meta.response, meta.provider, content blocks) and server tools carry over when a conversation switches provider.
 ---
 
 # LLM Providers
@@ -118,6 +118,21 @@ const fastResult = await this.llmGenerateText.call(
 );
 ```
 
+### Switching Provider Within a Conversation
+
+A conversation saved as `LlmMessageDocument`s can start on one provider and continue on another. Each assistant message saved by `LlmGenerateTextTool` keeps the native API response in `meta.response` and the id of the provider that wrote it in `meta.provider`. A provider replays the native response only when `meta.provider` is its own id. Every other message is rebuilt from its normalized `text` and `blocks`.
+
+What carries over to the other provider:
+
+| Content                                           | Carries over                                                                      |
+| ------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `text` blocks                                     | Yes                                                                               |
+| `tool_call` and `tool_result` blocks              | Yes — tool call ids, names and arguments are kept                                 |
+| `thinking` blocks                                 | No — the OpenAI provider leaves them out                                          |
+| `server_tool_use` and `server_tool_result` blocks | No — the OpenAI provider leaves them out. The answer text after a search is kept. |
+
+Server tools such as `claude_native_web_search` produce one provider's native tool spec, so they run only on that provider. The OpenAI provider rejects a call that lists a server tool with `Server tool '<name>' is not supported by the openai provider` — remove the server tool from `config.tools` when you move that call to OpenAI.
+
 ## Provider-Specific Configuration
 
 `config.providerConfig` is an opaque pass-through to the active provider — its shape depends on which provider handles the call. Use it for tuning behavior beyond the cross-provider config fields (system prompt, tools, etc.).
@@ -175,7 +190,7 @@ All LLM interactions go through adapter tools from `@loopstack/llm-provider`. Th
 
 ## Message Documents
 
-All providers share a single `LlmMessageDocument` with normalized content. Native API responses are stored in `entity.meta.response` for provider-specific round-trips. See [Chat Flows — Message Resolution](./chat-flows.md#message-resolution) for how documents are collected from the document store and become the LLM's conversation history.
+All providers share a single `LlmMessageDocument` with normalized content. Native API responses are stored in `entity.meta.response`, and the provider that wrote them in `entity.meta.provider`, for provider-specific round-trips — see [Switching Provider Within a Conversation](#switching-provider-within-a-conversation). See [Chat Flows — Message Resolution](./chat-flows.md#message-resolution) for how documents are collected from the document store and become the LLM's conversation history.
 
 | Document             | Content Format                                      | Widget        |
 | -------------------- | --------------------------------------------------- | ------------- |

@@ -17,7 +17,8 @@ export function resolveInvalidations(message: ClientMessage, envKey: string): Qu
     case 'workflow.created': {
       // The plural prefix stales every workflow list (Runs page, landing page, any useWorkflowList),
       // so runs started by cron/webhook/CLI/another client appear without a manual refresh.
-      const keys: QueryKey[] = [queryKeys.workflows(envKey)];
+      // Workspace lists too: a workspace list may be filtered by what its runs are doing.
+      const keys: QueryKey[] = [queryKeys.workflows(envKey), queryKeys.workspaces(envKey)];
       if (message.parentId) keys.push(queryKeys.childWorkflows(envKey, message.parentId));
       return keys;
     }
@@ -27,6 +28,8 @@ export function resolveInvalidations(message: ClientMessage, envKey: string): Qu
         queryKeys.workflowStatus(envKey, message.id),
         // Keep list views' status columns current. The per-key debounce collapses update bursts.
         queryKeys.workflows(envKey),
+        // A run changing state can move its workspace in or out of a list filtered by activity.
+        queryKeys.workspaces(envKey),
       ];
       if (message.parentId) keys.push(queryKeys.childWorkflows(envKey, message.parentId));
       return keys;

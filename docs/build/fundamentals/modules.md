@@ -75,7 +75,7 @@ Conventions:
 - **`index.ts`** re-exports public symbols (used when this module is consumed as a package)
 - Document classes (`*.ts`) and their widget config (`*.yaml`) sit side by side
 
-Smaller modules can collapse this — a one-workflow module often keeps everything flat under `src/`. Use this layout as the upper bound, not a requirement. See the [Registry examples](/docs/registry) (`custom-tool-example-module`, `meeting-notes-example-workflow`) for concrete references.
+Smaller modules can collapse this — a one-workflow module often keeps everything flat under `src/`. Use this layout as the upper bound, not a requirement. See the [Custom Tool example](/docs/examples/advanced-workflows#custom-tool) and the [Meeting Notes example](/docs/examples/hitl#meeting-notes) for concrete references.
 
 ### App Modules vs Feature Modules
 
@@ -273,7 +273,7 @@ The `forFeature()` import of `MyFeatureRootModule` ensures the global default is
 
 **Why `@Global()`?** The `@Global()` decorator is a [standard NestJS feature](https://docs.nestjs.com/modules#global-modules) that makes a module's exports available to every other module in the application without an explicit `imports: [...]` entry. The root module uses it so that `MY_FEATURE_CONFIG` and the tools are injectable anywhere — including in modules that never call `forRoot()` or `forFeature()`. This is also why `LoopCoreModule` is marked global by `LoopstackModule.forRoot()`. Use `@Global()` sparingly for app-wide singletons; prefer per-module imports for scoped behavior.
 
-See [module-config-example](/docs/examples/advanced-workflows#module-config) for a complete runnable example, including a nested wrapper module that passes config through to the underlying configurable module.
+See [Module Config example](/docs/examples/advanced-workflows#module-config) for a complete runnable example, including a nested wrapper module that passes config through to the underlying configurable module.
 
 ## Dependency Injection
 
@@ -314,6 +314,6 @@ Once registered:
 
 ## Registry References
 
-- [chat-example-workflow](/docs/examples/hitl#prompt-input-chat) — Example module with ClaudeModule import
-- [custom-tool-example-module](/docs/examples/advanced-workflows#custom-tool) — Module with custom tools, services, and workflow providers
-- [run-sub-workflow-example](/docs/examples/advanced-workflows#sub-workflow) — Module registering both parent and sub-workflow providers
+- [Prompt Input Chat example](/docs/examples/hitl#prompt-input-chat) — Part of `HitlExamplesModule`, which imports `ClaudeModule` beside `HitlModule` and `AgentModule`
+- [Custom Tool example](/docs/examples/advanced-workflows#custom-tool) — Module with custom tools, services, and workflow providers
+- [Sub-Workflow example](/docs/examples/advanced-workflows#sub-workflow) — Module registering both parent and sub-workflow providers

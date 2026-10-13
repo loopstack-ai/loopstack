@@ -19,7 +19,7 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { FileExplorerNode } from '../types';
-import { getFileIcon } from '../utils/fileIcons';
+import { FileIcon } from '../utils/fileIcons';
 
 export interface FileTabsBarBaseProps {
   openFiles: FileExplorerNode[];
@@ -94,7 +94,6 @@ export function FileTabsBarBase({
       <ScrollArea className="flex-1 min-w-0">
         <div ref={tabsContainerRef} className="flex h-9 items-center" style={{ width: 'max-content' }}>
           {openFiles.map((file) => {
-            const Icon = getFileIcon(file.name);
             const isActive = selectedFile?.path === file.path;
             const fileIndex = openFiles.findIndex((f) => f.path === file.path);
             const canCloseLeft = fileIndex > 0;
@@ -117,7 +116,7 @@ export function FileTabsBarBase({
                     aria-selected={isActive}
                     aria-label={`Tab: ${file.name}`}
                   >
-                    <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <FileIcon fileName={file.name} className="h-3.5 w-3.5 shrink-0" aria-hidden />
                     <span className="truncate flex-1 text-left font-medium">{file.name}</span>
                     <Button
                       variant="ghost"

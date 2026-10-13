@@ -14,7 +14,7 @@ Exposes REST endpoints that let a frontend (like Loopstack Studio) browse the fi
 - You are building a UI that needs to render a **file tree** and display **file contents** for a remote workspace.
 - You want authenticated REST endpoints that proxy file requests to a remote agent without exposing the agent URL to the client.
 - Use `@loopstack/local-file-explorer` instead if the files are on the local machine.
-- Use `GlobTool` / `ReadTool` from `@loopstack/remote-client` instead if you need file access inside a workflow (this module provides no workflow tools).
+- Use `GlobTool` / `GrepTool` / `ReadTool` from `@loopstack/remote-client` instead if you need file access inside a workflow (this module provides no workflow tools).
 
 ## Installation
 
@@ -153,7 +153,7 @@ No environment variables are required by this module itself. The remote agent UR
 
 - [`@loopstack/remote-client`](https://loopstack.ai/docs/registry/remote-client) -- the underlying client this module proxies through; also provides `GlobTool`, `ReadTool`, and other workflow tools for remote file operations
 - [`@loopstack/local-file-explorer`](https://loopstack.ai/docs/registry/local-file-explorer) -- same concept for local filesystems instead of remote agents
-- [Remote File Explorer example](/docs/examples/remote-client#file-explorer) -- demonstrates using `GlobTool` and `ReadTool` from `@loopstack/remote-client` in a workflow
+- [Remote Files panel in the Remote Client examples](/docs/examples/remote-client#remote-files-panel) -- an example app that enables this module with `forFeature()`, next to workflows that use the `@loopstack/remote-client` tools
 
 ## About
 

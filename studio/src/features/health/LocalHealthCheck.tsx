@@ -1,5 +1,5 @@
 import { RefreshCw, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ApiClientEvents, apiClientEvents } from '@/events';
 import { useGetHealthInfo, useWorkerAuth, useWorkerAuthTokenRefresh } from '@/hooks/useAuth.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
@@ -21,39 +21,42 @@ const LocalHealthCheck = () => {
 
   const [escalation, setEscalation] = useState<Escalation>(Escalation.None);
 
-  const authenticateWorker = useWorkerAuth();
-  const tokenRefresh = useWorkerAuthTokenRefresh();
-  const fetchHealthInfo = useGetHealthInfo(false);
+  const { mutate: authenticateWorker } = useWorkerAuth();
+  const { mutate: refreshToken } = useWorkerAuthTokenRefresh();
+  const { refetch: refetchHealthInfo, isLoading: isCheckingHealth } = useGetHealthInfo(false);
 
-  // Stabilize mutation references to avoid infinite loops.
-  const tokenRefreshRef = useRef(tokenRefresh);
-  tokenRefreshRef.current = tokenRefresh;
-
-  const authenticateWorkerRef = useRef(authenticateWorker);
-  authenticateWorkerRef.current = authenticateWorker;
-
-  const fetchHealthInfoRef = useRef(fetchHealthInfo);
-  fetchHealthInfoRef.current = fetchHealthInfo;
-
+  // A successful health check clears the escalation. No cache flush here: on
+  // reconnect the event stream resumes or emits stream.reset, which triggers
+  // an environment-scoped invalidation via useLiveInvalidation.
   const handleCheckHealth = useCallback(() => {
-    void fetchHealthInfoRef.current.refetch();
-  }, []);
+    void refetchHealthInfo().then((result) => {
+      if (result.isSuccess) setEscalation(Escalation.None);
+    });
+  }, [refetchHealthInfo]);
 
+  // Token refresh success clears the escalation; an error escalates to Login.
   const handleTokenRefresh = useCallback(() => {
-    tokenRefreshRef.current.mutate();
-  }, []);
+    refreshToken(undefined, {
+      onSuccess: () => setEscalation(Escalation.None),
+      onError: () => setEscalation(Escalation.Login),
+    });
+  }, [refreshToken]);
 
-  const handleLogin = useCallback(async () => {
-    try {
-      let idToken = 'local';
-      if (environment.getIdToken) {
-        idToken = await environment.getIdToken();
-      }
-      authenticateWorkerRef.current.mutate({ idToken });
-    } catch {
-      setEscalation(Escalation.Debug);
-    }
-  }, [environment]);
+  // Login success clears the escalation; an error escalates to Debug.
+  const handleLogin = useCallback(() => {
+    void Promise.resolve()
+      .then(() => environment.getIdToken?.() ?? 'local')
+      .then((idToken) =>
+        authenticateWorker(
+          { idToken },
+          {
+            onSuccess: () => setEscalation(Escalation.None),
+            onError: () => setEscalation(Escalation.Debug),
+          },
+        ),
+      )
+      .catch(() => setEscalation(Escalation.Debug));
+  }, [environment, authenticateWorker]);
 
   // Poll health endpoint when in Connection escalation
   useEffect(() => {
@@ -63,49 +66,12 @@ const LocalHealthCheck = () => {
     return () => clearInterval(interval);
   }, [escalation, handleCheckHealth]);
 
-  // Reset escalation when health check succeeds. No cache flush here: on
-  // reconnect the event stream resumes or emits stream.reset, which triggers
-  // an environment-scoped invalidation via useLiveInvalidation.
-  useEffect(() => {
-    if (fetchHealthInfo.data) {
-      setEscalation(Escalation.None);
-    }
-  }, [fetchHealthInfo.data]);
-
-  // Token refresh error → escalate to Login
-  useEffect(() => {
-    if (tokenRefresh.error) {
-      setEscalation(Escalation.Login);
-    }
-  }, [tokenRefresh.error]);
-
-  // Token refresh success → clear escalation
-  useEffect(() => {
-    if (tokenRefresh.isSuccess) {
-      setEscalation(Escalation.None);
-    }
-  }, [tokenRefresh.isSuccess]);
-
-  // Login error → escalate to Debug
-  useEffect(() => {
-    if (authenticateWorker.error) {
-      setEscalation(Escalation.Debug);
-    }
-  }, [authenticateWorker.error]);
-
-  // Login success → clear escalation
-  useEffect(() => {
-    if (authenticateWorker.isSuccess) {
-      setEscalation(Escalation.None);
-    }
-  }, [authenticateWorker.isSuccess]);
-
   // Act on escalation level changes
   useEffect(() => {
     if (escalation === Escalation.Refresh) {
       handleTokenRefresh();
     } else if (escalation === Escalation.Login) {
-      void handleLogin();
+      handleLogin();
     }
   }, [escalation, handleTokenRefresh, handleLogin]);
 
@@ -133,14 +99,11 @@ const LocalHealthCheck = () => {
   }, []);
 
   const [dismissed, setDismissed] = useState(false);
+  // Reset dismissed state when escalation clears, during render so the banner never shows a stale state.
+  if (dismissed && escalation < Escalation.Debug) {
+    setDismissed(false);
+  }
   const isVisible = escalation >= Escalation.Debug && !dismissed;
-
-  // Reset dismissed state when escalation clears
-  useEffect(() => {
-    if (escalation < Escalation.Debug) {
-      setDismissed(false);
-    }
-  }, [escalation]);
 
   if (!isVisible) return null;
 
@@ -181,7 +144,7 @@ const LocalHealthCheck = () => {
               onClick={handleCheckHealth}
               className="bg-primary flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <RefreshCw className={`h-3 w-3 ${fetchHealthInfo.isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3 w-3 ${isCheckingHealth ? 'animate-spin' : ''}`} />
               Retry
             </button>
           )}

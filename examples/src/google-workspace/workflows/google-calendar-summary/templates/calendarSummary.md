@@ -2,7 +2,7 @@ Here are your upcoming events:
 
 {{#each events}}
 
-- **{{ this.summary }}** — {{ this.start }} to {{ this.end }}
+- **{{#if this.summary}}{{ this.summary }}{{else}}(no title){{/if}}** — {{ this.start }} to {{ this.end }}
   {{/each}}
 
 {{#unless events}}

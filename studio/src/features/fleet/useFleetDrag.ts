@@ -1,6 +1,6 @@
 import { type DragEvent, type HTMLAttributes, useState } from 'react';
 import { useStudioPreferences } from '@/providers/StudioPreferencesProvider.tsx';
-import { reorderIds } from './fleet-model.ts';
+import { boardOrder, reorderIds } from './fleet-model.ts';
 
 export interface FleetDrag {
   /** Props for the grip: the only part that starts a drag, so text and links stay selectable. */
@@ -14,6 +14,8 @@ export interface FleetDrag {
   /** Whether a hand-arranged order exists to clear. */
   hasManualOrder: boolean;
   resetOrder: () => void;
+  /** Drops deleted workspaces from the saved order, so it does not keep ids that no longer exist. */
+  forget: (workspaceIds: string[]) => void;
 }
 
 /**
@@ -21,10 +23,11 @@ export interface FleetDrag {
  *
  * Native drag events rather than a library: the board needs one gesture in a two-dimensional grid, which
  * `motion`'s single-axis `Reorder` cannot express, and the saved value is a plain list of ids either way.
- * Because the drop target decides the position, the full visible order is written on every drop — including
- * workspaces that had no saved rank — so a board arranged once stays arranged.
+ * Because the drop target decides the position, the full board order is written on every drop — including
+ * workspaces that had no saved rank, and those the search and filters hide ({@link boardOrder}) — so a board
+ * arranged once stays arranged.
  */
-export function useFleetDrag(visibleIds: string[]): FleetDrag {
+export function useFleetDrag(shownIds: string[]): FleetDrag {
   const { preferences, setPreference } = useStudioPreferences();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -35,8 +38,9 @@ export function useFleetDrag(visibleIds: string[]): FleetDrag {
   };
 
   const commit = (id: string, targetId: string) => {
-    const next = reorderIds(visibleIds, id, targetId);
-    if (next !== visibleIds) setPreference('fleetOrder', next);
+    const order = boardOrder(preferences.fleetOrder, shownIds);
+    const next = reorderIds(order, id, targetId);
+    if (next !== order) setPreference('fleetOrder', next);
   };
 
   return {
@@ -44,6 +48,15 @@ export function useFleetDrag(visibleIds: string[]): FleetDrag {
     overId,
     hasManualOrder: preferences.fleetOrder.length > 0,
     resetOrder: () => setPreference('fleetOrder', []),
+    forget: (workspaceIds) => {
+      const gone = new Set(workspaceIds);
+      if (preferences.fleetOrder.some((id) => gone.has(id))) {
+        setPreference(
+          'fleetOrder',
+          preferences.fleetOrder.filter((id) => !gone.has(id)),
+        );
+      }
+    },
 
     handleProps: (workspaceId) => ({
       draggable: true,

@@ -233,7 +233,7 @@ Get detailed information about a file or directory in a sandbox container.
 ## Related
 
 - [Sandbox Execution](https://loopstack.ai/docs/build/integrations/sandbox) -- Setup guide, full tool table, and security details for sandbox containers
-- [sandbox-examples#sandbox](/docs/examples/sandbox#sandbox) -- Complete example covering init, create directory, write/read files, list, exists, file info, delete, and destroy
+- [Sandbox example](/docs/examples/sandbox#sandbox) -- Complete example covering init, create directory, write/read files, list, exists, file info, delete, and destroy
 - [@loopstack/docker-sandbox](https://loopstack.ai/docs/registry/docker-sandbox) -- Container lifecycle and command execution (required companion package)
 
 ## About

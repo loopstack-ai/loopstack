@@ -1,7 +1,7 @@
 # Loopstack Examples
 
 Every Loopstack example in one runnable app. Each theme is a NestJS module under `src/`, registered
-as its own `@StudioApp`, so starting this app once gives you all 68 example workflows side by side in
+as its own `@StudioApp`, so starting this app once gives you all 69 example workflows side by side in
 Studio.
 
 Read a module's README to understand a pattern, run its workflow to watch it work, then copy the
@@ -34,7 +34,7 @@ sandbox or OAuth app run as they are; the rest say in their README what they nee
 | [Integration Examples (placeholder)](src/integrations/README.md)  | `src/integrations/`        | 0         |
 | [LLM Examples](src/llm/README.md)                                 | `src/llm/`                 | 4         |
 | [Local File Explorer Examples](src/local-file-explorer/README.md) | `src/local-file-explorer/` | 1         |
-| [Observability Examples](src/observability/README.md)             | `src/observability/`       | 4         |
+| [Observability Examples](src/observability/README.md)             | `src/observability/`       | 5         |
 | [Remote Client Examples](src/remote-client/README.md)             | `src/remote-client/`       | 2         |
 | [Sandbox Examples](src/sandbox/README.md)                         | `src/sandbox/`             | 1         |
 | [Scheduling Examples](src/scheduling/README.md)                   | `src/scheduling/`          | 7         |
@@ -58,3 +58,5 @@ module's imports. `npm test` fails when one is out of date.
   the `loopstack` CLI and checks how it ends. This is the CI smoke gate.
 - `scripts/sdk-demo.mjs` — runs the LLM prompt example through `@loopstack/client` from bare Node,
   streaming transitions and tokens live.
+- `scripts/checkpoints-demo.mjs` — runs the checkpoints example through `@loopstack/client` and prints
+  the run's checkpoint history.

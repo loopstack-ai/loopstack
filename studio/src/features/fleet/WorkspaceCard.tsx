@@ -1,25 +1,12 @@
 import { formatDistanceToNowStrict } from 'date-fns';
-import { CornerDownRight, FolderOpen, GripVertical, MoreHorizontal, Pencil, Play, Star, Trash2 } from 'lucide-react';
-import { type HTMLAttributes, useState } from 'react';
+import { CornerDownRight, GripVertical, Star } from 'lucide-react';
+import type { HTMLAttributes } from 'react';
 import { Link } from 'react-router-dom';
-import ConfirmDialog from '@/components/data-table/ConfirmDialog';
-import { Button } from '@/components/ui/button.tsx';
+import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
-import { Dialog, DialogContent } from '@/components/ui/dialog.tsx';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu.tsx';
-import DefaultCreateWorkspace from '@/features/workspaces/components/CreateWorkspace.tsx';
-import NewWorkflowRunDialog from '@/features/workspaces/components/NewWorkflowRunDialog.tsx';
-import { useAppTypes } from '@/features/workspaces/useAppTypes.ts';
-import { useDeleteWorkspace, useSetFavouriteWorkspace } from '@/hooks/useWorkspaces.ts';
 import { cn } from '@/lib/utils.ts';
-import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
 import { useStudio } from '@/providers/StudioProvider.tsx';
+import WorkspaceActionsMenu from './WorkspaceActionsMenu.tsx';
 import type { FleetEntry, FleetRunLine } from './fleet-model.ts';
 import { STATE_DOT, STATE_ICON, STATE_LABEL, STATE_TEXT, TILE_MIN_HEIGHT, runAge } from './fleet-presentation.ts';
 
@@ -88,21 +75,21 @@ interface WorkspaceCardProps {
   dropProps: HTMLAttributes<HTMLElement>;
   isDragging: boolean;
   isDropTarget: boolean;
+  /** Adds the card's app to the board's filter. */
+  onFilterApp: (appName: string) => void;
+  onDelete: (workspaceId: string) => void;
 }
 
-export default function WorkspaceCard({ entry, handleProps, dropProps, isDragging, isDropTarget }: WorkspaceCardProps) {
+export default function WorkspaceCard({
+  entry,
+  handleProps,
+  dropProps,
+  isDragging,
+  isDropTarget,
+  onFilterApp,
+  onDelete,
+}: WorkspaceCardProps) {
   const { router } = useStudio();
-  const { EditWorkspace: EditWorkspaceOverride } = useComponentOverrides();
-  const EditWorkspace = EditWorkspaceOverride ?? DefaultCreateWorkspace;
-  const { types } = useAppTypes();
-
-  const [newRunOpen, setNewRunOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-
-  const setFavourite = useSetFavouriteWorkspace();
-  const deleteWorkspace = useDeleteWorkspace();
-
   const { workspace, state, runs } = entry;
 
   return (
@@ -137,48 +124,27 @@ export default function WorkspaceCard({ entry, handleProps, dropProps, isDraggin
             {workspace.title}
           </Link>
           {workspace.isFavourite && <Star className="size-3.5 shrink-0 fill-current text-yellow-500" />}
-          <span className="text-muted-foreground ml-auto shrink-0 truncate text-xs">{workspace.appName}</span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground -mr-1.5 size-7 shrink-0"
-                aria-label={`Actions for ${workspace.title}`}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setNewRunOpen(true)}>
-                <Play />
-                Run
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to={router.getWorkspace(workspace.id)}>
-                  <FolderOpen />
-                  Open
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setEditOpen(true)}>
-                <Pencil />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setFavourite.mutate({ id: workspace.id, isFavourite: !workspace.isFavourite })}
-              >
-                <Star className={cn(workspace.isFavourite && 'fill-current')} />
-                {workspace.isFavourite ? 'Remove from favourites' : 'Add to favourites'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onSelect={() => setDeleteOpen(true)}>
-                <Trash2 />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <button
+            type="button"
+            onClick={() => onFilterApp(workspace.appName)}
+            title={`Filter by ${workspace.appName}`}
+            className="text-muted-foreground hover:text-foreground ml-auto shrink-0 cursor-pointer truncate text-xs"
+          >
+            {workspace.appName}
+          </button>
+          <WorkspaceActionsMenu workspace={workspace} onDelete={onDelete} className="-mr-1.5" />
         </div>
+
+        {/* What the application filed this workspace under — the ticket, the strategy — as it set them. */}
+        {workspace.labels.length > 0 && (
+          <div className="flex flex-wrap gap-1 px-3 pt-1.5">
+            {workspace.labels.map((label) => (
+              <Badge key={label} variant="outline" className="text-muted-foreground max-w-full font-normal">
+                <span className="truncate">{label}</span>
+              </Badge>
+            ))}
+          </div>
+        )}
 
         {runs.length > 0 && (
           <div className="mt-1 space-y-1.5 pb-3 text-sm">
@@ -188,33 +154,6 @@ export default function WorkspaceCard({ entry, handleProps, dropProps, isDraggin
           </div>
         )}
       </div>
-
-      <NewWorkflowRunDialog
-        isOpen={newRunOpen}
-        onOpenChange={setNewRunOpen}
-        workspace={workspace}
-        onSuccess={() => setNewRunOpen(false)}
-      />
-
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-2xl">
-          <EditWorkspace types={types} workspace={workspace} onSuccess={() => setEditOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Deleting a workspace takes its runs with it, so it asks first. */}
-      <ConfirmDialog
-        isOpen={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        title={`Delete ${workspace.title}?`}
-        description="The workspace and every run in it are removed. This cannot be undone."
-        confirmText="Delete"
-        variant="destructive"
-        onConfirm={() => {
-          deleteWorkspace.mutate(workspace.id);
-          setDeleteOpen(false);
-        }}
-      />
     </Card>
   );
 }

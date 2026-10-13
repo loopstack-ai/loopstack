@@ -147,7 +147,7 @@ describe('ClaudeLlmProvider', () => {
         doc({
           index: 1,
           content: { role: 'assistant', text: 'normalized' },
-          meta: { response: message([{ type: 'text', text: 'native' }]) },
+          meta: { response: message([{ type: 'text', text: 'native' }]), provider: 'claude' },
         }),
         doc({
           index: 3,
@@ -176,6 +176,62 @@ describe('ClaudeLlmProvider', () => {
           ],
         },
       ]);
+    });
+
+    it('replays an OpenAI-written assistant message from its normalized form', async () => {
+      const openAiResponse = {
+        id: 'chatcmpl-1',
+        object: 'chat.completion',
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: 'Looking it up.',
+              tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'lookup', arguments: '{"q":"x"}' } }],
+            },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      };
+      const documents = [
+        doc({
+          content: {
+            role: 'assistant',
+            text: 'Looking it up.',
+            blocks: [
+              { type: 'text', text: 'Looking it up.' },
+              { type: 'tool_call', id: 'call_1', name: 'lookup', args: { q: 'x' } },
+            ],
+          },
+          meta: { response: openAiResponse, provider: 'openai' },
+        }),
+      ];
+
+      await provider.generateText({}, { documents });
+
+      expect(lastStreamParams().messages).toEqual([
+        {
+          role: 'assistant',
+          content: [
+            { type: 'text', text: 'Looking it up.' },
+            { type: 'tool_use', id: 'call_1', name: 'lookup', input: { q: 'x' } },
+          ],
+        },
+      ]);
+    });
+
+    it('rebuilds a stored response without a provider from its normalized form', async () => {
+      const documents = [
+        doc({
+          content: { role: 'assistant', text: 'normalized' },
+          meta: { response: message([{ type: 'text', text: 'native' }]) },
+        }),
+      ];
+
+      await provider.generateText({}, { documents });
+
+      expect(lastStreamParams().messages).toEqual([{ role: 'assistant', content: 'normalized' }]);
     });
 
     it('filters documents by a custom search tag', async () => {
@@ -256,6 +312,24 @@ describe('ClaudeLlmProvider', () => {
         { type: 'text', text: 'Line 2' },
         { type: 'tool_call', id: 't1', name: 'lookup', args: { q: 1 } },
       ]);
+    });
+
+    it.each([
+      'web_fetch_tool_result',
+      'code_execution_tool_result',
+      'bash_code_execution_tool_result',
+      'text_editor_code_execution_tool_result',
+      'tool_search_tool_result',
+    ])('normalizes a %s block to server_tool_result', async (type) => {
+      const content = { type: 'result', stdout: '42\n' };
+      response = message([
+        { type: 'server_tool_use', id: 'srv1', name: 'bash_code_execution', input: { command: 'echo 42' } },
+        { type, tool_use_id: 'srv1', content },
+      ]);
+
+      const { message: normalized } = await provider.generateText({ prompt: 'Hi' }, { documents: [] });
+
+      expect(normalized.blocks?.[1]).toEqual({ type: 'server_tool_result', toolUseId: 'srv1', content });
     });
 
     it.each(['max_tokens', 'stop_sequence'] as const)('maps the %s stop reason', async (stopReason) => {

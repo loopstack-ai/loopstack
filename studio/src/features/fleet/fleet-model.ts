@@ -1,11 +1,15 @@
-import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
+import type { WorkflowItemInterface, WorkspaceActivity, WorkspaceInterface } from '@loopstack/contracts/api';
 import { type RunActivity, runActivity } from '@/lib/run-status.ts';
 
 /**
  * What a workspace card reports. `idle` means no active run at all — the dashboard deliberately holds no
  * run history, so a workspace whose last run failed reads as idle here and is found in the runs list.
+ *
+ * The workspace API filters by the same states, computed in SQL (`WorkspaceApiService` in
+ * `@loopstack/api`) from the same rule as {@link classifyWorkspace}: change one and a card and the filter
+ * that selected it disagree.
  */
-export type FleetState = 'waiting' | 'working' | 'queued' | 'idle';
+export type FleetState = WorkspaceActivity;
 
 /**
  * One active run on a card: the run that was started, and — when the state is held further down — the
@@ -28,6 +32,17 @@ export interface FleetEntry {
   runs: FleetRunLine[];
   /** The workspace's active runs are still loading. */
   isLoading: boolean;
+}
+
+/**
+ * The columns the list view sorts by: the workspace's own fields, which the workspace API orders. A run's
+ * state or age is computed in the browser for one page only, so the list cannot sort by it.
+ */
+export type FleetSortField = 'title' | 'appName' | 'isFavourite' | 'createdAt';
+
+export interface FleetSort {
+  field: FleetSortField;
+  order: 'ASC' | 'DESC';
 }
 
 export interface FleetCounts {
@@ -161,6 +176,18 @@ export function orderEntries(entries: FleetEntry[], manualOrder: string[] = []):
     if (a.workspace.isFavourite !== b.workspace.isFavourite) return a.workspace.isFavourite ? -1 : 1;
     return a.workspace.title.localeCompare(b.workspace.title);
   });
+}
+
+/**
+ * The full order a drop is applied to: the saved order, then every shown workspace it does not rank yet.
+ *
+ * The board shows only the workspaces its search and filters select, so the shown ones alone are not the
+ * order to save — a drop would drop every other workspace's place. The saved ranks are kept as they are,
+ * hidden ones included, and the shown ones without a rank join at the tail, where the board draws them.
+ */
+export function boardOrder(savedOrder: string[], shownIds: string[]): string[] {
+  const ranked = new Set(savedOrder);
+  return [...savedOrder, ...shownIds.filter((id) => !ranked.has(id))];
 }
 
 /** Moves `id` to where `targetId` sits, returning the full order to save. */
