@@ -95,6 +95,17 @@ Array element: {{items.[0]}}
 {{#with user}}{{name}} ({{email}}){{/with}}
 ```
 
+### Helpers
+
+Handlebars tests truthiness only. Loopstack registers one helper for comparing values, `eq`, which is strict equality:
+
+```markdown
+{{#if (eq outcome "approved")}}Approved for implementation.{{/if}}
+{{#if (eq outcome "parked")}}Parked — waiting for your go-ahead.{{/if}}
+```
+
+Pass the value as it is and let the template branch on it. Turning an enum into a set of booleans before rendering is what `eq` is there to avoid.
+
 ## Multi-line Template Example
 
 ```markdown
