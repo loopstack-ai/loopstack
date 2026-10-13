@@ -16,7 +16,7 @@ import {
   WorkspaceEntity,
 } from '@loopstack/common';
 import type { WorkspaceActivity } from '@loopstack/contracts/api';
-import type { StudioDiscoveryService } from '@loopstack/core';
+import type { StudioDiscoveryService, WorkspaceService } from '@loopstack/core';
 import { WorkspaceApiService } from './workspace-api.service.js';
 
 /**
@@ -196,7 +196,13 @@ describe.skipIf(!DATABASE_URL)('WorkspaceApiService.findAll', () => {
     );
 
     const config = { get: (_key: string, fallback: unknown) => fallback } as unknown as ConfigService;
-    service = new WorkspaceApiService(workspaces, config, {} as StudioDiscoveryService, {} as EventEmitter2);
+    service = new WorkspaceApiService(
+      workspaces,
+      config,
+      {} as StudioDiscoveryService,
+      {} as EventEmitter2,
+      {} as WorkspaceService,
+    );
   });
 
   afterAll(async () => {

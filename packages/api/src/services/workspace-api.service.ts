@@ -11,7 +11,7 @@ import {
   WorkspaceSortByInterface,
   WorkspaceUpdateInterface,
 } from '@loopstack/contracts/api';
-import { StudioDiscoveryService } from '@loopstack/core';
+import { StudioDiscoveryService, WorkspaceService } from '@loopstack/core';
 import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 import { resolvePagination } from '../utils/pagination.util.js';
 
@@ -61,6 +61,7 @@ export class WorkspaceApiService {
     private configService: ConfigService,
     private studioDiscoveryService: StudioDiscoveryService,
     private eventEmitter: EventEmitter2,
+    private workspaceService: WorkspaceService,
   ) {}
 
   /**
@@ -217,24 +218,11 @@ export class WorkspaceApiService {
   }
 
   /**
-   * Deletes a workspace by ID (hard delete).
+   * Deletes a workspace by ID (hard delete). The core service owns the delete and its `workspace.deleted`
+   * event, so a deletion from the API and one a workflow makes release the same resources.
    */
   async delete(id: string, user: string): Promise<void> {
-    const workspace = await this.workspaceRepository.findOne({
-      where: {
-        id,
-        createdBy: user,
-      },
-    });
-
-    if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
-
-    await this.workspaceRepository.delete({ id, createdBy: user });
-    // In-process domain event so the host app can release resources it holds for this workspace (disk
-    // state, containers, …). Emitted once per deleted workspace, after the delete committed. Cascaded
-    // workflow deletions do NOT emit their own `workflow.deleted` events — a workspace-level listener is
-    // expected to reclaim everything the workspace owned.
-    this.eventEmitter.emit('workspace.deleted', { id, appName: workspace.appName, user });
+    await this.workspaceService.delete(id, user);
   }
 
   async batchDelete(
@@ -315,7 +303,7 @@ export class WorkspaceApiService {
       });
     }
 
-    // One `workspace.deleted` per actually-deleted workspace (see `delete` for the event contract).
+    // One `workspace.deleted` per actually-deleted workspace (see `WorkspaceService.delete` for the event contract).
     const appNameById = new Map(existingWorkspaces.map((w) => [w.id, w.appName]));
     deleted.forEach((id) => this.eventEmitter.emit('workspace.deleted', { id, appName: appNameById.get(id), user }));
 

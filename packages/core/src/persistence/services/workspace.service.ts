@@ -1,14 +1,17 @@
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
 
+@Injectable()
 export class WorkspaceService {
   private readonly logger = new Logger(WorkspaceService.name);
 
   constructor(
     @InjectRepository(WorkspaceEntity)
     private workspaceRepository: Repository<WorkspaceEntity>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getWorkspace(where: FindOptionsWhere<WorkspaceEntity>, user: string): Promise<WorkspaceEntity | null> {
@@ -42,5 +45,21 @@ export class WorkspaceService {
       createdBy: user,
     });
     return await this.workspaceRepository.save(workspace);
+  }
+
+  /**
+   * Hard-delete one of the user's workspaces, and say so.
+   *
+   * The delete takes the workspace's runs with it (they cascade), and the in-process `workspace.deleted`
+   * event is how the host app releases what it held for the workspace — its disk state, its containers, its
+   * claims. Emitted once, after the delete committed. Cascaded runs do **not** emit their own
+   * `workflow.deleted`: a workspace-level listener is expected to reclaim everything the workspace owned.
+   */
+  async delete(id: string, user: string): Promise<void> {
+    const workspace = await this.workspaceRepository.findOne({ where: { id, createdBy: user } });
+    if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
+
+    await this.workspaceRepository.delete({ id, createdBy: user });
+    this.eventEmitter.emit('workspace.deleted', { id, appName: workspace.appName, user });
   }
 }
