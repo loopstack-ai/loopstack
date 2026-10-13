@@ -24,7 +24,7 @@ const WorkflowDebugPage: React.FC = () => {
 
   const breadcrumbData = useMemo(
     () => [
-      { label: 'Workspaces', href: router.getWorkspaces() },
+      { label: 'Dashboard', href: router.getDashboard() },
       {
         label: fetchWorkspace.data?.title ?? '...',
         href: workspaceId ? router.getWorkspace(workspaceId) : undefined,

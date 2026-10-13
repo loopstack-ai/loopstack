@@ -1,4 +1,5 @@
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
+import type { FilterValue } from '../components/data-table/data-table';
 import type { PanelId, PanelSize } from '../features/workbench/providers/WorkbenchLayoutProvider';
 
 const STORAGE_KEY = 'loopstack:studio-preferences';
@@ -13,8 +14,8 @@ interface StudioPreferences {
   fleetDensity: 'grid' | 'list';
   /** Workspace ids in the order the dashboard was dragged into. Unlisted workspaces follow, by title. */
   fleetOrder: string[];
-  /** Dashboard filter: hide workspaces with no active run. */
-  fleetActiveOnly: boolean;
+  /** Dashboard filters (state, app, favourites), kept between visits. The search is not. */
+  fleetFilters: Record<string, FilterValue>;
 }
 
 const DEFAULTS: StudioPreferences = {
@@ -24,7 +25,7 @@ const DEFAULTS: StudioPreferences = {
   workbenchView: 'classic',
   fleetDensity: 'grid',
   fleetOrder: [],
-  fleetActiveOnly: false,
+  fleetFilters: {},
 };
 
 interface StudioPreferencesContextType {

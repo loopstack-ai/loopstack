@@ -37,7 +37,7 @@ const WorkspacePage = () => {
   }, [fetchAppsConfig.data, workspace?.appName]);
 
   const breadcrumbData = [
-    { label: 'Workspaces', href: router.getWorkspaces() },
+    { label: 'Dashboard', href: router.getDashboard() },
     { label: workspace?.title ?? '', current: true },
   ];
 

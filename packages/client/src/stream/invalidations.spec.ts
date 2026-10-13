@@ -6,19 +6,21 @@ const base = { userId: 'u1', workerId: 'w1' };
 const ENV = 'local';
 
 describe('resolveInvalidations', () => {
-  it('workflow.created stales the workflow lists, plus the parent child list when parented', () => {
+  it('workflow.created stales the workflow and workspace lists, plus the parent child list when parented', () => {
     expect(
       resolveInvalidations({ ...base, type: 'workflow.created', id: 'a', workflowId: 'a', parentId: 'p' }, ENV),
     ).toEqual([
       ['workflows', ENV],
+      ['workspaces', ENV],
       ['childWorkflows', ENV, 'p'],
     ]);
     expect(resolveInvalidations({ ...base, type: 'workflow.created', id: 'a', workflowId: 'a' }, ENV)).toEqual([
       ['workflows', ENV],
+      ['workspaces', ENV],
     ]);
   });
 
-  it('workflow.updated stales the entity, its status, the workflow lists, and the parent child list', () => {
+  it('workflow.updated stales the entity, its status, the workflow and workspace lists, and the parent child list', () => {
     expect(
       resolveInvalidations(
         { ...base, type: 'workflow.updated', id: 'a', workflowId: 'a', parentId: 'p', status: WorkflowState.Running },
@@ -28,6 +30,7 @@ describe('resolveInvalidations', () => {
       ['workflow', ENV, 'a'],
       ['workflowStatus', ENV, 'a'],
       ['workflows', ENV],
+      ['workspaces', ENV],
       ['childWorkflows', ENV, 'p'],
     ]);
     // Top-level update (no parent) still refreshes the lists.
@@ -40,6 +43,7 @@ describe('resolveInvalidations', () => {
       ['workflow', ENV, 'a'],
       ['workflowStatus', ENV, 'a'],
       ['workflows', ENV],
+      ['workspaces', ENV],
     ]);
   });
 

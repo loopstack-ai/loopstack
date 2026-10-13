@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
-import { classifyWorkspace, countStates, orderEntries, reorderIds, rootOf, visibleEntries } from './fleet-model.ts';
+import { boardOrder, classifyWorkspace, countStates, orderEntries, reorderIds, rootOf } from './fleet-model.ts';
 
 function workspace(id: string, title = id, isFavourite = false): WorkspaceInterface {
   return {
@@ -265,22 +265,48 @@ describe('countStates', () => {
   });
 });
 
-describe('visibleEntries', () => {
-  const entries = () => [
-    classifyWorkspace(workspace('a'), []),
-    classifyWorkspace(workspace('b'), [working('2026-10-01T09:00:00.000Z')]),
-    classifyWorkspace(workspace('c'), [], true),
-    classifyWorkspace(workspace('d'), [waiting('2026-10-01T09:00:00.000Z')]),
-    classifyWorkspace(workspace('e'), [queued('2026-10-01T09:00:00.000Z')]),
-  ];
-
-  it('returns every entry when the filter is off', () => {
-    const all = entries();
-    expect(visibleEntries(all, false)).toBe(all);
+describe('boardOrder', () => {
+  it('keeps the saved rank of a workspace the board does not show', () => {
+    // Dropping Charlie on Alpha while x is filtered out must leave x where it was.
+    const order = boardOrder(['x', 'a', 'c'], ['a', 'c']);
+    expect(order).toEqual(['x', 'a', 'c']);
+    expect(reorderIds(order, 'c', 'a')).toEqual(['x', 'c', 'a']);
   });
 
-  it('keeps only workspaces with an active run, in board order', () => {
-    // 'c' is still loading, so it reads as idle until its runs arrive.
-    expect(visibleEntries(entries(), true).map((entry) => entry.workspace.id)).toEqual(['b', 'd', 'e']);
+  it('appends shown workspaces that have no rank yet, in board order', () => {
+    expect(boardOrder(['x', 'a'], ['a', 'n', 'm'])).toEqual(['x', 'a', 'n', 'm']);
+    expect(boardOrder([], ['a', 'b'])).toEqual(['a', 'b']);
+  });
+});
+
+/**
+ * The cases the rule has to tell apart. The same cases, under the same names, are selected by the workspace
+ * API's activity filter in `packages/api/src/services/workspace-api.service.spec.ts` — the card and the
+ * filter must agree on each one. Only active runs are listed: the board never fetches finished ones.
+ */
+describe('classifyWorkspace agrees with the workspace activity filter', () => {
+  const at = '2026-10-01T09:00:00.000Z';
+  const AUTOMATIC = [{ id: 'retry', from: 'step', to: 'step' }];
+  const cases: [string, WorkflowItemInterface[], string][] = [
+    ['waiting on you', [waiting(at)], 'waiting'],
+    ['working', [working(at)], 'working'],
+    [
+      'parked on a child',
+      [waiting(at, { id: 'root', activeChildren: 1 }), working(at, { id: 'child', parentId: 'root' })],
+      'working',
+    ],
+    [
+      'child waiting on you',
+      [waiting(at, { id: 'root', activeChildren: 1 }), waiting(at, { id: 'child', parentId: 'root' })],
+      'waiting',
+    ],
+    ['parked between retries', [waiting(at, { availableTransitions: AUTOMATIC })], 'working'],
+    ['queued', [queued(at)], 'queued'],
+    ['queued behind work', [queued(at, { id: 'queued' }), working(at, { id: 'step' })], 'working'],
+    ['idle', [], 'idle'],
+  ];
+
+  it.each(cases)('%s', (_name, runs, expected) => {
+    expect(classifyWorkspace(workspace('ws-1'), runs).state).toBe(expected);
   });
 });

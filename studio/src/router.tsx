@@ -21,7 +21,6 @@ import RunsListPage from './pages/RunsListPage.tsx';
 import WorkflowDebugPage from './pages/WorkflowDebugPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspaceRunsPage from './pages/WorkspaceRunsPage.tsx';
-import WorkspacesPage from './pages/WorkspacesPage.tsx';
 import { LoopstackClientProvider } from './providers/LoopstackClientProvider.tsx';
 import { QueryProvider } from './providers/QueryProvider.tsx';
 import { StudioPreferencesProvider, useStudioPreferences } from './providers/StudioPreferencesProvider.tsx';
@@ -125,7 +124,8 @@ const router: DataRouter = createBrowserRouter([
       },
       {
         path: 'workspaces',
-        element: <WorkspacesPage />,
+        // The dashboard is where workspaces are listed; an old link to the list lands there.
+        element: <Navigate to="/dashboard" replace />,
       },
       {
         path: 'workspaces/:workspaceId',

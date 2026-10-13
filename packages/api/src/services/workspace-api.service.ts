@@ -3,8 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
-import { WorkspaceEntity } from '@loopstack/common';
+import { WorkflowState, WorkspaceEntity } from '@loopstack/common';
 import {
+  WorkspaceActivity,
   WorkspaceCreateInterface,
   WorkspaceFilterInterface,
   WorkspaceSortByInterface,
@@ -13,6 +14,44 @@ import {
 import { StudioDiscoveryService } from '@loopstack/core';
 import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 import { resolvePagination } from '../utils/pagination.util.js';
+
+/** The states a run has not finished in. `paused` is absent: the engine never assigns it. */
+const ACTIVE_RUN_STATES = [WorkflowState.Running, WorkflowState.Waiting, WorkflowState.Pending];
+
+/** "The workspace has a run that …" — the workspace's own runs, as the dashboard fetches them. */
+function hasRun(condition: string): string {
+  return `EXISTS (SELECT 1 FROM core_workflow active_run WHERE active_run.workspace_id = workspace.id AND active_run.created_by = workspace.created_by AND ${condition})`;
+}
+
+/**
+ * A run waiting on a person: parked with a transition the engine holds for a submitted payload, and no
+ * active child it could be waiting on instead.
+ */
+const RUN_NEEDS_INPUT = hasRun(
+  `active_run.status = '${WorkflowState.Waiting}'` +
+    ` AND active_run.available_transitions @> CAST(:manualTransition AS jsonb)` +
+    ` AND NOT EXISTS (SELECT 1 FROM core_workflow active_child WHERE active_child.parent_id = active_run.id AND active_child.status IN (:...activeRunStates))`,
+);
+/** Running, or parked on something other than a person — either way the machinery has it. */
+const RUN_BUSY = hasRun(`active_run.status IN (:...busyRunStates)`);
+const RUN_PENDING = hasRun(`active_run.status = '${WorkflowState.Pending}'`);
+const RUN_ACTIVE = hasRun(`active_run.status IN (:...activeRunStates)`);
+
+/**
+ * A workspace's state is its most urgent active run: waiting on a person, then working, then queued.
+ *
+ * The same rule as `runActivity` and `classifyWorkspace` in Studio (`studio/src/lib/run-status.ts`,
+ * `studio/src/features/fleet/fleet-model.ts`), which colour the dashboard's cards: change one and the
+ * filter and the card's marker disagree. Sub-workflows count — the run holding a question is usually a
+ * child — so a workspace whose root is parked on a child reads as `working`, and as `waiting` once the
+ * child itself waits on you.
+ */
+const ACTIVITY_CONDITIONS: Record<WorkspaceActivity, string> = {
+  waiting: RUN_NEEDS_INPUT,
+  working: `(${RUN_BUSY} AND NOT ${RUN_NEEDS_INPUT})`,
+  queued: `(${RUN_PENDING} AND NOT ${RUN_BUSY})`,
+  idle: `NOT ${RUN_ACTIVE}`,
+};
 
 @Injectable()
 export class WorkspaceApiService {
@@ -47,16 +86,27 @@ export class WorkspaceApiService {
 
     const queryBuilder = this.workspaceRepository.createQueryBuilder('workspace');
 
+    // `activity` is a question about the workspace's runs, not a column, so it is applied separately below.
+    const { activity, ...columnFilter } = filter ?? {};
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter ?? {})
+      Object.entries(columnFilter)
         .filter(([, value]) => value !== undefined)
-        .map(([key, value]) => [key, value === null ? IsNull() : value]),
+        .map(([key, value]) => [key, value === null ? IsNull() : Array.isArray(value) ? In(value) : value]),
     );
 
     queryBuilder.where({
       ...transformedFilter,
       createdBy: user,
     });
+
+    if (activity) {
+      const activities = Array.isArray(activity) ? activity : [activity];
+      queryBuilder.andWhere(`(${activities.map((value) => ACTIVITY_CONDITIONS[value]).join(' OR ')})`, {
+        activeRunStates: ACTIVE_RUN_STATES,
+        busyRunStates: [WorkflowState.Running, WorkflowState.Waiting],
+        manualTransition: JSON.stringify([{ trigger: 'manual' }]),
+      });
+    }
 
     if (search) {
       const allowedColumns = getEntityColumns(WorkspaceEntity);

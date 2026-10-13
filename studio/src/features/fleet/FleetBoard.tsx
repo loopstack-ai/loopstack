@@ -1,19 +1,30 @@
 import { formatDistanceToNowStrict } from 'date-fns';
-import { Activity, GripVertical, LayoutGrid, List, Play } from 'lucide-react';
-import { type HTMLAttributes, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { GripVertical, LayoutGrid, List, Play, Trash2 } from 'lucide-react';
+import { type HTMLAttributes, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import type { WorkspaceActivity } from '@loopstack/contracts/api';
+import ConfirmDialog from '@/components/data-table/ConfirmDialog';
+import DataTableBatchActions from '@/components/data-table/DataTableBatchAction';
+import DataTableFilters from '@/components/data-table/DataTableFilters';
+import DataTableToolbar from '@/components/data-table/DataTableToolbar';
+import { type FilterSpec, type FilterValue, filterValues, hasFilterValue } from '@/components/data-table/data-table.ts';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Button } from '@/components/ui/button.tsx';
+import { Checkbox } from '@/components/ui/checkbox.tsx';
 import { NewRunDialog } from '@/features/workbench/components/NewRunDialog.tsx';
+import { useAppTypes } from '@/features/workspaces/useAppTypes.ts';
+import { useDebounce } from '@/hooks/useDebounce.ts';
+import { useBatchDeleteWorkspaces } from '@/hooks/useWorkspaces.ts';
 import { cn } from '@/lib/utils.ts';
 import { useStudioPreferences } from '@/providers/StudioPreferencesProvider.tsx';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 import NewWorkspaceTile from './NewWorkspaceTile.tsx';
+import WorkspaceActionsMenu from './WorkspaceActionsMenu.tsx';
 import WorkspaceCard from './WorkspaceCard.tsx';
-import { type FleetCounts, type FleetEntry, visibleEntries } from './fleet-model.ts';
+import type { FleetCounts, FleetEntry } from './fleet-model.ts';
 import { STATE_ICON, STATE_LABEL, STATE_TEXT, runAge } from './fleet-presentation.ts';
-import { useFleet } from './useFleet.ts';
+import { type FleetQuery, useFleet } from './useFleet.ts';
 import { useFleetDrag } from './useFleetDrag.ts';
 import { useRelativeClock } from './useRelativeClock.ts';
 
@@ -28,15 +39,44 @@ function summary(counts: FleetCounts): string {
   return parts.join(' · ');
 }
 
+const STATES: WorkspaceActivity[] = ['waiting', 'working', 'queued', 'idle'];
+
+/**
+ * The board's filters, keyed as the filter bar shows them. `workspaces` is the view's own control, not a
+ * field — it becomes the API's favourites question, as the runs list's `runs` chip becomes `topLevel`.
+ */
+function toFleetQuery(filters: Record<string, FilterValue>, search: string | undefined): FleetQuery {
+  return {
+    search: search || undefined,
+    appName: filterValues(filters.appName),
+    favouritesOnly: filters.workspaces === 'favourites',
+    activity: filterValues(filters.state) as WorkspaceActivity[],
+  };
+}
+
 interface FleetRowProps {
   entry: FleetEntry;
   handleProps: HTMLAttributes<HTMLElement> & { draggable: boolean };
   dropProps: HTMLAttributes<HTMLElement>;
   isDragging: boolean;
   isDropTarget: boolean;
+  isSelected: boolean;
+  onSelectedChange: () => void;
+  onFilterApp: (appName: string) => void;
+  onDelete: (workspaceId: string) => void;
 }
 
-function FleetRow({ entry, handleProps, dropProps, isDragging, isDropTarget }: FleetRowProps) {
+function FleetRow({
+  entry,
+  handleProps,
+  dropProps,
+  isDragging,
+  isDropTarget,
+  isSelected,
+  onSelectedChange,
+  onFilterApp,
+  onDelete,
+}: FleetRowProps) {
   const { router } = useStudio();
   const { workspace, state, runs } = entry;
 
@@ -77,6 +117,7 @@ function FleetRow({ entry, handleProps, dropProps, isDragging, isDropTarget }: F
       {...dropProps}
       className={cn(
         'group/row flex items-stretch',
+        isSelected && 'bg-muted/50',
         isDragging && 'opacity-40',
         isDropTarget && 'ring-primary rounded-sm ring-2',
       )}
@@ -88,6 +129,9 @@ function FleetRow({ entry, handleProps, dropProps, isDragging, isDropTarget }: F
         className="bg-muted/30 hover:bg-muted flex w-5 shrink-0 cursor-grab items-center justify-center transition-colors active:cursor-grabbing"
       >
         <GripVertical className="text-muted-foreground/30 group-hover/row:text-muted-foreground/70 size-3.5 transition-colors" />
+      </span>
+      <span className="flex items-center pl-3">
+        <Checkbox checked={isSelected} onCheckedChange={onSelectedChange} aria-label={`Select ${workspace.title}`} />
       </span>
       {run ? (
         <Link
@@ -102,25 +146,64 @@ function FleetRow({ entry, handleProps, dropProps, isDragging, isDropTarget }: F
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-2 text-sm">{row}</div>
       )}
+      <span className="flex shrink-0 items-center gap-2 pr-2">
+        <button
+          type="button"
+          onClick={() => onFilterApp(workspace.appName)}
+          title={`Filter by ${workspace.appName}`}
+          className="text-muted-foreground hover:text-foreground hidden cursor-pointer truncate text-xs md:inline"
+        >
+          {workspace.appName}
+        </button>
+        <WorkspaceActionsMenu workspace={workspace} onDelete={onDelete} />
+      </span>
     </li>
   );
 }
 
 /**
- * The workspace dashboard: what every workspace is doing right now.
+ * The workspace dashboard: what every workspace is doing right now, and the one place workspaces are listed.
  *
  * The grid never reorders on a state change — a card stays where it was, and urgency is carried by its own
  * state marker and the counter line instead. A board whose cards move while you read it is unusable exactly
- * when the fleet is busy. The one exception is opt-in: "active only" hides idle workspaces, so with it on a
- * card comes and goes with its runs. The counter line still covers every workspace.
+ * when the fleet is busy. The exception is opt-in: the search and the filters — state, app, favourites — are
+ * answered by the workspace API, so with a state filter set a card comes and goes with its runs.
  */
 export default function FleetBoard() {
   const { preferences, setPreference } = useStudioPreferences();
-  const { entries, counts, total, isLoading, error } = useFleet();
-  const [newRunOpen, setNewRunOpen] = useState(false);
   const { router } = useStudio();
-  // Every workspace, hidden ones included, so a drop with the filter on leaves their saved places alone.
-  const drag = useFleetDrag(entries.map((entry) => entry.workspace.id));
+  const [searchParams] = useSearchParams();
+  const { types: appTypes } = useAppTypes();
+
+  const filters = preferences.fleetFilters;
+  const setFilters = (next: Record<string, FilterValue>) => setPreference('fleetFilters', next);
+  const activeFilterCount = Object.values(filters).filter(hasFilterValue).length;
+  const [isFilterOpen, setIsFilterOpen] = useState(activeFilterCount > 0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
+
+  const { entries, counts, total, isLoading, error } = useFleet(toFleetQuery(filters, debouncedSearch));
+  const shownIds = entries.map((entry) => entry.workspace.id);
+  const drag = useFleetDrag(shownIds);
+
+  const [newRunOpen, setNewRunOpen] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [batchDeleteOpen, setBatchDeleteOpen] = useState(false);
+  const batchDeleteWorkspaces = useBatchDeleteWorkspaces();
+
+  // A link into the board may carry a filter — an app from the app launcher, favourites from the sidebar.
+  useEffect(() => {
+    const appName = searchParams.get('appName');
+    const favourites = searchParams.get('favourites') === 'true';
+    if (!appName && !favourites) return;
+    setPreference('fleetFilters', {
+      ...preferences.fleetFilters,
+      ...(appName ? { appName: [appName] } : {}),
+      ...(favourites ? { workspaces: 'favourites' } : {}),
+    });
+    setIsFilterOpen(true);
+    // Applied once per link, not on every change of the saved filters — so they are not a dependency.
+  }, [searchParams]);
 
   // Relative times must keep moving even though `updatedAt` does not.
   useRelativeClock();
@@ -128,8 +211,47 @@ export default function FleetBoard() {
   if (isLoading) return <LoadingCentered loading />;
 
   const density = preferences.fleetDensity;
-  const activeOnly = preferences.fleetActiveOnly;
-  const shown = visibleEntries(entries, activeOnly);
+  // A selection only ever covers what is on screen: a workspace a filter hid is not deleted with the rest.
+  const selectedShown = selected.filter((id) => shownIds.includes(id));
+  const isFiltered = activeFilterCount > 0 || !!searchTerm;
+
+  /**
+   * Clicking a value adds it to its filter rather than replacing it, so clicking two apps asks for either —
+   * the same question the multi-select dropdown asks.
+   */
+  const addFilterValue = (key: string, value: string) => {
+    const current = filterValues(filters[key]);
+    if (!current.includes(value)) setFilters({ ...filters, [key]: [...current, value] });
+    setIsFilterOpen(true);
+  };
+
+  const toggleSelected = (id: string) =>
+    setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+
+  const toggleSelectAll = () => setSelected(selectedShown.length === shownIds.length ? [] : shownIds);
+
+  const deleteSelected = () => {
+    batchDeleteWorkspaces.mutate(selectedShown);
+    drag.forget(selectedShown);
+    setSelected([]);
+    setBatchDeleteOpen(false);
+  };
+
+  const filterConfig: Record<string, FilterSpec> = {
+    workspaces: [{ label: 'Favourites only', value: 'favourites' }],
+    state: { multiple: true, options: STATES.map((state) => ({ label: STATE_LABEL[state], value: state })) },
+    appName: { multiple: true, options: appTypes.map((app) => app.appName) },
+  };
+
+  const itemProps = (entry: FleetEntry) => ({
+    entry,
+    handleProps: drag.handleProps(entry.workspace.id),
+    dropProps: drag.dropProps(entry.workspace.id),
+    isDragging: drag.draggingId === entry.workspace.id,
+    isDropTarget: drag.overId === entry.workspace.id,
+    onFilterApp: (appName: string) => addFilterValue('appName', appName),
+    onDelete: (workspaceId: string) => drag.forget([workspaceId]),
+  });
 
   return (
     <>
@@ -139,7 +261,7 @@ export default function FleetBoard() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">
-            {summary(counts) || 'No workspaces yet'}
+            {summary(counts) || (isFiltered ? 'No matching workspaces' : 'No workspaces yet')}
             {drag.hasManualOrder && (
               <>
                 {' · '}
@@ -155,19 +277,6 @@ export default function FleetBoard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-md border p-0.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn('size-7', activeOnly && 'bg-muted')}
-              onClick={() => setPreference('fleetActiveOnly', !activeOnly)}
-              aria-label="Show active workflows only"
-              aria-pressed={activeOnly}
-              title="Show active workflows only"
-            >
-              <Activity className="size-4" />
-            </Button>
-          </div>
           <div className="flex items-center rounded-md border p-0.5">
             <Button
               variant="ghost"
@@ -195,34 +304,81 @@ export default function FleetBoard() {
         </div>
       </div>
 
-      {activeOnly && shown.length === 0 && entries.length > 0 && (
-        <p className="text-muted-foreground text-sm">No active workspaces.</p>
+      <div>
+        <DataTableToolbar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onFilterToggle={() => setIsFilterOpen(!isFilterOpen)}
+          filterCount={activeFilterCount}
+          isFilterOpen={isFilterOpen}
+          showFilter
+          showSearch
+        >
+          {density === 'list' && (
+            <div className="flex items-center gap-4">
+              <label className="text-muted-foreground flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={shownIds.length > 0 && selectedShown.length === shownIds.length}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Select all workspaces"
+                />
+                Select all
+              </label>
+              <DataTableBatchActions
+                selectedCount={selectedShown.length}
+                batchActions={[
+                  {
+                    id: 'delete',
+                    label: 'Delete Selected',
+                    icon: <Trash2 className="mr-2 h-4 w-4" />,
+                    variant: 'destructive',
+                    action: () => setBatchDeleteOpen(true),
+                  },
+                ]}
+                onBatchAction={(action) => void action.action(selectedShown)}
+              />
+            </div>
+          )}
+        </DataTableToolbar>
+        <DataTableFilters
+          filters={filters}
+          filterConfig={filterConfig}
+          onFiltersChange={setFilters}
+          isOpen={isFilterOpen}
+        />
+      </div>
+
+      {isFiltered && entries.length === 0 && (
+        <p className="text-muted-foreground text-sm">
+          No workspaces match the search and filters.{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setFilters({});
+              setSearchTerm('');
+            }}
+            className="hover:text-foreground cursor-pointer underline underline-offset-2"
+          >
+            Clear
+          </button>
+        </p>
       )}
 
       {density === 'grid' ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {shown.map((entry) => (
-            <WorkspaceCard
-              key={entry.workspace.id}
-              entry={entry}
-              handleProps={drag.handleProps(entry.workspace.id)}
-              dropProps={drag.dropProps(entry.workspace.id)}
-              isDragging={drag.draggingId === entry.workspace.id}
-              isDropTarget={drag.overId === entry.workspace.id}
-            />
+          {entries.map((entry) => (
+            <WorkspaceCard key={entry.workspace.id} {...itemProps(entry)} />
           ))}
           <NewWorkspaceTile variant="card" />
         </div>
       ) : (
         <ul className="border-border bg-card divide-y overflow-hidden rounded-lg border">
-          {shown.map((entry) => (
+          {entries.map((entry) => (
             <FleetRow
               key={entry.workspace.id}
-              entry={entry}
-              handleProps={drag.handleProps(entry.workspace.id)}
-              dropProps={drag.dropProps(entry.workspace.id)}
-              isDragging={drag.draggingId === entry.workspace.id}
-              isDropTarget={drag.overId === entry.workspace.id}
+              {...itemProps(entry)}
+              isSelected={selectedShown.includes(entry.workspace.id)}
+              onSelectedChange={() => toggleSelected(entry.workspace.id)}
             />
           ))}
           <li>
@@ -233,9 +389,19 @@ export default function FleetBoard() {
 
       {total > entries.length && (
         <p className="text-muted-foreground text-xs">
-          Showing {entries.length} of {total} workspaces.
+          Showing {entries.length} of {total} workspaces. Search or filter to find the rest.
         </p>
       )}
+
+      <ConfirmDialog
+        isOpen={batchDeleteOpen}
+        onOpenChange={setBatchDeleteOpen}
+        title={`Delete ${selectedShown.length} workspaces?`}
+        description="The workspaces and every run in them are removed. This cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={deleteSelected}
+      />
 
       <NewRunDialog
         open={newRunOpen}

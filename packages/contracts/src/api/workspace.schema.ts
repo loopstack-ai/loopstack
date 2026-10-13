@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { SortBySchema } from './common.schema.js';
 import type { SortByInterface } from './common.schema.js';
+import { oneOrMany } from './one-or-many.js';
 
 export interface EnvironmentConfigInterface {
   id: string;
@@ -40,9 +41,18 @@ export const WorkspaceFavouriteSchema = z.object({
 });
 export type WorkspaceFavouriteInterface = z.infer<typeof WorkspaceFavouriteSchema>;
 
+/**
+ * What a workspace is doing, judged by its most urgent active run: one waiting on a person, then one
+ * the machinery is working on, then one queued. With no active run at all it is `idle`.
+ */
+export const WorkspaceActivitySchema = z.enum(['waiting', 'working', 'queued', 'idle']);
+export type WorkspaceActivity = z.infer<typeof WorkspaceActivitySchema>;
+
 export const WorkspaceFilterSchema = z.object({
-  appName: z.string().optional(),
+  appName: oneOrMany(z.string()).optional(),
   isFavourite: z.boolean().optional(),
+  /** Workspaces in any of these states — computed from their runs, not a column. */
+  activity: oneOrMany(WorkspaceActivitySchema).optional(),
 });
 export type WorkspaceFilterInterface = z.infer<typeof WorkspaceFilterSchema>;
 
