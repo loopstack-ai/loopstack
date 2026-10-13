@@ -344,6 +344,7 @@ src/
 ## Registry References
 
 - [Custom Tool example](/docs/examples/advanced-workflows#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
+- [Server Tool example](/docs/examples/advanced-workflows#server-tool) — a code-execution `ServerTool` listed in an `llm_generate_text` call, with the code and its output read from the reply blocks
 - [Custom Agent example](/docs/examples/agent#custom-agent) — `weather_lookup` and `calculator` tools exposed to the LLM for function calling
 
 ---

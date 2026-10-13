@@ -285,6 +285,11 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
             input: block.input as Record<string, unknown>,
           };
         case 'web_search_tool_result':
+        case 'web_fetch_tool_result':
+        case 'code_execution_tool_result':
+        case 'bash_code_execution_tool_result':
+        case 'text_editor_code_execution_tool_result':
+        case 'tool_search_tool_result':
           return {
             type: 'server_tool_result' as const,
             toolUseId: block.tool_use_id,

@@ -16,6 +16,8 @@ import { NestedGreetingModule } from './workflows/module-config/consumers/nested
 import { NestedGreetingWorkflow } from './workflows/module-config/consumers/nested-greeting.workflow';
 import { GreeterModule } from './workflows/module-config/greeter/greeter.module';
 import { RunSubWorkflowExampleSequenceWorkflow } from './workflows/sequence/sequence-example.workflow';
+import { ServerToolExampleWorkflow } from './workflows/server-tool/server-tool-example.workflow';
+import { CodeExecutionTool } from './workflows/server-tool/tools/code-execution.tool';
 import { RunSubWorkflowExampleErrorHandlingWorkflow } from './workflows/sub-workflow/sub-workflow-error-handling.workflow';
 import { RunSubWorkflowExampleFailingSubWorkflow } from './workflows/sub-workflow/sub-workflow-failing-sub.workflow';
 import { RunSubWorkflowExampleParentWorkflow } from './workflows/sub-workflow/sub-workflow-parent.workflow';
@@ -36,6 +38,7 @@ const WORKFLOWS = [
   RunSubWorkflowExampleSequenceWorkflow,
   BatchProcessingExampleWorkflow,
   CustomToolExampleWorkflow,
+  ServerToolExampleWorkflow,
   TestUiDocumentsWorkflow,
 ];
 
@@ -57,6 +60,7 @@ const WORKFLOWS = [
     MathService,
     MathSumTool,
     CounterTool,
+    CodeExecutionTool,
     RunSubWorkflowExampleSubWorkflow,
     RunSubWorkflowExampleFailingSubWorkflow,
     ...WORKFLOWS,
