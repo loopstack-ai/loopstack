@@ -44,6 +44,7 @@ function workspace(id: string, title: string): WorkspaceInterface {
     title,
     appName: 'demo',
     isFavourite: false,
+    labels: [],
     createdAt: '2026-10-01T08:00:00.000Z',
     updatedAt: '2026-10-01T08:00:00.000Z',
   };

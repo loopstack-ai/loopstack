@@ -3,11 +3,12 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { CODE_WORKSPACE_PROVISIONER, type CodeWorkspaceProvisioner } from './code-workspace.provisioner.js';
 
 /**
- * Releases what a deleted workspace or run was holding: its containers, its volumes and its files.
+ * Releases what a deleted workspace was holding: its containers, its volumes and its files.
  *
  * The state belongs to this module, so letting it go belongs here too. `@loopstack/api` emits
- * `workspace.deleted` and `workflow.deleted` after the delete commits, and both provisioner calls are
- * idempotent, so this is the whole of it.
+ * `workspace.deleted` after the delete commits, and the provisioner call is idempotent, so this is the whole
+ * of it. A deleted run owns nothing on disk — the checkout is its workspace's — and tears its own containers
+ * down; what a crash leaves standing is found by the orphan sweep.
  *
  * **It runs in the background.** `emit` does not await an async listener, so the delete request returns
  * immediately and a multi-gigabyte removal continues after it. Which is also why nothing here ever throws:
@@ -28,16 +29,6 @@ export class WorkspaceCleanupListener {
     await this.release(
       () => this.workspace.removeWorkspaceState(payload.id),
       `the state of deleted workspace ${payload.id}`,
-    );
-  }
-
-  @OnEvent('workflow.deleted')
-  async onWorkflowDeleted(payload: { id: string; workspaceId: string }): Promise<void> {
-    // A cascade delete emits nothing for the children it removes, so a run deleted with its workspace is
-    // covered by the workspace above rather than by this.
-    await this.release(
-      () => this.workspace.removeWorkflowCheckout(payload.workspaceId, payload.id),
-      `the checkout of deleted run ${payload.id}`,
     );
   }
 

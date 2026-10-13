@@ -22,28 +22,14 @@ function inventory(): Inventory {
         title: 'Engineer',
         appName: 'engineer_worker_app',
         sizeBytes: 5 * 1024 ** 3,
-        checkouts: [
-          {
-            workflowId: WF_LIVE,
-            existsInDb: true,
-            status: 'completed',
-            sizeBytes: 1024 ** 3,
-            modifiedAt: '2026-09-10T00:00:00.000Z',
-          },
-          {
-            workflowId: WF_DELETED,
-            existsInDb: false,
-            sizeBytes: 2 * 1024 ** 3,
-            modifiedAt: '2026-09-01T00:00:00.000Z',
-          },
-        ],
+        checkout: { sizeBytes: 3 * 1024 ** 3, modifiedAt: '2026-09-10T00:00:00.000Z' },
       },
       {
         workspaceId: WS_DELETED,
         existsInDb: false,
         unrecognized: false,
         sizeBytes: 8 * 1024 ** 3,
-        checkouts: [],
+        checkout: { sizeBytes: 8 * 1024 ** 3, modifiedAt: '2026-09-01T00:00:00.000Z' },
       },
       // A foreign directory someone put into the state dir — reported, never reclaimed.
       {
@@ -51,16 +37,17 @@ function inventory(): Inventory {
         existsInDb: false,
         unrecognized: true,
         sizeBytes: 1024,
-        checkouts: [],
       },
     ],
     containers: [
       // Stray container of a workspace with NO state dir left — its workspace row is gone too.
       { id: 'c1', name: 'x', workspaceId: WS_STRAY, workflowId: 'base', running: false, orphaned: true },
       { id: 'c2', name: 'y', workspaceId: WS_LIVE, workflowId: WF_LIVE, running: true, orphaned: false },
+      // Zombie container of a deleted run inside a live workspace.
+      { id: 'c3', name: 'z', workspaceId: WS_LIVE, workflowId: WF_DELETED, running: false, orphaned: true },
     ],
     volumes: [
-      // dind cache of a deleted run inside a live workspace.
+      // dind cache of the same deleted run.
       {
         name: `loopstack-engineer-dind-${WS_LIVE}-${WF_DELETED}-agent`,
         workspaceId: WS_LIVE,
@@ -102,13 +89,14 @@ function withBases(options: { locked?: boolean; referenced?: boolean } = {}): In
 }
 
 describe('WorkspaceInventoryService.orphanPlan', () => {
-  it('plans workspace-level reclaim for deleted workspaces and docker strays, checkout-level for deleted runs', () => {
+  it('plans workspace-level reclaim for deleted workspaces and docker strays, run-level for deleted runs', () => {
     const plan = service().orphanPlan(inventory());
 
     // WS_DELETED (state dir, row gone) and WS_STRAY (docker leftovers only, row gone) — never the live one.
     expect(plan.workspaceIds.sort()).toEqual([WS_DELETED, WS_STRAY].sort());
-    // The deleted run's checkout + its dind volume collapse into one checkout-level entry.
-    expect(plan.checkouts).toEqual([{ workspaceId: WS_LIVE, workflowId: WF_DELETED }]);
+    // The deleted run's zombie container and its dind volume collapse into one run-level entry. The live
+    // workspace's checkout is not the run's and is never proposed.
+    expect(plan.runs).toEqual([{ workspaceId: WS_LIVE, workflowId: WF_DELETED }]);
   });
 
   it('never reclaims unrecognized (non-id) directories', () => {
@@ -121,7 +109,9 @@ describe('WorkspaceInventoryService.orphanPlan', () => {
     const svc = service();
     const plan = svc.orphanPlan(inv);
     expect(svc.renderInventory(inv)).toContain('orphaned');
+    expect(svc.renderInventory(inv)).toContain('checkout: none');
     expect(svc.renderOrphanPlan(inv, plan)).toContain(WS_DELETED);
+    expect(svc.renderOrphanPlan(inv, plan)).toContain(WF_DELETED);
   });
 });
 

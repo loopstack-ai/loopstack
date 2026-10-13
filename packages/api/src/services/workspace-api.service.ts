@@ -87,7 +87,8 @@ export class WorkspaceApiService {
     const queryBuilder = this.workspaceRepository.createQueryBuilder('workspace');
 
     // `activity` is a question about the workspace's runs, not a column, so it is applied separately below.
-    const { activity, ...columnFilter } = filter ?? {};
+    // `labels` is a column, but an array one: the generic mapping would read its array as an `IN` list.
+    const { activity, labels, ...columnFilter } = filter ?? {};
     const transformedFilter = Object.fromEntries(
       Object.entries(columnFilter)
         .filter(([, value]) => value !== undefined)
@@ -98,6 +99,11 @@ export class WorkspaceApiService {
       ...transformedFilter,
       createdBy: user,
     });
+
+    // Every requested label, not any: `@>` is array containment.
+    if (labels?.length) {
+      queryBuilder.andWhere('workspace.labels @> :labels', { labels });
+    }
 
     if (activity) {
       const activities = Array.isArray(activity) ? activity : [activity];

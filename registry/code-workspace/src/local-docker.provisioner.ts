@@ -15,6 +15,7 @@ import type {
   BaseBuildOwner,
   BaseGenerationInfo,
   BaseStateInfo,
+  Checkout,
   CheckoutInfo,
   CheckoutRepo,
   CodeWorkspaceProvisioner,
@@ -24,7 +25,6 @@ import type {
   RepoChanges,
   SharedStateInfo,
   VolumeInfo,
-  WorkflowCheckout,
   WorkspaceStateInfo,
 } from './code-workspace.provisioner.js';
 import { type RepoChangeCount, parseShortStat } from './short-stat.js';
@@ -42,10 +42,10 @@ const BASE_WORKFLOW_KEY = 'base';
  * teardown (no `--rm`) so a crashed container's logs survive for inspection.
  *
  * **Keys are ids, used verbatim.** `workspaceId`/`workflowId` are trusted, runtime-generated ids from the
- * loopstack engine — never display names — and appear unmodified in directory paths, `wf/<id>` branch
- * names, container/volume names, and labels. That makes every on-disk/docker resource name reversible to
- * its owning DB row with certainty (no sanitization, no collisions, no guessing during cleanup). Callers
- * must pass `ctx.workspaceId`/`ctx.workflowId`, nothing user-authored.
+ * loopstack engine — never display names — and appear unmodified in directory paths, container/volume
+ * names, and labels. That makes every on-disk/docker resource name reversible to its owning DB row with
+ * certainty (no sanitization, no collisions, no guessing during cleanup). Callers must pass
+ * `ctx.workspaceId`/`ctx.workflowId`, nothing user-authored.
  *
  * @providedBy CodeWorkspaceModule (bound to the CODE_WORKSPACE_PROVISIONER token)
  */
@@ -332,13 +332,8 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
       .filter((e) => e.isDirectory() && !e.name.startsWith('_'))
       .map((e) => e.name);
     for (const workspaceId of workspaces) {
-      const workflowsRoot = path.join(root, workspaceId, 'workflows');
-      if (!existsSync(workflowsRoot)) continue;
-      for (const wf of await readdir(workflowsRoot, { withFileTypes: true })) {
-        if (!wf.isDirectory()) continue;
-        const marker = this.readCheckoutBase(workspaceId, wf.name);
-        if (marker) referenced.add(`${marker.baseKey}/${marker.generation}`);
-      }
+      const marker = this.readCheckoutBase(workspaceId);
+      if (marker) referenced.add(`${marker.baseKey}/${marker.generation}`);
     }
     return referenced;
   }
@@ -440,25 +435,25 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     this.logger.log(`Exported seed image ${image} (${Id.slice(0, 19)}) to ${tarPath}`);
   }
 
-  resolveWorkflowDir(workspaceId: string, workflowId: string): string {
-    return path.join(this.resolveWorkspaceDir(workspaceId), 'workflows', workflowId);
+  resolveCheckoutDir(workspaceId: string): string {
+    return this.resolveWorkspaceDir(workspaceId);
   }
 
-  listRepos(workspaceId: string, workflowId: string): CheckoutRepo[] {
-    return this.readRepos(workspaceId, workflowId);
+  listRepos(workspaceId: string): CheckoutRepo[] {
+    return this.readRepos(workspaceId);
   }
 
-  resolveRepoDir(workspaceId: string, workflowId: string, key?: string): string {
-    const repos = this.readRepos(workspaceId, workflowId);
+  resolveRepoDir(workspaceId: string, key?: string): string {
+    const repos = this.readRepos(workspaceId);
     const repo = key ? repos.find((r) => r.key === key) : (repos.find((r) => r.primary) ?? repos[0]);
     if (!repo) {
       throw new Error(
         key
-          ? `Checkout ${workflowId} has no repo "${key}".`
-          : `Checkout ${workflowId} records no repos — it was not created by cloneBaseIntoWorkflow.`,
+          ? `The checkout of workspace ${workspaceId} has no repo "${key}".`
+          : `The checkout of workspace ${workspaceId} records no repos — it was not created by cloneBase.`,
       );
     }
-    const workspaceDir = this.workflowWorkspaceDir(workspaceId, workflowId);
+    const workspaceDir = this.checkoutWorkspaceDir(workspaceId);
     return repo.dir ? path.join(workspaceDir, repo.dir) : workspaceDir;
   }
 
@@ -481,62 +476,54 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     return tip !== head;
   }
 
-  workflowCheckoutExists(workspaceId: string, workflowId: string): boolean {
-    return existsSync(this.workflowWorkspaceDir(workspaceId, workflowId));
+  checkoutExists(workspaceId: string): boolean {
+    // The repo marker is what every read-side operation resolves through, so it is what "a checkout" means.
+    return existsSync(this.reposMarker(workspaceId));
   }
 
-  async ensureWorkflowCheckout(
-    workspaceId: string,
-    workflowId: string,
-    baseKey: string,
-    repos: CheckoutRepo[],
-  ): Promise<WorkflowCheckout> {
-    if (this.workflowCheckoutExists(workspaceId, workflowId)) {
-      return { workspaceDir: this.workflowWorkspaceDir(workspaceId, workflowId), created: false };
+  async ensureCheckout(workspaceId: string, baseKey: string, repos: CheckoutRepo[]): Promise<Checkout> {
+    // An existing checkout is used as it is — no fetch, no reset, no re-clone. The tree the last run left is
+    // the tree the next one works on, whatever the base did in between.
+    if (this.checkoutExists(workspaceId)) {
+      return { workspaceDir: this.checkoutWorkspaceDir(workspaceId), created: false };
     }
-    await this.cloneBaseIntoWorkflow(workspaceId, workflowId, baseKey, repos);
-    await this.linkWorkflowArtifacts(workspaceId, workflowId);
-    await this.checkoutWorkflowBranch(workspaceId, workflowId);
-    return { workspaceDir: this.workflowWorkspaceDir(workspaceId, workflowId), created: true };
+    await this.cloneBase(workspaceId, baseKey, repos);
+    await this.linkArtifacts(workspaceId);
+    return { workspaceDir: this.checkoutWorkspaceDir(workspaceId), created: true };
   }
 
-  async cloneBaseIntoWorkflow(
-    workspaceId: string,
-    workflowId: string,
-    baseKey: string,
-    repos: CheckoutRepo[],
-  ): Promise<void> {
+  async cloneBase(workspaceId: string, baseKey: string, repos: CheckoutRepo[]): Promise<void> {
     if (!this.isBaseProvisioned(baseKey)) {
       throw new Error('Base is not provisioned — run the "Provision Base" workflow for this template first.');
     }
-    // Persist the repo set before cloning, so the read-side ops (link, branch, hooks, listChangedFiles,
-    // the changed-files hand-off) resolve them later without the caller re-supplying them.
-    await mkdir(this.resolveWorkflowDir(workspaceId, workflowId), { recursive: true });
-    await this.writeRepos(workspaceId, workflowId, repos);
-    // Resolve the generation **once**, here, and record it: a swap later in the run changes nothing for
-    // this checkout, because every remaining stage reads the tree this one cloned from.
+    // Persist the repo set before cloning, so the read-side ops (link, hooks, listChangedFiles, the
+    // changed-files hand-off) resolve them later without the caller re-supplying them.
+    await mkdir(this.resolveCheckoutDir(workspaceId), { recursive: true });
+    await this.writeRepos(workspaceId, repos);
+    // Resolve the generation **once**, here, and record it: a swap later changes nothing for this checkout,
+    // because every remaining stage reads the tree this one cloned from.
     const generation = this.currentBaseGeneration(baseKey)!;
-    await this.writeCheckoutBase(workspaceId, workflowId, { baseKey, generation });
+    await this.writeCheckoutBase(workspaceId, { baseKey, generation });
     const baseWorkspace = path.join(this.baseDir(baseKey), generation, 'workspace');
     // Ensure the workspace (mount) root exists so the clones can target sub-paths of it.
-    await mkdir(this.workflowWorkspaceDir(workspaceId, workflowId), { recursive: true });
+    await mkdir(this.checkoutWorkspaceDir(workspaceId), { recursive: true });
     // Outer-first: a nested repo's target lives inside its parent's tree, so the parent must exist first.
     for (const repo of repos) {
-      const repoDir = this.resolveRepoDir(workspaceId, workflowId, repo.key);
-      await this.withCheckoutCleanup(workspaceId, workflowId, () =>
+      const repoDir = this.resolveRepoDir(workspaceId, repo.key);
+      await this.withCheckoutCleanup(workspaceId, () =>
         this.git(['clone', '--local', repo.dir ? path.join(baseWorkspace, repo.dir) : baseWorkspace, repoDir]),
       );
     }
   }
 
-  async linkWorkflowArtifacts(workspaceId: string, workflowId: string): Promise<void> {
-    const repos = this.readRepos(workspaceId, workflowId);
-    const marker = this.readCheckoutBase(workspaceId, workflowId);
+  async linkArtifacts(workspaceId: string): Promise<void> {
+    const repos = this.readRepos(workspaceId);
+    const marker = this.readCheckoutBase(workspaceId);
     if (!marker) {
       // Without the generation there is nothing to link from — and a checkout quietly left without its
       // node_modules would run against an unbuilt tree.
       throw new Error(
-        `Checkout ${workflowId} records no base generation — it was not created by cloneBaseIntoWorkflow.`,
+        `The checkout of workspace ${workspaceId} records no base generation — it was not created by cloneBase.`,
       );
     }
     const baseWorkspace = path.join(this.baseDir(marker.baseKey), marker.generation, 'workspace');
@@ -546,56 +533,36 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
       const nested = repos
         .filter((other) => other.key !== repo.key && this.isNestedIn(other.dir, repo.dir))
         .map((other) => path.relative(repo.dir, other.dir));
-      await this.withCheckoutCleanup(workspaceId, workflowId, () =>
+      await this.withCheckoutCleanup(workspaceId, () =>
         this.hardlinkIgnoredArtifacts(
           repo.dir ? path.join(baseWorkspace, repo.dir) : baseWorkspace,
-          this.resolveRepoDir(workspaceId, workflowId, repo.key),
+          this.resolveRepoDir(workspaceId, repo.key),
           nested,
         ),
       );
     }
   }
 
-  async checkoutWorkflowBranch(workspaceId: string, workflowId: string): Promise<void> {
-    // One branch name across every repo, so a run's work is trivially correlatable.
-    for (const repo of this.readRepos(workspaceId, workflowId)) {
-      const repoDir = this.resolveRepoDir(workspaceId, workflowId, repo.key);
-      await this.withCheckoutCleanup(workspaceId, workflowId, () =>
-        this.git(['-C', repoDir, 'checkout', '-b', `wf/${workflowId}`]),
-      );
-    }
-  }
-
-  async writeRepoGitHook(
-    workspaceId: string,
-    workflowId: string,
-    repoKey: string,
-    name: string,
-    script: string,
-  ): Promise<void> {
-    const hooksDir = path.join(this.resolveRepoDir(workspaceId, workflowId, repoKey), '.git', 'hooks');
+  async writeRepoGitHook(workspaceId: string, repoKey: string, name: string, script: string): Promise<void> {
+    const hooksDir = path.join(this.resolveRepoDir(workspaceId, repoKey), '.git', 'hooks');
     await mkdir(hooksDir, { recursive: true });
     const hookPath = path.join(hooksDir, name);
     await writeFile(hookPath, script);
     await chmod(hookPath, 0o755);
   }
 
-  async setRepoIdentity(workspaceId: string, workflowId: string, name: string, email: string): Promise<void> {
+  async setRepoIdentity(workspaceId: string, name: string, email: string): Promise<void> {
     // Every repo: a run may commit in any of them, and an unattributed commit is the kind of thing nobody
     // notices until it is on a remote.
-    for (const repo of this.readRepos(workspaceId, workflowId)) {
-      const repoDir = this.resolveRepoDir(workspaceId, workflowId, repo.key);
+    for (const repo of this.readRepos(workspaceId)) {
+      const repoDir = this.resolveRepoDir(workspaceId, repo.key);
       await this.git(['-C', repoDir, 'config', 'user.name', name]);
       await this.git(['-C', repoDir, 'config', 'user.email', email]);
     }
   }
 
-  async applyFixtures(
-    workspaceId: string,
-    workflowId: string,
-    fixtures: { src: string; dest: string }[],
-  ): Promise<void> {
-    const workspaceDir = this.workflowWorkspaceDir(workspaceId, workflowId);
+  async applyFixtures(workspaceId: string, fixtures: { src: string; dest: string }[]): Promise<void> {
+    const workspaceDir = this.checkoutWorkspaceDir(workspaceId);
     for (const { src, dest } of fixtures) {
       if (!existsSync(src)) {
         this.logger.warn(`Fixture source missing, skipped: ${src}`);
@@ -607,10 +574,10 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     }
   }
 
-  async listChangedFiles(workspaceId: string, workflowId: string): Promise<RepoChanges[]> {
+  async listChangedFiles(workspaceId: string): Promise<RepoChanges[]> {
     const changes: RepoChanges[] = [];
-    for (const repo of this.readRepos(workspaceId, workflowId)) {
-      const repoDir = this.resolveRepoDir(workspaceId, workflowId, repo.key);
+    for (const repo of this.readRepos(workspaceId)) {
+      const repoDir = this.resolveRepoDir(workspaceId, repo.key);
       if (!existsSync(repoDir)) continue;
       try {
         // `--porcelain` is a stable, script-friendly format: each line is `XY <path>` (2-char status + space),
@@ -627,16 +594,15 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
         if (paths.length) changes.push({ repoKey: repo.key, hostRoot: repoDir, paths });
       } catch (error) {
         this.logger.warn(
-          `Failed to list changed files for ${this.describeCheckout(workspaceId, workflowId)} (${repo.key}): ` +
-            this.message(error),
+          `Failed to list changed files in workspace ${workspaceId} (${repo.key}): ` + this.message(error),
         );
       }
     }
     return changes;
   }
 
-  async repoHead(workspaceId: string, workflowId: string, repoKey: string): Promise<string | undefined> {
-    const repoDir = this.resolveRepoDir(workspaceId, workflowId, repoKey);
+  async repoHead(workspaceId: string, repoKey: string): Promise<string | undefined> {
+    const repoDir = this.resolveRepoDir(workspaceId, repoKey);
     if (!existsSync(repoDir)) return undefined;
     try {
       return (await this.git(['-C', repoDir, 'rev-parse', 'HEAD'])).trim() || undefined;
@@ -646,13 +612,8 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     }
   }
 
-  async countRepoChangesSinceBase(
-    workspaceId: string,
-    workflowId: string,
-    repoKey: string,
-    baseBranch: string,
-  ): Promise<RepoChangeCount> {
-    const repoDir = this.resolveRepoDir(workspaceId, workflowId, repoKey);
+  async countRepoChangesSinceBase(workspaceId: string, repoKey: string, baseBranch: string): Promise<RepoChangeCount> {
+    const repoDir = this.resolveRepoDir(workspaceId, repoKey);
     const none = { files: 0, insertions: 0, deletions: 0, commits: 0 };
     if (!existsSync(repoDir)) return none;
     try {
@@ -665,14 +626,8 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     }
   }
 
-  async diffSinceBase(
-    workspaceId: string,
-    workflowId: string,
-    repoKey: string,
-    baseBranch: string,
-    maxChars: number,
-  ): Promise<string> {
-    const repoDir = this.resolveRepoDir(workspaceId, workflowId, repoKey);
+  async diffSinceBase(workspaceId: string, repoKey: string, baseBranch: string, maxChars: number): Promise<string> {
+    const repoDir = this.resolveRepoDir(workspaceId, repoKey);
     if (!existsSync(repoDir)) return '';
     try {
       const patch = await this.git([
@@ -691,32 +646,19 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     }
   }
 
-  async discardWorkflowCheckout(workspaceId: string, workflowId: string): Promise<void> {
-    // The WHOLE workflow dir, not just its `workspace` subdir — a partial discard leaves `claude-state/`
-    // and the `.repos.json` / `.base.json` markers as permanent residue. No session has run when a
-    // checkout build fails (staged builds only happen on fresh checkouts), so there are never transcripts
-    // to lose here.
-    const workflowDir = this.resolveWorkflowDir(workspaceId, workflowId);
-    this.assertInsideStateDir(workspaceId, workflowDir);
-    await rm(workflowDir, { recursive: true, force: true }).catch(() => undefined);
-  }
-
-  async removeWorkflowCheckout(workspaceId: string, workflowId: string): Promise<void> {
-    // Reclaim in dependency order, durable record LAST: (1) force-remove the workflow's containers, so a
-    // crashed run's zombie can't hold a dind volume in-use; (2) remove the volumes; (3) only then delete
-    // the checkout dir. A failure at any step leaves the checkout on disk, so the operation stays cleanly
-    // re-runnable — deleting the files first would orphan whatever step 2 failed to release.
-    const workflowDir = this.resolveWorkflowDir(workspaceId, workflowId);
-    this.assertInsideStateDir(workspaceId, workflowDir);
-
-    await this.removeWorkflowContainers(workspaceId, workflowId);
-    await this.removeWorkflowVolumes(workspaceId, workflowId);
-
-    // Docker Desktop maps bind-mounted files to the host user, so the checkout (incl. container-created
-    // node_modules) is host-owned and can be removed directly — no throwaway container needed. Errors
-    // propagate so the caller can surface them in the workflow.
-    await rm(workflowDir, { recursive: true, force: true });
-    this.logger.log(`Removed workflow dir ${workflowDir}`);
+  async discardCheckout(workspaceId: string): Promise<void> {
+    // The clone and both markers, so a retry finds no checkout and builds a fresh one — a `workspace/` left
+    // without its markers, or markers without a tree, would be read as a checkout and reused broken. What
+    // the caller keeps beside them (a `claude-state/` of earlier runs, for instance) is not this method's to
+    // remove: a workspace that already ran has a history, and a failed re-clone is no reason to lose it.
+    for (const target of [
+      this.checkoutWorkspaceDir(workspaceId),
+      this.reposMarker(workspaceId),
+      this.checkoutBaseMarker(workspaceId),
+    ]) {
+      this.assertInsideStateDir(workspaceId, target);
+      await rm(target, { recursive: true, force: true }).catch(() => undefined);
+    }
   }
 
   resolveDindVolumeName(workspaceId: string, workflowId: string, role: 'agent' | 'app'): string {
@@ -778,24 +720,16 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
             .map((e) => e.name);
     const result: WorkspaceStateInfo[] = [];
     for (const wsId of names) {
-      const checkouts: CheckoutInfo[] = [];
-      const workflowsRoot = path.join(root, wsId, 'workflows');
-      if (existsSync(workflowsRoot)) {
-        for (const wf of await readdir(workflowsRoot, { withFileTypes: true })) {
-          if (!wf.isDirectory()) continue;
-          const dir = path.join(workflowsRoot, wf.name);
-          const stats = await stat(dir);
-          checkouts.push({
-            workflowId: wf.name,
-            sizeBytes: await this.dirSizeBytes(dir),
-            modifiedAt: stats.mtime.toISOString(),
-          });
-        }
+      let checkout: CheckoutInfo | undefined;
+      const checkoutDir = this.checkoutWorkspaceDir(wsId);
+      if (this.checkoutExists(wsId) && existsSync(checkoutDir)) {
+        const stats = await stat(checkoutDir);
+        checkout = { sizeBytes: await this.dirSizeBytes(checkoutDir), modifiedAt: stats.mtime.toISOString() };
       }
       result.push({
         workspaceId: wsId,
         sizeBytes: await this.dirSizeBytes(path.join(root, wsId)),
-        checkouts,
+        ...(checkout ? { checkout } : {}),
       });
     }
     return result;
@@ -824,7 +758,10 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
   }
 
   async removeWorkspaceState(workspaceId: string): Promise<void> {
-    // Same dependency order as the workflow-level reclaim, one level up: containers, volumes, files last.
+    // Dependency order, durable record LAST: (1) force-remove the workspace's containers, so a crashed run's
+    // zombie can't hold a dind volume in-use; (2) remove the volumes; (3) only then delete the state dir. A
+    // failure at any step leaves the files on disk, so the operation stays cleanly re-runnable — deleting
+    // the files first would orphan whatever step 2 failed to release.
     const wsDir = this.resolveWorkspaceDir(workspaceId);
     this.assertInsideStateDir(workspaceId, wsDir);
     // A base-provisioning container carries this workspace's label because the workspace started it, but
@@ -834,6 +771,9 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
       (info) => info.Labels?.[this.workflowLabel] !== BASE_WORKFLOW_KEY,
     );
     await this.removeVolumesByLabels([`${this.workspaceLabel}=${workspaceId}`]);
+    // Docker Desktop maps bind-mounted files to the host user, so the checkout (incl. container-created
+    // node_modules) is host-owned and can be removed directly — no throwaway container needed. Errors
+    // propagate so the caller can surface them in the workflow.
     await rm(wsDir, { recursive: true, force: true });
     this.logger.log(`Removed workspace state ${wsDir}`);
   }
@@ -929,28 +869,22 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     return stateDir.startsWith('~/') ? path.join(os.homedir(), stateDir.slice(2)) : path.resolve(stateDir);
   }
 
-  private workflowWorkspaceDir(workspaceId: string, workflowId: string): string {
-    return path.join(this.resolveWorkflowDir(workspaceId, workflowId), 'workspace');
+  /** The clone itself — the directory mounted at `/workspace`. */
+  private checkoutWorkspaceDir(workspaceId: string): string {
+    return path.join(this.resolveCheckoutDir(workspaceId), 'workspace');
   }
 
   /** Which base generation this checkout was cloned from — its reference for GC, and its stable view. */
-  private checkoutBaseMarker(workspaceId: string, workflowId: string): string {
-    return path.join(this.resolveWorkflowDir(workspaceId, workflowId), '.base.json');
+  private checkoutBaseMarker(workspaceId: string): string {
+    return path.join(this.resolveCheckoutDir(workspaceId), '.base.json');
   }
 
-  private async writeCheckoutBase(
-    workspaceId: string,
-    workflowId: string,
-    marker: { baseKey: string; generation: string },
-  ): Promise<void> {
-    await writeFile(this.checkoutBaseMarker(workspaceId, workflowId), JSON.stringify(marker, null, 2));
+  private async writeCheckoutBase(workspaceId: string, marker: { baseKey: string; generation: string }): Promise<void> {
+    await writeFile(this.checkoutBaseMarker(workspaceId), JSON.stringify(marker, null, 2));
   }
 
-  private readCheckoutBase(
-    workspaceId: string,
-    workflowId: string,
-  ): { baseKey: string; generation: string } | undefined {
-    const marker = this.checkoutBaseMarker(workspaceId, workflowId);
+  private readCheckoutBase(workspaceId: string): { baseKey: string; generation: string } | undefined {
+    const marker = this.checkoutBaseMarker(workspaceId);
     if (!existsSync(marker)) return undefined;
     try {
       return JSON.parse(readFileSync(marker, 'utf8')) as { baseKey: string; generation: string };
@@ -961,21 +895,21 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
 
   /**
    * Marker file (sibling of `workspace`, so it's outside the mount) recording the repos this checkout was
-   * created with. Written before the first clone, so every later read-side operation — resolve, branch,
-   * hooks, changed files — works from what the checkout actually holds rather than from a caller's
-   * argument that may no longer match.
+   * created with. Written before the first clone, so every later read-side operation — resolve, hooks,
+   * changed files — works from what the checkout actually holds rather than from a caller's argument that
+   * may no longer match.
    */
-  private reposMarker(workspaceId: string, workflowId: string): string {
-    return path.join(this.resolveWorkflowDir(workspaceId, workflowId), '.repos.json');
+  private reposMarker(workspaceId: string): string {
+    return path.join(this.resolveCheckoutDir(workspaceId), '.repos.json');
   }
 
-  private async writeRepos(workspaceId: string, workflowId: string, repos: CheckoutRepo[]): Promise<void> {
-    await writeFile(this.reposMarker(workspaceId, workflowId), JSON.stringify(repos, null, 2));
+  private async writeRepos(workspaceId: string, repos: CheckoutRepo[]): Promise<void> {
+    await writeFile(this.reposMarker(workspaceId), JSON.stringify(repos, null, 2));
   }
 
   /** The persisted repo set; empty when the marker is missing or unreadable. */
-  private readRepos(workspaceId: string, workflowId: string): CheckoutRepo[] {
-    const marker = this.reposMarker(workspaceId, workflowId);
+  private readRepos(workspaceId: string): CheckoutRepo[] {
+    const marker = this.reposMarker(workspaceId);
     if (!existsSync(marker)) return [];
     try {
       const parsed: unknown = JSON.parse(readFileSync(marker, 'utf8'));
@@ -986,18 +920,14 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
   }
 
   /**
-   * Run a checkout step, discarding the half-built workspace on failure — otherwise a retry sees the dir,
+   * Run a checkout step, discarding the half-built checkout on failure — otherwise a retry sees the marker,
    * treats it as ready, and reuses a broken checkout. Keeps each stage independently retryable.
    */
-  private async withCheckoutCleanup(
-    workspaceId: string,
-    workflowId: string,
-    step: () => Promise<unknown>,
-  ): Promise<void> {
+  private async withCheckoutCleanup(workspaceId: string, step: () => Promise<unknown>): Promise<void> {
     try {
       await step();
     } catch (error) {
-      await this.discardWorkflowCheckout(workspaceId, workflowId);
+      await this.discardCheckout(workspaceId);
       throw error;
     }
   }
@@ -1006,11 +936,6 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
   private isNestedIn(inner: string, outer: string): boolean {
     if (!inner || inner === outer) return false;
     return outer === '' || inner.startsWith(`${outer}/`);
-  }
-
-  /** A checkout named for a log line. Not a Docker label — those are {@link workspaceLabel} and friends. */
-  private describeCheckout(workspaceId: string, workflowId: string): string {
-    return `${workspaceId}--${workflowId}`;
   }
 
   /** Run a git command; throws with stderr on failure. */

@@ -7,6 +7,7 @@ export function toWorkspace(entity: WorkspaceEntity): WorkspaceInterface {
     appName: entity.appName,
     title: entity.title,
     isFavourite: entity.isFavourite,
+    labels: entity.labels ?? [],
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
   });

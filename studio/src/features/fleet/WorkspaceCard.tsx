@@ -2,6 +2,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { CornerDownRight, GripVertical, Star } from 'lucide-react';
 import type { HTMLAttributes } from 'react';
 import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge.tsx';
 import { Card } from '@/components/ui/card.tsx';
 import { cn } from '@/lib/utils.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
@@ -133,6 +134,17 @@ export default function WorkspaceCard({
           </button>
           <WorkspaceActionsMenu workspace={workspace} onDelete={onDelete} className="-mr-1.5" />
         </div>
+
+        {/* What the application filed this workspace under — the ticket, the strategy — as it set them. */}
+        {workspace.labels.length > 0 && (
+          <div className="flex flex-wrap gap-1 px-3 pt-1.5">
+            {workspace.labels.map((label) => (
+              <Badge key={label} variant="outline" className="text-muted-foreground max-w-full font-normal">
+                <span className="truncate">{label}</span>
+              </Badge>
+            ))}
+          </div>
+        )}
 
         {runs.length > 0 && (
           <div className="mt-1 space-y-1.5 pb-3 text-sm">

@@ -18,6 +18,8 @@ export const WorkspaceSchema = z.object({
   appName: z.string(),
   title: z.string(),
   isFavourite: z.boolean(),
+  /** Free-form labels an application sets to find and group workspaces. */
+  labels: z.array(z.string()),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
@@ -27,12 +29,15 @@ export const WorkspaceCreateSchema = z.object({
   title: z.string().max(200).optional(),
   appName: z.string().min(1).max(200),
   isFavourite: z.boolean().optional(),
+  labels: z.array(z.string().min(1).max(200)).optional(),
 });
 export type WorkspaceCreateInterface = z.infer<typeof WorkspaceCreateSchema>;
 
 export const WorkspaceUpdateSchema = z.object({
   title: z.string().max(200).optional(),
   isFavourite: z.boolean().optional(),
+  /** Replaces the whole label set. */
+  labels: z.array(z.string().min(1).max(200)).optional(),
 });
 export type WorkspaceUpdateInterface = z.infer<typeof WorkspaceUpdateSchema>;
 
@@ -51,6 +56,8 @@ export type WorkspaceActivity = z.infer<typeof WorkspaceActivitySchema>;
 export const WorkspaceFilterSchema = z.object({
   appName: oneOrMany(z.string()).optional(),
   isFavourite: z.boolean().optional(),
+  /** Only workspaces that carry every one of these labels. */
+  labels: z.array(z.string()).min(1).optional(),
   /** Workspaces in any of these states — computed from their runs, not a column. */
   activity: oneOrMany(WorkspaceActivitySchema).optional(),
 });

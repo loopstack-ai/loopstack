@@ -28,6 +28,10 @@ export class WorkspaceEntity {
   @Column({ name: 'is_favourite', default: false })
   isFavourite!: boolean;
 
+  /** Free-form labels an application uses to find and group workspaces, e.g. `ticket:owner/repo#12`. */
+  @Column('varchar', { name: 'labels', array: true, default: [] })
+  labels!: string[];
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

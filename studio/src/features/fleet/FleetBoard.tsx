@@ -10,6 +10,7 @@ import DataTableToolbar from '@/components/data-table/DataTableToolbar';
 import { type FilterSpec, type FilterValue, filterValues, hasFilterValue } from '@/components/data-table/data-table.ts';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
+import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Checkbox } from '@/components/ui/checkbox.tsx';
 import { NewRunDialog } from '@/features/workbench/components/NewRunDialog.tsx';
@@ -96,6 +97,15 @@ function FleetRow({
         )}
       </span>
       <span className="w-44 shrink-0 truncate font-medium">{workspace.title}</span>
+      {workspace.labels.length > 0 && (
+        <span className="hidden shrink-0 gap-1 md:flex">
+          {workspace.labels.map((label) => (
+            <Badge key={label} variant="outline" className="text-muted-foreground max-w-48 font-normal">
+              <span className="truncate">{label}</span>
+            </Badge>
+          ))}
+        </span>
+      )}
       {run && (
         <>
           <span className="truncate">

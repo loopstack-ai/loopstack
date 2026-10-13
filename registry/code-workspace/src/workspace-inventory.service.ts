@@ -5,12 +5,8 @@ import { WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
 import { CODE_WORKSPACE_PROVISIONER, type CodeWorkspaceProvisioner } from './code-workspace.provisioner.js';
 import type { ContainerInfo, SharedStateInfo, VolumeInfo } from './code-workspace.provisioner.js';
 
-/** A checkout on disk, joined with whether its workflow row still exists. */
+/** A workspace's checkout on disk. Its owner is the workspace, so it carries no row of its own. */
 export interface CheckoutInventory {
-  workflowId: string;
-  existsInDb: boolean;
-  /** The workflow row's status, when it exists (e.g. `running`, `completed`). */
-  status?: string;
   sizeBytes: number;
   modifiedAt: string;
 }
@@ -24,7 +20,7 @@ export interface WorkspaceInventory {
   title?: string;
   appName?: string;
   sizeBytes: number;
-  checkouts: CheckoutInventory[];
+  checkout?: CheckoutInventory;
 }
 
 export interface ContainerInventory extends ContainerInfo {
@@ -44,14 +40,14 @@ export interface Inventory {
 }
 
 /**
- * What `cleanup_orphaned` would reclaim: whole workspace states whose workspace row is gone, and
- * checkouts (of still-existing workspaces) whose workflow row is gone. Both reclaim entry points are
- * idempotent and also sweep the matching containers/volumes by label — docker strays whose files are
- * already gone are covered by the same two calls.
+ * What `cleanup_orphaned` would reclaim: whole workspace states whose workspace row is gone, and the
+ * containers and volumes of runs (in still-existing workspaces) whose workflow row is gone. A checkout has no
+ * owner but its workspace, so it is never reclaimed on its own. Both reclaim entry points are idempotent and
+ * sweep by label, so docker strays whose files are already gone are covered by the same calls.
  */
 export interface OrphanPlan {
   workspaceIds: string[];
-  checkouts: { workspaceId: string; workflowId: string }[];
+  runs: { workspaceId: string; workflowId: string }[];
   /**
    * Bases whose key no template declares any more — a changed provision config leaves the old tree behind,
    * and generation collection never touches it because it keeps every base's published generation.
@@ -95,16 +91,13 @@ export class WorkspaceInventoryService {
     ]);
 
     // One DB round-trip per table, over every id seen anywhere (dirs, container labels, volume labels).
+    // Runs appear only on docker labels: a checkout belongs to its workspace and names no run.
     const wsIds = unique([
       ...states.map((s) => s.workspaceId),
       ...containers.map((c) => c.workspaceId),
       ...volumes.map((v) => v.workspaceId),
     ]).filter(isId);
-    const wfIds = unique([
-      ...states.flatMap((s) => s.checkouts.map((c) => c.workflowId)),
-      ...containers.map((c) => c.workflowId),
-      ...volumes.map((v) => v.workflowId),
-    ]).filter(isId);
+    const wfIds = unique([...containers.map((c) => c.workflowId), ...volumes.map((v) => v.workflowId)]).filter(isId);
 
     const wsRows = wsIds.length ? await this.workspaces.find({ where: { id: In(wsIds) } }) : [];
     const wfRows = wfIds.length ? await this.workflows.find({ where: { id: In(wfIds) } }) : [];
@@ -120,13 +113,7 @@ export class WorkspaceInventoryService {
         title: row?.title ?? undefined,
         appName: row?.appName,
         sizeBytes: s.sizeBytes,
-        checkouts: s.checkouts.map((c) => ({
-          workflowId: c.workflowId,
-          existsInDb: wfById.has(c.workflowId),
-          status: wfById.get(c.workflowId)?.status,
-          sizeBytes: c.sizeBytes,
-          modifiedAt: c.modifiedAt,
-        })),
+        ...(s.checkout ? { checkout: { sizeBytes: s.checkout.sizeBytes, modifiedAt: s.checkout.modifiedAt } } : {}),
       };
     });
 
@@ -166,20 +153,13 @@ export class WorkspaceInventoryService {
       }
     }
 
-    const checkouts = new Map<string, { workspaceId: string; workflowId: string }>();
-    for (const ws of inventory.workspaces) {
-      if (!ws.existsInDb) continue; // whole workspace goes anyway
-      for (const c of ws.checkouts) {
-        if (!c.existsInDb && isId(c.workflowId)) {
-          checkouts.set(`${ws.workspaceId}/${c.workflowId}`, { workspaceId: ws.workspaceId, workflowId: c.workflowId });
-        }
-      }
-    }
-    // Docker strays scoped to a deleted workflow of a still-existing workspace.
+    // Docker strays scoped to a deleted run of a still-existing workspace: the run's containers and dind
+    // volumes are its own, and nothing else reclaims them while the workspace stays.
+    const runs = new Map<string, { workspaceId: string; workflowId: string }>();
     for (const item of [...inventory.containers, ...inventory.volumes]) {
       if (!item.orphaned || workspaceIds.has(item.workspaceId)) continue;
       if (item.workflowId && item.workflowId !== BASE_WORKFLOW_KEY && isId(item.workflowId)) {
-        checkouts.set(`${item.workspaceId}/${item.workflowId}`, {
+        runs.set(`${item.workspaceId}/${item.workflowId}`, {
           workspaceId: item.workspaceId,
           workflowId: item.workflowId,
         });
@@ -196,7 +176,7 @@ export class WorkspaceInventoryService {
       .filter((base) => !base.locked && !base.generations.some((generation) => generation.referenced))
       .map((base) => base.baseKey);
 
-    return { workspaceIds: [...workspaceIds], checkouts: [...checkouts.values()], bases };
+    return { workspaceIds: [...workspaceIds], runs: [...runs.values()], bases };
   }
 
   // ── Markdown rendering ───────────────────────────────────────────────────────────────────────────────
@@ -208,13 +188,11 @@ export class WorkspaceInventoryService {
     for (const ws of inventory.workspaces) {
       lines.push(`#### ${this.workspaceLabel(ws)} — ${formatBytes(ws.sizeBytes)}`);
       lines.push(`- id: \`${ws.workspaceId}\``);
-      if (!ws.checkouts.length) lines.push('- checkouts: none');
-      for (const c of ws.checkouts) {
-        const db = c.existsInDb ? `run \`${c.status}\`` : '**orphaned** (run deleted)';
-        lines.push(
-          `- checkout \`${c.workflowId}\` — ${formatBytes(c.sizeBytes)}, ${db}, touched ${c.modifiedAt.slice(0, 10)}`,
-        );
-      }
+      lines.push(
+        ws.checkout
+          ? `- checkout — ${formatBytes(ws.checkout.sizeBytes)}, touched ${ws.checkout.modifiedAt.slice(0, 10)}`
+          : '- checkout: none',
+      );
       lines.push('');
     }
 
@@ -263,11 +241,10 @@ export class WorkspaceInventoryService {
       const ws = inventory.workspaces.find((w) => w.workspaceId === wsId);
       lines.push(`- workspace \`${wsId}\` — ${ws ? formatBytes(ws.sizeBytes) : 'docker resources only'} (row deleted)`);
     }
-    for (const c of plan.checkouts) {
-      const ws = inventory.workspaces.find((w) => w.workspaceId === c.workspaceId);
-      const co = ws?.checkouts.find((x) => x.workflowId === c.workflowId);
+    for (const run of plan.runs) {
+      const ws = inventory.workspaces.find((w) => w.workspaceId === run.workspaceId);
       lines.push(
-        `- checkout \`${c.workflowId}\` of ${ws ? this.workspaceLabel(ws) : `\`${c.workspaceId}\``} — ${co ? formatBytes(co.sizeBytes) : 'docker resources only'} (run deleted)`,
+        `- run \`${run.workflowId}\` of ${ws ? this.workspaceLabel(ws) : `\`${run.workspaceId}\``} — its containers and dind volumes (run deleted)`,
       );
     }
     for (const baseKey of plan.bases) {

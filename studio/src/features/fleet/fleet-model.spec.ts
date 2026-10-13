@@ -9,6 +9,7 @@ function workspace(id: string, title = id, isFavourite = false): WorkspaceInterf
     title,
     appName: 'demo',
     isFavourite,
+    labels: [],
     createdAt: '2026-10-01T08:00:00.000Z',
     updatedAt: '2026-10-01T08:00:00.000Z',
   };
