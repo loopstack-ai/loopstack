@@ -82,7 +82,7 @@ describe('AgenticExampleWorkflow', () => {
     const agent = run.children[0];
     expect(agent.workflowName).toBe('chat_agent');
     expect(agent.status).toBe('completed');
-    expect(agent.statelessState?.children.map((c) => c.workflowName)).toEqual(['secrets_request']);
+    expect(agent.statelessState?.children?.map((c) => c.workflowName)).toEqual(['secrets_request']);
     expect(toolResults(agent)[0]).toEqual(
       expect.objectContaining({ content: JSON.stringify('Secrets have been stored securely by the user.', null, 2) }),
     );
@@ -98,7 +98,7 @@ describe('AgenticExampleWorkflow', () => {
     expect(run.status).toBe('waiting');
 
     // The secrets form waits on the `secrets_request` child the tool launched inside the chat agent.
-    const form = run.children[0].statelessState?.children[0];
+    const form = run.children[0].statelessState?.children?.[0];
     expect(form?.workflowName).toBe('secrets_request');
     expect(form?.availableTransitions.map((t) => t.id)).toEqual(['secretsSubmitted']);
     expect(form?.documents.find((d) => d.documentName === 'secret_request')?.content).toEqual({

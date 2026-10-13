@@ -44,15 +44,11 @@ describe('ServerToolExampleWorkflow', () => {
   it('sends the server tool spec to Claude and reads the code and its output from the reply blocks', async () => {
     const { stream, clientService } = fakeClaudeClient();
 
-    const run = await runWorkflow(
-      ServerToolExampleWorkflow,
-      {},
-      {
-        imports: [LlmProviderModule, ClaudeModule],
-        providers: [CodeExecutionTool],
-        overrides: [[ClaudeClientService, clientService]],
-      },
-    );
+    const run = await runWorkflow(ServerToolExampleWorkflow, undefined, {
+      imports: [LlmProviderModule, ClaudeModule],
+      providers: [CodeExecutionTool],
+      overrides: [[ClaudeClientService, clientService]],
+    });
 
     expect(run.error).toBeUndefined();
     expect(run.status).toBe('completed');
