@@ -97,14 +97,17 @@ After the rollback completes, the engine writes a single `ErrorDocument` to the 
 
 ## Checkpoints
 
-After every successful transition, the engine writes a **checkpoint** row to PostgreSQL. A checkpoint contains:
+As a run moves, the engine writes **checkpoint** rows to PostgreSQL: one when a transition starts (at the place it leaves), one when it lands (at the new place, inside the transition's database transaction), and one when the run settles at the end of a processing step. A checkpoint contains:
 
 - The current **place** (e.g. `waiting_for_approval`)
+- The **transition** that started or completed there (`transitionId`, `transitionFrom`)
 - A snapshot of the **state object** at that point in time
 - The **document IDs** visible at that transition
-- A **version number** that increments with each step
+- A **version number** that increments with each completed transition
 
 When the next job runs, it loads the latest checkpoint and restores state from it. This is the mechanism that makes workflows resumable across restarts.
+
+A run's checkpoint history — place, transition, version and timestamp of each row, without the state and documents — can be read with `client.workflows.checkpoints(id)`, the `useWorkflowCheckpoints(id)` hook, or `loopstack runs <run-id>`. The [Checkpoints example](/docs/examples/observability#checkpoints) shows what a run's history looks like.
 
 ---
 

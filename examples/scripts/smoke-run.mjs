@@ -54,6 +54,7 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'tracing_example', expect: 'completed' },
   { workflow: 'custom_calculator_example', expect: 'completed' },
   { workflow: 'audit_log_example', expect: 'completed' },
+  { workflow: 'checkpoints_example', expect: 'completed' },
   // Filesystem
   { workflow: 'local_file_explorer_example', expect: 'completed' },
   // Human-in-the-loop — the run parks waiting for input

@@ -4,6 +4,7 @@ import { QuotaCalculatorRegistry, QuotaModule } from '@loopstack/quota';
 import { AuditLogExampleWorkflow } from './workflows/audit-log/audit-log-example.workflow';
 import { AuditListener } from './workflows/audit-log/listeners/audit.listener';
 import { AuditLogService } from './workflows/audit-log/services/audit-log.service';
+import { CheckpointsExampleWorkflow } from './workflows/checkpoints/checkpoints-example.workflow';
 import { WordsProcessedQuotaCalculator } from './workflows/custom-calculator/calculators/words-processed.calculator';
 import { CustomCalculatorExampleWorkflow } from './workflows/custom-calculator/custom-calculator-example.workflow';
 import { AnalyzeTextTool } from './workflows/custom-calculator/tools/analyze-text.tool';
@@ -15,7 +16,13 @@ import { TracingExampleWorkflow } from './workflows/tracing/tracing-example.work
 
 @StudioApp({
   title: 'Observability Examples',
-  workflows: [QuotaExampleWorkflow, TracingExampleWorkflow, CustomCalculatorExampleWorkflow, AuditLogExampleWorkflow],
+  workflows: [
+    QuotaExampleWorkflow,
+    TracingExampleWorkflow,
+    CustomCalculatorExampleWorkflow,
+    AuditLogExampleWorkflow,
+    CheckpointsExampleWorkflow,
+  ],
 })
 @Module({
   imports: [QuotaModule.forRoot({ enabled: false })],
@@ -30,8 +37,15 @@ import { TracingExampleWorkflow } from './workflows/tracing/tracing-example.work
     AuditLogExampleWorkflow,
     AuditLogService,
     AuditListener,
+    CheckpointsExampleWorkflow,
   ],
-  exports: [QuotaExampleWorkflow, TracingExampleWorkflow, CustomCalculatorExampleWorkflow, AuditLogExampleWorkflow],
+  exports: [
+    QuotaExampleWorkflow,
+    TracingExampleWorkflow,
+    CustomCalculatorExampleWorkflow,
+    AuditLogExampleWorkflow,
+    CheckpointsExampleWorkflow,
+  ],
 })
 export class ObservabilityExamplesModule implements OnModuleInit {
   constructor(private readonly calculatorRegistry: QuotaCalculatorRegistry) {}
