@@ -2,6 +2,11 @@ import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/
 import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack/git';
 import { WriteTool } from '@loopstack/remote-client';
 
+interface GitCommitFlowState {
+  filePath: string;
+  stamp: string;
+}
+
 @Workflow({
   title: 'Git - Commit Flow Example',
   description:
@@ -44,7 +49,7 @@ export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'staged', to: 'committed' })
-  async commit(state: { stamp: string }) {
+  async commit(state: GitCommitFlowState) {
     await this.gitCommit.call({
       message: `chore: example commit from git-commit-flow workflow (${state.stamp})`,
     });
