@@ -26,4 +26,37 @@ describe('WorkspaceCleanupListener', () => {
 
     await expect(instance.onWorkspaceDeleted({ id: 'ws-1' })).resolves.toBeUndefined();
   });
+
+  it('removes one workspace at a time, in arrival order, even when the events arrive in a burst', async () => {
+    // A batch delete emits every event at once. Concurrent removals contend for Docker and the disk and
+    // stall the process, so each one starts only after the one before it has settled — failures included.
+    const order: string[] = [];
+    const settle: Record<string, () => void> = {};
+    const removeWorkspaceState = vi.fn(
+      (id: string) =>
+        new Promise<void>((resolve, reject) => {
+          order.push(`start ${id}`);
+          settle[id] = id === 'ws-2' ? () => reject(new Error('busy')) : resolve;
+        }),
+    );
+    const instance = new WorkspaceCleanupListener({ removeWorkspaceState } as never);
+
+    const first = instance.onWorkspaceDeleted({ id: 'ws-1' });
+    const second = instance.onWorkspaceDeleted({ id: 'ws-2' });
+    const third = instance.onWorkspaceDeleted({ id: 'ws-3' });
+    await Promise.resolve();
+    expect(order).toEqual(['start ws-1']);
+
+    settle['ws-1']();
+    await first;
+    expect(order).toEqual(['start ws-1', 'start ws-2']);
+
+    settle['ws-2']();
+    await second;
+    expect(order).toEqual(['start ws-1', 'start ws-2', 'start ws-3']);
+
+    settle['ws-3']();
+    await third;
+    expect(removeWorkspaceState).toHaveBeenCalledTimes(3);
+  });
 });

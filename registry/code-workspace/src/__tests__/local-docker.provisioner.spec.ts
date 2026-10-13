@@ -552,6 +552,16 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
   });
 
   describe('removeWorkspaceState', () => {
+    it('refuses an id that resolves to the state root itself or climbs out of it', async () => {
+      // The guard is checked against the state root, not against a path derived from the same id, so these
+      // cannot turn into `rm -rf <stateDir>` or `rm -rf <stateDir>/..`.
+      for (const id of ['', '.', '..', '../other', 'ws/../..']) {
+        await expect(provisioner.removeWorkspaceState(id)).rejects.toThrow(/outside the workspace state dir/);
+      }
+      expect(docker.listContainers).not.toHaveBeenCalled();
+      expect(existsSync(stateDir)).toBe(true);
+    });
+
     it('deletes the state dir locally (no container), leaving the base untouched', async () => {
       const generation = await openGeneration(provisioner);
       const { baseRepo } = seedBase(provisioner, generation);

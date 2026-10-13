@@ -772,9 +772,12 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     );
     await this.removeVolumesByLabels([`${this.workspaceLabel}=${workspaceId}`]);
     // Docker Desktop maps bind-mounted files to the host user, so the checkout (incl. container-created
-    // node_modules) is host-owned and can be removed directly — no throwaway container needed. Errors
-    // propagate so the caller can surface them in the workflow.
-    await rm(wsDir, { recursive: true, force: true });
+    // node_modules) is host-owned and can be removed directly — no throwaway container needed. As a child
+    // process, not `fs.rm`: Node's recursive removal is one threadpool task per inode, and a checkout carries a
+    // monorepo `node_modules`, so an in-process walk starves every other fs and DNS call of this process for
+    // minutes. `rm` does the same walk in its own process. No shell, and `--` ends the options, so the path is
+    // passed verbatim. Errors propagate so the caller can surface them in the workflow.
+    await run('rm', ['-rf', '--', wsDir]);
     this.logger.log(`Removed workspace state ${wsDir}`);
   }
 
@@ -824,11 +827,16 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     }
   }
 
-  /** Security guard for destructive paths: only ever delete inside this workspace's state dir. */
+  /**
+   * Security guard for destructive paths: only ever delete a strict descendant of the state root — the
+   * workspace's own dir or something inside it. Checked against the root, not against a path derived from
+   * the same id, so an empty id (which resolves to the root itself) or one that climbs out of it is refused.
+   */
   private assertInsideStateDir(workspaceId: string, target: string): void {
-    const stateRoot = path.resolve(this.resolveWorkspaceDir(workspaceId));
-    if (path.resolve(target) !== stateRoot && !path.resolve(target).startsWith(stateRoot + path.sep)) {
-      throw new Error(`Refusing to remove ${target}: outside the workspace state dir.`);
+    const root = path.resolve(this.stateRoot());
+    const resolved = path.resolve(target);
+    if (!resolved.startsWith(root + path.sep) || resolved === root) {
+      throw new Error(`Refusing to remove ${target} for workspace '${workspaceId}': outside the workspace state dir.`);
     }
   }
 
