@@ -1,5 +1,24 @@
 # @loopstack/openai-module
 
+## 0.6.0
+
+### Minor Changes
+
+- [#439](https://github.com/loopstack-ai/loopstack/pull/439) [`8c71def`](https://github.com/loopstack-ai/loopstack/commit/8c71def6b70ab5dc6d8b506c8f79b030c5cd7b7a) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A conversation can switch between the Claude and OpenAI providers between turns.
+  - Each provider replays an assistant message's stored native response (`meta.response`) only when `meta.provider` is
+    its own id. Every other message is rebuilt from its normalized `text` and `blocks`.
+  - The OpenAI provider converts `tool_call` blocks to `tool_calls` and `tool_result` blocks to `role: 'tool'` messages,
+    for document history and inline `messages` alike. It leaves out `thinking`, `server_tool_use` and
+    `server_tool_result` blocks, and an assistant message with nothing left to send.
+  - The OpenAI provider rejects a call that lists a server tool, such as `claude_native_web_search`, with
+    `Server tool '<name>' is not supported by the openai provider`.
+
+### Patch Changes
+
+- Updated dependencies [[`0389ffd`](https://github.com/loopstack-ai/loopstack/commit/0389ffd06c1a0321118f5e42bf236832c0beaf19), [`697b185`](https://github.com/loopstack-ai/loopstack/commit/697b1850de1438c4f46dc0ccba6af9b0b6765db2)]:
+  - @loopstack/common@0.46.0
+  - @loopstack/llm-provider@0.12.1
+
 ## 0.5.0
 
 ### Minor Changes
