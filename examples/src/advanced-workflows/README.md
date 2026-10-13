@@ -67,6 +67,7 @@ Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
 | [Batch Processing](#batch-processing) | `Advanced - Batch Processing Example`              | Chunked processing of a list in fixed-size batches                                      |
 | [Custom Tool](#custom-tool)           | `Advanced - Custom Tool Example`                   | Authoring custom tools — stateless + stateful, `@Tool()`, Zod schemas, NestJS injection |
 | [Server Tool](#server-tool)           | `Advanced - Server Tool Example`                   | Authoring a server tool — a tool the LLM provider runs, via `ServerTool`                |
+| [Tool Documents](#tool-documents)     | `Advanced - Tool Documents Example`                | A tool that declares a document on its result envelope instead of saving it             |
 | [Module Config](#module-config)       | `Advanced - Module Config (Default/French/Nested)` | `forRoot` / `forFeature` patterns for configurable modules                              |
 | [UI Documents](#ui-documents)         | `Advanced - UI Documents Example`                  | Smoke test for built-in document types (Message, Error, Markdown, Plain)                |
 
@@ -164,6 +165,22 @@ A server tool runs only on the provider whose native spec it returns — this on
 
 - `server-tool-example.workflow.ts`
 - `tools/code-execution.tool.ts`
+
+## Tool Documents
+
+Demonstrates a tool that produces a document without writing it:
+
+- `ReceiptTool` (`create_receipt`) — totals a list of items and returns the total as `data`. It returns the receipt in `documents` on its result envelope: the document name, the content, and the same options as `documentStore.save()`. It gets the name with `resolveDocumentName(ReceiptDocument)`, so the name always matches the registered class.
+- `ReceiptDocument` (`receipt`) — a registered `@Document` that Studio renders as Markdown. A declared document must be a registered `@Document`. Otherwise the tool call fails with `Unknown document`.
+- The workflow only calls the tool and publishes the total. It saves no document itself: the tool pipeline saves the declared receipt after the call.
+
+The pipeline saves declared documents after any interceptor or replay. So a replayed call saves the documents of its recorded envelope, as a live call would. The spec shows both: a live run saves the receipt the tool built, and a replayed run saves the receipt from the recording.
+
+### Files
+
+- `tool-documents-example.workflow.ts`
+- `tools/receipt.tool.ts`
+- `documents/receipt-document.ts`
 
 ## Module Config
 

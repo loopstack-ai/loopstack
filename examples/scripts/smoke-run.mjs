@@ -27,6 +27,7 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'dynamic_routing_example', expect: 'completed' },
   { workflow: 'test_ui_documents', expect: 'completed' },
   { workflow: 'batch_processing_example', expect: 'completed' },
+  { workflow: 'tool_documents_example', expect: 'completed' },
   // Sub-workflows — child completion delivered to the parent as a queued callback
   { workflow: 'run_sub_workflow_example_parent', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_error_handling', expect: 'completed' },

@@ -23,6 +23,8 @@ import { RunSubWorkflowExampleFailingSubWorkflow } from './workflows/sub-workflo
 import { RunSubWorkflowExampleParentWorkflow } from './workflows/sub-workflow/sub-workflow-parent.workflow';
 import { RunSubWorkflowExampleShowModesWorkflow } from './workflows/sub-workflow/sub-workflow-show-modes.workflow';
 import { RunSubWorkflowExampleSubWorkflow } from './workflows/sub-workflow/sub-workflow-sub.workflow';
+import { ToolDocumentsExampleWorkflow } from './workflows/tool-documents/tool-documents-example.workflow';
+import { ReceiptTool } from './workflows/tool-documents/tools/receipt.tool';
 import { TestUiDocumentsWorkflow } from './workflows/ui-documents/ui-documents-example.workflow';
 import { WorkflowResultWorkflow } from './workflows/workflow-state/workflow-result-example.workflow';
 import { WorkflowStateWorkflow } from './workflows/workflow-state/workflow-state-example.workflow';
@@ -39,6 +41,7 @@ const WORKFLOWS = [
   BatchProcessingExampleWorkflow,
   CustomToolExampleWorkflow,
   ServerToolExampleWorkflow,
+  ToolDocumentsExampleWorkflow,
   TestUiDocumentsWorkflow,
 ];
 
@@ -61,6 +64,7 @@ const WORKFLOWS = [
     MathSumTool,
     CounterTool,
     CodeExecutionTool,
+    ReceiptTool,
     RunSubWorkflowExampleSubWorkflow,
     RunSubWorkflowExampleFailingSubWorkflow,
     ...WORKFLOWS,
