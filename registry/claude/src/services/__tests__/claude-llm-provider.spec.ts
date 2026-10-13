@@ -314,6 +314,24 @@ describe('ClaudeLlmProvider', () => {
       ]);
     });
 
+    it.each([
+      'web_fetch_tool_result',
+      'code_execution_tool_result',
+      'bash_code_execution_tool_result',
+      'text_editor_code_execution_tool_result',
+      'tool_search_tool_result',
+    ])('normalizes a %s block to server_tool_result', async (type) => {
+      const content = { type: 'result', stdout: '42\n' };
+      response = message([
+        { type: 'server_tool_use', id: 'srv1', name: 'bash_code_execution', input: { command: 'echo 42' } },
+        { type, tool_use_id: 'srv1', content },
+      ]);
+
+      const { message: normalized } = await provider.generateText({ prompt: 'Hi' }, { documents: [] });
+
+      expect(normalized.blocks?.[1]).toEqual({ type: 'server_tool_result', toolUseId: 'srv1', content });
+    });
+
     it.each(['max_tokens', 'stop_sequence'] as const)('maps the %s stop reason', async (stopReason) => {
       response = message([{ type: 'text', text: 'cut' }], stopReason);
 

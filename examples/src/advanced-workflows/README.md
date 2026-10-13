@@ -14,7 +14,7 @@ Deep-dive examples for framework patterns authors reach for less often but want 
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude @loopstack/common @loopstack/core
+npm install @loopstack/claude @loopstack/common @loopstack/core @loopstack/llm-provider
 ```
 
 Register the module:
@@ -32,7 +32,7 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-Examples that exercise LLM tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool` — used by Sub-Workflow, Fan-Out, Sequence, Batch Processing, Custom Tool, Module Config) call into `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
+Examples that exercise LLM tools (`LlmGenerateTextTool`, `LlmGenerateObjectTool` — used by Sub-Workflow, Fan-Out, Sequence, Batch Processing, Custom Tool, Server Tool, Module Config) call into `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -66,6 +66,7 @@ Set `ANTHROPIC_API_KEY` in the environment for the LLM examples.
 | [Sequence](#sequence)                 | `Advanced - Sequence Example`                      | Sequential sub-workflows with single aggregated callback (`SequenceWorkflow`)           |
 | [Batch Processing](#batch-processing) | `Advanced - Batch Processing Example`              | Chunked processing of a list in fixed-size batches                                      |
 | [Custom Tool](#custom-tool)           | `Advanced - Custom Tool Example`                   | Authoring custom tools — stateless + stateful, `@Tool()`, Zod schemas, NestJS injection |
+| [Server Tool](#server-tool)           | `Advanced - Server Tool Example`                   | Authoring a server tool — a tool the LLM provider runs, via `ServerTool`                |
 | [Module Config](#module-config)       | `Advanced - Module Config (Default/French/Nested)` | `forRoot` / `forFeature` patterns for configurable modules                              |
 | [UI Documents](#ui-documents)         | `Advanced - UI Documents Example`                  | Smoke test for built-in document types (Message, Error, Markdown, Plain)                |
 
@@ -148,6 +149,21 @@ Demonstrates authoring custom tools by extending `BaseTool`:
 - `tools/math-sum.tool.ts` (stateless)
 - `tools/counter.tool.ts` (stateful)
 - `services/math.service.ts`
+
+## Server Tool
+
+Demonstrates authoring a server tool by extending `ServerTool` — a tool the LLM provider runs itself, not your app:
+
+- `CodeExecutionTool` (`example_code_execution`) — has no `handle()` and no `call()`. It only implements `toServerToolConfig()`, which returns the provider-native tool spec (here Anthropic's `code_execution`).
+- The workflow lists the tool by name in the `tools` config of an `llm_generate_text` call. It never calls the tool itself: Claude runs the code in Anthropic's sandbox, inside that same call.
+- The reply carries Claude's use of the tool as a `server_tool_use` block and its output as a `server_tool_result` block. The workflow reads the code and its stdout from these blocks, and Studio shows them as one tool call with its result.
+
+A server tool runs only on the provider whose native spec it returns — this one on Claude. Other providers reject a call that lists it. The spec fakes only the Anthropic client, so `toServerToolConfig()` and the Claude provider run in the test.
+
+### Files
+
+- `server-tool-example.workflow.ts`
+- `tools/code-execution.tool.ts`
 
 ## Module Config
 

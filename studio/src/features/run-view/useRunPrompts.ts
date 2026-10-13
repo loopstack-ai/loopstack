@@ -15,7 +15,7 @@ import {
 import { useLoopstackClient } from '@loopstack/react';
 import { useDocumentConfigs } from '@/hooks/useConfig';
 import { promptRegistry } from './prompts/registry.tsx';
-import type { RunTreeNode } from './useRunTree.ts';
+import { type RunTreeNode, dataOf } from './useRunTree.ts';
 
 export interface RunPrompts {
   /** The one prompt the run view shows — the same pick the CLI would make. */
@@ -98,13 +98,14 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
 
   // Workflow-level widgets (chat inputs, buttons) come from each workflow's config.
   const workflowNames = useMemo(() => [...new Set(nodes.map((node) => node.workflow.workflowName))], [nodes]);
-  const configResults = useQueries({
+  const configs = useQueries({
     queries: workflowNames.map((name) => ({ ...client.queries.workflowConfig(name), staleTime: 60_000 })),
+    combine: dataOf,
   });
   const workflowWidgets = useMemo(() => {
     const map = new Map<string, ParkViewWidgetConfig[]>();
     workflowNames.forEach((name, index) => {
-      const widgets = (configResults[index]?.data?.ui as { widgets?: UiWidgetLike[] } | undefined)?.widgets ?? [];
+      const widgets = (configs[index]?.ui as { widgets?: UiWidgetLike[] } | undefined)?.widgets ?? [];
       map.set(
         name,
         widgets.map((widget) => ({
@@ -116,7 +117,7 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
       );
     });
     return map;
-  }, [workflowNames, ...configResults.map((result) => result.data)]);
+  }, [workflowNames, configs]);
 
   return useMemo(() => {
     const candidates = nodes.flatMap((node) => {
@@ -136,7 +137,7 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
       );
     });
 
-    const eligible = (candidate: PromptCandidate) => !!candidate.widget && promptRegistry.has(candidate.widget.widget);
+    const eligible = (candidate: PromptCandidate) => !!candidate.widget && candidate.widget.widget in promptRegistry;
     const picked = pickPrompt(candidates, eligible);
     const withView = (candidate: PromptCandidate | undefined) =>
       candidate ? { candidate, view: toParkView(candidate) } : undefined;
@@ -146,7 +147,7 @@ export function useRunPrompts(nodes: RunTreeNode[]): RunPrompts {
       for (const node of nodes) {
         if (node.workflow.status !== 'running' && node.workflow.status !== 'pending') continue;
         for (const widget of workflowWidgets.get(node.workflow.workflowName) ?? []) {
-          if (!promptRegistry.has(widget.widget)) continue;
+          if (!(widget.widget in promptRegistry)) continue;
           if (widget.showWhen && !widget.showWhen.includes(node.workflow.place ?? '')) continue;
           const candidate: PromptCandidate = {
             kind: 'workflow',

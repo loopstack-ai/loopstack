@@ -1,6 +1,6 @@
 import { formatDistanceToNowStrict } from 'date-fns';
 import { GripVertical, LayoutGrid, List, Play, Trash2 } from 'lucide-react';
-import { type HTMLAttributes, useEffect, useState } from 'react';
+import { type HTMLAttributes, useEffect, useEffectEvent, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { WorkspaceActivity } from '@loopstack/contracts/api';
 import ConfirmDialog from '@/components/data-table/ConfirmDialog';
@@ -202,18 +202,26 @@ export default function FleetBoard() {
   const batchDeleteWorkspaces = useBatchDeleteWorkspaces();
 
   // A link into the board may carry a filter — an app from the app launcher, favourites from the sidebar.
-  useEffect(() => {
-    const appName = searchParams.get('appName');
-    const favourites = searchParams.get('favourites') === 'true';
-    if (!appName && !favourites) return;
+  // Applied once per link: an effect event reads the saved filters without re-running on their change.
+  const linkAppName = searchParams.get('appName');
+  const linkFavourites = searchParams.get('favourites') === 'true';
+  const applyLinkFilter = useEffectEvent(() => {
     setPreference('fleetFilters', {
       ...preferences.fleetFilters,
-      ...(appName ? { appName: [appName] } : {}),
-      ...(favourites ? { workspaces: 'favourites' } : {}),
+      ...(linkAppName ? { appName: [linkAppName] } : {}),
+      ...(linkFavourites ? { workspaces: 'favourites' } : {}),
     });
-    setIsFilterOpen(true);
-    // Applied once per link, not on every change of the saved filters — so they are not a dependency.
-  }, [searchParams]);
+  });
+  useEffect(() => {
+    if (linkAppName || linkFavourites) applyLinkFilter();
+  }, [linkAppName, linkFavourites]);
+  // The link opens the filter panel, adjusted during render as it is this component's own state.
+  const linkFilter = linkAppName || linkFavourites ? `${linkAppName ?? ''}/${linkFavourites}` : '';
+  const [appliedLinkFilter, setAppliedLinkFilter] = useState('');
+  if (linkFilter !== appliedLinkFilter) {
+    setAppliedLinkFilter(linkFilter);
+    if (linkFilter) setIsFilterOpen(true);
+  }
 
   // Relative times must keep moving even though `updatedAt` does not.
   useRelativeClock();

@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon, FolderClosedIcon, FolderOpenIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { EmbeddedWorkflow } from './EmbeddedWorkflow';
@@ -29,13 +29,18 @@ export const LinkCard = ({ className, href, label, status = 'pending', embed, de
   const [expanded, setExpanded] = useState(defaultExpanded ?? false);
   // `defaultExpanded === undefined` means the caller is still loading status — defer locking in
   // the initial expanded value until it arrives, otherwise useState's first call wins forever.
-  const initializedRef = useRef(defaultExpanded !== undefined);
-
-  useEffect(() => {
-    if (initializedRef.current || defaultExpanded === undefined) return;
+  const [initialized, setInitialized] = useState(defaultExpanded !== undefined);
+  if (!initialized && defaultExpanded !== undefined) {
+    setInitialized(true);
     setExpanded(defaultExpanded);
-    initializedRef.current = true;
-  }, [defaultExpanded]);
+  }
+
+  // A finished workflow collapses the card, adjusted during render when the status changes.
+  const [seenStatus, setSeenStatus] = useState<LinkCardStatus | null>(null);
+  if (status !== seenStatus) {
+    setSeenStatus(status);
+    if (status === 'success' || status === 'failure') setExpanded(false);
+  }
 
   // Extract domain for display if no label provided
   const displayLabel =
@@ -54,12 +59,6 @@ export const LinkCard = ({ className, href, label, status = 'pending', embed, de
   const workflowMatch = href?.match(WORKFLOW_HREF_PATTERN);
   const workflowId = workflowMatch?.[1] ?? null;
   const canEmbed = embed === true && workflowId != null;
-
-  useEffect(() => {
-    if (status === 'success' || status === 'failure') {
-      setExpanded(false);
-    }
-  }, [status]);
 
   return (
     <div className={cn('not-prose flex w-full flex-col', className)}>

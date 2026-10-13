@@ -28,8 +28,6 @@ Studio has three main sections, in the sidebar:
 | **Applications** | `/applications` | All registered apps and their available workflows                    |
 | **Runs**         | `/runs`         | Complete list of all workflow runs across workspaces                 |
 
-There is also an **Action Required** view at `/runs/action-required` that filters runs to only those paused and waiting for user input.
-
 ---
 
 ## Starting a Run

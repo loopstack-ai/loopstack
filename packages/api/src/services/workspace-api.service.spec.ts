@@ -1,7 +1,7 @@
 import type { ConfigService } from '@nestjs/config';
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomUUID } from 'node:crypto';
-import { DataSource } from 'typeorm';
+import { DataSource, type Logger } from 'typeorm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ApiTokenEntity,
@@ -104,19 +104,35 @@ describe.skipIf(!DATABASE_URL)('WorkspaceApiService.findAll', () => {
   const user = randomUUID();
   const otherUser = randomUUID();
   const idsByName = new Map<string, string>();
+  // Every query the data source runs while `recorded` is set, with its parameters, to EXPLAIN afterwards.
+  let recorded: { sql: string; parameters: unknown[] }[] | undefined;
+  const logger: Logger = {
+    logQuery: (sql, parameters) => recorded?.push({ sql, parameters: parameters ?? [] }),
+    logQueryError: () => {},
+    logQuerySlow: () => {},
+    logSchemaBuild: () => {},
+    logMigration: () => {},
+    log: () => {},
+  };
 
   beforeAll(async () => {
     const setup = new DataSource({ type: 'postgres', url: DATABASE_URL });
     await setup.initialize();
     await setup.query(`DROP SCHEMA IF EXISTS "${SCHEMA}" CASCADE`);
     await setup.query(`CREATE SCHEMA "${SCHEMA}"`);
+    // TypeORM creates the extension its uuid columns need in the first schema of the search path, where a
+    // spec running beside this one cannot see it and dropping the schema removes it: it lives in `public`.
+    await setup.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public').catch((error: { code?: string }) => {
+      // Created by a spec running beside this one between its check and ours.
+      if (error.code !== '23505') throw error;
+    });
     await setup.destroy();
 
     dataSource = new DataSource({
       type: 'postgres',
       url: DATABASE_URL,
       // The service's SQL names its tables unqualified, as it does in an app: the search path decides.
-      extra: { options: `-c search_path=${SCHEMA}` },
+      extra: { options: `-c search_path=${SCHEMA},public` },
       entities: [
         ApiTokenEntity,
         DocumentEntity,
@@ -128,6 +144,7 @@ describe.skipIf(!DATABASE_URL)('WorkspaceApiService.findAll', () => {
         WorkspaceEntity,
       ],
       synchronize: true,
+      logger,
     });
     await dataSource.initialize();
 
@@ -157,6 +174,26 @@ describe.skipIf(!DATABASE_URL)('WorkspaceApiService.findAll', () => {
 
     // Another user's workspace never shows up, whatever its state.
     await workspaces.save({ title: 'not yours', appName: 'a', createdBy: otherUser });
+
+    // History, so the run table has the shape of a long-lived install and the planner chooses as it would
+    // there: finished runs in every workspace — they change no workspace's state — a fifth of them
+    // sub-workflows, and more workspaces of another user's with a few runs still active.
+    await workspaces.save(
+      Array.from({ length: 20 }, (_, i) => ({ title: `history ${i}`, appName: 'a', createdBy: otherUser })),
+    );
+    await dataSource.query(
+      `INSERT INTO core_workflow (workflow_name, status, workspace_id, created_by)
+         SELECT 'history',
+                CASE WHEN workspace.created_by = $1 AND g % 50 = 0 THEN 'waiting' ELSE 'completed' END::core_workflow_status_enum,
+                workspace.id, workspace.created_by
+           FROM core_workspace workspace CROSS JOIN generate_series(1, 150) g`,
+      [otherUser],
+    );
+    await dataSource.query(
+      `INSERT INTO core_workflow (workflow_name, status, workspace_id, created_by, parent_id)
+         SELECT 'history child', 'completed', workspace_id, created_by, id
+           FROM core_workflow WHERE workflow_name = 'history' AND random() < 0.25`,
+    );
 
     const config = { get: (_key: string, fallback: unknown) => fallback } as unknown as ConfigService;
     service = new WorkspaceApiService(workspaces, config, {} as StudioDiscoveryService, {} as EventEmitter2);
@@ -207,4 +244,61 @@ describe.skipIf(!DATABASE_URL)('WorkspaceApiService.findAll', () => {
     const { data } = await service.findAll(user, { appName: 'b', activity: 'working' }, [], {}, 'parked');
     expect(data.map((workspace) => workspace.id)).toEqual([idsByName.get('parked on a child')]);
   });
+
+  it.each<{ activity: WorkspaceActivity[] }>([
+    { activity: ['waiting'] },
+    { activity: ['working'] },
+    { activity: ['queued'] },
+    { activity: ['idle'] },
+    { activity: ['waiting', 'working', 'queued'] },
+  ])(
+    'looks up the runs of $activity workspaces by workspace and parent, never across the whole run table',
+    async ({ activity }) => {
+      recorded = [];
+      await service.findAll(user, { activity }, [], { page: 0, limit: 100 });
+      const queries = recorded;
+      recorded = undefined;
+
+      // The indexes a lookup of one workspace's or one parent's runs can use.
+      const scoped = (
+        await dataSource.query<{ indexname: string }[]>(
+          `SELECT indexname FROM pg_indexes WHERE schemaname = $1 AND tablename = 'core_workflow'
+             AND indexdef ~ 'USING btree \\((workspace_id|parent_id)\\M'`,
+          [SCHEMA],
+        )
+      ).map((row) => row.indexname);
+
+      // The fixture is a few rows, where a sequential scan is always cheapest: with it switched off, and the
+      // table's statistics current, the planner picks the index it would pick on a large table — or scans
+      // anyway when it has none.
+      await dataSource.query('ANALYZE core_workflow');
+      const runner = dataSource.createQueryRunner();
+      try {
+        await runner.startTransaction();
+        await runner.query('SET LOCAL enable_seqscan = off');
+        for (const { sql, parameters } of queries) {
+          const [{ 'QUERY PLAN': plan }] = await runner.query(`EXPLAIN (FORMAT JSON) ${sql}`, parameters);
+          const runScans = [plan[0].Plan, ...planNodes(plan[0].Plan)].filter(
+            (node) => node['Relation Name'] === 'core_workflow',
+          );
+          expect(runScans.length).toBeGreaterThan(0);
+          for (const node of runScans) {
+            expect(node['Node Type'], sql).not.toBe('Seq Scan');
+            const indexes = [node, ...planNodes(node)].map((child) => child['Index Name']).filter(Boolean);
+            expect(indexes, sql).toEqual(indexes.filter((index) => scoped.includes(index as string)));
+          }
+        }
+      } finally {
+        await runner.rollbackTransaction();
+        await runner.release();
+      }
+    },
+  );
 });
+
+type PlanNode = Record<string, unknown> & { Plans?: PlanNode[] };
+
+/** The node's descendants, depth first. */
+function planNodes(node: PlanNode): PlanNode[] {
+  return (node.Plans ?? []).flatMap((child) => [child, ...planNodes(child)]);
+}

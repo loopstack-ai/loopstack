@@ -1,4 +1,4 @@
-import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { WorkflowFullInterface, WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import { useWorkspaceEnvironments } from '@/hooks/useEnvironments';
 import { useOptionalStudioPreferences } from '@/providers/StudioPreferencesProvider';
@@ -72,14 +72,15 @@ export function WorkbenchLayoutProvider({
 
   // Keep the active environment sensible: default to (and follow) a running slot. If the selected slot is
   // still running, leave the user's choice alone; otherwise switch to any running slot so environment-scoped
-  // panels track the live container (e.g. init → claude → test in a sandbox run).
-  useEffect(() => {
-    if (!environments?.length) return;
+  // panels track the live container (e.g. init → claude → test in a sandbox run). Adjusted during render.
+  if (environments?.length) {
     const current = environments.find((e) => e.slotId === selectedSlotId);
-    if (current?.status === 'running') return;
-    const running = environments.find((e) => e.status === 'running');
-    setSelectedSlotId((running ?? current ?? environments[0]).slotId);
-  }, [environments, selectedSlotId]);
+    if (current?.status !== 'running') {
+      const running = environments.find((e) => e.status === 'running');
+      const next = (running ?? current ?? environments[0]).slotId;
+      if (next !== selectedSlotId) setSelectedSlotId(next);
+    }
+  }
 
   // Preview panel enabled when workspace has at least one connectable environment
   const hasConnectableEnvs =

@@ -1,5 +1,5 @@
 import { Loader2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import type { StudioWorkflowConfig, WorkflowConfigInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
@@ -68,12 +68,10 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
   const hasArguments = !!selectedWorkflowConfig?.schema;
   const isLoading = startWorkflow.isPending;
 
-  // Auto-select first workflow
-  useEffect(() => {
-    if (!formData.workflowName && workflowTypes[0]?.workflowName) {
-      setFormData((prev) => ({ ...prev, workflowName: workflowTypes[0].workflowName }));
-    }
-  }, [workflowTypes, formData.workflowName]);
+  // Auto-select first workflow, adjusted during render.
+  if (!formData.workflowName && workflowTypes[0]?.workflowName) {
+    setFormData((prev) => ({ ...prev, workflowName: workflowTypes[0].workflowName }));
+  }
 
   const validateForm = (): boolean => {
     if (formData.workflowName) return true;

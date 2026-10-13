@@ -1,7 +1,7 @@
 import js from '@eslint/js';
 import importX, { createNodeResolver } from 'eslint-plugin-import-x';
 import prettier from 'eslint-plugin-prettier/recommended';
-// import reactHooks from 'eslint-plugin-react-hooks';
+import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -256,18 +256,29 @@ export default tseslint.config(
     },
   },
 
-  // Frontend (React/Vite) - Browser globals + React plugins
+  // React code - the rules of hooks. exhaustive-deps is an error because lint warnings do not fail CI.
+  {
+    files: ['studio/**/*.{ts,tsx}', 'packages/react/**/*.{ts,tsx}'],
+    plugins: { 'react-hooks': reactHooks },
+    rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'error',
+    },
+  },
+
+  // Frontend (React/Vite) - Browser globals + React plugins. Studio is built with the React Compiler, so it
+  // also gets the compiler rules; packages/react supports React 18 and is not compiled.
   {
     files: ['studio/**/*.{ts,tsx}'],
     plugins: {
-      // 'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
     },
     languageOptions: {
       globals: globals.browser,
     },
     rules: {
-      // ...reactHooks.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
+      'react-hooks/exhaustive-deps': 'error',
       'react-refresh/only-export-components': 'off',
     },
   },
