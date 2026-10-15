@@ -54,9 +54,10 @@ describe('ExploreTask', () => {
 
   describe('execution', () => {
     it('launches the explore sub-agent with the read-only tools and returns a pending envelope', async () => {
-      const callback = { transition: 'onExplored' };
+      const onSuccess = { transition: 'onExplored' };
+      const onFailure = { transition: 'explorationFailed' };
 
-      const result = await execute({ instructions: 'Find the auth guard' }, { callback });
+      const result = await execute({ instructions: 'Find the auth guard' }, { onSuccess, onFailure });
 
       expect(mockAgentWorkflow.run).toHaveBeenCalledWith(
         {
@@ -64,7 +65,7 @@ describe('ExploreTask', () => {
           tools: ['glob', 'grep', 'read'],
           userMessage: 'Find the auth guard',
         },
-        { callback, show: 'inline', label: 'Exploring...' },
+        { onSuccess, onFailure, metadata: undefined, show: 'inline', label: 'Exploring...' },
       );
       expect(result).toEqual({
         data: { workflowId: 'wf-explore' },

@@ -101,7 +101,7 @@ Then use it in workflows:
 ```typescript
 await this.oAuth.run(
   { provider: 'my-provider', scopes: ['read', 'write'] },
-  { callback: { transition: 'authCompleted' } },
+  { onSuccess: { transition: 'authCompleted' } },
 );
 ```
 

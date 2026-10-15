@@ -7,12 +7,8 @@ import { OAuthWorkflow } from '@loopstack/oauth';
 const AuthenticateGitHubTaskInputSchema = z
   .object({
     scopes: z.array(z.string()).describe('The OAuth scopes to request (e.g. repo, user, workflow, read:org)'),
-    callback: z
-      .object({
-        transition: z.string(),
-        metadata: z.record(z.string(), z.unknown()).optional(),
-      })
-      .optional(),
+    onSuccess: z.object({ transition: z.string() }).optional(),
+    onFailure: z.object({ transition: z.string() }).optional(),
   })
   .strict();
 
@@ -51,7 +47,13 @@ export class AuthenticateGitHubTask extends BaseTool<
   ): Promise<ToolEnvelope<AuthenticateGitHubTaskResult>> {
     const result = await this.oAuthWorkflow.run(
       { provider: 'github', scopes: args.scopes },
-      { callback: options?.callback ?? args.callback, show: 'inline', label: 'GitHub authentication required' },
+      {
+        onSuccess: options?.onSuccess ?? args.onSuccess,
+        onFailure: options?.onFailure ?? args.onFailure,
+        metadata: options?.metadata,
+        show: 'inline',
+        label: 'GitHub authentication required',
+      },
     );
 
     return {

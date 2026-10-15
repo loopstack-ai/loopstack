@@ -616,27 +616,30 @@ export class WorkflowProcessorService implements Processor {
         const rawPayload = (pendingTransition.payload ?? {}) as Record<string, unknown>;
         const rawData = 'data' in rawPayload ? rawPayload.data : undefined;
         const status = (rawPayload.status as 'completed' | 'failed' | 'canceled' | undefined) ?? 'completed';
-        const isFailureCallback = status === 'failed' || status === 'canceled';
+        const errorMessage = (rawPayload.errorMessage as string | null | undefined) ?? null;
+        const correlation = rawPayload.meta !== undefined ? { meta: rawPayload.meta } : {};
+        const childWorkflowId = (rawPayload.workflowId as string | undefined) ?? pendingTransition.workflowId;
 
-        // Sub-workflow failure callback: route to the transition's declared failure handling
-        // (retryAttempts / errorPlace) if it opted in. Otherwise fall through to the body —
-        // preserves the existing pattern where a callback transition handles failures inline
-        // (e.g. LLM tool delegation accumulating tool_result entries with isError: true).
-        if (isFailureCallback && (waitTransition.errorPlace || waitTransition.retryAttempts > 0)) {
-          const errorMessage = (rawPayload.errorMessage as string | null | undefined) ?? `Sub-workflow ${status}`;
-          const subError = new Error(errorMessage);
+        // A failed child whose parent declared no `onFailure`: the run is parked here as failed with the child's
+        // message. No body runs. The child keeps its Retry, and a retried child that succeeds still finds this
+        // wait transition available.
+        if (rawPayload.unhandledFailure === true) {
+          const subError = new Error(errorMessage ?? `Sub-workflow ${status}`);
           this.logger.warn(
-            `Wait transition '${waitTransition.methodName}' received ${status} callback: ${errorMessage}`,
+            `Wait transition '${waitTransition.methodName}' received an unhandled ${status} callback: ${subError.message}`,
           );
-          await this.handleTransitionError(meta, subError, waitTransition);
+          await this.handleTransitionError(meta, subError, {
+            ...waitTransition,
+            retryAttempts: 0,
+            errorPlace: meta.place,
+          });
           scopeData.trace.emit({
             type: 'transition.failed',
             transitionId: waitTransition.methodName,
-            error: errorMessage,
+            error: subError.message,
             retryCount: meta.retryCount ?? 0,
-            willRetry: !!meta._retrySignal,
+            willRetry: false,
           });
-
           const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
           meta.availableTransitions = errorAvailable.map((t) => ({
             id: t.methodName,
@@ -647,47 +650,52 @@ export class WorkflowProcessorService implements Processor {
           return state;
         }
 
-        // Skip schema validation for sub-workflow failure callbacks that fall through to the body —
-        // their `data` is whatever the sub-workflow's final result was (often null when it never
-        // reached setResult), and the parent's transition still needs to run so it can react.
-        let validatedData: unknown;
-        if (waitTransition.schema && !isFailureCallback) {
-          try {
-            validatedData = waitTransition.schema.parse(rawData);
-          } catch (e) {
-            // The submitted payload is invalid. This is (typically user-supplied) input, not a
-            // workflow failure — keep the workflow paused at the current place with the validation
-            // message so the caller can resubmit corrected data, instead of failing it. hasError is
-            // left false so the status resolves back to Waiting.
-            const message =
-              e instanceof ZodError
-                ? e.issues.map((i) => `${i.path.length ? i.path.join('.') : '<root>'}: ${i.message}`).join('; ')
-                : e instanceof Error
-                  ? e.message
-                  : String(e);
-            this.logger.warn(`Rejected invalid payload for wait transition '${waitTransition.methodName}': ${message}`);
-            meta.errorMessage = `Invalid payload for '${waitTransition.methodName}': ${message}`;
-
-            const stillAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
-            meta.availableTransitions = stillAvailable.map((t) => ({
-              id: t.methodName,
-              from: meta.place,
-              to: t.to,
-              trigger: t.wait ? ('manual' as const) : undefined,
-            }));
-            return state;
+        // A failed or canceled child delivered to its `onFailure` transition: the body runs with the failure
+        // envelope and `schema` is not applied, since there is no result to validate.
+        let transitionInput: Record<string, unknown>;
+        if (status === 'failed' || status === 'canceled') {
+          if (waitTransition.schema) {
+            this.logger.warn(
+              `Wait transition '${waitTransition.methodName}' declares a schema but received a ${status} callback; ` +
+                `a failure envelope carries no data, so the schema was not applied.`,
+            );
           }
+          transitionInput = { workflowId: childWorkflowId, status, errorMessage, ...correlation };
         } else {
-          validatedData = rawData;
+          let validatedData: unknown;
+          if (waitTransition.schema) {
+            try {
+              validatedData = waitTransition.schema.parse(rawData);
+            } catch (e) {
+              // The submitted payload is invalid. This is (typically user-supplied) input, not a
+              // workflow failure — keep the workflow paused at the current place with the validation
+              // message so the caller can resubmit corrected data, instead of failing it. hasError is
+              // left false so the status resolves back to Waiting.
+              const message =
+                e instanceof ZodError
+                  ? e.issues.map((i) => `${i.path.length ? i.path.join('.') : '<root>'}: ${i.message}`).join('; ')
+                  : e instanceof Error
+                    ? e.message
+                    : String(e);
+              this.logger.warn(
+                `Rejected invalid payload for wait transition '${waitTransition.methodName}': ${message}`,
+              );
+              meta.errorMessage = `Invalid payload for '${waitTransition.methodName}': ${message}`;
+
+              const stillAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
+              meta.availableTransitions = stillAvailable.map((t) => ({
+                id: t.methodName,
+                from: meta.place,
+                to: t.to,
+                trigger: t.wait ? ('manual' as const) : undefined,
+              }));
+              return state;
+            }
+          } else {
+            validatedData = rawData;
+          }
+          transitionInput = { workflowId: childWorkflowId, data: validatedData, ...correlation };
         }
-        const transitionInput = {
-          workflowId: (rawPayload.workflowId as string | undefined) ?? pendingTransition.workflowId,
-          status,
-          hasError: typeof rawPayload.hasError === 'boolean' ? rawPayload.hasError : status !== 'completed',
-          errorMessage: (rawPayload.errorMessage as string | null | undefined) ?? null,
-          data: validatedData,
-          ...(rawPayload.meta !== undefined ? { meta: rawPayload.meta } : {}),
-        };
 
         const startedAt = performance.now();
         try {

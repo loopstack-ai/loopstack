@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { BaseWorkflow, Document, StudioApp, Transition, Workflow } from '@loopstack/common';
 import type { TransitionInput } from '@loopstack/common';
-import { failure, runWorkflow } from '../index.js';
+import { runWorkflow } from '../index.js';
 
 // --- Probes ---------------------------------------------------------------------------------
 
@@ -44,9 +44,11 @@ class RecoveryViewProbeWorkflow extends BaseWorkflow {
     await this.documentStore.save(RecoveryPromptDocument, { question: 'Retry the child?' });
   }
 
+  // The body throws, which is what `errorPlace` catches: a child's own failure goes to the parent's
+  // `onFailure` transition instead.
   @Transition({ from: 'waiting', to: 'end', wait: true, errorPlace: 'recovery' })
   onChild(_state: Record<string, unknown>, input: TransitionInput<{ value: string }>) {
-    this.setResult({ got: input.data?.value });
+    throw new Error(`cannot use ${input.data.value}`);
   }
 
   @Transition({ from: 'recovery', to: 'end' })
@@ -94,7 +96,7 @@ describe('run.parkView()', () => {
   it('shows the recovery prompt on a run failed at its error place', async () => {
     const run = await runWorkflow(RecoveryViewProbeWorkflow, undefined, {
       imports: [ParkViewProbeModule],
-      answers: { onChild: failure('child died') },
+      answers: { onChild: { value: 'x' } },
     });
 
     expect(run.status).toBe('failed');

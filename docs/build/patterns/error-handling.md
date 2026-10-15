@@ -238,4 +238,4 @@ Multiple `ErrorDocument`s accumulate if retries fail repeatedly — giving a ful
 - [Error Place example](/docs/examples/error-handling#error-place) — `errorPlace` moves a failed workflow to a recovery place with a Recover button.
 - [Manual Retry example](/docs/examples/error-handling#manual-retry) — The default: the failed workflow stays at its place and offers a Retry button.
 - [Transition Timeout example](/docs/examples/error-handling#transition-timeout) — `timeout` fails a transition that runs too long; the tool stops its work via `ctx.signal`.
-- [Sub-Workflow Error Place example](/docs/examples/error-handling#sub-workflow-error-place) — A failed child workflow callback is routed to a recovery place via `errorPlace`.
+- [Sub-Workflow Failure example](/docs/examples/error-handling#sub-workflow-failure) — A failed child workflow is handled by the parent's `onFailure` transition.

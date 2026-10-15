@@ -44,7 +44,8 @@ export function toWorkflowFull(entity: WorkflowEntity): WorkflowFullInterface {
     errorMessage: entity.errorMessage ?? null,
     args: entity.args,
     context: entity.context ?? {},
-    callbackTransition: entity.callbackTransition ?? null,
+    onSuccessTransition: entity.onSuccessTransition ?? null,
+    onFailureTransition: entity.onFailureTransition ?? null,
     result: entity.result ?? null,
   });
 }

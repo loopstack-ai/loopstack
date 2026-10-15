@@ -23,7 +23,7 @@ export type {
   VolumeInventory,
   WorkspaceInventory,
 } from './workspace-inventory.service.js';
-export { SEED_IMAGES_MOUNT, bindSeedImages } from './seed-images.js';
+export { SEED_IMAGES_MOUNT } from './seed-images.js';
 export { parseShortStat } from './short-stat.js';
 export type { RepoChangeCount } from './short-stat.js';
 export type {

@@ -36,10 +36,11 @@ export class LlmDelegateService {
       toolCalls.map((toolCall) =>
         tools.includes(toolCall.name)
           ? this.executeTool(toolCall, {
-              callback: {
-                transition: callback.transition,
-                metadata: { toolUseId: toolCall.id, toolName: toolCall.name },
-              },
+              // One transition receives every tool's outcome: a failed sub-workflow becomes a tool_result with
+              // `isError: true`, so the model sees the failure and can correct itself. The loop must not fail.
+              onSuccess: { transition: callback.transition },
+              onFailure: { transition: callback.transition },
+              metadata: { toolUseId: toolCall.id, toolName: toolCall.name },
             })
           : this.rejectTool(toolCall, tools),
       ),

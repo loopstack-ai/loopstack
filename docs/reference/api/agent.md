@@ -81,7 +81,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   setup(state: AgentState, ctx: RunContext<AgentArgs>): Promise<void>;
   llmTurn(state: AgentState): Promise<void>;
   executeToolCalls(state: AgentState): Promise<void>;
-  toolResultReceived(state: AgentState, input: TransitionInput): Promise<void>;
+  toolResultReceived(state: AgentState, input: TransitionInput | FailureInput): Promise<void>;
   toolsComplete(_state: AgentState): void;
   cancelPendingTools(state: AgentState, ctx: RunContext): Promise<void>;
   respond(state: AgentState): void;

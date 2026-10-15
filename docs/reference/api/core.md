@@ -32,7 +32,7 @@ import { FanOutWorkflow } from '@loopstack/core';
 export class FanOutWorkflow extends BaseWorkflow<FanOutArgs, FanOutInput> {
   constructor(orchestrator: WorkflowOrchestrator, registry: WorkflowRegistryService);
   start(state: FanOutState, ctx: RunContext<FanOutArgs>): Promise<void>;
-  onChildComplete(
+  recordChildResult(
     state: FanOutState,
     input: TransitionInput<
       unknown,
@@ -40,6 +40,12 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutArgs, FanOutInput> {
         key?: string;
       }
     >,
+  ): void;
+  recordChildFailure(
+    state: FanOutState,
+    input: FailureInput<{
+      key?: string;
+    }>,
     ctx: RunContext<FanOutArgs>,
   ): Promise<void>;
   done(state: FanOutState): void;
@@ -70,7 +76,8 @@ import { SequenceWorkflow } from '@loopstack/core';
 export class SequenceWorkflow extends BaseWorkflow<SequenceArgs, SequenceInput> {
   constructor(orchestrator: WorkflowOrchestrator, registry: WorkflowRegistryService);
   start(state: SequenceState, ctx: RunContext<SequenceArgs>): Promise<void>;
-  onChildComplete(state: SequenceState, input: TransitionInput, ctx: RunContext<SequenceArgs>): Promise<void>;
+  recordChildResult(state: SequenceState, input: TransitionInput, ctx: RunContext<SequenceArgs>): Promise<void>;
+  recordChildFailure(state: SequenceState, input: FailureInput, ctx: RunContext<SequenceArgs>): Promise<void>;
   done(state: SequenceState): void;
 }
 ```

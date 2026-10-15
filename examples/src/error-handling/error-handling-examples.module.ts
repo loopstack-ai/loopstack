@@ -7,8 +7,8 @@ import { ErrorPlaceExampleWorkflow } from './workflows/error-place/error-place-e
 import { FailingWorkflow } from './workflows/failing/failing.workflow';
 import { ManualRetryExampleWorkflow } from './workflows/manual-retry/manual-retry-example.workflow';
 import { RetryTargetExampleWorkflow } from './workflows/retry-target/retry-target-example.workflow';
-import { SubWorkflowErrorPlaceChildWorkflow } from './workflows/sub-workflow-error-place/sub-workflow-error-place-child.workflow';
-import { SubWorkflowErrorPlaceExampleWorkflow } from './workflows/sub-workflow-error-place/sub-workflow-error-place-example.workflow';
+import { SubWorkflowFailureChildWorkflow } from './workflows/sub-workflow-failure/sub-workflow-failure-child.workflow';
+import { SubWorkflowFailureExampleWorkflow } from './workflows/sub-workflow-failure/sub-workflow-failure-example.workflow';
 import { TransitionTimeoutExampleWorkflow } from './workflows/transition-timeout/transition-timeout-example.workflow';
 
 const WORKFLOWS = [
@@ -17,7 +17,7 @@ const WORKFLOWS = [
   ErrorPlaceExampleWorkflow,
   ManualRetryExampleWorkflow,
   TransitionTimeoutExampleWorkflow,
-  SubWorkflowErrorPlaceExampleWorkflow,
+  SubWorkflowFailureExampleWorkflow,
   FailingWorkflow,
 ];
 
@@ -26,7 +26,7 @@ const WORKFLOWS = [
   workflows: WORKFLOWS,
 })
 @Module({
-  providers: [FlakyServiceTool, SlowOperationTool, SubWorkflowErrorPlaceChildWorkflow, ...WORKFLOWS],
+  providers: [FlakyServiceTool, SlowOperationTool, SubWorkflowFailureChildWorkflow, ...WORKFLOWS],
   exports: WORKFLOWS,
 })
 export class ErrorHandlingExamplesModule {}

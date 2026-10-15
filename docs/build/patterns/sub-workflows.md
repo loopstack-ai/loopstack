@@ -1,11 +1,11 @@
 ---
 title: Sub-Workflows
-description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, callback transitions, typing the callback envelope via TransitionInput<TData>, handling sub-workflow failures via input.hasError / input.errorMessage without try/catch, passing arguments to child workflows, receiving sub-workflow results, and coordinating multiple sub-workflows via FanOutWorkflow (parallel) and SequenceWorkflow (sequential) with 'all' / 'allSettled' failure modes.
+description: Running workflows inside other workflows via .run(), the show option ('inline' | 'link' | 'hidden') for parent-view rendering, the onSuccess and onFailure callback transitions, typing the envelopes via TransitionInput<TData> and FailureInput, what happens when no onFailure is declared, passing arguments to child workflows, receiving sub-workflow results, and coordinating multiple sub-workflows via FanOutWorkflow (parallel) and SequenceWorkflow (sequential) with 'all' / 'allSettled' failure modes.
 ---
 
 # Sub-Workflows
 
-Sub-workflows let you compose complex automations from smaller, reusable workflow building blocks. A parent workflow can launch one or more child workflows via `.run()`, pause until they complete, and receive results through a callback transition.
+Sub-workflows let you compose complex automations from smaller, reusable workflow building blocks. A parent workflow can launch one or more child workflows via `.run()`, pause until they end, and receive the outcome through a callback transition: `onSuccess` for a child that completed, `onFailure` for one that failed or was canceled.
 
 ## Injecting a Sub-Workflow
 
@@ -24,7 +24,7 @@ constructor(private readonly subWorkflow: SubWorkflow) {
 async start(state: MyState) {
   await this.subWorkflow.run(
     { prompt: 'Hello' },                          // Args passed to the sub-workflow
-    { callback: { transition: 'onSubComplete' } }, // Method to call when done
+    { onSuccess: { transition: 'onSubComplete' } }, // Transition to call when it completes
   );
 }
 ```
@@ -43,13 +43,14 @@ The `show` option on `RunOptions` controls how the child sub-workflow is rendere
 
 ```typescript
 await this.askUser.run(args, {
-  callback: { transition: 'answered' },
+  onSuccess: { transition: 'answered' },
   show: 'inline', // (default) embed the child UI in the parent's view
   label: 'Waiting for user answer', // optional — defaults to the child workflow's name
 });
 
 await this.longJob.run(args, {
-  callback: { transition: 'done' },
+  onSuccess: { transition: 'done' },
+  onFailure: { transition: 'jobFailed' },
   show: 'link', // status card, opens child in a separate window
 });
 
@@ -60,9 +61,10 @@ await this.background.run(args, {
 
 The link card's status is read live from the child workflow's actual state — it transitions from pending to success or failure automatically as the child runs.
 
-## Receiving the Callback
+## Receiving the Result
 
-The sub-workflow's published `result` (built via `assignResult` / `setResult`) is passed as `input.data`:
+The transition named by `onSuccess` receives the sub-workflow's published `result` (built via `assignResult` /
+`setResult`) as `input.data`:
 
 ```typescript
 import type { TransitionInput } from '@loopstack/common';
@@ -84,29 +86,37 @@ async onSubComplete(
 }
 ```
 
-## Typing the Callback Envelope
+## Typing the Envelopes
 
-Every `wait: true` transition receives a `TransitionInput<TData, TMeta>` envelope — the same shape whether the resume came from a sub-workflow completion or a frontend / API trigger:
+A success callback, and any resume from a gate or the API, delivers a `TransitionInput<TData, TMeta>`:
 
 ```typescript
 interface TransitionInput<TData = unknown, TMeta = unknown> {
   workflowId: string;
-  status: 'completed' | 'failed' | 'canceled';
-  hasError: boolean;
-  errorMessage: string | null;
   data: TData;
   meta?: TMeta;
 }
 ```
 
-| Field          | Type             | What it is                                                                                                 |
-| -------------- | ---------------- | ---------------------------------------------------------------------------------------------------------- |
-| `workflowId`   | `string`         | ID of the run that produced this resume (the child for sub-workflow callbacks, the parent for user input). |
-| `status`       | enum             | `'completed'` / `'failed'` / `'canceled'`.                                                                 |
-| `hasError`     | `boolean`        | `true` if the trigger source ended in failure — branch on this, not on `status`.                           |
-| `errorMessage` | `string \| null` | Error message if `hasError`, otherwise `null`.                                                             |
-| `data`         | `TData`          | The validated payload (the child's published `result`, or the user's form data).                           |
-| `meta`         | `TMeta?`         | Optional correlation metadata passed via `callback.metadata`. Undefined for user-driven resumes.           |
+| Field        | Type     | What it is                                                                                             |
+| ------------ | -------- | ------------------------------------------------------------------------------------------------------ |
+| `workflowId` | `string` | ID of the run that produced this resume (the child for a success callback, the parent for user input). |
+| `data`       | `TData`  | The validated payload: the child's published `result`, or the user's form data.                        |
+| `meta`       | `TMeta?` | Correlation metadata passed via `metadata` on `run()`. Undefined for user-driven resumes.              |
+
+A failure callback delivers a `FailureInput<TMeta>`:
+
+```typescript
+interface FailureInput<TMeta = unknown> {
+  workflowId: string;
+  status: 'failed' | 'canceled';
+  errorMessage: string | null;
+  meta?: TMeta;
+}
+```
+
+There is no `data`: a child that never reached its result has none, and one that failed after publishing a
+result is still a failure. `schema` is not applied to a failure transition.
 
 The `schema` on `@Transition({ wait: true })` describes **only `data`** — the framework constructs the surrounding envelope. Type the parameter via `TransitionInput<TData>`:
 
@@ -123,7 +133,7 @@ const AnswerSchema = z.object({ answer: z.string() });
   schema: AnswerSchema,
 })
 onAnswer(state: MyState, input: TransitionInput<{ answer: string }>) {
-  // input.workflowId, input.status, input.hasError available at the top level
+  // input.workflowId is available at the top level
   // input.data.answer is fully typed against AnswerSchema
   this.setResult({ answer: input.data.answer });
 }
@@ -131,10 +141,12 @@ onAnswer(state: MyState, input: TransitionInput<{ answer: string }>) {
 
 ## Error Handling
 
-When a sub-workflow throws, the failure does **not** bubble up through `run()` — `run()` only schedules the child. Instead, the parent's callback transition still fires, with `hasError: true` and `errorMessage` populated. The parent branches on `input.hasError`:
+When a sub-workflow throws, the failure does **not** bubble up through `run()` — `run()` only schedules the
+child. The child's error reaches the parent as a callback instead, and the parent decides what it means by
+naming an `onFailure` transition:
 
 ```typescript
-import { BaseWorkflow, MessageDocument, Transition, type TransitionInput, Workflow } from '@loopstack/common';
+import { BaseWorkflow, type FailureInput, MessageDocument, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({ title: 'Recovers from a Failing Child' })
 export class RecoveringParentWorkflow extends BaseWorkflow {
@@ -144,30 +156,54 @@ export class RecoveringParentWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'awaiting' })
   async launch(state: Record<string, unknown>) {
-    await this.failingSub.run({}, { callback: { transition: 'onFinished' }, show: 'link', label: 'Failing child' });
+    await this.failingSub.run(
+      {},
+      {
+        onSuccess: { transition: 'childCompleted' },
+        onFailure: { transition: 'childFailed' },
+        show: 'link',
+        label: 'Failing child',
+      },
+    );
   }
 
   @Transition({ from: 'awaiting', to: 'end', wait: true })
-  async onFinished(state: Record<string, unknown>, input: TransitionInput) {
-    if (input.hasError) {
-      await this.documentStore.save(MessageDocument, {
-        role: 'assistant',
-        text: `Child failed: ${input.errorMessage ?? 'unknown error'} — continuing with a fallback.`,
-      });
-      this.setResult({ recovered: true });
-      return;
-    }
+  childCompleted() {
     this.setResult({ recovered: false });
+  }
+
+  @Transition({ from: 'awaiting', to: 'end', wait: true })
+  async childFailed(state: Record<string, unknown>, input: FailureInput) {
+    await this.documentStore.save(MessageDocument, {
+      role: 'assistant',
+      text: `Child ${input.status}: ${input.errorMessage ?? 'no message'} — continuing with a fallback.`,
+    });
+    this.setResult({ recovered: true });
   }
 }
 ```
 
-Two things to note:
+The failure transition is an ordinary transition: it can report, clean up, route to another place, ask the user
+a question, or throw to fail the parent.
 
-- **No try/catch at the parent.** The child's exception is captured by the framework, persisted on the child run, and surfaced through the envelope. The parent only sees `hasError`.
-- **The link card / inline iframe turns red automatically.** No extra UI wiring is needed to reflect the failure in the parent's run view.
+### When no onFailure is declared
 
-For `FanOutWorkflow` and `SequenceWorkflow` the same idea applies one level deeper: each item's per-result entry carries its own `hasError`, and the aggregate `input.data` exposes `hasErrors` and `errorCount`.
+Most parents want the same thing when a child fails: stop, with the reason. That is the default, so no handler
+is needed. The parent is **parked as failed at the place it waits at**, with the child's error message. Because
+the parent keeps its place, the child's own Retry stays useful: a retried child that then succeeds calls
+`onSuccess`, and the parent carries on.
+
+Three things to note:
+
+- **No try/catch at the parent.** The child's exception is captured by the framework, persisted on the child
+  run, and surfaced through the callback.
+- **`errorPlace` is about a throwing body**, not about a child's failure. Declare it to route a transition whose
+  own body throws; declare `onFailure` to handle a child that failed.
+- **The link card / inline iframe turns red automatically.** No extra UI wiring is needed to reflect the failure
+  in the parent's run view.
+
+For `FanOutWorkflow` and `SequenceWorkflow` the same idea applies one level deeper: each item's per-result entry
+carries its own `status`, and the aggregate `input.data` exposes `hasErrors` and `errorCount`.
 
 ## Sub-Workflow Output
 
@@ -196,7 +232,7 @@ export class ParentWorkflow extends BaseWorkflow {
   async runWorkflow(state: Record<string, unknown>) {
     await this.subWorkflow.run(
       {},
-      { callback: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
+      { onSuccess: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
     );
   }
 
@@ -241,7 +277,7 @@ export class ParallelWorkflow extends BaseWorkflow {
           orders: { workflow: 'fetch_orders', args: { id: 1 } },
         },
       },
-      { callback: { transition: 'onAllDone' } },
+      { onSuccess: { transition: 'onAllDone' } },
     );
   }
 
@@ -258,10 +294,10 @@ export class ParallelWorkflow extends BaseWorkflow {
 
 ### Failure modes
 
-| `mode`              | Behavior                                                                                                                                                                                    |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `'all'` _(default)_ | First failure triggers `cancelChildren` on the parent; the callback fires once every in-flight child has settled (canceled siblings also send callbacks). `input.data.hasErrors` is `true`. |
-| `'allSettled'`      | Every child runs to completion regardless of siblings; the callback aggregates `completed` / `failed` results for every item.                                                               |
+| `mode`              | Behavior                                                                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `'all'` _(default)_ | First failure triggers `cancelChildren` on the parent; the success callback fires once every in-flight child has settled (canceled siblings also report back). `input.data.hasErrors` is `true`. |
+| `'allSettled'`      | Every child runs to completion regardless of siblings; the callback aggregates `completed` / `failed` results for every item.                                                                    |
 
 ## Running Sub-Workflows in Sequence
 
@@ -290,7 +326,7 @@ export class SequentialWorkflow extends BaseWorkflow {
           { workflow: 'step_c', args: { ... }, label: 'step-3' },
         ],
       },
-      { callback: { transition: 'onComplete' } },
+      { onSuccess: { transition: 'onComplete' } },
     );
   }
 
@@ -341,7 +377,13 @@ export class RunTestsTask extends BaseTool {
   ): Promise<ToolEnvelope> {
     const result = await this.testRunner.run(
       { testDirectory: args.testDirectory },
-      { callback: options?.callback, show: 'inline', label: 'Running tests...' },
+      {
+        onSuccess: options?.onSuccess,
+        onFailure: options?.onFailure,
+        metadata: options?.metadata,
+        show: 'inline',
+        label: 'Running tests...',
+      },
     );
 
     return {
@@ -360,7 +402,7 @@ export class RunTestsTask extends BaseTool {
 Key parts:
 
 - **`pending: { workflowId }`** tells the framework this tool is async — the parent workflow waits for a callback
-- **`callback: options?.callback`** passes the parent's callback config to the sub-workflow
+- **the `onSuccess` / `onFailure` / `metadata` options** pass the caller's callback configuration through to the sub-workflow
 - **`show`** decides how the child appears in the parent's run view (`'inline'` by default)
 - **`complete()`** is called when the sub-workflow finishes — transform results and return the tool's final value here
 
@@ -370,5 +412,5 @@ The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architec
 
 ## Registry References
 
-- [Sub-Workflow example](/docs/examples/advanced-workflows#sub-workflow) — Parent calling sub-workflows with callbacks and typed output, all three `show` modes chained, `FanOutWorkflow` / `SequenceWorkflow` coordination, and a failing-child workflow paired with a parent that branches on `input.hasError`
+- [Sub-Workflow example](/docs/examples/advanced-workflows#sub-workflow) — Parent calling sub-workflows with callbacks and typed output, all three `show` modes chained, `FanOutWorkflow` / `SequenceWorkflow` coordination, and a failing-child workflow paired with a parent that names one transition per outcome
 - [@loopstack/code-agent](/docs/registry/code-agent) — ExploreTask wrapping AgentWorkflow as a task tool

@@ -75,18 +75,17 @@ describe('GithubOverviewExampleWorkflow', () => {
     expect(oAuthWorkflow.run).toHaveBeenCalledTimes(2);
   });
 
-  it('fails at auth_failed when the OAuth sub-workflow fails', async () => {
+  it('waits at auth_failed when the OAuth sub-workflow fails', async () => {
     const { oAuthWorkflow, providers } = setup();
 
     const run = await runWorkflow(GithubOverviewExampleWorkflow, undefined, {
       providers,
-      answers: { authCompleted: queue(failure('GITHUB_CLIENT_ID is not configured')) },
+      answers: { authFailed: queue(failure('GITHUB_CLIENT_ID is not configured')) },
     });
 
     // A failed sign-in must not loop back to start and launch another OAuth sub-workflow.
-    expect(run.status).toBe('failed');
+    expect(run.status).toBe('waiting');
     expect(run.place).toBe('auth_failed');
-    expect(run.error).toBe('GITHUB_CLIENT_ID is not configured');
     expect(run.raw.availableTransitions.map((t) => t.id)).toEqual(['retryAuth']);
     expect(oAuthWorkflow.run).toHaveBeenCalledTimes(1);
   });

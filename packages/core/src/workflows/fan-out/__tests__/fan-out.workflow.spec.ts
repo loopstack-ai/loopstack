@@ -74,7 +74,9 @@ describe('FanOutWorkflow', () => {
         FakeWorkflowA,
         { x: 1 },
         expect.objectContaining({
-          callback: { transition: 'onChildComplete', metadata: { key: 'a' } },
+          onSuccess: { transition: 'recordChildResult' },
+          onFailure: { transition: 'recordChildFailure' },
+          metadata: { key: 'a' },
         }),
       );
       expect(state.pendingCount).toBe(2);
@@ -95,7 +97,7 @@ describe('FanOutWorkflow', () => {
     });
   });
 
-  describe('onChildComplete', () => {
+  describe('recordChildResult and recordChildFailure', () => {
     it('records a completed child and decrements pendingCount', async () => {
       const { workflow } = makeWorkflow();
       const state: FanOutState = {
@@ -108,19 +110,7 @@ describe('FanOutWorkflow', () => {
 
       const { state: next } = await runTransition(
         workflow,
-        () =>
-          workflow.onChildComplete(
-            state,
-            {
-              workflowId: 'child-a',
-              status: 'completed',
-              hasError: false,
-              errorMessage: null,
-              data: { v: 1 },
-              meta: { key: 'a' },
-            },
-            ctx({ entries: [], itemsWereArray: false, mode: 'all' }),
-          ),
+        () => workflow.recordChildResult(state, { workflowId: 'child-a', data: { v: 1 }, meta: { key: 'a' } }),
         { state },
       );
 
@@ -141,16 +131,9 @@ describe('FanOutWorkflow', () => {
       const { state: next } = await runTransition(
         workflow,
         () =>
-          workflow.onChildComplete(
+          workflow.recordChildFailure(
             state,
-            {
-              workflowId: 'child-a',
-              status: 'failed',
-              hasError: true,
-              errorMessage: 'Child failed.',
-              data: null,
-              meta: { key: 'a' },
-            },
+            { workflowId: 'child-a', status: 'failed', errorMessage: 'Child failed.', meta: { key: 'a' } },
             ctx({ entries: [], itemsWereArray: false, mode: 'all' }, 'parent-99'),
           ),
         { state },
@@ -173,16 +156,9 @@ describe('FanOutWorkflow', () => {
       await runTransition(
         workflow,
         () =>
-          workflow.onChildComplete(
+          workflow.recordChildFailure(
             state,
-            {
-              workflowId: 'child-a',
-              status: 'failed',
-              hasError: true,
-              errorMessage: 'Child failed.',
-              data: null,
-              meta: { key: 'a' },
-            },
+            { workflowId: 'child-a', status: 'failed', errorMessage: 'Child failed.', meta: { key: 'a' } },
             ctx({ entries: [], itemsWereArray: false, mode: 'allSettled' }),
           ),
         { state },
@@ -202,22 +178,9 @@ describe('FanOutWorkflow', () => {
       };
 
       await expect(
-        runTransition(
-          workflow,
-          () =>
-            workflow.onChildComplete(
-              state,
-              {
-                workflowId: 'child-x',
-                status: 'completed',
-                hasError: false,
-                errorMessage: null,
-                data: {},
-              },
-              ctx({ entries: [], itemsWereArray: false, mode: 'all' }),
-            ),
-          { state },
-        ),
+        runTransition(workflow, () => workflow.recordChildResult(state, { workflowId: 'child-x', data: {} }), {
+          state,
+        }),
       ).rejects.toThrow(/correlation key/);
     });
   });

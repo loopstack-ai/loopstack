@@ -7,7 +7,7 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { RunContext, TransitionInput } from '@loopstack/common';
+import type { FailureInput, RunContext, TransitionInput } from '@loopstack/common';
 import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import {
   type FanOutArgs,
@@ -69,7 +69,9 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutArgs, FanOutInput> {
 
     for (const { key, item, workflowClass } of resolved) {
       await this.orchestrator.queue(workflowClass, item.args ?? {}, {
-        callback: { transition: 'onChildComplete', metadata: { key } },
+        onSuccess: { transition: 'recordChildResult' },
+        onFailure: { transition: 'recordChildFailure' },
+        metadata: { key },
         show: item.show ?? 'inline',
         label: item.label,
       });
@@ -85,31 +87,28 @@ export class FanOutWorkflow extends BaseWorkflow<FanOutArgs, FanOutInput> {
   }
 
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
-  async onChildComplete(
-    state: FanOutState,
-    input: TransitionInput<unknown, { key?: string }>,
-    ctx: RunContext<FanOutArgs>,
-  ) {
-    const key = input.meta?.key;
-    if (!key) {
-      throw new Error('FanOut child completion missing correlation key in TransitionInput.meta.');
-    }
+  recordChildResult(state: FanOutState, input: TransitionInput<unknown, { key?: string }>) {
+    this.record(state, this.keyOf(input.meta), { status: 'completed', data: input.data });
+  }
 
-    const status = input.status as FanOutResultEntry['status'];
-    const isError = input.hasError;
-
-    const entry: FanOutResultEntry = isError
-      ? { status, error: status === 'canceled' ? 'Sibling failure canceled this child.' : `Child workflow ${status}.` }
-      : { status, data: input.data };
-
-    const newResults = { ...state.results, [key]: entry };
-    const newPending = state.pendingCount - 1;
-
-    if (state.mode === 'all' && status === 'failed' && ctx.workflowId) {
+  // In mode `all` the first failure cancels the siblings still running; each reports back as canceled.
+  @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
+  async recordChildFailure(state: FanOutState, input: FailureInput<{ key?: string }>, ctx: RunContext<FanOutArgs>) {
+    const error =
+      input.status === 'canceled' ? 'Sibling failure canceled this child.' : `Child workflow ${input.status}.`;
+    this.record(state, this.keyOf(input.meta), { status: input.status, error });
+    if (state.mode === 'all' && input.status === 'failed' && ctx.workflowId) {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }
+  }
 
-    this.assignState({ pendingCount: newPending, results: newResults });
+  private keyOf(meta: { key?: string } | undefined): string {
+    if (!meta?.key) throw new Error('FanOut child callback missing correlation key in meta.');
+    return meta.key;
+  }
+
+  private record(state: FanOutState, key: string, entry: FanOutResultEntry): void {
+    this.assignState({ pendingCount: state.pendingCount - 1, results: { ...state.results, [key]: entry } });
   }
 
   @Transition({ from: 'awaiting', to: 'end' })

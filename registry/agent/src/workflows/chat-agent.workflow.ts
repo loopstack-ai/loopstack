@@ -148,6 +148,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs> {
     this.assignState({ delegateResult, finishResult });
   }
 
+  // One transition for every tool outcome: a failed tool's envelope becomes a tool_result with `isError: true`.
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
   async toolResultReceived(state: ChatAgentState, payload: unknown) {
     const result = await this.llmUpdateToolResult.call({

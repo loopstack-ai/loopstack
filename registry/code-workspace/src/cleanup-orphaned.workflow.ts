@@ -71,7 +71,7 @@ export class CleanupOrphanedWorkflow extends BaseWorkflow<InputArgs> {
     if (plan.workspaceIds.length || plan.runs.length || plan.bases.length) {
       await this.confirmUser.run(
         { markdown: this.inventory.renderOrphanPlan(inventory, plan) },
-        { callback: { transition: 'onConfirmed' }, show: 'inline', label: 'Confirm cleanup' },
+        { onSuccess: { transition: 'onConfirmed' }, show: 'inline', label: 'Confirm cleanup' },
       );
     }
   }

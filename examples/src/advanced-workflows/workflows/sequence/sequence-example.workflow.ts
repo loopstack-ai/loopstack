@@ -28,7 +28,7 @@ export class RunSubWorkflowExampleSequenceWorkflow extends BaseWorkflow {
           { workflow: 'run_sub_workflow_example_sub', label: 'step-3' },
         ],
       },
-      { callback: { transition: 'onComplete' }, label: 'Sequence children', show: 'link' },
+      { onSuccess: { transition: 'onComplete' }, label: 'Sequence children', show: 'link' },
     );
   }
 

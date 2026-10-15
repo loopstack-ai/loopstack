@@ -121,7 +121,7 @@ const result = await this.llmGenerateText.call(
   { prompt: 'Hello' },
   { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
 );
-await this.subWorkflow.run(args, { callback: { transition: 'onComplete' } });
+await this.subWorkflow.run(args, { onSuccess: { transition: 'onComplete' } });
 ```
 
 ### `@Transition(options)`
@@ -347,7 +347,7 @@ async userMessage(state: MyState, input: TransitionInput<{ message: string }>) {
 }
 ```
 
-Best practice: add a `schema` (describing only `data`) and type the parameter with `TransitionInput<TData>` so `input.data` is fully typed alongside `input.hasError` / `input.errorMessage` / `input.status` for failure branches.
+Best practice: add a `schema` (describing only `data`) and type the parameter with `TransitionInput<TData>` so `input.data` is fully typed. A child that failed is delivered to the transition named by `onFailure`, which receives a `FailureInput` with `status` and `errorMessage`; with no `onFailure` the parent is parked as failed where it waits.
 
 ## Sub-Workflows
 
@@ -360,7 +360,7 @@ constructor(private readonly subWorkflow: SubWorkflow) { super(); }
 async start(state: MyState) {
   await this.subWorkflow.run(
     { prompt: 'Hello' },                                                       // args
-    { callback: { transition: 'onSubComplete' }, show: 'inline', label: 'Running sub-workflow...' },
+    { onSuccess: { transition: 'onSubComplete' }, show: 'inline', label: 'Running sub-workflow...' },
   );
 }
 
@@ -372,7 +372,7 @@ async start(state: MyState) {
 })
 onSubComplete(state: MyState, input: TransitionInput<{ message: string }>) {
   // input.data contains the sub-workflow's published result
-  // input.hasError / input.errorMessage are populated if the child failed
+  // a child that failed goes to the transition named by onFailure instead
 }
 ```
 

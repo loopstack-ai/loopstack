@@ -66,7 +66,13 @@ export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, As
   ): Promise<ToolEnvelope<AskForApprovalResult>> {
     const result = await this.confirmUserWorkflow.run(
       { markdown: args.concept },
-      { callback: options?.callback, show: 'inline', label: 'Waiting for approval...' },
+      {
+        onSuccess: options?.onSuccess,
+        onFailure: options?.onFailure,
+        metadata: options?.metadata,
+        show: 'inline',
+        label: 'Waiting for approval...',
+      },
     );
 
     return {

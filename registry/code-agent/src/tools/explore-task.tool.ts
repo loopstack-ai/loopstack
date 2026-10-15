@@ -101,7 +101,13 @@ export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskR
         tools: this.tools,
         userMessage: args.instructions,
       },
-      { callback: options?.callback, show: 'inline', label: 'Exploring...' },
+      {
+        onSuccess: options?.onSuccess,
+        onFailure: options?.onFailure,
+        metadata: options?.metadata,
+        show: 'inline',
+        label: 'Exploring...',
+      },
     );
 
     return {

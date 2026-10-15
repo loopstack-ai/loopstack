@@ -116,7 +116,7 @@ describe('ConnectGitHubWorkflow', () => {
     expect(askUser.run).toHaveBeenNthCalledWith(
       2,
       { question: 'Enter a name for your new repository:' },
-      expect.objectContaining({ callback: { transition: 'createRepo' } }),
+      expect.objectContaining({ onSuccess: { transition: 'createRepo' } }),
     );
     expect(createRepo.call).toHaveBeenCalledWith({ name: 'new-repo', private: true, autoInit: false });
     expect(configUser.call).toHaveBeenCalledWith({
@@ -147,7 +147,7 @@ describe('ConnectGitHubWorkflow', () => {
     expect(result.path).toEqual(['start', 'launchOAuth', 'authCompleted', 'askCreateOrLink']);
     expect(oAuth.run).toHaveBeenCalledWith(
       { provider: 'github', scopes: ['repo', 'user'] },
-      expect.objectContaining({ callback: { transition: 'authCompleted' } }),
+      expect.objectContaining({ onSuccess: { transition: 'authCompleted' } }),
     );
     expect(getUser.call).toHaveBeenCalledTimes(2);
   });
@@ -180,7 +180,7 @@ describe('ConnectGitHubWorkflow', () => {
     expect(askUser.run).toHaveBeenNthCalledWith(
       2,
       { question: 'Select a repository to connect:', mode: 'options', options: ['acme/app', 'acme/web'] },
-      expect.objectContaining({ callback: { transition: 'repoSelected' } }),
+      expect.objectContaining({ onSuccess: { transition: 'repoSelected' } }),
     );
     expect(createRepo.call).not.toHaveBeenCalled();
     expect(remoteConfigure.call).toHaveBeenCalledWith({ url: 'https://github.com/acme/app.git' });
@@ -234,7 +234,7 @@ describe('ConnectGitHubWorkflow', () => {
           'Cancel (disconnect remote)',
         ],
       },
-      expect.objectContaining({ callback: { transition: 'syncStrategyChosen' } }),
+      expect.objectContaining({ onSuccess: { transition: 'syncStrategyChosen' } }),
     );
     expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'feature', force: true, token: 'gh-token' });
   });

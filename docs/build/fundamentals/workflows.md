@@ -151,7 +151,7 @@ async llmTurn(state: MyState) { ... }
 
 ### Wait Transition — Pause for Input
 
-Add `wait: true` to pause the workflow until externally triggered — by user input, a button click, or a sub-workflow callback. Use `schema` to validate and type the incoming `data`; the transition method receives a `TransitionInput<TData>` envelope with `data` plus failure info (`hasError`, `errorMessage`, `status`).
+Add `wait: true` to pause the workflow until externally triggered — by user input, a button click, or a sub-workflow callback. Use `schema` to validate and type the incoming `data`; the transition method receives a `TransitionInput<TData>` envelope with the child's `workflowId` and its `data`. A sub-workflow that failed is delivered to the transition the parent named as `onFailure`, which receives a `FailureInput` instead.
 
 ```typescript
 @Transition({

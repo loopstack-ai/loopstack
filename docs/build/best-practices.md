@@ -122,11 +122,15 @@ A guard that mutates state, calls a tool, or has a side effect makes routing imp
 
 Not all failures are equal. Match the recovery mode to the _kind_ of failure:
 
-| Failure kind                               | Strategy                                                                    |
-| ------------------------------------------ | --------------------------------------------------------------------------- |
-| Transient (network blip, rate limit)       | **Auto-retry**                                                              |
-| User-fixable (bad input, missing approval) | **Error place / manual retry** — surface it and let the user correct course |
-| Fatal (programmer error, impossible state) | **Fail loudly** — don't paper over a bug                                    |
+| Failure kind                               | Strategy                                                                                                         |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Transient (network blip, rate limit)       | **Auto-retry**                                                                                                   |
+| User-fixable (bad input, missing approval) | **Error place / manual retry** — surface it and let the user correct course                                      |
+| Fatal (programmer error, impossible state) | **Fail loudly** — don't paper over a bug                                                                         |
+| A sub-workflow that failed                 | **`onFailure`** when the parent acts on it; otherwise nothing, and the parent is parked as failed where it waits |
+
+`errorPlace` and `retryAttempts` are about a transition whose own body throws. A child's failure is a
+different cause with its own handler, so keep the two apart.
 
 Then internalize the rollback reality: **when a transition throws, its state mutations roll back — but external side effects do not.** A half-sent email or a half-written file stays half-done. So design transitions to be **safe to re-run**: make side effects idempotent, or structure them so a retry can't double-apply them. Surface failures the user should see as an `ErrorDocument` rather than letting them disappear into logs.
 

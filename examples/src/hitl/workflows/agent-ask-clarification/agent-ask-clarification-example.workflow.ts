@@ -28,7 +28,7 @@ export class AgentAskClarificationExampleWorkflow extends BaseWorkflow {
         tools: ['ask_clarification'],
         userMessage: 'Where should I go on holiday next month?',
       },
-      { callback: { transition: 'agentComplete' }, show: 'inline', label: 'Trip planner working...' },
+      { onSuccess: { transition: 'agentComplete' }, show: 'inline', label: 'Trip planner working...' },
     );
   }
 

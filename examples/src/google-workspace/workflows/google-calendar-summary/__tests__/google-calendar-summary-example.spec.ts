@@ -55,7 +55,7 @@ describe('GoogleCalendarSummaryExampleWorkflow', () => {
     expect(run.place).toBe('awaiting_auth');
     expect(oAuthWorkflow.run).toHaveBeenCalledWith(
       expect.objectContaining({ provider: 'google' }),
-      expect.objectContaining({ callback: { transition: 'authCompleted' } }),
+      expect.objectContaining({ onSuccess: { transition: 'authCompleted' } }),
     );
   });
 });

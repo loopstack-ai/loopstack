@@ -71,7 +71,7 @@ describe('workflow.settled', () => {
   it('names the parent, so a listener can tell a sub-workflow from a root run', async () => {
     const { orchestration, emit } = service();
 
-    await orchestration.complete(workflow({ parentId: 'parent-1', callbackTransition: 'onDone' }));
+    await orchestration.complete(workflow({ parentId: 'parent-1', onSuccessTransition: 'onDone' }));
 
     expect(emit.mock.calls[0][1]).toMatchObject({ parentId: 'parent-1' });
   });
@@ -94,7 +94,7 @@ describe('workflow.settled', () => {
     });
     const { orchestration, resume } = service(emit);
 
-    await orchestration.complete(workflow({ parentId: 'parent-1', callbackTransition: 'onDone' }));
+    await orchestration.complete(workflow({ parentId: 'parent-1', onSuccessTransition: 'onDone' }));
 
     expect(resume).toHaveBeenCalledWith('parent-1', expect.objectContaining({ workflowId: 'wf-1' }), {
       transition: 'onDone',

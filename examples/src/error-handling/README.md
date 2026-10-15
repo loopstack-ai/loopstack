@@ -1,6 +1,6 @@
 ---
 title: Error Handling Examples
-description: Error handling workflow examples for Loopstack — auto-retry with exponential backoff, retryTarget, errorPlace recovery, manual retry, transition timeouts, and sub-workflow failures routed via errorPlace.
+description: Error handling workflow examples for Loopstack — auto-retry with exponential backoff, retryTarget, errorPlace recovery, manual retry, transition timeouts, and a sub-workflow failure handled by the parent's onFailure transition.
 ---
 
 # Error Handling Examples
@@ -36,14 +36,14 @@ None — the examples call no LLM and need no secrets. The failures are simulate
 
 ## Examples
 
-| Example                                               | Studio title                                        | Description                                                              |
-| ----------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------ |
-| [Auto Retry](#auto-retry)                             | `Error Handling - Auto Retry Example`               | `retryAttempts` re-runs a failed transition with exponential backoff     |
-| [Retry Target](#retry-target)                         | `Error Handling - Retry Target Example`             | `retryTarget` routes each retry through a preparation place              |
-| [Error Place](#error-place)                           | `Error Handling - Error Place Example`              | `errorPlace` moves a failed workflow to a recovery place                 |
-| [Manual Retry](#manual-retry)                         | `Error Handling - Manual Retry Example`             | The default: the workflow stays put and offers a Retry button            |
-| [Transition Timeout](#transition-timeout)             | `Error Handling - Transition Timeout Example`       | `timeout` fails a transition that runs too long                          |
-| [Sub-Workflow Error Place](#sub-workflow-error-place) | `Error Handling - Sub-Workflow Error Place Example` | A failed child's callback is routed to a recovery place via `errorPlace` |
+| Example                                       | Studio title                                    | Description                                                          |
+| --------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
+| [Auto Retry](#auto-retry)                     | `Error Handling - Auto Retry Example`           | `retryAttempts` re-runs a failed transition with exponential backoff |
+| [Retry Target](#retry-target)                 | `Error Handling - Retry Target Example`         | `retryTarget` routes each retry through a preparation place          |
+| [Error Place](#error-place)                   | `Error Handling - Error Place Example`          | `errorPlace` moves a failed workflow to a recovery place             |
+| [Manual Retry](#manual-retry)                 | `Error Handling - Manual Retry Example`         | The default: the workflow stays put and offers a Retry button        |
+| [Transition Timeout](#transition-timeout)     | `Error Handling - Transition Timeout Example`   | `timeout` fails a transition that runs too long                      |
+| [Sub-Workflow Failure](#sub-workflow-failure) | `Error Handling - Sub-Workflow Failure Example` | A failed child is handled by the parent's `onFailure` transition     |
 
 ---
 
@@ -124,21 +124,23 @@ The run ends failed with `Transition 'runSlowOperation' timed out after 2000ms`.
 
 - `workflows/transition-timeout/transition-timeout-example.workflow.ts`
 
-## Sub-Workflow Error Place
+## Sub-Workflow Failure
 
-The parent starts a child workflow that always throws. Its callback transition declares `errorPlace: 'child_failed'`, so the failed callback moves the parent to `child_failed` — the happy-path body of `childCompleted` never runs. A **Recover** button triggers the `recover` wait transition and completes the run.
+The parent starts a child workflow that always throws. It names one transition per outcome: `onSuccess: { transition: 'childCompleted' }` and `onFailure: { transition: 'childFailed' }`. The child fails, so `childFailed` runs with a `FailureInput`, records what happened and parks the run at `child_failed`; the happy-path body never runs. A **Recover** button triggers the `recover` wait transition and completes the run.
 
 ```bash
-loopstack run sub_workflow_error_place_example
+loopstack run sub_workflow_failure_example
 ```
 
-The run ends failed at `child_failed` with `Child workflow failed`. Click **Recover** in Studio, or run `loopstack answer <run-id> --transition recover` — the run completes with `result: { recovered: true }`.
+The run waits at `child_failed` with the child's message. Click **Recover** in Studio, or run `loopstack answer <run-id> --transition recover` — the run completes with `result: { recovered: true }`.
+
+A parent that declares no `onFailure` needs no handler: the framework parks it as failed at the place it waits at, with the child's error message, and the child keeps its Retry.
 
 ### Files
 
-- `workflows/sub-workflow-error-place/sub-workflow-error-place-example.workflow.ts`
-- `workflows/sub-workflow-error-place/sub-workflow-error-place-child.workflow.ts` — the always-failing child
-- `workflows/sub-workflow-error-place/sub-workflow-error-place-example.ui.yaml` — the Recover button
+- `workflows/sub-workflow-failure/sub-workflow-failure-example.workflow.ts`
+- `workflows/sub-workflow-failure/sub-workflow-failure-child.workflow.ts` — the always-failing child
+- `workflows/sub-workflow-failure/sub-workflow-failure-example.ui.yaml` — the Recover button
 
 ## About
 

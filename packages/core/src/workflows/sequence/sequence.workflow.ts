@@ -7,7 +7,7 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { RunContext, TransitionInput } from '@loopstack/common';
+import type { FailureInput, RunContext, TransitionInput } from '@loopstack/common';
 import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import {
   type SequenceArgs,
@@ -80,18 +80,26 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceArgs, SequenceInput> 
   }
 
   @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
-  async onChildComplete(state: SequenceState, input: TransitionInput, ctx: RunContext<SequenceArgs>) {
+  async recordChildResult(state: SequenceState, input: TransitionInput, ctx: RunContext<SequenceArgs>) {
+    await this.record(state, ctx, { status: 'completed', data: input.data }, false);
+  }
+
+  @Transition({ from: 'awaiting', to: 'awaiting', wait: true })
+  async recordChildFailure(state: SequenceState, input: FailureInput, ctx: RunContext<SequenceArgs>) {
+    await this.record(state, ctx, { status: input.status, error: `Child workflow ${input.status}.` }, true);
+  }
+
+  // Mode `all` stops at the first failure and marks the rest skipped; `allSettled` runs every item.
+  private async record(
+    state: SequenceState,
+    ctx: RunContext<SequenceArgs>,
+    entry: SequenceResultEntry,
+    isError: boolean,
+  ): Promise<void> {
     const key = state.itemKeys[state.currentIndex];
     if (!key) {
       throw new Error('Sequence received a child callback with no matching active item.');
     }
-
-    const status = input.status as SequenceResultEntry['status'];
-    const isError = input.hasError;
-
-    const entry: SequenceResultEntry = isError
-      ? { status, error: `Child workflow ${status}.` }
-      : { status, data: input.data };
 
     const newResults = { ...state.results, [key]: entry };
     const nextIndex = state.currentIndex + 1;
@@ -134,7 +142,9 @@ export class SequenceWorkflow extends BaseWorkflow<SequenceArgs, SequenceInput> 
     const [key, item] = args.entries[index];
     const workflowClass = this.resolveClass(item.workflow);
     await this.orchestrator.queue(workflowClass, item.args ?? {}, {
-      callback: { transition: 'onChildComplete', metadata: { key } },
+      onSuccess: { transition: 'recordChildResult' },
+      onFailure: { transition: 'recordChildFailure' },
+      metadata: { key },
       show: item.show ?? 'inline',
       label: item.label,
     });

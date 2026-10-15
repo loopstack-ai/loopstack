@@ -64,7 +64,13 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
   ): Promise<ToolEnvelope<RequestSecretsTaskResult>> {
     const result = await this.secretsRequestWorkflow.run(
       { variables: args.variables },
-      { callback: options?.callback, show: 'inline', label: 'Requesting Secrets' },
+      {
+        onSuccess: options?.onSuccess,
+        onFailure: options?.onFailure,
+        metadata: options?.metadata,
+        show: 'inline',
+        label: 'Requesting Secrets',
+      },
     );
 
     return {

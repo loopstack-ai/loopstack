@@ -27,7 +27,7 @@ export class ToolErrorsExampleWorkflow extends BaseWorkflow {
         tools: ['strict_schema', 'runtime_error', 'failing_sub_workflow'],
         userMessage: 'Follow the steps in your system prompt, starting with step 1.',
       },
-      { callback: { transition: 'agentComplete' }, show: 'inline', label: 'Subagent' },
+      { onSuccess: { transition: 'agentComplete' }, show: 'inline', label: 'Subagent' },
     );
   }
 

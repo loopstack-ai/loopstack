@@ -19,7 +19,7 @@ export class AskUserTextExampleWorkflow extends BaseWorkflow {
   async askName() {
     await this.askUserWorkflow.run(
       { question: 'What is your name?' },
-      { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },
+      { onSuccess: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },
     );
   }
 

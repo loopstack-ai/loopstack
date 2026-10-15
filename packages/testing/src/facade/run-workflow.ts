@@ -341,16 +341,16 @@ function matchAnswer(transitions: WorkflowTransitionType[] | undefined, answers:
 }
 
 /**
- * The transition payload a scripted answer delivers: a `failure()` marker becomes a
- * failed/canceled sub-workflow callback; any other value becomes the answer's `data`.
+ * The transition payload a scripted answer delivers: a `failure()` marker becomes the callback a failed or
+ * canceled sub-workflow delivers, `unhandledFailure()` the one a parent with no `onFailure` receives, and any
+ * other value becomes the answer's `data`.
  */
 function answerPayload(value: unknown): Record<string, unknown> {
   return value instanceof FailureAnswer
     ? {
         status: value.status,
         errorMessage: value.errorMessage ?? `Scripted ${value.status} answer`,
-        hasError: true,
-        data: null,
+        ...(value.unhandled ? { unhandledFailure: true } : {}),
       }
     : { data: value };
 }

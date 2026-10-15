@@ -85,7 +85,13 @@ export class AskClarificationTool extends BaseTool<AskClarificationInput, object
         options: args.options,
         allowCustomAnswer: args.allowCustomAnswer,
       },
-      { callback: options?.callback, show: 'inline', label: 'Waiting for user answer...' },
+      {
+        onSuccess: options?.onSuccess,
+        onFailure: options?.onFailure,
+        metadata: options?.metadata,
+        show: 'inline',
+        label: 'Waiting for user answer...',
+      },
     );
 
     return {

@@ -26,7 +26,7 @@ export class AskUserOptionsExampleWorkflow extends BaseWorkflow {
         options: ENV_OPTIONS,
         allowCustomAnswer: true,
       },
-      { callback: { transition: 'choiceReceived' }, show: 'inline', label: 'Waiting for choice...' },
+      { onSuccess: { transition: 'choiceReceived' }, show: 'inline', label: 'Waiting for choice...' },
     );
   }
 

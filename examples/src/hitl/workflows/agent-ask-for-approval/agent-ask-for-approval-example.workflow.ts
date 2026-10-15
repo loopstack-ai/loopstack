@@ -30,7 +30,7 @@ export class AgentAskForApprovalExampleWorkflow extends BaseWorkflow {
         userMessage:
           'Draft release notes for v1.2.3: added webhook signature verification; fixed a date-parsing bug in the importer.',
       },
-      { callback: { transition: 'agentComplete' }, show: 'inline', label: 'Drafting release notes...' },
+      { onSuccess: { transition: 'agentComplete' }, show: 'inline', label: 'Drafting release notes...' },
     );
   }
 

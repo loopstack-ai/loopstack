@@ -74,8 +74,9 @@ Workflows are singletons. State flows through the `state` parameter:
 - Args are available via `ctx.args` — type with `RunContext<TArgs>` to drop the cast
 - Use `from: 'start'` (or omit `from`) for initial, `to: 'end'` for final
 
-Launch sub-workflows by injecting the workflow class and calling `run()` with a
-`callback.transition` that resumes the parent when the child completes.
+Launch sub-workflows by injecting the workflow class and calling `run()` with an
+`onSuccess` transition that resumes the parent when the child completes, and an
+`onFailure` transition for when it does not.
 
 ```ts
 import { BaseWorkflow } from '@loopstack/common';
@@ -255,6 +256,26 @@ export interface DocumentStore {
 }
 ```
 
+### FailureInput
+
+Shape delivered to the `onFailure` transition when a sub-workflow failed or was canceled.
+
+There is no `data`: a child that never reached its result has none, and one that failed after publishing
+one is still a failure. `schema` on the receiving transition is ignored.
+
+```ts
+import { FailureInput } from '@loopstack/common';
+```
+
+```ts
+export interface FailureInput<TMeta = unknown> {
+  workflowId: string;
+  status: 'failed' | 'canceled';
+  errorMessage: string | null;
+  meta?: TMeta;
+}
+```
+
 ### RedisConnectionOptions
 
 Redis connection settings a Loopstack deployment uses.
@@ -400,10 +421,13 @@ import { ToolCallOptions } from '@loopstack/common';
 
 ```ts
 export interface ToolCallOptions<TConfig = object> {
-  callback?: {
+  onSuccess?: {
     transition: string;
-    metadata?: Record<string, unknown>;
   };
+  onFailure?: {
+    transition: string;
+  };
+  metadata?: Record<string, unknown>;
   config?: TConfig;
 }
 ```
@@ -476,16 +500,13 @@ export interface ToolResult<TData = unknown, TMeta = Record<string, unknown>> {
 
 ### TransitionInput
 
-Shape delivered to every `@Transition({ wait: true })` method, regardless of trigger source
-(sub-workflow completion or frontend / API resume).
+Shape delivered to a `@Transition({ wait: true })` method on success: a completed sub-workflow's result,
+or a frontend / API resume.
 
-The `schema` option on `@Transition` validates `data` only — the framework constructs the
-surrounding envelope. `meta` carries whatever the parent passed to `callback.metadata`
-(used by `FanOut`/`Sequence` for per-child correlation, by the LLM tool loop for
-`toolUseId`, etc.); it is `undefined` for user-driven resumes.
-
-`hasError` / `errorMessage` / `status` reflect the terminal state of the trigger so the
-receiver can branch on failure without separate lookups.
+The `schema` option on `@Transition` validates `data` only — the framework constructs the surrounding
+envelope. `meta` carries whatever the parent passed to `metadata` on `run()` (used by `FanOut`/`Sequence`
+for per-child correlation, by the LLM tool loop for `toolUseId`, etc.); it is `undefined` for user-driven
+resumes.
 
 ```ts
 import { TransitionInput } from '@loopstack/common';
@@ -494,9 +515,6 @@ import { TransitionInput } from '@loopstack/common';
 ```ts
 export interface TransitionInput<TData = unknown, TMeta = unknown> {
   workflowId: string;
-  status: 'completed' | 'failed' | 'canceled';
-  hasError: boolean;
-  errorMessage: string | null;
   data: TData;
   meta?: TMeta;
 }

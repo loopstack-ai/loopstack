@@ -27,7 +27,7 @@ export class AgenticExampleWorkflow extends BaseWorkflow {
         userMessage: this.render(join(__dirname, 'templates', 'userMessage.md')),
         taskMode: true,
       },
-      { callback: { transition: 'agentFinished' }, show: 'inline', label: 'Secrets Agent' },
+      { onSuccess: { transition: 'agentFinished' }, show: 'inline', label: 'Secrets Agent' },
     );
   }
 

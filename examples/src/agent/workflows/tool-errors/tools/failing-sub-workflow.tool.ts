@@ -26,7 +26,10 @@ export class FailingSubWorkflowTool extends BaseTool<object, object, FailingSubW
     _ctx: RunContext,
     options?: ToolCallOptions,
   ): Promise<ToolEnvelope<FailingSubWorkflowToolResult>> {
-    const result = await this.failingWorkflow.run({}, { callback: options?.callback });
+    const result = await this.failingWorkflow.run(
+      {},
+      { onSuccess: options?.onSuccess, onFailure: options?.onFailure, metadata: options?.metadata },
+    );
 
     return {
       data: { workflowId: result.workflowId },

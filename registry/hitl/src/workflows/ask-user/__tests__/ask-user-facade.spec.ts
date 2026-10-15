@@ -12,7 +12,7 @@ class ParentWithQuestionWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'asking' })
   async begin() {
-    await this.askUser.run({ question: 'Continue?' }, { callback: { transition: 'onAnswer' } });
+    await this.askUser.run({ question: 'Continue?' }, { onSuccess: { transition: 'onAnswer' } });
   }
 
   @Transition({ from: 'asking', to: 'end', wait: true, schema: z.object({ answer: z.string() }) })

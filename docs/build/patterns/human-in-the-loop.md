@@ -206,7 +206,7 @@ When a park has more than one enabled widget — a confirmation document from a 
 
 The `wait: true` pattern above is for workflows that own their own UI. For generic prompts you don't want to design a form for, run `AskUserWorkflow` or `ConfirmUserWorkflow` from `@loopstack/hitl` as a sub-workflow and receive the answer through a callback.
 
-The callback delivers the standard `TransitionInput<TData>` envelope — the `schema` on the transition describes only `data`, and `input.data` is fully typed. See [Sub-Workflows → Typing the Callback Envelope](./sub-workflows.md#typing-the-callback-envelope) for the full reference.
+The callback delivers the standard `TransitionInput<TData>` envelope — the `schema` on the transition describes only `data`, and `input.data` is fully typed. See [Sub-Workflows → Typing the Envelopes](./sub-workflows.md#typing-the-envelopes) for the full reference.
 
 ### `AskUserWorkflow` — free text
 
@@ -225,7 +225,7 @@ export class AskThenContinueWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'waiting' })
   async ask(state: Record<string, unknown>) {
-    await this.askUser.run({ question: 'What is your name?' }, { callback: { transition: 'onAnswer' } });
+    await this.askUser.run({ question: 'What is your name?' }, { onSuccess: { transition: 'onAnswer' } });
   }
 
   @Transition({ from: 'waiting', to: 'end', wait: true, schema: AnswerSchema })
@@ -247,7 +247,7 @@ await this.askUser.run(
     options: ['staging', 'production'],
     allowCustomAnswer: true,
   },
-  { callback: { transition: 'choiceReceived' } },
+  { onSuccess: { transition: 'choiceReceived' } },
 );
 ```
 
@@ -260,7 +260,7 @@ Pass `mode: 'confirm'`. The answer comes back as the literal string `'yes'` or `
 ```typescript
 await this.askUser.run(
   { question: 'Send the email now?', mode: 'confirm' },
-  { callback: { transition: 'decisionReceived' } },
+  { onSuccess: { transition: 'decisionReceived' } },
 );
 ```
 
@@ -277,7 +277,7 @@ const ConfirmSchema = z.object({ confirmed: z.boolean(), markdown: z.string() })
 async showSummary(state: Record<string, unknown>) {
   await this.confirmUser.run(
     { markdown: '## Ready to deploy v1.2.3?\n\n- 3 commits since last release\n- Smoke tests passing' },
-    { callback: { transition: 'decisionReceived' } },
+    { onSuccess: { transition: 'decisionReceived' } },
   );
 }
 
@@ -323,7 +323,7 @@ export class TripPlannerWorkflow extends BaseWorkflow {
         tools: ['ask_clarification'],
         userMessage: 'Where should I go on holiday next month?',
       },
-      { callback: { transition: 'onComplete' } },
+      { onSuccess: { transition: 'onComplete' } },
     );
   }
 
@@ -352,7 +352,7 @@ await this.agent.run(
     tools: ['ask_for_approval'],
     userMessage: 'Draft release notes for v1.2.3.',
   },
-  { callback: { transition: 'onComplete' } },
+  { onSuccess: { transition: 'onComplete' } },
 );
 ```
 

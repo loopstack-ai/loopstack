@@ -27,7 +27,7 @@ constructor(private readonly subWorkflow: SubWorkflow) { super(); }
 const result: QueueResult = await this.subWorkflow.run(
   { prompt: 'Hello' }, // args passed to the sub-workflow
   {
-    callback: { transition: 'onSubComplete' }, // method name of the wait transition
+    onSuccess: { transition: 'onSubComplete' }, // the wait transition called when it completes
     show: 'inline', // 'inline' (default) | 'link' | 'hidden' — how the child appears in the parent's view
     label: 'Running sub-workflow', // optional override (defaults to the child workflow's name)
   },
@@ -51,7 +51,7 @@ const SubWorkflowMessageSchema = z.object({ message: z.string() });
 onSubComplete(state: MyState, input: TransitionInput<{ message: string }>) {
   // input.workflowId — the sub-workflow's ID
   // input.status — 'completed' | 'failed' | 'canceled'
-  // input.hasError / input.errorMessage — populated if the child failed
+  // a child that failed goes to the transition named by onFailure instead
   // input.data — the sub-workflow's published result (validated against schema)
   const message = input.data.message;
 }

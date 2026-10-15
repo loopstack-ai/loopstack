@@ -18,8 +18,25 @@ import type { TemplateRenderFn } from './workflow-templates.js';
  */
 export type SubWorkflowShow = 'inline' | 'link' | 'hidden';
 
+/**
+ * How a parent is called back when a sub-workflow ends.
+ *
+ * `onSuccess` names the wait transition that receives a completed child's result as a {@link TransitionInput};
+ * the transition's `schema` validates it. `onFailure` names the wait transition that receives a failed or
+ * canceled child as a {@link FailureInput}. Either may be omitted:
+ *
+ * - no `onSuccess`: a completed child calls nothing back.
+ * - no `onFailure` with an `onSuccess`: a failed child parks the parent at the place it waits at, as failed,
+ *   with the child's error message. The child keeps its Retry, and a retried child that then succeeds finds
+ *   the parent still waiting and calls `onSuccess`.
+ * - neither: nothing is called back, whatever happened.
+ *
+ * `metadata` is carried into both callbacks as `meta`, for correlation such as a fan-out key or a tool-use id.
+ */
 export interface RunOptions {
-  callback?: { transition: string; metadata?: Record<string, unknown> };
+  onSuccess?: { transition: string };
+  onFailure?: { transition: string };
+  metadata?: Record<string, unknown>;
   show?: SubWorkflowShow;
   label?: string;
   /**
@@ -39,7 +56,7 @@ export interface RunOptions {
  *
  * The parent does NOT wait for the child to finish — `run()` schedules the
  * child and returns immediately. Use the `workflowId` to correlate the
- * eventual callback (the transition named in `options.callback.transition`),
+ * eventual callback (the transitions named in `options.onSuccess` and `options.onFailure`),
  * or to query the child's status via the API.
  */
 export interface QueueResult {
@@ -48,25 +65,34 @@ export interface QueueResult {
 }
 
 /**
- * Shape delivered to every `@Transition({ wait: true })` method, regardless of trigger source
- * (sub-workflow completion or frontend / API resume).
+ * Shape delivered to a `@Transition({ wait: true })` method on success: a completed sub-workflow's result,
+ * or a frontend / API resume.
  *
- * The `schema` option on `@Transition` validates `data` only — the framework constructs the
- * surrounding envelope. `meta` carries whatever the parent passed to `callback.metadata`
- * (used by `FanOut`/`Sequence` for per-child correlation, by the LLM tool loop for
- * `toolUseId`, etc.); it is `undefined` for user-driven resumes.
- *
- * `hasError` / `errorMessage` / `status` reflect the terminal state of the trigger so the
- * receiver can branch on failure without separate lookups.
+ * The `schema` option on `@Transition` validates `data` only — the framework constructs the surrounding
+ * envelope. `meta` carries whatever the parent passed to `metadata` on `run()` (used by `FanOut`/`Sequence`
+ * for per-child correlation, by the LLM tool loop for `toolUseId`, etc.); it is `undefined` for user-driven
+ * resumes.
  *
  * @public
  */
 export interface TransitionInput<TData = unknown, TMeta = unknown> {
   workflowId: string;
-  status: 'completed' | 'failed' | 'canceled';
-  hasError: boolean;
-  errorMessage: string | null;
   data: TData;
+  meta?: TMeta;
+}
+
+/**
+ * Shape delivered to the `onFailure` transition when a sub-workflow failed or was canceled.
+ *
+ * There is no `data`: a child that never reached its result has none, and one that failed after publishing
+ * one is still a failure. `schema` on the receiving transition is ignored.
+ *
+ * @public
+ */
+export interface FailureInput<TMeta = unknown> {
+  workflowId: string;
+  status: 'failed' | 'canceled';
+  errorMessage: string | null;
   meta?: TMeta;
 }
 
@@ -101,8 +127,9 @@ export interface TransitionInput<TData = unknown, TMeta = unknown> {
  * - Args are available via `ctx.args` — type with `RunContext<TArgs>` to drop the cast
  * - Use `from: 'start'` (or omit `from`) for initial, `to: 'end'` for final
  *
- * Launch sub-workflows by injecting the workflow class and calling `run()` with a
- * `callback.transition` that resumes the parent when the child completes.
+ * Launch sub-workflows by injecting the workflow class and calling `run()` with an
+ * `onSuccess` transition that resumes the parent when the child completes, and an
+ * `onFailure` transition for when it does not.
  *
  * @public
  */
@@ -128,7 +155,7 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TInput = TAr
    * Launch this workflow as a sub-workflow.
    *
    * @param input — Call-site input, validated and transformed by `@Workflow({ schema })` into `TArgs`
-   * @param options — Optional callback to resume the parent workflow when this one completes
+   * @param options — The transitions that resume the parent when this run ends, and how it is shown
    */
   async run(input?: TInput, options?: RunOptions): Promise<QueueResult> {
     return this.__orchestrator.queue(this.constructor as Type, input as Record<string, unknown>, options);

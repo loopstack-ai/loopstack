@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { RunContext, TransitionInput } from '@loopstack/common';
+import type { FailureInput, RunContext, TransitionInput } from '@loopstack/common';
 import {
   BaseWorkflow,
   Guard,
@@ -154,7 +154,8 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs> {
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
-  async toolResultReceived(state: AgentState, input: TransitionInput) {
+  // One transition for every tool outcome: a failed tool's envelope becomes a tool_result with `isError: true`.
+  async toolResultReceived(state: AgentState, input: TransitionInput | FailureInput) {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: input,

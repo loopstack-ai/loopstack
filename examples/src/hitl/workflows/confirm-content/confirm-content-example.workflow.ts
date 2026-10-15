@@ -29,7 +29,7 @@ export class ConfirmContentExampleWorkflow extends BaseWorkflow {
   async showSummary() {
     await this.confirmUserWorkflow.run(
       { markdown: DEPLOY_SUMMARY },
-      { callback: { transition: 'decisionReceived' }, show: 'inline', label: 'Waiting for confirmation...' },
+      { onSuccess: { transition: 'decisionReceived' }, show: 'inline', label: 'Waiting for confirmation...' },
     );
   }
 

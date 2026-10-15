@@ -21,7 +21,7 @@ export class AgentExampleWorkflow extends BaseWorkflow {
         tools: ['weather_lookup', 'calculator'],
         userMessage: "What's the weather in Tokyo? Also, what is 42 * 17?",
       },
-      { callback: { transition: 'agentComplete' }, show: 'inline', label: 'Subagent' },
+      { onSuccess: { transition: 'agentComplete' }, show: 'inline', label: 'Subagent' },
     );
   }
 

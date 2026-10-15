@@ -1,34 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { TransitionInput } from '@loopstack/common';
-import { TestClock, failure, queue, runWorkflow } from '../index.js';
+import type { FailureInput, TransitionInput } from '@loopstack/common';
+import { TestClock, failure, queue, runWorkflow, unhandledFailure } from '../index.js';
 
 // --- Probes ---------------------------------------------------------------------------------
 
-@Workflow({ title: 'Fault Probe — error place' })
-class ErrorPlaceProbeWorkflow extends BaseWorkflow {
-  @Transition({ to: 'waiting' })
-  start() {}
-
-  @Transition({ from: 'waiting', to: 'end', wait: true, errorPlace: 'recovery' })
-  onChild(_state: Record<string, unknown>, input: TransitionInput<{ value: string }>) {
-    this.setResult({ got: input.data?.value });
-  }
-
-  @Transition({ from: 'recovery', to: 'end' })
-  recover() {
-    this.setResult({ recovered: true });
-  }
-}
-
-@Workflow({ title: 'Fault Probe — inline handling' })
-class InlineFaultProbeWorkflow extends BaseWorkflow {
+@Workflow({ title: 'Fault Probe — no onFailure declared' })
+class UnhandledFaultProbeWorkflow extends BaseWorkflow {
   @Transition({ to: 'waiting' })
   start() {}
 
   @Transition({ from: 'waiting', to: 'end', wait: true })
-  onChild(_state: Record<string, unknown>, input: TransitionInput<unknown>) {
-    this.setResult({ status: input.status, hasError: input.hasError, message: input.errorMessage });
+  onChild(_state: Record<string, unknown>, input: TransitionInput<{ value: string }>) {
+    this.setResult({ got: input.data?.value });
+  }
+}
+
+@Workflow({ title: 'Fault Probe — onFailure handler' })
+class FailureHandlerProbeWorkflow extends BaseWorkflow {
+  @Transition({ to: 'waiting' })
+  start() {}
+
+  @Transition({ from: 'waiting', to: 'end', wait: true })
+  handleFailure(_state: Record<string, unknown>, input: FailureInput) {
+    this.setResult({ status: input.status, message: input.errorMessage });
   }
 }
 
@@ -38,8 +33,8 @@ class CyclicFaultProbeWorkflow extends BaseWorkflow {
   start() {}
 
   @Transition({ from: 'loop', to: 'loop', wait: true })
-  onEvent(_state: Record<string, unknown>, input: TransitionInput<unknown>) {
-    this.setResult({ lastStatus: input.status });
+  onEvent(_state: Record<string, unknown>, input: TransitionInput<{ turn?: number }> | FailureInput) {
+    this.setResult({ last: 'status' in input ? input.status : input.data.turn });
   }
 }
 
@@ -62,28 +57,27 @@ class InstantProbeWorkflow extends BaseWorkflow {
 // --- failure() ------------------------------------------------------------------------------
 
 describe('failure() — scripted sub-workflow failures', () => {
-  it('routes a failed callback to the errorPlace', async () => {
-    const run = await runWorkflow(ErrorPlaceProbeWorkflow, undefined, {
-      answers: { onChild: failure('child died') },
+  it('parks the run as failed where it waits when no onFailure was declared', async () => {
+    const run = await runWorkflow(UnhandledFaultProbeWorkflow, undefined, {
+      answers: { onChild: unhandledFailure('child died') },
     });
 
-    // The failure lands the run at its error place, failed and awaiting manual recovery —
-    // exactly what a real crashed sub-workflow produces.
+    // No body runs: the run keeps its place, so a retried child's callback is still deliverable.
     expect(run.status).toBe('failed');
-    expect(run.place).toBe('recovery');
+    expect(run.place).toBe('waiting');
     expect(run.error).toBe('child died');
     expect(run.trace).toContainEqual(
       expect.objectContaining({ type: 'transition.failed', transitionId: 'onChild', error: 'child died' }),
     );
   });
 
-  it('falls through to the body with the failure status for inline handling', async () => {
-    const run = await runWorkflow(InlineFaultProbeWorkflow, undefined, {
-      answers: { onChild: failure('boom', 'canceled') },
+  it('runs the onFailure handler with the failure envelope', async () => {
+    const run = await runWorkflow(FailureHandlerProbeWorkflow, undefined, {
+      answers: { handleFailure: failure('boom', 'canceled') },
     });
 
     expect(run.status).toBe('completed');
-    expect(run.result).toEqual({ status: 'canceled', hasError: true, message: 'boom' });
+    expect(run.result).toEqual({ status: 'canceled', message: 'boom' });
   });
 
   it('composes with queue(): answer first, fail later', async () => {
@@ -94,7 +88,7 @@ describe('failure() — scripted sub-workflow failures', () => {
     // Two turns taken (one answered, one failed inline), then parked with the queue exhausted.
     expect(run.status).toBe('waiting');
     expect(run.path).toEqual(['start', 'onEvent', 'onEvent']);
-    expect(run.result).toEqual({ lastStatus: 'failed' });
+    expect(run.result).toEqual({ last: 'failed' });
   });
 });
 

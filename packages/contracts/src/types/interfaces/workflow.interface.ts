@@ -14,7 +14,8 @@ export interface WorkflowInterface {
   availableTransitions: WorkflowTransitionType[] | null;
   args: any;
   context: Record<string, any>;
-  callbackTransition: string | null;
+  onSuccessTransition: string | null;
+  onFailureTransition: string | null;
   createdAt: Date;
   updatedAt: Date;
   workspaceId: string;

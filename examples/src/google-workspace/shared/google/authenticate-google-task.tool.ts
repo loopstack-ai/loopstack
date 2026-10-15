@@ -9,12 +9,8 @@ const AuthenticateGoogleTaskInputSchema = z
     scopes: z
       .array(z.string())
       .describe('The OAuth scopes to request (e.g. https://www.googleapis.com/auth/calendar.events)'),
-    callback: z
-      .object({
-        transition: z.string(),
-        metadata: z.record(z.string(), z.unknown()).optional(),
-      })
-      .optional(),
+    onSuccess: z.object({ transition: z.string() }).optional(),
+    onFailure: z.object({ transition: z.string() }).optional(),
   })
   .strict();
 
@@ -53,7 +49,13 @@ export class AuthenticateGoogleTask extends BaseTool<
   ): Promise<ToolEnvelope<AuthenticateGoogleTaskResult>> {
     const result = await this.oAuthWorkflow.run(
       { provider: 'google', scopes: args.scopes },
-      { callback: options?.callback ?? args.callback, show: 'inline', label: 'Google authentication required' },
+      {
+        onSuccess: options?.onSuccess ?? args.onSuccess,
+        onFailure: options?.onFailure ?? args.onFailure,
+        metadata: options?.metadata,
+        show: 'inline',
+        label: 'Google authentication required',
+      },
     );
 
     return {

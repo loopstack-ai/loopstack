@@ -188,7 +188,7 @@ When the engine encounters a place where the only available transition has `wait
 2. Nothing more runs until an external trigger arrives
 3. The trigger can come from: a Studio button click, a sub-workflow callback, or an API call
 
-When the trigger arrives, a new BullMQ job is enqueued with the resume payload. The job loads the checkpoint, then invokes the wait transition with a `TransitionInput<TData>` envelope — `data` is validated against the transition's `schema`, and `status` / `hasError` / `errorMessage` reflect how the trigger source ended. After the wait transition returns, the auto-transition loop continues from the new place.
+When the trigger arrives, a new BullMQ job is enqueued with the resume payload. The job loads the checkpoint, then invokes the wait transition with a `TransitionInput<TData>` envelope, whose `data` is validated against the transition's `schema`. A sub-workflow that failed or was canceled is delivered to the transition the parent named as `onFailure`, which receives a `FailureInput` with `status` and `errorMessage`. After the wait transition returns, the auto-transition loop continues from the new place.
 
 This is why a paused workflow survives restarts: the trigger doesn't need to arrive while the original job is running. It can arrive seconds or weeks later — the checkpoint is in PostgreSQL waiting for it.
 

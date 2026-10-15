@@ -24,31 +24,56 @@ export function statelessChildResultFields(
 }
 
 /**
- * The callback envelope a stateless child owes its parent — `null` unless the child reached a
- * terminal state and has a callback transition. `parentWorkflowId` is the envelope's target
- * (empty in stateless test runs).
+ * The callback a settled child owes its parent, as the parent's pending transition: `onSuccess` with the
+ * result for a completed child, `onFailure` with the error for a failed or canceled one. A failed child whose
+ * parent declared no `onFailure` is delivered to `onSuccess` flagged `unhandledFailure`, which parks the parent
+ * as failed at the place it waits at. `null` when there is nothing to call.
  */
+export function childCallback(
+  child: {
+    workflowId: string;
+    status: WorkflowState;
+    onSuccessTransition: string | null;
+    onFailureTransition: string | null;
+    callbackMetadata: Record<string, unknown> | null;
+    result: Record<string, unknown> | null;
+    errorMessage?: string | null;
+  },
+  parentWorkflowId: string,
+): TransitionPayloadInterface | null {
+  const meta = child.callbackMetadata ? { meta: child.callbackMetadata } : {};
+  if (child.status === WorkflowState.Completed) {
+    if (!child.onSuccessTransition) return null;
+    return {
+      id: child.onSuccessTransition,
+      workflowId: parentWorkflowId,
+      payload: { workflowId: child.workflowId, status: 'completed', data: child.result ?? null, ...meta },
+    };
+  }
+  if (child.status !== WorkflowState.Failed && child.status !== WorkflowState.Canceled) return null;
+  const failure = {
+    workflowId: child.workflowId,
+    status: child.status,
+    errorMessage: child.errorMessage ?? null,
+    ...meta,
+  };
+  if (child.onFailureTransition) {
+    return { id: child.onFailureTransition, workflowId: parentWorkflowId, payload: failure };
+  }
+  if (child.onSuccessTransition) {
+    return {
+      id: child.onSuccessTransition,
+      workflowId: parentWorkflowId,
+      payload: { ...failure, unhandledFailure: true },
+    };
+  }
+  return null;
+}
+
+/** The callback a stateless child owes its parent — see {@link childCallback}. */
 export function statelessChildCallback(
   record: StatelessChildRecord,
   parentWorkflowId: string,
 ): TransitionPayloadInterface | null {
-  const terminal =
-    record.status === WorkflowState.Completed ||
-    record.status === WorkflowState.Failed ||
-    record.status === WorkflowState.Canceled;
-
-  if (!terminal || !record.callbackTransition) return null;
-
-  return {
-    id: record.callbackTransition,
-    workflowId: parentWorkflowId,
-    payload: {
-      workflowId: record.workflowId,
-      status: record.status,
-      hasError: record.hasError ?? false,
-      errorMessage: record.errorMessage ?? null,
-      data: record.result ?? null,
-      ...(record.callbackMetadata ? { meta: record.callbackMetadata } : {}),
-    },
-  };
+  return childCallback(record, parentWorkflowId);
 }

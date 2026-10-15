@@ -43,7 +43,8 @@ export interface StatelessChildRecord {
   workflowName: string;
   status: WorkflowState;
   args?: Record<string, unknown>;
-  callbackTransition: string | null;
+  onSuccessTransition: string | null;
+  onFailureTransition: string | null;
   callbackMetadata: Record<string, unknown> | null;
   documents: DocumentEntity[];
   result: Record<string, unknown> | null;

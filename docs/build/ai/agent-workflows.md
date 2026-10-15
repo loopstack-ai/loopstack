@@ -37,7 +37,7 @@ async runAgent(state: MyState) {
     system: 'You are a code exploration agent. Summarize your findings.',
     tools: ['glob', 'grep', 'read'],
     userMessage: 'Find all API endpoints in the codebase.',
-  }, { callback: { transition: 'agentDone' } });
+  }, { onSuccess: { transition: 'agentDone' } });
 }
 ```
 
@@ -256,7 +256,7 @@ export class ExploreTask extends BaseTool {
         tools: ['glob', 'grep', 'read'],
         userMessage: args.instructions,
       },
-      { callback: options?.callback },
+      { onSuccess: options?.onSuccess, onFailure: options?.onFailure, metadata: options?.metadata },
     );
 
     return {

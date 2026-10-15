@@ -60,7 +60,8 @@ export const WorkflowFullSchema = WorkflowItemSchema.extend({
   errorMessage: z.string().nullable(),
   args: z.any(),
   context: z.record(z.string(), z.unknown()),
-  callbackTransition: z.string().nullable(),
+  onSuccessTransition: z.string().nullable(),
+  onFailureTransition: z.string().nullable(),
   /** The run's published result, built via `assignResult`/`setResult`. */
   result: z.record(z.string(), z.unknown()).nullable(),
 });

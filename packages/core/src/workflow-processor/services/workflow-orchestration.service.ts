@@ -11,6 +11,7 @@ import {
   WorkflowEntity,
   WorkflowOrchestrator,
   WorkflowState,
+  childCallback,
   statelessChildCallback,
   statelessChildResultFields,
 } from '@loopstack/common';
@@ -73,8 +74,9 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
         workflowName,
         workspaceId,
         args: { ...args },
-        callbackTransition: options?.callback?.transition ?? null,
-        callbackMetadata: options?.callback?.metadata ?? null,
+        onSuccessTransition: options?.onSuccess?.transition ?? null,
+        onFailureTransition: options?.onFailure?.transition ?? null,
+        callbackMetadata: options?.metadata ?? null,
         ...(scope.tracePersist ? { trace: true } : {}),
       },
       scope.userId,
@@ -132,15 +134,13 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
       args,
     });
 
-    const callbackTransition = options?.callback?.transition ?? null;
-    const callbackMetadata = options?.callback?.metadata ?? null;
-
     const record: StatelessChildRecord = {
       workflowId: childId,
       workflowName,
       args,
-      callbackTransition,
-      callbackMetadata,
+      onSuccessTransition: options?.onSuccess?.transition ?? null,
+      onFailureTransition: options?.onFailure?.transition ?? null,
+      callbackMetadata: options?.metadata ?? null,
       ...statelessChildResultFields(childMeta),
     };
     (scope.statelessChildren ??= []).push(record);
@@ -276,28 +276,33 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
       }
     }
 
-    if (!workflowEntity.parentId || !workflowEntity.callbackTransition) {
-      return;
-    }
+    if (!workflowEntity.parentId) return;
+    // The outcome picks the transition: `onSuccess` for a completed child, `onFailure` for a failed or canceled
+    // one. A failed child whose parent declared no `onFailure` is delivered to `onSuccess` flagged as unhandled,
+    // which parks the parent as failed where it waits.
+    const callback = childCallback(
+      {
+        workflowId: workflowEntity.id,
+        status: workflowEntity.status,
+        onSuccessTransition: workflowEntity.onSuccessTransition,
+        onFailureTransition: workflowEntity.onFailureTransition,
+        callbackMetadata: workflowEntity.callbackMetadata,
+        result: workflowEntity.result ?? null,
+        errorMessage: workflowEntity.errorMessage,
+      },
+      workflowEntity.parentId,
+    );
+    if (!callback) return;
 
     this.logger.log(
       `Workflow ${workflowEntity.id} ${workflowEntity.status} — triggering parent callback: ` +
-        `parentId=${workflowEntity.parentId}, transition=${workflowEntity.callbackTransition}`,
+        `parentId=${workflowEntity.parentId}, transition=${callback.id}`,
     );
 
     try {
-      await this.resume(
-        workflowEntity.parentId,
-        {
-          workflowId: workflowEntity.id,
-          status: workflowEntity.status,
-          hasError: workflowEntity.hasError ?? false,
-          errorMessage: workflowEntity.errorMessage ?? null,
-          data: workflowEntity.result ?? null,
-          ...(workflowEntity.callbackMetadata ? { meta: workflowEntity.callbackMetadata } : {}),
-        },
-        { transition: workflowEntity.callbackTransition },
-      );
+      await this.resume(workflowEntity.parentId, callback.payload as Record<string, unknown>, {
+        transition: callback.id,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`Failed to trigger parent callback for workflow ${workflowEntity.id}: ${message}`);

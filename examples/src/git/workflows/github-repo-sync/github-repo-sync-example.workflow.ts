@@ -23,7 +23,7 @@ export class GithubRepoSyncExampleWorkflow extends BaseWorkflow {
   async connect() {
     await this.connectGitHubWorkflow.run(
       {},
-      { callback: { transition: 'connectComplete' }, show: 'inline', label: 'Connecting to GitHub...' },
+      { onSuccess: { transition: 'connectComplete' }, show: 'inline', label: 'Connecting to GitHub...' },
     );
   }
 

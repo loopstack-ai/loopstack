@@ -27,6 +27,7 @@ import type {
   VolumeInfo,
   WorkspaceStateInfo,
 } from './code-workspace.provisioner.js';
+import { SEED_IMAGES_MOUNT } from './seed-images.js';
 import { type RepoChangeCount, parseShortStat } from './short-stat.js';
 
 /** Postgres/Redis are always local, blank, and die with the container, so a single fixed db name is safe. */
@@ -433,6 +434,11 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     }
     await writeFile(idPath, Id);
     this.logger.log(`Exported seed image ${image} (${Id.slice(0, 19)}) to ${tarPath}`);
+  }
+
+  async bindSeedImages(images: readonly string[] | undefined): Promise<string> {
+    for (const image of images ?? []) await this.exportImageTar(image);
+    return `${this.resolveSeedImagesDir()}:${SEED_IMAGES_MOUNT}:ro`;
   }
 
   resolveCheckoutDir(workspaceId: string): string {

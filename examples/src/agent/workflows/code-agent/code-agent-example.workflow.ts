@@ -37,7 +37,7 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
         tools: ['glob', 'grep', 'read'],
         userMessage: EXPLORE_INSTRUCTIONS,
       },
-      { callback: { transition: 'exploreComplete' }, show: 'inline', label: 'Exploring codebase...' },
+      { onSuccess: { transition: 'exploreComplete' }, show: 'inline', label: 'Exploring codebase...' },
     );
   }
 

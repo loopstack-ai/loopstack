@@ -55,8 +55,13 @@ export class WorkflowEntity {
   @Column({ type: 'varchar', name: 'retry_transition_id', nullable: true })
   retryTransitionId!: string | null;
 
-  @Column({ type: 'varchar', name: 'callback_transition', nullable: true })
-  callbackTransition!: string | null;
+  /** The parent's transition called when this run completes. */
+  @Column({ type: 'varchar', name: 'on_success_transition', nullable: true })
+  onSuccessTransition!: string | null;
+
+  /** The parent's transition called when this run fails or is canceled. */
+  @Column({ type: 'varchar', name: 'on_failure_transition', nullable: true })
+  onFailureTransition!: string | null;
 
   @Column('jsonb', { name: 'callback_metadata', nullable: true, transformer: jsonbTransformer })
   callbackMetadata!: Record<string, unknown> | null;

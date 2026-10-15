@@ -85,11 +85,10 @@ export interface ToolResult<TData = unknown, TMeta = Record<string, unknown>> {
  * @public
  */
 export interface ToolCallOptions<TConfig = object> {
-  /** Callback info for async tools — forwarded to sub-workflow `.run()` */
-  callback?: {
-    transition: string;
-    metadata?: Record<string, unknown>;
-  };
+  /** How the parent is called back by an async tool's sub-workflow; forwarded to `.run()` as is. */
+  onSuccess?: { transition: string };
+  onFailure?: { transition: string };
+  metadata?: Record<string, unknown>;
   /** Author-provided config. Validated against `configSchema`. */
   config?: TConfig;
 }

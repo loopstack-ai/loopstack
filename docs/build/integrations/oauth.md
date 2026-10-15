@@ -100,7 +100,7 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   async authRequired(state: CalendarState) {
     await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
+      { onSuccess: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
   }
 

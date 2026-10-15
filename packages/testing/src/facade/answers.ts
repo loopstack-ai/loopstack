@@ -66,28 +66,27 @@ export class ScriptedAnswers {
 }
 
 /**
- * A scripted failure answer — delivers a failed/canceled sub-workflow callback instead of data.
- * Created with `failure()`.
+ * A scripted failure answer: the callback a failed or canceled sub-workflow delivers instead of data.
+ * Created with `failure()` or `unhandledFailure()`.
  */
 export class FailureAnswer {
   constructor(
     readonly errorMessage?: string,
     readonly status: 'failed' | 'canceled' = 'failed',
+    /** The parent declared no `onFailure`, so the run parks as failed instead of running a body. */
+    readonly unhandled = false,
   ) {}
 }
 
 /**
- * Script a **failure** for a wait transition: the run receives a callback with
- * `status: 'failed'` (or `'canceled'`) instead of answer data — exactly what a crashed or
- * canceled sub-workflow delivers. This makes error handling reachable from ordinary tests:
- * a wait transition with `errorPlace`/`retryAttempts` routes accordingly; one without them
- * runs its body with `input.status === 'failed'` for inline handling.
+ * Script a **failure** for the transition a parent declared as its `onFailure`: the body runs with a
+ * {@link FailureInput}, exactly as it does when the real sub-workflow fails or is canceled.
  *
  * ```ts
- * const run = await runWorkflow(ProvisionWorkflow, args, {
- *   answers: { onProvisioned: failure('Provisioning crashed') },
+ * const run = await runWorkflow(LandingWorkflow, args, {
+ *   answers: { stopLanding: failure('the fork crashed') },
  * });
- * expect(run.place).toBe('recovery');
+ * expect(run.place).toBe('end');
  * ```
  *
  * Composes with `queue()`: `queue({ ok: true }, failure('then the child dies'))`.
@@ -96,4 +95,23 @@ export class FailureAnswer {
  */
 export function failure(errorMessage?: string, status: 'failed' | 'canceled' = 'failed'): FailureAnswer {
   return new FailureAnswer(errorMessage, status);
+}
+
+/**
+ * Script a failure for a parent that declared **no** `onFailure`: the run parks as failed at the place it
+ * waits at, with the child's message, and no body runs. Name the `onSuccess` transition, which is the one
+ * the framework delivers the unhandled failure to.
+ *
+ * ```ts
+ * const run = await runWorkflow(TriageEntryWorkflow, args, {
+ *   answers: { complete: unhandledFailure('the triage run crashed') },
+ * });
+ * expect(run.status).toBe('failed');
+ * expect(run.place).toBe('triaging');
+ * ```
+ *
+ * @public
+ */
+export function unhandledFailure(errorMessage?: string, status: 'failed' | 'canceled' = 'failed'): FailureAnswer {
+  return new FailureAnswer(errorMessage, status, true);
 }

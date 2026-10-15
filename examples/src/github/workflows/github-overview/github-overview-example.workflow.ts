@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { z } from 'zod';
-import { BaseWorkflow, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
-import type { RunContext, TransitionInput } from '@loopstack/common';
+import { BaseWorkflow, ErrorDocument, Guard, MarkdownDocument, Transition, Workflow } from '@loopstack/common';
+import type { FailureInput, RunContext, TransitionInput } from '@loopstack/common';
 import {
   GitHubGetAuthenticatedUserTool,
   GitHubGetRepoTool,
@@ -114,7 +114,12 @@ export class GithubOverviewExampleWorkflow extends BaseWorkflow<GitHubReposOverv
   async authRequired() {
     await this.oAuthWorkflow.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
+      {
+        onSuccess: { transition: 'authCompleted' },
+        onFailure: { transition: 'authFailed' },
+        show: 'inline',
+        label: 'GitHub authentication required',
+      },
     );
   }
 
@@ -122,15 +127,18 @@ export class GithubOverviewExampleWorkflow extends BaseWorkflow<GitHubReposOverv
     return !!state.requiresAuthentication;
   }
 
-  // Auth completed -> retry from start. A failed or canceled OAuth sub-workflow routes to
-  // `auth_failed` instead, so a sign-in that cannot succeed ends the run rather than relaunching it.
-  @Transition({
-    from: 'awaiting_auth',
-    to: 'start',
-    wait: true,
-    errorPlace: 'auth_failed',
-  })
+  // Auth completed -> retry from start.
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
   authCompleted(_state: GitHubReposOverviewState, _input: TransitionInput) {}
+
+  // A sign-in that failed waits at `auth_failed` instead of relaunching OAuth: the reason is usually a
+  // misconfigured OAuth app, which another sub-workflow run cannot fix.
+  @Transition({ from: 'awaiting_auth', to: 'auth_failed', wait: true })
+  async authFailed(_state: GitHubReposOverviewState, input: FailureInput) {
+    await this.documentStore.save(ErrorDocument, {
+      error: `GitHub sign-in ${input.status}: ${input.errorMessage ?? 'no reason given'}. Configure the OAuth app, then retry.`,
+    });
+  }
 
   // Auth failed -> the user retries once the OAuth app is configured
   @Transition({ from: 'auth_failed', to: 'start', wait: true })

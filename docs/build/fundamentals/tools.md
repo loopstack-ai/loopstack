@@ -228,7 +228,7 @@ export class AskForApprovalTool extends BaseTool</* … */> {
   protected async handle(/* … */) {
     const { workflowId } = await this.confirmWorkflow.run(
       args,
-      { callback: { transition: 'onConfirm' }, show: 'inline', label: 'Waiting for approval...' },
+      { onSuccess: { transition: 'onConfirm' }, show: 'inline', label: 'Waiting for approval...' },
     );
     return { data: { workflowId }, pending: { workflowId } };
   }

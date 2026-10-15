@@ -18,7 +18,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   async runWorkflow() {
     await this.subWorkflow.run(
       {},
-      { callback: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
+      { onSuccess: { transition: 'subWorkflowCallback' }, show: 'link', label: 'Sub-Workflow' },
     );
   }
 
@@ -39,7 +39,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   async runWorkflow2() {
     await this.subWorkflow.run(
       {},
-      { callback: { transition: 'subWorkflow2Callback' }, show: 'link', label: 'Sub-Workflow 2' },
+      { onSuccess: { transition: 'subWorkflow2Callback' }, show: 'link', label: 'Sub-Workflow 2' },
     );
   }
 

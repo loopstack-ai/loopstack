@@ -76,7 +76,9 @@ describe('SequenceWorkflow', () => {
         FakeWorkflowA,
         { x: 1 },
         expect.objectContaining({
-          callback: { transition: 'onChildComplete', metadata: { key: 'a' } },
+          onSuccess: { transition: 'recordChildResult' },
+          onFailure: { transition: 'recordChildFailure' },
+          metadata: { key: 'a' },
         }),
       );
       expect(state.currentIndex).toBe(0);
@@ -97,7 +99,7 @@ describe('SequenceWorkflow', () => {
     });
   });
 
-  describe('onChildComplete', () => {
+  describe('recordChildResult and recordChildFailure', () => {
     it('queues the next item after success', async () => {
       const { workflow, orchestrator } = makeWorkflow();
       const args: SequenceArgs = {
@@ -119,12 +121,7 @@ describe('SequenceWorkflow', () => {
 
       const { state: next } = await runTransition(
         workflow,
-        () =>
-          workflow.onChildComplete(
-            state,
-            { workflowId: 'child-a', status: 'completed', hasError: false, errorMessage: null, data: { v: 1 } },
-            ctx(args),
-          ),
+        () => workflow.recordChildResult(state, { workflowId: 'child-a', data: { v: 1 } }, ctx(args)),
         { state },
       );
 
@@ -132,7 +129,9 @@ describe('SequenceWorkflow', () => {
         FakeWorkflowB,
         {},
         expect.objectContaining({
-          callback: { transition: 'onChildComplete', metadata: { key: 'b' } },
+          onSuccess: { transition: 'recordChildResult' },
+          onFailure: { transition: 'recordChildFailure' },
+          metadata: { key: 'b' },
         }),
       );
       expect(next.currentIndex).toBe(1);
@@ -162,9 +161,9 @@ describe('SequenceWorkflow', () => {
       const { state: next } = await runTransition(
         workflow,
         () =>
-          workflow.onChildComplete(
+          workflow.recordChildFailure(
             state,
-            { workflowId: 'child-a', status: 'failed', hasError: true, errorMessage: 'boom', data: null },
+            { workflowId: 'child-a', status: 'failed', errorMessage: 'boom' },
             ctx(args),
           ),
         { state },
@@ -200,9 +199,9 @@ describe('SequenceWorkflow', () => {
       const { state: next } = await runTransition(
         workflow,
         () =>
-          workflow.onChildComplete(
+          workflow.recordChildFailure(
             state,
-            { workflowId: 'child-a', status: 'failed', hasError: true, errorMessage: 'boom', data: null },
+            { workflowId: 'child-a', status: 'failed', errorMessage: 'boom' },
             ctx(args),
           ),
         { state },

@@ -269,6 +269,14 @@ export interface CodeWorkspaceProvisioner {
    */
   exportImageTar(image: string): Promise<void>;
   /**
+   * Export the host images a dind container loads on boot, and return the read-only bind that exposes them at
+   * `/opt/loopstack/seed-images`. Done at the container, the only place that knows what it needs and the only
+   * moment the host images are known to be current: a tar is compared against the host image's id, so a
+   * rebuilt image re-exports and an unchanged one costs an inspect. A missing or unreadable image throws,
+   * because the container would otherwise boot without the image it was given a daemon for.
+   */
+  bindSeedImages(images: readonly string[] | undefined): Promise<string>;
+  /**
    * Deterministic name of a workflow's inner-daemon volume — one per container role, because a Docker
    * daemon requires exclusive access to its data-root and the session (`agent`) and manual-test (`app`)
    * containers can run concurrently.

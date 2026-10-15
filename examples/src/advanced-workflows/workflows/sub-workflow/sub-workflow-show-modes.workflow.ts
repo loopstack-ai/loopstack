@@ -26,7 +26,7 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
   async runInline() {
     await this.sub.run(
       {},
-      { callback: { transition: 'onInlineDone' }, show: 'inline', label: 'Inline embed (iframe)' },
+      { onSuccess: { transition: 'onInlineDone' }, show: 'inline', label: 'Inline embed (iframe)' },
     );
   }
 
@@ -41,7 +41,7 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
       role: 'assistant',
       text: `Inline child returned: ${input.data.message}`,
     });
-    await this.sub.run({}, { callback: { transition: 'onLinkDone' }, show: 'link', label: 'Status link card' });
+    await this.sub.run({}, { onSuccess: { transition: 'onLinkDone' }, show: 'link', label: 'Status link card' });
   }
 
   @Transition({
@@ -55,7 +55,7 @@ export class RunSubWorkflowExampleShowModesWorkflow extends BaseWorkflow {
       role: 'assistant',
       text: `Link child returned: ${input.data.message}`,
     });
-    await this.sub.run({}, { callback: { transition: 'onHiddenDone' }, show: 'hidden', label: 'Background child' });
+    await this.sub.run({}, { onSuccess: { transition: 'onHiddenDone' }, show: 'hidden', label: 'Background child' });
   }
 
   @Transition({

@@ -116,7 +116,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   async launchOAuth(_state: ConnectGitHubState) {
     await this.oAuth.run(
       { provider: 'github', scopes: ['repo', 'user'] },
-      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Sign in with GitHub' },
+      { onSuccess: { transition: 'authCompleted' }, show: 'inline', label: 'Sign in with GitHub' },
     );
   }
 
@@ -140,7 +140,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
         mode: 'options',
         options: ['Create new repository', 'Connect existing repository'],
       },
-      { callback: { transition: 'choiceReceived' }, show: 'inline', label: 'Create or connect repository' },
+      { onSuccess: { transition: 'choiceReceived' }, show: 'inline', label: 'Create or connect repository' },
     );
   }
 
@@ -158,12 +158,12 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
       await this.askUser.run(
         { question: 'Select a repository to connect:', mode: 'options', options: repoNames },
-        { callback: { transition: 'repoSelected' }, show: 'inline', label: 'Select repository' },
+        { onSuccess: { transition: 'repoSelected' }, show: 'inline', label: 'Select repository' },
       );
     } else {
       await this.askUser.run(
         { question: 'Enter a name for your new repository:' },
-        { callback: { transition: 'createRepo' }, show: 'inline', label: 'Repository name' },
+        { onSuccess: { transition: 'createRepo' }, show: 'inline', label: 'Repository name' },
       );
     }
   }
@@ -244,7 +244,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
         mode: 'options',
         options: ['Commit changes and continue', 'Cancel'],
       },
-      { callback: { transition: 'uncommittedChangesHandled' }, show: 'inline', label: 'Uncommitted changes' },
+      { onSuccess: { transition: 'uncommittedChangesHandled' }, show: 'inline', label: 'Uncommitted changes' },
     );
   }
 
@@ -340,7 +340,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
     await this.askUser.run(
       { question, mode: 'options', options },
-      { callback: { transition: 'syncStrategyChosen' }, show: 'inline', label: 'Resolve differences' },
+      { onSuccess: { transition: 'syncStrategyChosen' }, show: 'inline', label: 'Resolve differences' },
     );
   }
 

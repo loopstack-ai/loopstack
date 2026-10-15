@@ -28,7 +28,7 @@ export class RunSubWorkflowExampleFanOutWorkflow extends BaseWorkflow {
           third: { workflow: 'run_sub_workflow_example_sub' },
         },
       },
-      { callback: { transition: 'onAllDone' }, label: 'Fan-out children', show: 'link' },
+      { onSuccess: { transition: 'onAllDone' }, label: 'Fan-out children', show: 'link' },
     );
   }
 

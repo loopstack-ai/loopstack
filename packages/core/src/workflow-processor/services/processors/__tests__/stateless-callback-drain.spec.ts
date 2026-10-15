@@ -82,13 +82,7 @@ describe('WorkflowProcessorService — stateless callback drain', () => {
       (s.statelessCallbacks ??= []).push({
         id: 'onChildDone',
         workflowId: '',
-        payload: {
-          workflowId: 'stateless-child-1',
-          status: 'completed',
-          hasError: false,
-          errorMessage: null,
-          data: { answer: 42 },
-        },
+        payload: { workflowId: 'stateless-child-1', status: 'completed', data: { answer: 42 } },
       });
     });
 
@@ -150,7 +144,7 @@ describe('WorkflowProcessorService — stateless callback drain', () => {
             {
               id: 'onChildDone',
               workflowId: '',
-              payload: { workflowId: 'stateless-child-1', status: 'completed', hasError: false, data: null },
+              payload: { workflowId: 'stateless-child-1', status: 'completed', data: null },
             },
           ],
         },
