@@ -10,7 +10,7 @@
     "loopstack",
     "tool"
   ],
-  "version": "0.29.0",
+  "version": "0.29.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -34,8 +34,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
-    "@loopstack/common": "^0.45.0",
-    "@loopstack/llm-provider": "^0.12.0"
+    "@loopstack/common": "^0.46.0",
+    "@loopstack/llm-provider": "^0.12.1"
   },
   "devDependencies": {
     "@nestjs/common": "^12.0.1",

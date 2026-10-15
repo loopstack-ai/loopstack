@@ -1,5 +1,33 @@
 # @loopstack/code-workspace
 
+## 0.2.0
+
+### Minor Changes
+
+- [#439](https://github.com/loopstack-ai/loopstack/pull/439) [`697b185`](https://github.com/loopstack-ai/loopstack/commit/697b1850de1438c4f46dc0ccba6af9b0b6765db2) Thanks [@jakobklippel](https://github.com/jakobklippel)! - A workspace has one checkout, created by the first run that needs it and used as it is by every later run in that
+  workspace. Containers and dind volumes belong to the run that started them.
+  - `CodeWorkspaceProvisioner` addresses a checkout by `workspaceId` alone: `ensureCheckout`, `checkoutExists`,
+    `resolveCheckoutDir`, `cloneBase`, `linkArtifacts`, `listRepos`, `resolveRepoDir`, `writeRepoGitHook`,
+    `setRepoIdentity`, `applyFixtures`, `listChangedFiles`, `repoHead`, `countRepoChangesSinceBase` and `diffSinceBase`
+    take no `workflowId`. `ensureCheckout` returns a `Checkout`; no per-run branch is checked out.
+  - `WorkspaceStateInfo.checkout` is the workspace's one `CheckoutInfo`, when it has one.
+  - Reclamation: the cleanup listener acts on `workspace.deleted` only; a run owns no files. `removeWorkflowContainers`
+    and `removeWorkflowVolumes` release a run's containers and volumes, and the orphan plan lists containers and volumes
+    of deleted runs beside workspace state whose row is gone.
+
+### Patch Changes
+
+- [#439](https://github.com/loopstack-ai/loopstack/pull/439) [`30213dc`](https://github.com/loopstack-ai/loopstack/commit/30213dc3b1502c7e30bab5511f60d31529b882da) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Collecting superseded base generations reads only the checkout markers instead of measuring every checkout, so a base build no longer spends minutes on directory sizes after it publishes.
+
+- [#439](https://github.com/loopstack-ai/loopstack/pull/439) [`b3c60fa`](https://github.com/loopstack-ai/loopstack/commit/b3c60fa3bb1668cf0ae73cced03ae3cbc8e2877e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Deleting workspaces no longer stalls the application. `removeWorkspaceState` removes the state directory with
+  an `rm` child process instead of Node's recursive `fs.rm`, so a checkout's `node_modules` walk runs outside
+  the process threadpool. `WorkspaceCleanupListener` chains the removals of a batch delete so they run one at a
+  time. The path guard checks against the state root itself and refuses an empty id or one that climbs out.
+- Updated dependencies [[`0389ffd`](https://github.com/loopstack-ai/loopstack/commit/0389ffd06c1a0321118f5e42bf236832c0beaf19), [`697b185`](https://github.com/loopstack-ai/loopstack/commit/697b1850de1438c4f46dc0ccba6af9b0b6765db2)]:
+  - @loopstack/common@0.46.0
+  - @loopstack/hitl@0.6.5
+  - @loopstack/claims@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

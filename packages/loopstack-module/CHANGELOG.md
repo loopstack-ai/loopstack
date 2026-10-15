@@ -1,5 +1,16 @@
 # @loopstack/loopstack-module
 
+## 0.37.1
+
+### Patch Changes
+
+- Updated dependencies [[`f67bc4a`](https://github.com/loopstack-ai/loopstack/commit/f67bc4ae7854ea2579288dae57079f11428ed935), [`0389ffd`](https://github.com/loopstack-ai/loopstack/commit/0389ffd06c1a0321118f5e42bf236832c0beaf19), [`697b185`](https://github.com/loopstack-ai/loopstack/commit/697b1850de1438c4f46dc0ccba6af9b0b6765db2)]:
+  - @loopstack/contracts@0.46.0
+  - @loopstack/api@0.46.0
+  - @loopstack/common@0.46.0
+  - @loopstack/core@0.46.0
+  - @loopstack/auth@0.46.0
+
 ## 0.37.0
 
 ### Minor Changes
