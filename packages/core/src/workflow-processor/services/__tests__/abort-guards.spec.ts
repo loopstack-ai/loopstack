@@ -32,6 +32,7 @@ function abortedScope(): ExecutionScopeData {
     stateDraft: {},
     resultDraft: {},
     resultDirty: false,
+    transitionsRun: 0,
   };
 }
 

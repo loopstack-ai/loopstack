@@ -51,7 +51,9 @@ class RecoveryViewProbeWorkflow extends BaseWorkflow {
     throw new Error(`cannot use ${input.data.value}`);
   }
 
-  @Transition({ from: 'recovery', to: 'end' })
+  // `wait: true`, because the point of this place is that a person decides. An automatic transition here
+  // would run on its own and the prompt would never be seen.
+  @Transition({ from: 'recovery', to: 'end', wait: true })
   recover() {
     this.setResult({ recovered: true });
   }

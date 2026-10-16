@@ -2,8 +2,8 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
 import { createToolTest } from '@loopstack/testing';
+import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
 import { GitHubTriggerWorkflowArgs, GitHubTriggerWorkflowTool } from '../github-trigger-workflow.tool.js';
 
 const HEADERS = {
@@ -19,8 +19,8 @@ describe('GitHubTriggerWorkflowTool', () => {
   let module: TestingModule;
   let tool: GitHubTriggerWorkflowTool;
 
-  const mockTokenStore = {
-    getValidAccessToken: vi.fn(),
+  const mockTokenProvider = {
+    getToken: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -31,11 +31,11 @@ describe('GitHubTriggerWorkflowTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenStore.getValidAccessToken.mockResolvedValue('gh-token');
+    mockTokenProvider.getToken.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubTriggerWorkflowTool)
-      .withMock(OAuthTokenStore, mockTokenStore)
+      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
       .compile();
 
     tool = module.get(GitHubTriggerWorkflowTool);
@@ -71,7 +71,7 @@ describe('GitHubTriggerWorkflowTool', () => {
 
       const result = await tool.call({ ...args, inputs: { env: 'prod', version: '1.2.3' } });
 
-      expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'github');
+      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
       const [url, init] = request();
       expect(url).toBe('https://api.github.com/repos/octo/hello/actions/workflows/deploy.yml/dispatches');
       expect(init).toEqual({ method: 'POST', headers: HEADERS, body: expect.any(String) });
@@ -98,7 +98,7 @@ describe('GitHubTriggerWorkflowTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
+      mockTokenProvider.getToken.mockResolvedValue(null);
 
       const result = await execute(args);
 

@@ -70,7 +70,34 @@ async handleProcessingError() {
 }
 ```
 
-The workflow transitions to `error_processing` where you define recovery logic via `wait: true` transitions (buttons in the UI). When `errorPlace` is set without `retryAttempts`, attempts default to `0` — failures route straight to the error place on the first try.
+The workflow transitions to `error_processing`, and what happens there is decided by the transitions that place
+offers. When `errorPlace` is set without `retryAttempts`, attempts default to `0` — failures route straight to
+the error place on the first try.
+
+- **A place that only offers `wait: true` transitions parks the run**, as in the example above. The run reads as
+  failed while it stands there, and a person takes it on with one of the buttons.
+- **A place that offers an automatic transition runs it.** The failure is recorded and the run carries on, which
+  is what a run that must release something needs: the clean-up happens without waiting for anybody.
+
+The transition that handles the failure is told why it is there through `ctx.execution.error`:
+
+```typescript
+@Transition({ from: 'holding', to: 'done', errorPlace: 'releasing' })
+async work() {
+  await this.processor.call({ data: this.rawData });
+}
+
+// Automatic, so it runs by itself.
+@Transition({ from: 'releasing', to: 'end' })
+async release(_state: MyState, ctx: RunContext) {
+  await this.resources.release();
+  this.fail(`The work could not be done: ${ctx.execution?.error}`);
+}
+```
+
+A transition that gets through clears the failure, so a run that handles one and reaches `end` completes with
+nothing on its error. A run that must end as failed says so with [`this.fail(message)`](../fundamentals/workflows.md#ending-a-run-as-failed), which keeps what the handling
+transition did.
 
 ### Manual Retry (Default)
 
@@ -150,6 +177,12 @@ errorPlace?: string              // Where to route when retries are exhausted (o
 | 5       | 16,000ms               |
 | 6+      | 30,000ms (capped)      |
 
+### Reading why a transition is handling a failure
+
+A transition at an error place, and a transition being retried in place, can read the message that put it there
+through `ctx.execution.error`. It is absent when nothing failed, so a transition can tell a first attempt from a
+recovery without keeping a flag in state.
+
 ### Reading the retry count
 
 Transitions can access the current retry count through `ctx.execution.retryCount`. It is 0-indexed: `0` on the first attempt, `1` after the first retry, and so on. Add `1` for a human-friendly attempt number when logging or branching on retries.
@@ -164,6 +197,19 @@ async fetchData(state: MyState, ctx: RunContext) {
 ```
 
 `ctx.execution` is optional in the type — guard with `?.` or `!` depending on your call site. `ctx.execution.place` is also available for the current place name.
+
+## Cycles and the Pass Budget
+
+A cycle is a shape a workflow may want: rounds that repeat, a queue that drains, a schedule that wakes up. The
+framework does not forbid them. What it stops is a cycle that never yields.
+
+One **pass** is the automatic work a run does between two manual steps: it begins with the transition a person
+or a callback triggered and ends when the run reaches `end` or arrives at a place that only waits. A pass may
+run 1000 transitions; beyond that the run is stopped as failed, with the last ten transitions named in the
+message so the cycle is easy to see. Raise it with the `MAX_TRANSITIONS_PER_PASS` environment variable.
+
+The budget resets at every manual step, so a workflow that waits for a person or a child between rounds is never
+affected by it.
 
 ## Timeout
 

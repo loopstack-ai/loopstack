@@ -184,7 +184,9 @@ export class RecoveringParentWorkflow extends BaseWorkflow {
 ```
 
 The failure transition is an ordinary transition: it can report, clean up, route to another place, ask the user
-a question, or throw to fail the parent.
+a question, or end the parent. To end it, `throw` when the handler has nothing to keep, and call
+`this.fail(message)` when it does: the documents the handler saved are committed with the failure instead of
+rolling back with the throw.
 
 ### When no onFailure is declared
 

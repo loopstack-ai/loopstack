@@ -2,8 +2,8 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
 import { createToolTest } from '@loopstack/testing';
+import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
 import { GitHubGetCommitArgs, GitHubGetCommitTool } from '../github-get-commit.tool.js';
 
 const HEADERS = {
@@ -41,8 +41,8 @@ describe('GitHubGetCommitTool', () => {
   let module: TestingModule;
   let tool: GitHubGetCommitTool;
 
-  const mockTokenStore = {
-    getValidAccessToken: vi.fn(),
+  const mockTokenProvider = {
+    getToken: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -51,9 +51,12 @@ describe('GitHubGetCommitTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenStore.getValidAccessToken.mockResolvedValue('gh-token');
+    mockTokenProvider.getToken.mockResolvedValue('gh-token');
 
-    module = await createToolTest().forTool(GitHubGetCommitTool).withMock(OAuthTokenStore, mockTokenStore).compile();
+    module = await createToolTest()
+      .forTool(GitHubGetCommitTool)
+      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .compile();
 
     tool = module.get(GitHubGetCommitTool);
   });
@@ -82,7 +85,7 @@ describe('GitHubGetCommitTool', () => {
 
       const result = await tool.call(args);
 
-      expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'github');
+      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/commits/abc123', {
         headers: HEADERS,
       });
@@ -116,7 +119,7 @@ describe('GitHubGetCommitTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
+      mockTokenProvider.getToken.mockResolvedValue(null);
 
       const result = await execute(args);
 

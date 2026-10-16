@@ -2,8 +2,8 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
 import { createToolTest } from '@loopstack/testing';
+import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
 import { GitHubListUserOrgsArgs, GitHubListUserOrgsTool } from '../github-list-user-orgs.tool.js';
 
 const HEADERS = {
@@ -16,8 +16,8 @@ describe('GitHubListUserOrgsTool', () => {
   let module: TestingModule;
   let tool: GitHubListUserOrgsTool;
 
-  const mockTokenStore = {
-    getValidAccessToken: vi.fn(),
+  const mockTokenProvider = {
+    getToken: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -26,9 +26,12 @@ describe('GitHubListUserOrgsTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenStore.getValidAccessToken.mockResolvedValue('gh-token');
+    mockTokenProvider.getToken.mockResolvedValue('gh-token');
 
-    module = await createToolTest().forTool(GitHubListUserOrgsTool).withMock(OAuthTokenStore, mockTokenStore).compile();
+    module = await createToolTest()
+      .forTool(GitHubListUserOrgsTool)
+      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .compile();
 
     tool = module.get(GitHubListUserOrgsTool);
   });
@@ -74,7 +77,7 @@ describe('GitHubListUserOrgsTool', () => {
 
       const result = await tool.call({});
 
-      expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'github');
+      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/user/orgs?per_page=30', { headers: HEADERS });
       expect(result.data).toEqual({
         orgs: [
@@ -104,7 +107,7 @@ describe('GitHubListUserOrgsTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
+      mockTokenProvider.getToken.mockResolvedValue(null);
 
       const result = await execute({});
 

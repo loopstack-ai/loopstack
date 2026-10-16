@@ -2,7 +2,7 @@ import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
+import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -82,11 +82,11 @@ export const GitHubListReposResultSchema = z.strictObject({
 export class GitHubListReposTool extends BaseTool<GitHubListReposArgs, object, GitHubListReposResult> {
   private readonly logger = new Logger(GitHubListReposTool.name);
 
-  @Inject()
-  private tokenStore: OAuthTokenStore;
+  @Inject(GITHUB_TOKEN_PROVIDER)
+  private readonly tokenProvider!: GitHubTokenProvider;
 
   protected async handle(args: GitHubListReposArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListReposResult>> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+    const accessToken = await this.tokenProvider.getToken(ctx);
 
     if (!accessToken) {
       return {

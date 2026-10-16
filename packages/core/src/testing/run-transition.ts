@@ -92,6 +92,7 @@ export async function runTransition<
     stateDraft: { ...(options.state ?? {}) },
     resultDraft: { ...(options.result ?? {}) },
     resultDirty: false,
+    transitionsRun: 0,
   };
 
   await scope.run(scopeData, async () => {

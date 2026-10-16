@@ -25,6 +25,7 @@ function scope(): ExecutionScopeData {
     stateDraft: {},
     resultDraft: {},
     resultDirty: false,
+    transitionsRun: 0,
     trace: { emit: vi.fn() },
     tracePersist: false,
   } as unknown as ExecutionScopeData;

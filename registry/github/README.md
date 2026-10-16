@@ -1,13 +1,13 @@
 ---
 title: GitHub Module
-description: GitHub OAuth provider and 25 API tools for Loopstack workflows — GitHubModule, GitHubOAuthProvider, OAuthProviderInterface, repositories, issues, pull requests, actions, content/git ops, search, users/orgs. Covers installation, tool args, auth pattern, and env vars.
+description: GitHub OAuth provider and 36 API tools for Loopstack workflows — GitHubModule, GitHubModule.forRoot, GitHubTokenProvider, GITHUB_TOKEN_PROVIDER, OAuthGitHubTokenProvider, GitHubOAuthProvider, OAuthProviderInterface, repositories, issues, labels, assignees, issue fields, issue dependencies, pull requests, actions, content/git ops, search, users/orgs. Covers installation, replaceable token providers, tool args, auth pattern, and env vars.
 ---
 
 # @loopstack/github
 
 > GitHub integration module for the [Loopstack](https://loopstack.ai) automation framework.
 
-Provides a GitHub OAuth 2.0 provider and 25 tools for interacting with the GitHub API. The module registers a GitHub OAuth provider with `@loopstack/oauth` so workflows can authenticate users and then call GitHub tools for repositories, issues, pull requests, file content, actions, search, and user/org data.
+Provides a GitHub OAuth 2.0 provider and 36 tools for interacting with the GitHub API. The module registers a GitHub OAuth provider with `@loopstack/oauth` so workflows can authenticate users and then call GitHub tools for repositories, issues, pull requests, file content, actions, search, and user/org data. Where the tools take their token from is replaceable, so an app without a signed-in user can run them on a token of its own.
 
 ## When to Use
 
@@ -15,6 +15,7 @@ Provides a GitHub OAuth 2.0 provider and 25 tools for interacting with the GitHu
 - You want to **manage repositories, issues, and pull requests** programmatically (list, create, merge)
 - You need to **read or write file content**, browse directories, or inspect commits in GitHub repos
 - You want to **trigger and monitor GitHub Actions** workflow runs, or **search** code/repos/issues across GitHub
+- You run a **headless app** that has no signed-in user and calls GitHub with a token it keeps itself
 
 Use `@loopstack/git` instead if you need local Git operations (commit, push, branch) on a cloned repository.
 
@@ -45,6 +46,27 @@ GITHUB_CLIENT_ID=your_client_id
 GITHUB_CLIENT_SECRET=your_client_secret
 GITHUB_OAUTH_REDIRECT_URI=/oauth/callback
 ```
+
+`GitHubModule.forRoot({ tokenProvider })` registers the same tools with a token provider the app supplies, instead of the signed-in user's OAuth token. This is what a headless app needs: one that has no user in front of it and runs on a personal access token or on an app installation token it keeps itself.
+
+```typescript
+import { Module } from '@nestjs/common';
+import { GITHUB_TOKEN_PROVIDER, GitHubModule } from '@loopstack/github';
+import { MyTokenProvider } from './my-token.provider.js';
+
+@Module({
+  imports: [
+    GitHubModule.forRoot({
+      tokenProvider: { provide: GITHUB_TOKEN_PROVIDER, useClass: MyTokenProvider },
+    }),
+  ],
+  providers: [MyWorkflow],
+  exports: [MyWorkflow],
+})
+export class MyModule {}
+```
+
+See [Authentication Pattern](#authentication-pattern) for what `MyTokenProvider` looks like.
 
 ## Quick Start
 
@@ -173,7 +195,28 @@ After registration, the generic `OAuthWorkflow` from `@loopstack/oauth` handles 
 
 ### Authentication Pattern
 
-There is no dedicated authentication tool — authentication is triggered at the workflow level when any tool returns `{ error: 'unauthorized' }`. All 25 tools follow the same pattern: they read the user's stored OAuth token via `OAuthTokenStore.getValidAccessToken(ctx.userId, 'github')`. If no token exists, they return `{ error: 'unauthorized' }` instead of throwing. Your workflow checks for this error and launches `OAuthWorkflow` with `provider: 'github'` as a sub-workflow:
+All 36 tools take their token from the same place: the `GitHubTokenProvider` bound to the `GITHUB_TOKEN_PROVIDER` DI token, through `getToken(ctx)`. A provider that returns `null` makes every tool answer `{ error: 'unauthorized' }` instead of throwing, which is the same behaviour as a user who never authenticated.
+
+A bare `GitHubModule` import binds `OAuthGitHubTokenProvider`. It reads the signed-in user's stored OAuth token with `OAuthTokenStore.getValidAccessToken(ctx.userId, 'github')`, and returns `null` when the user has none.
+
+`GitHubModule.forRoot({ tokenProvider })` replaces that binding with the app's own implementation: an `@Injectable()` class that implements `GitHubTokenProvider` and returns the token for the run, or `null` when it has none.
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import type { RunContext } from '@loopstack/common';
+import type { GitHubTokenProvider } from '@loopstack/github';
+
+@Injectable()
+export class MyTokenProvider implements GitHubTokenProvider {
+  async getToken(_ctx: RunContext): Promise<string | null> {
+    return process.env.GITHUB_PERSONAL_ACCESS_TOKEN ?? null;
+  }
+}
+```
+
+`tokenProvider` is a plain NestJS provider for `GITHUB_TOKEN_PROVIDER`, so the implementation can inject whatever the app keeps its token in, and `ctx` carries `userId`, `workspaceId` and `workflowId` for a token that differs per run.
+
+There is no dedicated authentication tool — authentication is triggered at the workflow level when any tool returns `{ error: 'unauthorized' }`. With the OAuth token provider, your workflow checks for this error and launches `OAuthWorkflow` with `provider: 'github'` as a sub-workflow:
 
 ```
 start --> checkUser --> [needsAuth?] --> startAuth --> awaiting_auth
@@ -199,15 +242,32 @@ All tools return `{ error: string, message: string }` when authentication fails 
 | `github_get_repo`      | Gets detailed repo information                | `owner`, `repo`                                                                                                                                                                                     | `{ repo: { id, fullName, name, owner, ownerAvatar, private, htmlUrl, description, language, defaultBranch, stars, forks, openIssues, createdAt, updatedAt, topics, license } }` |
 | `github_create_repo`   | Creates a new repository                      | `name`, `description?`, `private?` (default false), `autoInit?` (default false)                                                                                                                     | `{ repo: { id, fullName, name, htmlUrl, private, defaultBranch } }`                                                                                                             |
 | `github_list_branches` | Lists branches for a repository               | `owner`, `repo`, `perPage?` (default 30)                                                                                                                                                            | `{ branches: [{ name, commitSha, protected }] }`                                                                                                                                |
+| `github_delete_branch` | Deletes a branch from a repository            | `owner`, `repo`, `branch` (name without the `refs/heads/` prefix)                                                                                                                                   | `{ branch, deleted }` -- `deleted` is `false` when the branch did not exist                                                                                                     |
 
 ### Issues
 
-| Tool name                     | Description                          | Args                                                                                                                                              | Return                                                                                                                                 |
-| ----------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `github_list_issues`          | Lists issues for a repository        | `owner`, `repo`, `state?` (`'open'`\|`'closed'`\|`'all'`, default `'open'`), `labels?`, `assignee?`, `perPage?` (default 30), `page?` (default 1) | `{ issues: [{ id, number, title, state, user, labels, assignees, createdAt, updatedAt, htmlUrl, isPullRequest }] }`                    |
-| `github_get_issue`            | Gets detailed issue information      | `owner`, `repo`, `issueNumber`                                                                                                                    | `{ issue: { id, number, title, body, state, user, labels, assignees, milestone, createdAt, updatedAt, closedAt, htmlUrl, comments } }` |
-| `github_create_issue`         | Creates a new issue                  | `owner`, `repo`, `title`, `body?`, `labels?` (string[]), `assignees?` (string[])                                                                  | `{ issue: { id, number, title, htmlUrl, state } }`                                                                                     |
-| `github_create_issue_comment` | Comments on an issue or pull request | `owner`, `repo`, `issueNumber`, `body`                                                                                                            | `{ comment: { id, htmlUrl, createdAt, user } }`                                                                                        |
+| Tool name                       | Description                                                                                                          | Args                                                                                                                                              | Return                                                                                                                                                                         |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `github_list_issues`            | Lists issues for a repository                                                                                        | `owner`, `repo`, `state?` (`'open'`\|`'closed'`\|`'all'`, default `'open'`), `labels?`, `assignee?`, `perPage?` (default 30), `page?` (default 1) | `{ issues: [{ id, number, title, state, user, labels, assignees, createdAt, updatedAt, htmlUrl, isPullRequest }] }`                                                            |
+| `github_get_issue`              | Gets detailed issue information, with the issue field values by field name and the issue type                        | `owner`, `repo`, `issueNumber`                                                                                                                    | `{ issue: { id, number, title, body, state, user, labels, assignees, milestone, createdAt, updatedAt, closedAt, htmlUrl, comments, fields, type } }`                           |
+| `github_create_issue`           | Creates a new issue                                                                                                  | `owner`, `repo`, `title`, `body?`, `labels?` (string[]), `assignees?` (string[])                                                                  | `{ issue: { id, number, title, htmlUrl, state } }`                                                                                                                             |
+| `github_create_issue_comment`   | Comments on an issue or pull request                                                                                 | `owner`, `repo`, `issueNumber`, `body`                                                                                                            | `{ comment: { id, htmlUrl, createdAt, user } }`                                                                                                                                |
+| `github_list_issue_comments`    | Reads up to 100 comments on an issue or pull request, oldest first                                                   | `owner`, `repo`, `issueNumber`                                                                                                                    | `{ comments: [{ id, user, createdAt, body }] }`                                                                                                                                |
+| `github_add_issue_labels`       | Adds labels to an issue or pull request; the labels must already exist in the repository                             | `owner`, `repo`, `issueNumber`, `labels` (string[], at least one)                                                                                 | `{ labels }` -- every label on the issue after the call, not only the added ones                                                                                               |
+| `github_remove_issue_label`     | Removes one label from an issue or pull request                                                                      | `owner`, `repo`, `issueNumber`, `label`                                                                                                           | `{ label, removed }` -- `removed` is `false` when the label was not set                                                                                                        |
+| `github_ensure_label`           | Creates a repository label when it is missing; an existing label keeps its current color and description             | `owner`, `repo`, `name`, `color` (six hex digits, no leading `#`), `description?`                                                                 | `{ name, created }` -- `created` is `false` when the label already existed                                                                                                     |
+| `github_update_issue`           | Updates the title, the body or the issue type; fields that are not given stay as they are                            | `owner`, `repo`, `issueNumber`, `title?`, `body?`, `type?` (the organization's issue type, for example `'Bug'`; at least one of the three)        | `{ issue: { number, title, htmlUrl } }`                                                                                                                                        |
+| `github_close_issue`            | Closes an issue as completed, as not planned, or as a duplicate                                                      | `owner`, `repo`, `issueNumber`, `notPlanned?`, `duplicateOf?` (the canonical issue's number; not together with `notPlanned`)                      | `{ issue: { number, state, stateReason } }`                                                                                                                                    |
+| `github_add_issue_assignees`    | Adds assignees to an issue or pull request                                                                           | `owner`, `repo`, `issueNumber`, `assignees` (string[] of logins, at least one)                                                                    | `{ issueNumber, assignees }` -- the logins on the issue after the call, which can be fewer than requested because GitHub drops a user who cannot be assigned to the repository |
+| `github_remove_issue_assignees` | Removes assignees from an issue or pull request                                                                      | `owner`, `repo`, `issueNumber`, `assignees` (string[] of logins, at least one)                                                                    | `{ issueNumber, assignees }` -- the logins the issue still carries after the call                                                                                              |
+| `github_set_issue_fields`       | Sets issue field values by field name, a select field by its option name; fields that are not named stay as they are | `owner`, `repo`, `issueNumber`, `fields` (`Record<string, string>` of field name to value)                                                        | `{ issueNumber, fields }` -- the field names that were set                                                                                                                     |
+| `github_add_issue_dependency`   | Records that one issue is blocked by another, which GitHub shows on both issues                                      | `owner`, `repo`, `issueNumber` (the blocked issue), `blockerNumber` (the blocking issue)                                                          | `{ issueNumber, blockerNumber }`                                                                                                                                               |
+
+> `github_remove_issue_label` and `github_delete_branch` report a label that is not set and a branch that is already gone as a success with a `false` flag rather than as an error: the caller asked for the label or the branch to be absent, and it is absent.
+
+> `github_set_issue_fields` looks the organization's issue fields up by name through the repository, so a token that sees only its repository can still use them. It fails with `{ error: 'unknown_field' }` when the repository defines no field of that name, and with `{ error: 'unknown_option' }` when a select field has no such option, naming the field and listing the options it does have.
+
+> `github_add_issue_dependency` fails with `{ error: 'blocker_not_found' }` when the blocking issue cannot be read, because GitHub records the relation with that issue's internal id.
 
 ### Pull Requests
 
@@ -253,31 +313,38 @@ All tools return `{ error: string, message: string }` when authentication fails 
 
 ## Configuration
 
-| Variable                    | Required | Description                                  |
-| --------------------------- | -------- | -------------------------------------------- |
-| `GITHUB_CLIENT_ID`          | Yes      | GitHub OAuth App client ID                   |
-| `GITHUB_CLIENT_SECRET`      | Yes      | GitHub OAuth App client secret               |
-| `GITHUB_OAUTH_REDIRECT_URI` | No       | Redirect URI (defaults to `/oauth/callback`) |
+| Variable                    | Required  | Description                                  |
+| --------------------------- | --------- | -------------------------------------------- |
+| `GITHUB_CLIENT_ID`          | For OAuth | GitHub OAuth App client ID                   |
+| `GITHUB_CLIENT_SECRET`      | For OAuth | GitHub OAuth App client secret               |
+| `GITHUB_OAUTH_REDIRECT_URI` | No        | Redirect URI (defaults to `/oauth/callback`) |
 
-Create a GitHub OAuth App at [github.com/settings/developers](https://github.com/settings/developers) to obtain client credentials.
+Create a GitHub OAuth App at [github.com/settings/developers](https://github.com/settings/developers) to obtain client credentials. These variables belong to the OAuth token provider and to `OAuthWorkflow`. An app that supplies its own token provider through `GitHubModule.forRoot({ tokenProvider })` signs nobody in and does not read them.
 
 ## Public API
 
 **Module**
 
 - `GitHubModule` -- NestJS module; imports `OAuthModule`, provides and exports all tools and the provider
+- `GitHubModule.forRoot({ tokenProvider })` -- the same tools, bound to the app's own token provider
 
 **Provider**
 
 - `GitHubOAuthProvider` -- implements `OAuthProviderInterface`, self-registers with `OAuthProviderRegistry`
 
+**Token Provider**
+
+- `GITHUB_TOKEN_PROVIDER` -- DI token every tool authenticates with
+- `GitHubTokenProvider` -- interface with one method, `getToken(ctx: RunContext): Promise<string | null>`
+- `OAuthGitHubTokenProvider` -- the binding of a bare `GitHubModule` import; reads the signed-in user's OAuth token
+
 **Tools -- Repositories**
 
-- `GitHubListReposTool`, `GitHubGetRepoTool`, `GitHubCreateRepoTool`, `GitHubListBranchesTool`
+- `GitHubListReposTool`, `GitHubGetRepoTool`, `GitHubCreateRepoTool`, `GitHubListBranchesTool`, `GitHubDeleteBranchTool`
 
 **Tools -- Issues**
 
-- `GitHubListIssuesTool`, `GitHubGetIssueTool`, `GitHubCreateIssueTool`, `GitHubCreateIssueCommentTool`
+- `GitHubListIssuesTool`, `GitHubGetIssueTool`, `GitHubCreateIssueTool`, `GitHubCreateIssueCommentTool`, `GitHubListIssueCommentsTool`, `GitHubAddIssueLabelsTool`, `GitHubRemoveIssueLabelTool`, `GitHubEnsureLabelTool`, `GitHubUpdateIssueTool`, `GitHubCloseIssueTool`, `GitHubAddIssueAssigneesTool`, `GitHubRemoveIssueAssigneesTool`, `GitHubSetIssueFieldsTool`, `GitHubAddIssueDependencyTool`
 
 **Tools -- Pull Requests**
 
@@ -315,7 +382,7 @@ Create a GitHub OAuth App at [github.com/settings/developers](https://github.com
 
 - [OAuth Authentication](https://loopstack.ai/docs/build/integrations/oauth) -- how to use `OAuthWorkflow` as a sub-workflow, token management, and the guard-based auth pattern
 - [`@loopstack/oauth`](https://loopstack.ai/docs/registry/oauth) -- the provider-agnostic OAuth framework this module plugs into
-- [GitHub examples](/docs/examples/github) -- full example with a repo overview workflow and a GitHub chat agent using all 25 tools
+- [GitHub examples](/docs/examples/github) -- full example with a repo overview workflow and a GitHub chat agent that has the GitHub tools wired in
 - [`@loopstack/git`](https://loopstack.ai/docs/registry/git) -- local Git operations (commit, push, branch, diff) for cloned repositories
 
 ## About

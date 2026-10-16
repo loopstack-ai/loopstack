@@ -2,8 +2,8 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
 import { createToolTest } from '@loopstack/testing';
+import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
 import { GitHubCreatePullRequestArgs, GitHubCreatePullRequestTool } from '../github-create-pull-request.tool.js';
 
 const HEADERS = {
@@ -30,8 +30,8 @@ describe('GitHubCreatePullRequestTool', () => {
   let module: TestingModule;
   let tool: GitHubCreatePullRequestTool;
 
-  const mockTokenStore = {
-    getValidAccessToken: vi.fn(),
+  const mockTokenProvider = {
+    getToken: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -42,11 +42,11 @@ describe('GitHubCreatePullRequestTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenStore.getValidAccessToken.mockResolvedValue('gh-token');
+    mockTokenProvider.getToken.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubCreatePullRequestTool)
-      .withMock(OAuthTokenStore, mockTokenStore)
+      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
       .compile();
 
     tool = module.get(GitHubCreatePullRequestTool);
@@ -76,7 +76,7 @@ describe('GitHubCreatePullRequestTool', () => {
 
       const result = await tool.call({ ...args, body: 'Implements X', draft: true });
 
-      expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'github');
+      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
       const [url, init] = request();
       expect(url).toBe('https://api.github.com/repos/octo/hello/pulls');
       expect(init).toEqual({ method: 'POST', headers: HEADERS, body: expect.any(String) });
@@ -116,7 +116,7 @@ describe('GitHubCreatePullRequestTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
+      mockTokenProvider.getToken.mockResolvedValue(null);
 
       const result = await execute(args);
 

@@ -67,6 +67,7 @@ const makeScopeData = (trace: RunTraceCollector): ExecutionScopeData =>
     stateDraft: {},
     resultDraft: {},
     resultDirty: false,
+    transitionsRun: 0,
   }) as ExecutionScopeData;
 
 const makePipeline = (documentStore: { save: ReturnType<typeof vi.fn> }, scope = new ExecutionScope()) => ({

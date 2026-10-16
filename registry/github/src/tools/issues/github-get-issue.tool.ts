@@ -2,7 +2,8 @@ import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
+import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import { type RestIssueFieldValue, issueFieldValues } from './issue-field-values.js';
 
 const inputSchema = z
   .object({
@@ -42,6 +43,10 @@ export type GitHubGetIssueResult =
         closedAt: string | null;
         htmlUrl: string;
         comments: number;
+        /** The organization's issue field values, by field name, a single select as its option name. */
+        fields: Record<string, string>;
+        /** GitHub's own issue type, as the organization names it, or `null` when the issue carries none. */
+        type: string | null;
       };
     }
   | { error: string; message: string };
@@ -67,6 +72,8 @@ export const GitHubGetIssueResultSchema = z.strictObject({
     closedAt: z.string().nullable(),
     htmlUrl: z.string(),
     comments: z.number(),
+    fields: z.record(z.string(), z.string()),
+    type: z.string().nullable(),
   }),
 });
 
@@ -79,7 +86,9 @@ export const GitHubGetIssueResultSchema = z.strictObject({
 @Tool({
   name: 'github_get_issue',
   description:
-    'Gets detailed information about a specific GitHub issue. Returns { error: "unauthorized" } if no valid token is available.',
+    'Gets detailed information about a specific GitHub issue, including the labels and assignees on it, the ' +
+    'organization\'s issue field values by field name, and the issue type. Returns { error: "unauthorized" } if ' +
+    'no valid token is available.',
   schema: inputSchema,
   resultSchema: GitHubGetIssueResultSchema,
   effects: 'none',
@@ -87,11 +96,11 @@ export const GitHubGetIssueResultSchema = z.strictObject({
 export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, GitHubGetIssueResult> {
   private readonly logger = new Logger(GitHubGetIssueTool.name);
 
-  @Inject()
-  private tokenStore: OAuthTokenStore;
+  @Inject(GITHUB_TOKEN_PROVIDER)
+  private readonly tokenProvider!: GitHubTokenProvider;
 
   protected async handle(args: GitHubGetIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetIssueResult>> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+    const accessToken = await this.tokenProvider.getToken(ctx);
 
     if (!accessToken) {
       return {
@@ -150,6 +159,8 @@ export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, Git
       closed_at: string | null;
       html_url: string;
       comments: number;
+      issue_field_values?: RestIssueFieldValue[] | null;
+      type?: { name?: string } | null;
     };
 
     return {
@@ -169,6 +180,8 @@ export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, Git
           closedAt: issue.closed_at,
           htmlUrl: issue.html_url,
           comments: issue.comments,
+          fields: issueFieldValues(issue.issue_field_values),
+          type: issue.type?.name ?? null,
         },
       },
     };

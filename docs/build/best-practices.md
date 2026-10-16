@@ -122,17 +122,24 @@ A guard that mutates state, calls a tool, or has a side effect makes routing imp
 
 Not all failures are equal. Match the recovery mode to the _kind_ of failure:
 
-| Failure kind                               | Strategy                                                                                                         |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| Transient (network blip, rate limit)       | **Auto-retry**                                                                                                   |
-| User-fixable (bad input, missing approval) | **Error place / manual retry** — surface it and let the user correct course                                      |
-| Fatal (programmer error, impossible state) | **Fail loudly** — don't paper over a bug                                                                         |
-| A sub-workflow that failed                 | **`onFailure`** when the parent acts on it; otherwise nothing, and the parent is parked as failed where it waits |
+| Failure kind                                                         | Strategy                                                                                                                               |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Transient (network blip, rate limit)                                 | **Auto-retry**                                                                                                                         |
+| User-fixable (bad input, missing approval)                           | **Error place / manual retry** — surface it and let the user correct course                                                            |
+| Fatal (programmer error, impossible state)                           | **Fail loudly** — don't paper over a bug                                                                                               |
+| The run cannot succeed, and the step that found out has work to keep | **`this.fail(message)`** — the transition commits, the run ends as failed                                                              |
+| The run holds something it must give back before it stops            | **`errorPlace` to a place with an automatic transition** — the clean-up runs by itself and reads the reason from `ctx.execution.error` |
+| A sub-workflow that failed                                           | **`onFailure`** when the parent acts on it; otherwise nothing, and the parent is parked as failed where it waits                       |
 
 `errorPlace` and `retryAttempts` are about a transition whose own body throws. A child's failure is a
 different cause with its own handler, so keep the two apart.
 
-Then internalize the rollback reality: **when a transition throws, its state mutations roll back — but external side effects do not.** A half-sent email or a half-written file stays half-done. So design transitions to be **safe to re-run**: make side effects idempotent, or structure them so a retry can't double-apply them. Surface failures the user should see as an `ErrorDocument` rather than letting them disappear into logs.
+Then internalize the rollback reality: **when a transition throws, its state mutations roll back — but external side effects do not.** A half-sent email or a half-written file stays half-done. So design transitions to be **safe to re-run**: make side effects idempotent, or structure them so a retry can't double-apply them.
+
+The documents a transition saved roll back with it, so a step cannot both write an `ErrorDocument` and throw.
+A step that must leave a card the user reads and then end the run calls `this.fail(message)`: the document and
+the failure are committed together. Several external writes in one transition cannot be retried at all, since
+the first ones already landed — give each its own transition, so a Retry resumes at the one that failed.
 
 ### Treat schemas as contracts
 

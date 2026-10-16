@@ -94,6 +94,7 @@ describe('WorkflowProcessorService — invalid pending payload', () => {
       stateDraft: {},
       resultDraft: {},
       resultDirty: false,
+      transitionsRun: 0,
     };
     const pendingTransition = { id: 'onSubmit', workflowId: 'wf1', payload: { data: payloadData } };
 

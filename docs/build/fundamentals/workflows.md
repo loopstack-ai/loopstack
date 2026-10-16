@@ -181,6 +181,26 @@ finish(state: MyState) {
 }
 ```
 
+### Ending a run as failed
+
+A run ends in one of two ways: it completes when it reaches `end`, and it fails when a transition calls
+`this.fail(message)`. Everything the calling transition did is committed together with the failure, so the
+documents that explain it survive, and the run is over — nothing is offered at the place it stopped at, and a
+parent receives it through its `onFailure` transition.
+
+```typescript
+@Transition({ from: 'cleaned', to: 'end' })
+report(state: MyState) {
+  if (state.error) this.fail(`Provisioning the base failed: ${state.error}`);
+  this.setResult({ ready: true });
+}
+```
+
+Use it for a step that did its work and then found the run cannot succeed, such as one that released what the
+run was holding and must now say why. A step whose own work did **not** get done throws instead: a thrown
+error rolls the transition back and leaves the run where it was, with a Retry. See
+[error strategies](../best-practices.md#choose-an-error-strategy-by-failure-type).
+
 ## Guarding Transitions
 
 When multiple transitions share the same `from` state, attach `@Guard('methodName')` to pick which one fires:
@@ -221,6 +241,7 @@ Transitions return nothing — mutate state via `this.assignState(...)`. Use `as
 | `this.setState(full)`        | Replace the state object outright.                                                                        |
 | `this.assignResult(partial)` | Shallow-merge `partial` into the workflow's published `result` (visible to callers and parent callbacks). |
 | `this.setResult(full)`       | Replace the workflow's published `result` outright.                                                       |
+| `this.fail(message)`         | End the run as failed with `message`, keeping what this transition did. Stops the transition at the call. |
 
 ```typescript
 interface MyState {

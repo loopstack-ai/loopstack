@@ -91,6 +91,7 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TInput = TAr
   protected setState(next: Record<string, unknown>): void;
   protected assignResult(partial: Record<string, unknown>): void;
   protected setResult(next: Record<string, unknown>): void;
+  protected fail(message: string): never;
 }
 ```
 
@@ -188,6 +189,27 @@ import { TerminalDocument } from '@loopstack/common';
 export class TerminalDocument {
   text: string;
   title?: string;
+}
+```
+
+### WorkflowFailure
+
+Thrown by `BaseWorkflow.fail()` to end a run as failed while keeping what the transition did.
+
+The framework recognises this one class: it commits the transition's state, result and documents, records
+`message` as the run's error and settles the run as failed. Every other error rolls the transition back.
+
+Authors never construct or catch it. A `try`/`catch` around the body of a transition must not swallow it,
+so keep `fail()` outside the blocks that guard your own work.
+
+```ts
+import { WorkflowFailure } from '@loopstack/common';
+```
+
+```ts
+export class WorkflowFailure extends Error {
+  readonly name = 'WorkflowFailure';
+  constructor(message: string);
 }
 ```
 
@@ -334,6 +356,7 @@ export interface RunContext<TArgs = unknown> {
   execution?: {
     place: string;
     retryCount: number;
+    error?: string;
   };
 }
 ```
@@ -680,6 +703,21 @@ import { Guard } from '@loopstack/common';
 
 ```ts
 export function Guard(guardMethodName: string): MethodDecorator;
+```
+
+### isWorkflowFailure
+
+Whether an error is the signal `BaseWorkflow.fail()` throws.
+
+Matched by name rather than by class, so it still holds when the framework and the application resolve
+different copies of this package.
+
+```ts
+import { isWorkflowFailure } from '@loopstack/common';
+```
+
+```ts
+export function isWorkflowFailure(error: unknown): error is WorkflowFailure;
 ```
 
 ### resolveRedisConnection

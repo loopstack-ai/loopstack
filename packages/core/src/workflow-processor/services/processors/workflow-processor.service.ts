@@ -12,6 +12,7 @@ import {
   getGuardMetadataMap,
   getWorkflowIdentifier,
   getWorkflowStateSchema,
+  isWorkflowFailure,
 } from '@loopstack/common';
 import type { Clock, RunContext } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
@@ -31,7 +32,16 @@ import { WorkflowStateService } from '../workflow-state.service.js';
 interface ProcessorMetadata extends WorkflowMetadataInterface {
   /** Checkpoint version counter */
   version: number;
+  /**
+   * The place a failure routed this run to, or left it at, while no transition there has succeeded yet. It is
+   * what makes a parked run read as failed and what the handling transition is told as `ctx.execution.error`.
+   * Not persisted: it is reconstructed on a resume from the run's own failed status and message.
+   */
+  failurePlace?: string;
 }
+
+/** How many transitions one pass may run before the run is stopped as a runaway. */
+const DEFAULT_MAX_TRANSITIONS_PER_PASS = 1000;
 
 @Injectable()
 export class WorkflowProcessorService implements Processor {
@@ -123,6 +133,13 @@ export class WorkflowProcessorService implements Processor {
         delete (workflowEntity as unknown as Record<string, unknown>).documents;
       }
 
+      // A run that comes back failed is still at the place the failure left it, so the transition a person
+      // triggers there is told why. A transition that succeeds clears both.
+      if (workflowEntity.hasError && workflowEntity.errorMessage) {
+        meta.failurePlace = meta.place;
+        meta.errorMessage = workflowEntity.errorMessage;
+      }
+
       const isInitialRun = meta.place === 'start';
 
       // A task without a transition continues the run from its current place: a retry after an error, a
@@ -174,6 +191,7 @@ export class WorkflowProcessorService implements Processor {
       stateDraft: {},
       resultDraft: {},
       resultDirty: false,
+      transitionsRun: 0,
     };
 
     this.logger.debug(`Process state machine for workflow ${workflow.constructor.name}`);
@@ -216,6 +234,12 @@ export class WorkflowProcessorService implements Processor {
     } else if (meta.hasError) {
       meta.stop = true;
       meta.status = WorkflowState.Failed;
+    } else if (meta.failurePlace) {
+      // Routed to a place that only waits: the run is failed while it stands there, and the transitions it
+      // offers are how a person takes it on. The flag is set here so the stored row says the same.
+      meta.stop = true;
+      meta.hasError = true;
+      meta.status = WorkflowState.Failed;
     } else if (meta.place === 'end') {
       meta.status = WorkflowState.Completed;
     } else {
@@ -235,6 +259,7 @@ export class WorkflowProcessorService implements Processor {
       ...(meta.status === WorkflowState.Waiting
         ? { availableTransitions: meta.availableTransitions.map((t) => t.id) }
         : {}),
+      ...(meta.status === WorkflowState.Failed && meta.errorMessage ? { error: meta.errorMessage } : {}),
     });
 
     if (isStateless) {
@@ -276,6 +301,7 @@ export class WorkflowProcessorService implements Processor {
       execution: {
         place: meta.place,
         retryCount: meta.retryCount ?? 0,
+        ...(meta.failurePlace === meta.place && meta.errorMessage ? { error: meta.errorMessage } : {}),
       },
     };
   }
@@ -416,10 +442,23 @@ export class WorkflowProcessorService implements Processor {
       return Promise.race([methodPromise, timeoutPromise]).finally(() => cancel());
     };
 
+    // `fail()` ends the run while keeping what the transition did, so its signal takes the commit path below
+    // and every other error takes the rollback path.
+    const invokeOrFail = async (): Promise<{ returnValue: unknown; failure?: string }> => {
+      try {
+        return { returnValue: await invokeMethod() };
+      } catch (error) {
+        if (!isWorkflowFailure(error)) throw error;
+        return { returnValue: undefined, failure: error.message };
+      }
+    };
+
+    scopeData.transitionsRun++;
+
     // Stateless workflows skip transactions
     if (!workflowEntity) {
-      const returnValue = await invokeMethod();
-      this.assertVoidReturn(workflow, methodName, returnValue);
+      const { returnValue, failure } = await invokeOrFail();
+      if (failure === undefined) this.assertVoidReturn(workflow, methodName, returnValue);
 
       const newState = scopeData.stateDraft;
       this.validateState(workflow, methodName, to, newState);
@@ -429,6 +468,11 @@ export class WorkflowProcessorService implements Processor {
 
       meta.place = to;
       meta.version++;
+      this.clearFailureMark(meta);
+      if (failure !== undefined) {
+        meta.hasError = true;
+        meta.errorMessage = failure;
+      }
       this.memoryMonitor.logTransition(workflowName, methodName, scopeData.documents, meta.version);
 
       return { returnValue, newState };
@@ -448,8 +492,8 @@ export class WorkflowProcessorService implements Processor {
 
       this.logger.debug(`Applying transition: ${methodName} (${meta.place} → ${to})`);
 
-      const returnValue = await invokeMethod();
-      this.assertVoidReturn(workflow, methodName, returnValue);
+      const { returnValue, failure } = await invokeOrFail();
+      if (failure === undefined) this.assertVoidReturn(workflow, methodName, returnValue);
 
       const newState = scopeData.stateDraft;
       this.validateState(workflow, methodName, to, newState);
@@ -460,6 +504,14 @@ export class WorkflowProcessorService implements Processor {
       // Advance place + bump version
       meta.place = to;
       meta.version++;
+      // This transition got through, so the run has moved on from whatever failure left it where it was.
+      this.clearFailureMark(meta);
+      // Set inside this transaction, so the failure is committed with the state and the documents that
+      // explain it.
+      if (failure !== undefined) {
+        meta.hasError = true;
+        meta.errorMessage = failure;
+      }
       this.memoryMonitor.logTransition(workflowName, methodName, scopeData.documents, meta.version);
 
       // Sync documents from scope back to metadata before saving
@@ -530,11 +582,14 @@ export class WorkflowProcessorService implements Processor {
       return;
     }
 
-    // 2. Error place path — retries exhausted or non-retryable failure
+    // 2. Error place path — retries exhausted or non-retryable failure. The failure is recorded and the run
+    // takes the declared edge; whether it carries on from there is the graph's business. A place with an
+    // automatic transition runs it, so a clean-up path needs nobody; a place that only waits parks, and the
+    // mark makes the run read as failed while it stands there.
     if (errorPlace) {
       this.logger.log(`Routing failure of '${methodName}' to error place '${errorPlace}'`);
       meta.place = errorPlace;
-      meta.hasError = true;
+      meta.failurePlace = errorPlace;
       meta.errorMessage = error.message;
       meta.retryCount = 0;
       meta.retryTransitionId = undefined;
@@ -733,20 +788,47 @@ export class WorkflowProcessorService implements Processor {
             willRetry: !!meta._retrySignal,
           });
 
-          const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
-          meta.availableTransitions = errorAvailable.map((t) => ({
-            id: t.methodName,
-            from: meta.place,
-            to: t.to,
-            trigger: t.wait ? ('manual' as const) : undefined,
-          }));
-          return state;
+          // An unhandled failure stops the run where it stands. A failure routed to an error place falls
+          // through to the loop below, which runs what that place offers.
+          if (meta.hasError) {
+            const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
+            meta.availableTransitions = errorAvailable.map((t) => ({
+              id: t.methodName,
+              from: meta.place,
+              to: t.to,
+              trigger: t.wait ? ('manual' as const) : undefined,
+            }));
+            return state;
+          }
         }
       }
     }
 
     // Auto-transition loop
     while (true) {
+      // A transition that called `fail()` committed and ended the run. Nothing is offered at the place it
+      // stopped at, so the run cannot be resumed from there.
+      if (meta.hasError) {
+        meta.availableTransitions = [];
+        break;
+      }
+
+      // A cycle is a shape the author may want; a cycle that never yields is a runaway. The budget is per
+      // pass, which is one burst of automatic work between two manual steps, so it resets whenever a person
+      // or a callback takes the run on.
+      if (scopeData.transitionsRun >= this.maxTransitionsPerPass()) {
+        const recent = scopeData.trace.events
+          .filter((event) => event.type === 'transition.started')
+          .slice(-10)
+          .map((event) => (event as { transitionId: string }).transitionId);
+        meta.hasError = true;
+        meta.errorMessage =
+          `This run ran ${scopeData.transitionsRun} transitions in one pass without waiting, so it was ` +
+          `stopped as a cycle that does not end. The last ten were: ${recent.join(' → ')}.`;
+        this.logger.error(meta.errorMessage);
+        break;
+      }
+
       const available = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
 
       meta.availableTransitions = available.map((t) => ({
@@ -829,17 +911,33 @@ export class WorkflowProcessorService implements Processor {
           willRetry: !!meta._retrySignal,
         });
 
-        const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
-        meta.availableTransitions = errorAvailable.map((t) => ({
-          id: t.methodName,
-          from: meta.place,
-          to: t.to,
-          trigger: t.wait ? ('manual' as const) : undefined,
-        }));
-        break;
+        // An unhandled failure stops the run where it stands. A failure routed to an error place carries on
+        // from there, so the loop runs what that place offers.
+        if (meta.hasError) {
+          const errorAvailable = this.transitionResolverService.getAvailableTransitions(workflow, meta.place);
+          meta.availableTransitions = errorAvailable.map((t) => ({
+            id: t.methodName,
+            from: meta.place,
+            to: t.to,
+            trigger: t.wait ? ('manual' as const) : undefined,
+          }));
+          break;
+        }
       }
     }
 
     return state;
+  }
+
+  /** Read per pass rather than at import, so a deployment can raise it without a rebuild. */
+  private maxTransitionsPerPass(): number {
+    return parseInt(process.env.MAX_TRANSITIONS_PER_PASS ?? '', 10) || DEFAULT_MAX_TRANSITIONS_PER_PASS;
+  }
+
+  /** A transition that got through leaves no failure behind: the run has moved on from it. */
+  private clearFailureMark(meta: ProcessorMetadata): void {
+    if (!meta.failurePlace) return;
+    meta.failurePlace = undefined;
+    meta.errorMessage = undefined;
   }
 }

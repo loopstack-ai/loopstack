@@ -48,6 +48,9 @@ export interface ExecutionScopeData {
   // method cannot write outside its rolled-back transaction. Replaced before each transition.
   abortController: AbortController;
 
+  /** Transitions executed in this pass — the budget that stops a runaway cycle. */
+  transitionsRun: number;
+
   // Per-transition state/result drafts mutated by BaseWorkflow setters
   // (assignState / setState / assignResult / setResult). The processor seeds
   // these before invoking the transition method and commits them on success.

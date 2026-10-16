@@ -4,6 +4,7 @@ import { FlakyServiceTool } from './tools/flaky-service.tool';
 import { SlowOperationTool } from './tools/slow-operation.tool';
 import { AutoRetryExampleWorkflow } from './workflows/auto-retry/auto-retry-example.workflow';
 import { ErrorPlaceExampleWorkflow } from './workflows/error-place/error-place-example.workflow';
+import { ErrorRouteExampleWorkflow } from './workflows/error-route/error-route-example.workflow';
 import { FailingWorkflow } from './workflows/failing/failing.workflow';
 import { ManualRetryExampleWorkflow } from './workflows/manual-retry/manual-retry-example.workflow';
 import { RetryTargetExampleWorkflow } from './workflows/retry-target/retry-target-example.workflow';
@@ -15,6 +16,7 @@ const WORKFLOWS = [
   AutoRetryExampleWorkflow,
   RetryTargetExampleWorkflow,
   ErrorPlaceExampleWorkflow,
+  ErrorRouteExampleWorkflow,
   ManualRetryExampleWorkflow,
   TransitionTimeoutExampleWorkflow,
   SubWorkflowFailureExampleWorkflow,

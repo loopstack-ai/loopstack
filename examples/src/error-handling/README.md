@@ -36,14 +36,15 @@ None — the examples call no LLM and need no secrets. The failures are simulate
 
 ## Examples
 
-| Example                                       | Studio title                                    | Description                                                          |
-| --------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------- |
-| [Auto Retry](#auto-retry)                     | `Error Handling - Auto Retry Example`           | `retryAttempts` re-runs a failed transition with exponential backoff |
-| [Retry Target](#retry-target)                 | `Error Handling - Retry Target Example`         | `retryTarget` routes each retry through a preparation place          |
-| [Error Place](#error-place)                   | `Error Handling - Error Place Example`          | `errorPlace` moves a failed workflow to a recovery place             |
-| [Manual Retry](#manual-retry)                 | `Error Handling - Manual Retry Example`         | The default: the workflow stays put and offers a Retry button        |
-| [Transition Timeout](#transition-timeout)     | `Error Handling - Transition Timeout Example`   | `timeout` fails a transition that runs too long                      |
-| [Sub-Workflow Failure](#sub-workflow-failure) | `Error Handling - Sub-Workflow Failure Example` | A failed child is handled by the parent's `onFailure` transition     |
+| Example                                       | Studio title                                    | Description                                                                          |
+| --------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [Auto Retry](#auto-retry)                     | `Error Handling - Auto Retry Example`           | `retryAttempts` re-runs a failed transition with exponential backoff                 |
+| [Retry Target](#retry-target)                 | `Error Handling - Retry Target Example`         | `retryTarget` routes each retry through a preparation place                          |
+| [Error Place](#error-place)                   | `Error Handling - Error Place Example`          | `errorPlace` moves a failed workflow to a recovery place                             |
+| [Error Route](#error-route)                   | `Error Handling - Error Route Example`          | A clean-up transition at the error place runs on its own, then `fail()` ends the run |
+| [Manual Retry](#manual-retry)                 | `Error Handling - Manual Retry Example`         | The default: the workflow stays put and offers a Retry button                        |
+| [Transition Timeout](#transition-timeout)     | `Error Handling - Transition Timeout Example`   | `timeout` fails a transition that runs too long                                      |
+| [Sub-Workflow Failure](#sub-workflow-failure) | `Error Handling - Sub-Workflow Failure Example` | A failed child is handled by the parent's `onFailure` transition                     |
 
 ---
 
@@ -93,6 +94,25 @@ loopstack answer <run-id> --transition recover
 
 - `workflows/error-place/error-place-example.workflow.ts`
 - `workflows/error-place/error-place-example.ui.yaml` — the Recover button
+
+## Error Route
+
+The same `errorPlace`, leading to a place whose transition is **automatic**. The work takes a resource, the step
+that uses it fails, and the run moves to `releasing`, where `release` runs on its own: nobody has to press
+anything for the resource to come back. It reads why it is there from `ctx.execution.error`, and ends the run
+with `this.fail(...)`.
+
+```bash
+loopstack run error_route_example
+```
+
+The run ends failed at `end`, with both messages in place: the resource was taken, and it was given back. That
+is what `fail()` is for — a throw at that point would have rolled the clean-up's own message back, and leaving
+the run at the error place would have waited for a person before the resource came back.
+
+### Files
+
+- `workflows/error-route/error-route-example.workflow.ts`
 
 ## Manual Retry
 

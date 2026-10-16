@@ -192,8 +192,13 @@ Transitions return nothing — mutate state via `this.assignState(...)`. Use `as
 | `this.setState(full)`        | Replace state outright.                                                                                           |
 | `this.assignResult(partial)` | Shallow-merge `partial` into the workflow's published `result` (returned to parent callbacks / `WorkflowRunner`). |
 | `this.setResult(full)`       | Replace the published `result` outright.                                                                          |
+| `this.fail(message)`         | End the run as failed with `message`, keeping what this transition did. Stops the transition at the call.         |
 
 Returning a value from a transition is a runtime error.
+
+A run ends either by reaching `end` or by a transition calling `this.fail(message)`. Use `fail` for a step that
+did its work and then found the run cannot succeed; a step whose own work did not get done throws instead, which
+rolls the transition back and leaves the run where it was with a Retry.
 
 ```typescript
 interface MyState {

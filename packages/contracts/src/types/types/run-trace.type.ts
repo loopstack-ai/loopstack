@@ -126,6 +126,8 @@ export const RunSettledEventSchema = z.object({
   place: z.string(),
   /** Transition ids the run is waiting on — present on waiting settles (parks). */
   availableTransitions: z.array(z.string()).optional(),
+  /** Why the run failed, when a transition ended it with `fail()` rather than by throwing. */
+  error: z.string().optional(),
 });
 
 /**

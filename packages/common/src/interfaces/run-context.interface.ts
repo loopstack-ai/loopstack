@@ -16,5 +16,10 @@ export interface RunContext<TArgs = unknown> {
   args: TArgs;
   /** Aborted when the run is torn down (e.g. the transition times out). */
   signal: AbortSignal;
-  execution?: { place: string; retryCount: number };
+  /**
+   * Present in workflow transitions. `error` is why the run is at this place, when the last thing that
+   * happened here was a failure: the message of the transition that was routed here by its `errorPlace`, or
+   * of the one that failed in place and is being retried. Absent otherwise.
+   */
+  execution?: { place: string; retryCount: number; error?: string };
 }

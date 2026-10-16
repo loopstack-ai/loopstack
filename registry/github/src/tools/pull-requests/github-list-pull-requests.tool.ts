@@ -2,7 +2,7 @@ import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
+import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -92,14 +92,14 @@ export class GitHubListPullRequestsTool extends BaseTool<
 > {
   private readonly logger = new Logger(GitHubListPullRequestsTool.name);
 
-  @Inject()
-  private tokenStore: OAuthTokenStore;
+  @Inject(GITHUB_TOKEN_PROVIDER)
+  private readonly tokenProvider!: GitHubTokenProvider;
 
   protected async handle(
     args: GitHubListPullRequestsArgs,
     ctx: RunContext,
   ): Promise<ToolEnvelope<GitHubListPullRequestsResult>> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+    const accessToken = await this.tokenProvider.getToken(ctx);
 
     if (!accessToken) {
       return {

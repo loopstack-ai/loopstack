@@ -6,7 +6,7 @@ import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 })
 export class SubWorkflowFailureChildWorkflow extends BaseWorkflow {
   @Transition({ to: 'end' })
-  fail() {
+  attemptWork() {
     throw new Error('Child workflow failed');
   }
 }

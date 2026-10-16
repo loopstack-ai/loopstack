@@ -50,6 +50,7 @@ describe('ToolPipelineService — trace emission', () => {
       stateDraft: {},
       resultDraft: {},
       resultDirty: false,
+      transitionsRun: 0,
     }) as ExecutionScopeData;
 
   it('emits tool.called and tool.completed with args, envelope, toolSeq, and duration', async () => {

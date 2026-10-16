@@ -3,6 +3,7 @@ import type { DocumentStore } from '../interfaces/document-store.interface.js';
 import type { ExecutionScopeAccessor } from '../interfaces/execution-scope.interface.js';
 import type { WorkflowOrchestrator } from '../interfaces/workflow-orchestrator.interface.js';
 import { DOCUMENT_STORE, EXECUTION_SCOPE, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
+import { WorkflowFailure } from './workflow-failure.js';
 import type { TemplateRenderFn } from './workflow-templates.js';
 
 /**
@@ -203,5 +204,23 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TInput = TAr
     const draft = this.__executionScope.get();
     draft.resultDraft = { ...next };
     draft.resultDirty = true;
+  }
+
+  /**
+   * End this run as failed, with `message` as its error, keeping everything this transition did.
+   *
+   * A run ends in one of two ways. It completes when it reaches `end`, and it fails when a transition calls
+   * this. The state, the result and the documents of the calling transition are committed together with the
+   * failure, so the card that says what went wrong survives. The run is over: no transition is offered at the
+   * place it stopped at, and a parent receives it through its `onFailure` transition.
+   *
+   * This is for a step that did its work and then found the run cannot succeed, such as one that released
+   * what the run was holding and must now report why. A step that did *not* get its work done throws
+   * instead: a thrown error rolls the transition back and leaves the run where it was, with a Retry.
+   *
+   * It stops the transition at the call, so nothing below it runs.
+   */
+  protected fail(message: string): never {
+    throw new WorkflowFailure(message);
   }
 }

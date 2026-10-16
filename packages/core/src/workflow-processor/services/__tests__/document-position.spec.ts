@@ -27,6 +27,7 @@ function statelessScope(documents: DocumentEntity[] = []): ExecutionScopeData {
     stateDraft: {},
     resultDraft: {},
     resultDirty: false,
+    transitionsRun: 0,
   };
 }
 

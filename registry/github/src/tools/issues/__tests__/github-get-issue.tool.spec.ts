@@ -2,16 +2,16 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
 import { createToolTest } from '@loopstack/testing';
+import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
 import { GitHubGetIssueArgs, GitHubGetIssueTool } from '../github-get-issue.tool.js';
 
 describe('GitHubGetIssueTool', () => {
   let module: TestingModule;
   let tool: GitHubGetIssueTool;
 
-  const mockTokenStore = {
-    getValidAccessToken: vi.fn(),
+  const mockTokenProvider = {
+    getToken: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -21,9 +21,12 @@ describe('GitHubGetIssueTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenStore.getValidAccessToken.mockResolvedValue('gh-token');
+    mockTokenProvider.getToken.mockResolvedValue('gh-token');
 
-    module = await createToolTest().forTool(GitHubGetIssueTool).withMock(OAuthTokenStore, mockTokenStore).compile();
+    module = await createToolTest()
+      .forTool(GitHubGetIssueTool)
+      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .compile();
 
     tool = module.get(GitHubGetIssueTool);
   });
@@ -69,7 +72,7 @@ describe('GitHubGetIssueTool', () => {
 
       const result = await tool.call({ owner: 'octo', repo: 'hello', issueNumber: 7 });
 
-      expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'github');
+      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/issues/7', {
         headers: {
           Authorization: 'Bearer gh-token',
@@ -93,8 +96,48 @@ describe('GitHubGetIssueTool', () => {
           closedAt: null,
           htmlUrl: 'https://github.com/octo/hello/issues/7',
           comments: 3,
+          fields: {},
+          type: null,
         },
       });
+    });
+
+    it('maps the issue field values and the issue type', async () => {
+      fetchMock.mockResolvedValue(
+        Response.json({
+          id: 1001,
+          number: 7,
+          title: 'Bug',
+          body: null,
+          state: 'open',
+          user: { login: 'alice' },
+          labels: [],
+          assignees: [],
+          milestone: null,
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-02T00:00:00Z',
+          closed_at: null,
+          html_url: 'https://github.com/octo/hello/issues/7',
+          comments: 0,
+          type: { name: 'Bug' },
+          issue_field_values: [
+            { issue_field_name: 'Priority', single_select_option: { name: 'High' } },
+            { issue_field_name: 'Estimate', value: 3 },
+            // Neither text nor a number, so there is no one way to render it.
+            { issue_field_name: 'Owners', value: [{ login: 'alice' }] },
+            // No field name to key it by.
+            { value: 'orphan' },
+          ],
+        }),
+      );
+
+      const result = await tool.call({ owner: 'octo', repo: 'hello', issueNumber: 7 });
+
+      expect(result.data).toEqual(
+        expect.objectContaining({
+          issue: expect.objectContaining({ fields: { Priority: 'High', Estimate: '3' }, type: 'Bug' }),
+        }),
+      );
     });
 
     it('URL-encodes owner and repo', async () => {
@@ -106,7 +149,7 @@ describe('GitHubGetIssueTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
+      mockTokenProvider.getToken.mockResolvedValue(null);
 
       const result = await execute({ owner: 'octo', repo: 'hello', issueNumber: 7 });
 

@@ -2,8 +2,8 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
-import { OAuthTokenStore } from '@loopstack/oauth';
 import { createToolTest } from '@loopstack/testing';
+import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
 import { GitHubListPullRequestsArgs, GitHubListPullRequestsTool } from '../github-list-pull-requests.tool.js';
 
 const HEADERS = {
@@ -16,8 +16,8 @@ describe('GitHubListPullRequestsTool', () => {
   let module: TestingModule;
   let tool: GitHubListPullRequestsTool;
 
-  const mockTokenStore = {
-    getValidAccessToken: vi.fn(),
+  const mockTokenProvider = {
+    getToken: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -26,11 +26,11 @@ describe('GitHubListPullRequestsTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenStore.getValidAccessToken.mockResolvedValue('gh-token');
+    mockTokenProvider.getToken.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubListPullRequestsTool)
-      .withMock(OAuthTokenStore, mockTokenStore)
+      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
       .compile();
 
     tool = module.get(GitHubListPullRequestsTool);
@@ -87,7 +87,7 @@ describe('GitHubListPullRequestsTool', () => {
 
       const result = await tool.call({ owner: 'octo', repo: 'hello' });
 
-      expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'github');
+      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
       expect(fetchMock).toHaveBeenCalledWith(
         'https://api.github.com/repos/octo/hello/pulls?state=open&per_page=30&page=1',
         { headers: HEADERS },
@@ -123,7 +123,7 @@ describe('GitHubListPullRequestsTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
+      mockTokenProvider.getToken.mockResolvedValue(null);
 
       const result = await execute({ owner: 'octo', repo: 'hello' });
 

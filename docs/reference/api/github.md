@@ -8,6 +8,87 @@ includeInLlmsFullTxt: false
 
 ## Classes
 
+### GitHubAddIssueAssigneesTool
+
+Tool that adds assignees to a GitHub issue or pull request.
+
+```ts
+import { GitHubAddIssueAssigneesTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubAddIssueAssigneesTool extends BaseTool<
+  GitHubAddIssueAssigneesArgs,
+  object,
+  GitHubAddIssueAssigneesResult
+> {
+  protected handle(
+    args: GitHubAddIssueAssigneesArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubAddIssueAssigneesResult>>;
+}
+```
+
+### GitHubAddIssueDependencyTool
+
+Tool that records a GitHub issue dependency: one issue is blocked by another.
+
+GitHub shows the relation on both issues. The endpoint takes the blocking issue's database id, so its
+number is resolved to that id first.
+
+```ts
+import { GitHubAddIssueDependencyTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubAddIssueDependencyTool extends BaseTool<
+  GitHubAddIssueDependencyArgs,
+  object,
+  GitHubAddIssueDependencyResult
+> {
+  protected handle(
+    args: GitHubAddIssueDependencyArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubAddIssueDependencyResult>>;
+}
+```
+
+### GitHubAddIssueLabelsTool
+
+Tool that adds labels to a GitHub issue or pull request.
+
+```ts
+import { GitHubAddIssueLabelsTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubAddIssueLabelsTool extends BaseTool<GitHubAddIssueLabelsArgs, object, GitHubAddIssueLabelsResult> {
+  protected handle(args: GitHubAddIssueLabelsArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubAddIssueLabelsResult>>;
+}
+```
+
+### GitHubCloseIssueTool
+
+Tool that closes a GitHub issue, optionally as not planned or as a duplicate.
+
+```ts
+import { GitHubCloseIssueTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubCloseIssueTool extends BaseTool<GitHubCloseIssueArgs, object, GitHubCloseIssueResult> {
+  protected handle(args: GitHubCloseIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubCloseIssueResult>>;
+}
+```
+
 ### GitHubCreateIssueCommentTool
 
 Tool that adds a comment to a GitHub issue or pull request.
@@ -107,6 +188,38 @@ import { GitHubCreateRepoTool } from '@loopstack/github';
 ```ts
 export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object, GitHubCreateRepoResult> {
   protected handle(args: GitHubCreateRepoArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubCreateRepoResult>>;
+}
+```
+
+### GitHubDeleteBranchTool
+
+Tool that deletes a branch from a GitHub repository.
+
+```ts
+import { GitHubDeleteBranchTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubDeleteBranchTool extends BaseTool<GitHubDeleteBranchArgs, object, GitHubDeleteBranchResult> {
+  protected handle(args: GitHubDeleteBranchArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubDeleteBranchResult>>;
+}
+```
+
+### GitHubEnsureLabelTool
+
+Tool that creates a label in a GitHub repository if it does not exist yet.
+
+```ts
+import { GitHubEnsureLabelTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubEnsureLabelTool extends BaseTool<GitHubEnsureLabelArgs, object, GitHubEnsureLabelResult> {
+  protected handle(args: GitHubEnsureLabelArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubEnsureLabelResult>>;
 }
 ```
 
@@ -264,6 +377,29 @@ export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, o
 }
 ```
 
+### GitHubListIssueCommentsTool
+
+Tool that reads the comments on a GitHub issue or pull request, oldest first.
+
+```ts
+import { GitHubListIssueCommentsTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubListIssueCommentsTool extends BaseTool<
+  GitHubListIssueCommentsArgs,
+  object,
+  GitHubListIssueCommentsResult
+> {
+  protected handle(
+    args: GitHubListIssueCommentsArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubListIssueCommentsResult>>;
+}
+```
+
 ### GitHubListIssuesTool
 
 Tool that lists issues for a GitHub repository, with state, label and assignee filters.
@@ -401,24 +537,75 @@ export class GitHubMergePullRequestTool extends BaseTool<
 
 ### GitHubModule
 
-NestJS module that provides the GitHub OAuth provider (`GitHubOAuthProvider`) and 25 GitHub API tools
+NestJS module that provides the GitHub OAuth provider (`GitHubOAuthProvider`) and the GitHub API tools
 for repositories, issues, pull requests, file content/git ops, actions/workflow runs, search, and users/orgs.
 
 Registration:
 
-- `GitHubModule` — bare import; it internally imports `OAuthModule` and registers `GitHubOAuthProvider`
-  plus all tools. No static configuration methods exist.
+- `GitHubModule` — bare import; it internally imports `OAuthModule`, registers `GitHubOAuthProvider` and
+  all tools, and authenticates every tool with the signed-in user's OAuth token.
+- `GitHubModule.forRoot({ tokenProvider })` — the same tools, authenticated with a token the app supplies
+  through its own `GitHubTokenProvider `. What a headless app needs, which has no signed-in user and
+  runs on a personal access token or an app installation token of its own.
 
-Requires: a configured GitHub OAuth app via the environment variables `GITHUB_CLIENT_ID`,
-`GITHUB_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI`; without valid OAuth credentials the tools
-return `{ error: 'unauthorized' }`.
+Requires, for the OAuth default: a configured GitHub OAuth app via the environment variables
+`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI`. A run whose token provider
+has no token gets `{ error: 'unauthorized' }` from every tool.
 
 ```ts
 import { GitHubModule } from '@loopstack/github';
 ```
 
 ```ts
-export class GitHubModule {}
+export class GitHubModule {
+  static forRoot(options: { tokenProvider: Provider }): DynamicModule;
+}
+```
+
+### GitHubRemoveIssueAssigneesTool
+
+Tool that removes assignees from a GitHub issue or pull request.
+
+```ts
+import { GitHubRemoveIssueAssigneesTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubRemoveIssueAssigneesTool extends BaseTool<
+  GitHubRemoveIssueAssigneesArgs,
+  object,
+  GitHubRemoveIssueAssigneesResult
+> {
+  protected handle(
+    args: GitHubRemoveIssueAssigneesArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubRemoveIssueAssigneesResult>>;
+}
+```
+
+### GitHubRemoveIssueLabelTool
+
+Tool that removes one label from a GitHub issue or pull request.
+
+```ts
+import { GitHubRemoveIssueLabelTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubRemoveIssueLabelTool extends BaseTool<
+  GitHubRemoveIssueLabelArgs,
+  object,
+  GitHubRemoveIssueLabelResult
+> {
+  protected handle(
+    args: GitHubRemoveIssueLabelArgs,
+    ctx: RunContext,
+  ): Promise<ToolEnvelope<GitHubRemoveIssueLabelResult>>;
+}
 ```
 
 ### GitHubSearchCodeTool
@@ -469,6 +656,25 @@ export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, objec
 }
 ```
 
+### GitHubSetIssueFieldsTool
+
+Tool that sets issue field values on a GitHub issue, by field name.
+
+Issue fields are defined on the organization, so their ids differ per organization and have to be looked
+up by name before the values can be written.
+
+```ts
+import { GitHubSetIssueFieldsTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubSetIssueFieldsTool extends BaseTool<GitHubSetIssueFieldsArgs, object, GitHubSetIssueFieldsResult> {
+  protected handle(args: GitHubSetIssueFieldsArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubSetIssueFieldsResult>>;
+}
+```
+
 ### GitHubTriggerWorkflowTool
 
 Tool that triggers a GitHub Actions workflow dispatch event on a given ref.
@@ -492,7 +698,195 @@ export class GitHubTriggerWorkflowTool extends BaseTool<
 }
 ```
 
+### GitHubUpdateIssueTool
+
+Tool that updates the title, the body or the issue type of a GitHub issue.
+
+```ts
+import { GitHubUpdateIssueTool } from '@loopstack/github';
+```
+
+**Provided by:** `GitHubModule`
+
+```ts
+export class GitHubUpdateIssueTool extends BaseTool<GitHubUpdateIssueArgs, object, GitHubUpdateIssueResult> {
+  protected handle(args: GitHubUpdateIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubUpdateIssueResult>>;
+}
+```
+
+### OAuthGitHubTokenProvider
+
+The default `GitHubTokenProvider`: the OAuth token the signed-in user granted, refreshed when it has
+expired. A user who never authenticated with GitHub has none, and the tools answer unauthorized.
+
+```ts
+import { OAuthGitHubTokenProvider } from '@loopstack/github';
+```
+
+```ts
+export class OAuthGitHubTokenProvider implements GitHubTokenProvider {
+  getToken(ctx: RunContext): Promise<string | null>;
+}
+```
+
+## Interfaces
+
+### GitHubTokenProvider
+
+Where the tools in this package get their GitHub token.
+
+The default implementation reads the signed-in user's OAuth token, which is what an app with people in
+front of it wants. A headless app has no such user: it runs on a personal access token or an app
+installation token it keeps itself. Such an app provides its own implementation through
+`GitHubModule.forRoot({ tokenProvider })`, and every tool picks it up.
+
+```ts
+import { GitHubTokenProvider } from '@loopstack/github';
+```
+
+```ts
+export interface GitHubTokenProvider {
+  getToken(ctx: RunContext): Promise<string | null>;
+}
+```
+
 ## Type Aliases
+
+### GitHubAddIssueAssigneesArgs
+
+Args for `GitHubAddIssueAssigneesTool`: the repository `owner`, `repo`, the
+`issueNumber` (issue or pull request) and the `assignees` logins to add.
+
+```ts
+import { GitHubAddIssueAssigneesArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubAddIssueAssigneesArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubAddIssueAssigneesResult
+
+Result for `GitHubAddIssueAssigneesTool`: the `assignees` logins the issue carries
+after the call, or an `error`.
+
+```ts
+import { GitHubAddIssueAssigneesResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubAddIssueAssigneesResult =
+  | {
+      issueNumber: number;
+      assignees: string[];
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
+### GitHubAddIssueDependencyArgs
+
+Args for `GitHubAddIssueDependencyTool`: the repository `owner`, `repo`, the
+`issueNumber` that is blocked and the `blockerNumber` that blocks it.
+
+```ts
+import { GitHubAddIssueDependencyArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubAddIssueDependencyArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubAddIssueDependencyResult
+
+Result for `GitHubAddIssueDependencyTool`: the `issueNumber` that is now blocked and
+the `blockerNumber` that blocks it, or an `error`.
+
+```ts
+import { GitHubAddIssueDependencyResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubAddIssueDependencyResult =
+  | {
+      issueNumber: number;
+      blockerNumber: number;
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
+### GitHubAddIssueLabelsArgs
+
+Args for `GitHubAddIssueLabelsTool`: the repository `owner`, `repo`, `issueNumber`
+(issue or pull request) and the `labels` to add.
+
+```ts
+import { GitHubAddIssueLabelsArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubAddIssueLabelsArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubAddIssueLabelsResult
+
+Result for `GitHubAddIssueLabelsTool`: the `labels` now on the issue, or an `error`.
+
+```ts
+import { GitHubAddIssueLabelsResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubAddIssueLabelsResult =
+  | {
+      labels: string[];
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
+### GitHubCloseIssueArgs
+
+Args for `GitHubCloseIssueTool`: the repository `owner`, `repo`, `issueNumber` and an optional
+reason, either `notPlanned` or `duplicateOf` with the number of the canonical issue.
+
+```ts
+import { GitHubCloseIssueArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubCloseIssueArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubCloseIssueResult
+
+Result for `GitHubCloseIssueTool`: the closed `issue` summary, or an `error`.
+
+```ts
+import { GitHubCloseIssueResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubCloseIssueResult =
+  | {
+      issue: {
+        number: number;
+        state: string;
+        stateReason: string | null;
+      };
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
 
 ### GitHubCreateIssueArgs
 
@@ -685,6 +1079,73 @@ export type GitHubCreateRepoResult = {
 };
 ```
 
+### GitHubDeleteBranchArgs
+
+Args for `GitHubDeleteBranchTool`: the repository `owner`, `repo` and the `branch`
+name to delete, without the `refs/heads/` prefix.
+
+```ts
+import { GitHubDeleteBranchArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubDeleteBranchArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubDeleteBranchResult
+
+Result for `GitHubDeleteBranchTool`: the `branch` name and `deleted`, which is `false`
+when the branch did not exist, or an `error`.
+
+```ts
+import { GitHubDeleteBranchResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubDeleteBranchResult =
+  | {
+      branch: string;
+      deleted: boolean;
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
+### GitHubEnsureLabelArgs
+
+Args for `GitHubEnsureLabelTool`: the repository `owner`, `repo`, the label `name`, its
+`color` as a six digit hex value without a leading `#`, and an optional `description`.
+
+```ts
+import { GitHubEnsureLabelArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubEnsureLabelArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubEnsureLabelResult
+
+Result for `GitHubEnsureLabelTool`: the label `name` and whether it was `created`, or an `error`.
+
+```ts
+import { GitHubEnsureLabelResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubEnsureLabelResult =
+  | {
+      name: string;
+      created: boolean;
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
 ### GitHubGetAuthenticatedUserArgs
 
 Args for `GitHubGetAuthenticatedUserTool`: an empty object; the user is resolved from the token.
@@ -864,6 +1325,8 @@ export type GitHubGetIssueResult =
         closedAt: string | null;
         htmlUrl: string;
         comments: number;
+        fields: Record<string, string>;
+        type: string | null;
       };
     }
   | {
@@ -1087,6 +1550,44 @@ export type GitHubListDirectoryResult = {
   error?: string;
   message?: string;
 };
+```
+
+### GitHubListIssueCommentsArgs
+
+Args for `GitHubListIssueCommentsTool`: the repository `owner`, `repo` and the
+`issueNumber` (issue or pull request) to read the comments of.
+
+```ts
+import { GitHubListIssueCommentsArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubListIssueCommentsArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubListIssueCommentsResult
+
+Result for `GitHubListIssueCommentsTool`: the `comments` on the issue, oldest first,
+each with its `id`, author `user`, `createdAt` time and `body`, or an `error`.
+
+```ts
+import { GitHubListIssueCommentsResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubListIssueCommentsResult =
+  | {
+      comments: Array<{
+        id: number;
+        user: string;
+        createdAt: string;
+        body: string;
+      }>;
+    }
+  | {
+      error: string;
+      message: string;
+    };
 ```
 
 ### GitHubListIssuesArgs
@@ -1363,6 +1864,73 @@ export type GitHubMergePullRequestResult =
     };
 ```
 
+### GitHubRemoveIssueAssigneesArgs
+
+Args for `GitHubRemoveIssueAssigneesTool`: the repository `owner`, `repo`, the
+`issueNumber` (issue or pull request) and the `assignees` logins to remove.
+
+```ts
+import { GitHubRemoveIssueAssigneesArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubRemoveIssueAssigneesArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubRemoveIssueAssigneesResult
+
+Result for `GitHubRemoveIssueAssigneesTool`: the `assignees` logins the issue still
+carries after the call, or an `error`.
+
+```ts
+import { GitHubRemoveIssueAssigneesResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubRemoveIssueAssigneesResult =
+  | {
+      issueNumber: number;
+      assignees: string[];
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
+### GitHubRemoveIssueLabelArgs
+
+Args for `GitHubRemoveIssueLabelTool`: the repository `owner`, `repo`, `issueNumber`
+(issue or pull request) and the `label` to remove.
+
+```ts
+import { GitHubRemoveIssueLabelArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubRemoveIssueLabelArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubRemoveIssueLabelResult
+
+Result for `GitHubRemoveIssueLabelTool`: the `label` and whether it was `removed`, or an `error`.
+
+```ts
+import { GitHubRemoveIssueLabelResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubRemoveIssueLabelResult =
+  | {
+      label: string;
+      removed: boolean;
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
 ### GitHubSearchCodeArgs
 
 Args for `GitHubSearchCodeTool`: the GitHub code-search `query` and `perPage`/`page` paging.
@@ -1486,6 +2054,40 @@ export type GitHubSearchReposResult =
     };
 ```
 
+### GitHubSetIssueFieldsArgs
+
+Args for `GitHubSetIssueFieldsTool`: the repository `owner`, `repo`, the `issueNumber`
+and `fields`, a map of issue field name to the value to set.
+
+```ts
+import { GitHubSetIssueFieldsArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubSetIssueFieldsArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubSetIssueFieldsResult
+
+Result for `GitHubSetIssueFieldsTool`: the `fields` names that were set on the issue,
+or an `error`.
+
+```ts
+import { GitHubSetIssueFieldsResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubSetIssueFieldsResult =
+  | {
+      issueNumber: number;
+      fields: string[];
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
 ### GitHubTriggerWorkflowArgs
 
 Args for `GitHubTriggerWorkflowTool`: the repository `owner`, `repo`, `workflowId`,
@@ -1519,7 +2121,132 @@ export type GitHubTriggerWorkflowResult =
     };
 ```
 
+### GitHubUpdateIssueArgs
+
+Args for `GitHubUpdateIssueTool`: the repository `owner`, `repo`, `issueNumber` and at least
+one of the new `title`, the new `body` and the issue `type`.
+
+```ts
+import { GitHubUpdateIssueArgs } from '@loopstack/github';
+```
+
+```ts
+export type GitHubUpdateIssueArgs = z.infer<typeof inputSchema>;
+```
+
+### GitHubUpdateIssueResult
+
+Result for `GitHubUpdateIssueTool`: the updated `issue` summary, or an `error`.
+
+```ts
+import { GitHubUpdateIssueResult } from '@loopstack/github';
+```
+
+```ts
+export type GitHubUpdateIssueResult =
+  | {
+      issue: {
+        number: number;
+        title: string;
+        htmlUrl: string;
+      };
+    }
+  | {
+      error: string;
+      message: string;
+    };
+```
+
 ## Variables
+
+### GITHUB_TOKEN_PROVIDER
+
+DI token for the `GitHubTokenProvider` every tool in this package authenticates with.
+
+```ts
+import { GITHUB_TOKEN_PROVIDER } from '@loopstack/github';
+```
+
+```ts
+GITHUB_TOKEN_PROVIDER = 'GITHUB_TOKEN_PROVIDER';
+```
+
+### GitHubAddIssueAssigneesResultSchema
+
+Zod schema for the success shape of `GitHubAddIssueAssigneesResult`.
+
+```ts
+import { GitHubAddIssueAssigneesResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubAddIssueAssigneesResultSchema: z.ZodObject<
+  {
+    issueNumber: z.ZodNumber;
+    assignees: z.ZodArray<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubAddIssueDependencyResultSchema
+
+Zod schema for the success shape of `GitHubAddIssueDependencyResult`.
+
+```ts
+import { GitHubAddIssueDependencyResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubAddIssueDependencyResultSchema: z.ZodObject<
+  {
+    issueNumber: z.ZodNumber;
+    blockerNumber: z.ZodNumber;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubAddIssueLabelsResultSchema
+
+Zod schema for the success shape of `GitHubAddIssueLabelsResult`.
+
+```ts
+import { GitHubAddIssueLabelsResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubAddIssueLabelsResultSchema: z.ZodObject<
+  {
+    labels: z.ZodArray<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubCloseIssueResultSchema
+
+Zod schema for the success shape of `GitHubCloseIssueResult`.
+
+```ts
+import { GitHubCloseIssueResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubCloseIssueResultSchema: z.ZodObject<
+  {
+    issue: z.ZodObject<
+      {
+        number: z.ZodNumber;
+        state: z.ZodString;
+        stateReason: z.ZodNullable<z.ZodString>;
+      },
+      z.core.$strict
+    >;
+  },
+  z.core.$strict
+>;
+```
 
 ### GitHubCreateIssueCommentResultSchema
 
@@ -1653,6 +2380,42 @@ GitHubCreateRepoResultSchema: z.ZodObject<
       },
       z.core.$strict
     >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubDeleteBranchResultSchema
+
+Zod schema for the success shape of `GitHubDeleteBranchResult`.
+
+```ts
+import { GitHubDeleteBranchResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubDeleteBranchResultSchema: z.ZodObject<
+  {
+    branch: z.ZodString;
+    deleted: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubEnsureLabelResultSchema
+
+Zod schema for the success shape of `GitHubEnsureLabelResult`.
+
+```ts
+import { GitHubEnsureLabelResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubEnsureLabelResultSchema: z.ZodObject<
+  {
+    name: z.ZodString;
+    created: z.ZodBoolean;
   },
   z.core.$strict
 >;
@@ -1805,6 +2568,8 @@ GitHubGetIssueResultSchema: z.ZodObject<
         closedAt: z.ZodNullable<z.ZodString>;
         htmlUrl: z.ZodString;
         comments: z.ZodNumber;
+        fields: z.ZodRecord<z.ZodString, z.ZodString>;
+        type: z.ZodNullable<z.ZodString>;
       },
       z.core.$strict
     >;
@@ -1974,6 +2739,33 @@ GitHubListDirectoryResultSchema: z.ZodObject<
           size: z.ZodNumber;
           type: z.ZodString;
           htmlUrl: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubListIssueCommentsResultSchema
+
+Zod schema for the success shape of `GitHubListIssueCommentsResult`.
+
+```ts
+import { GitHubListIssueCommentsResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubListIssueCommentsResultSchema: z.ZodObject<
+  {
+    comments: z.ZodArray<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          user: z.ZodString;
+          createdAt: z.ZodString;
+          body: z.ZodString;
         },
         z.core.$strict
       >
@@ -2199,6 +2991,42 @@ GitHubMergePullRequestResultSchema: z.ZodObject<
 >;
 ```
 
+### GitHubRemoveIssueAssigneesResultSchema
+
+Zod schema for the success shape of `GitHubRemoveIssueAssigneesResult`.
+
+```ts
+import { GitHubRemoveIssueAssigneesResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubRemoveIssueAssigneesResultSchema: z.ZodObject<
+  {
+    issueNumber: z.ZodNumber;
+    assignees: z.ZodArray<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubRemoveIssueLabelResultSchema
+
+Zod schema for the success shape of `GitHubRemoveIssueLabelResult`.
+
+```ts
+import { GitHubRemoveIssueLabelResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubRemoveIssueLabelResultSchema: z.ZodObject<
+  {
+    label: z.ZodString;
+    removed: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
 ### GitHubSearchCodeResultSchema
 
 Zod schema for the success shape of `GitHubSearchCodeResult`.
@@ -2293,6 +3121,24 @@ GitHubSearchReposResultSchema: z.ZodObject<
 >;
 ```
 
+### GitHubSetIssueFieldsResultSchema
+
+Zod schema for the success shape of `GitHubSetIssueFieldsResult`.
+
+```ts
+import { GitHubSetIssueFieldsResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubSetIssueFieldsResultSchema: z.ZodObject<
+  {
+    issueNumber: z.ZodNumber;
+    fields: z.ZodArray<z.ZodString>;
+  },
+  z.core.$strict
+>;
+```
+
 ### GitHubTriggerWorkflowResultSchema
 
 Zod schema for the success shape of `GitHubTriggerWorkflowResult`.
@@ -2306,6 +3152,30 @@ GitHubTriggerWorkflowResultSchema: z.ZodObject<
   {
     triggered: z.ZodBoolean;
     message: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
+### GitHubUpdateIssueResultSchema
+
+Zod schema for the success shape of `GitHubUpdateIssueResult`.
+
+```ts
+import { GitHubUpdateIssueResultSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubUpdateIssueResultSchema: z.ZodObject<
+  {
+    issue: z.ZodObject<
+      {
+        number: z.ZodNumber;
+        title: z.ZodString;
+        htmlUrl: z.ZodString;
+      },
+      z.core.$strict
+    >;
   },
   z.core.$strict
 >;
