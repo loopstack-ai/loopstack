@@ -21,7 +21,7 @@ import { ConnectGitHubWorkflow } from '@loopstack/github-integration';
 **Provided by:** `GitHubIntegrationModule`
 
 ```ts
-export class ConnectGitHubWorkflow extends BaseWorkflow {
+export class ConnectGitHubWorkflow extends BaseWorkflow<InputArgs> {
   constructor(
     gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
     gitHubCreateRepo: GitHubCreateRepoTool,
@@ -58,7 +58,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       answer: string;
     }>,
   ): void;
-  checkForUncommittedChanges(state: ConnectGitHubState): Promise<void>;
+  checkForUncommittedChanges(state: ConnectGitHubState, ctx: RunContext<InputArgs>): Promise<void>;
   skipCommitCheck(_state: ConnectGitHubState): void;
   askCommitChanges(_state: ConnectGitHubState): Promise<void>;
   uncommittedChangesHandled(
@@ -66,15 +66,17 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     input: TransitionInput<{
       answer: string;
     }>,
+    ctx: RunContext<InputArgs>,
   ): Promise<void>;
-  setupRemote(state: ConnectGitHubState): Promise<void>;
-  pushDirectly(state: ConnectGitHubState): Promise<void>;
+  setupRemote(state: ConnectGitHubState, ctx: RunContext<InputArgs>): Promise<void>;
+  pushDirectly(state: ConnectGitHubState, ctx: RunContext<InputArgs>): Promise<void>;
   askSyncStrategy(state: ConnectGitHubState): Promise<void>;
   syncStrategyChosen(
     state: ConnectGitHubState,
     input: TransitionInput<{
       answer: string;
     }>,
+    ctx: RunContext<InputArgs>,
   ): Promise<void>;
   showSuccess(state: ConnectGitHubState, ctx: RunContext): Promise<void>;
 }

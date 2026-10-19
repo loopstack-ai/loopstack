@@ -414,6 +414,48 @@ export class GitWorktreeRemoveTool extends BaseTool<GitWorktreeRemoveArgs, objec
 }
 ```
 
+## Interfaces
+
+### GitRepository
+
+One repository of a workspace, as the application declared it.
+
+`dir` is what every git call addresses: a path relative to the workspace root, empty for the root itself.
+`key` is the name the application knows it by, which is what a user picking between repositories reads.
+
+```ts
+import { GitRepository } from '@loopstack/git';
+```
+
+```ts
+export interface GitRepository {
+  key: string;
+  dir: string;
+  url?: string;
+  branch?: string;
+  primary?: boolean;
+}
+```
+
+### GitRepositorySource
+
+Where the workspace git endpoints learn which repositories exist.
+
+A workspace can hold several repositories in one tree, and git itself cannot say which ones an application
+put there on purpose — a tree walk would find every `.git` directory, including those of dependencies and
+fixtures, and could not say which is the primary one. So the application that created the checkout declares
+them, by providing this under `GIT_REPOSITORY_SOURCE`:
+
+```ts
+import { GitRepositorySource } from '@loopstack/git';
+```
+
+```ts
+export interface GitRepositorySource {
+  list(workspaceId: string): Promise<GitRepository[]> | GitRepository[];
+}
+```
+
 ## Type Aliases
 
 ### GitAddArgs
@@ -1018,6 +1060,18 @@ export type GitWorktreeRemoveResult = {
 ```
 
 ## Variables
+
+### GIT_REPOSITORY_SOURCE
+
+DI token for the thing that knows which repositories a workspace holds, registered by the application.
+
+```ts
+import { GIT_REPOSITORY_SOURCE } from '@loopstack/git';
+```
+
+```ts
+GIT_REPOSITORY_SOURCE = 'GIT_REPOSITORY_SOURCE';
+```
 
 ### GIT_TOKEN_SOURCE
 
