@@ -99,7 +99,7 @@ function requestedDir(dir: string | undefined, res: Response): string | undefine
 }
 
 // ---------------------------------------------------------------------------
-// GET /status?dir=
+// GET /status?dir=  →  the folded lists plus `entries`, git's two status columns per path
 // ---------------------------------------------------------------------------
 
 router.get('/status', async (req: Request, res) => {
@@ -118,6 +118,10 @@ router.get('/status', async (req: Request, res) => {
     const modified: string[] = [];
     const untracked: string[] = [];
     const deleted: string[] = [];
+    // The folded lists answer "what changed". `entries` keeps git's own two columns per path, which is the
+    // only way to tell an index change from a working-tree one — what a caller needs when it has just staged
+    // within a policy and asks what the policy left out.
+    const entries: { path: string; index: string; worktree: string }[] = [];
 
     for (const line of lines) {
       if (line.startsWith('## ')) {
@@ -129,6 +133,7 @@ router.get('/status', async (req: Request, res) => {
       const indexStatus = line[0];
       const workTreeStatus = line[1];
       const filePath = line.substring(3).trim();
+      entries.push({ path: filePath, index: indexStatus, worktree: workTreeStatus });
 
       if (indexStatus === '?' && workTreeStatus === '?') {
         untracked.push(filePath);
@@ -150,7 +155,7 @@ router.get('/status', async (req: Request, res) => {
       }
     }
 
-    res.json({ branch, staged, modified, untracked, deleted });
+    res.json({ branch, staged, modified, untracked, deleted, entries });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[git] uncaught error: ${message}`);
@@ -335,14 +340,26 @@ router.post('/add', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /commit  { message: string, dir? }
+// POST /commit  { message: string, dir?, authorName?, authorEmail?, skipHooks? }
 // ---------------------------------------------------------------------------
 
 router.post('/commit', async (req: Request, res) => {
   try {
-    const { message, dir } = req.body as { message?: string; dir?: string };
+    const { message, dir, authorName, authorEmail, skipHooks } = req.body as {
+      message?: string;
+      dir?: string;
+      authorName?: string;
+      authorEmail?: string;
+      skipHooks?: boolean;
+    };
     if (!message) {
       res.status(400).json({ error: 'Missing required field: message' });
+      return;
+    }
+    // An identity is both halves or neither: git would otherwise take the other from the repo or the machine,
+    // and a commit half-attributed to whoever configured the container is worse than a refused request.
+    if (!!authorName !== !!authorEmail) {
+      res.status(400).json({ error: 'authorName and authorEmail go together' });
       return;
     }
 
@@ -354,7 +371,17 @@ router.post('/commit', async (req: Request, res) => {
     fs.writeFileSync(tmpFile, message, 'utf-8');
 
     try {
-      const result = await gitExec(`commit -F "${tmpFile}"`, WORK_TIMEOUT_MS, undefined, cwd);
+      // `-c` applies to this command only, so the repository's own config is left as it is.
+      const identity = authorName
+        ? ` -c user.name="${authorName.replace(/"/g, '\\"')}" -c user.email="${authorEmail!.replace(/"/g, '\\"')}"`
+        : '';
+      const hooks = skipHooks ? ' -c core.hooksPath=/dev/null' : '';
+      const result = await gitExec(
+        `${identity}${hooks} commit -F "${tmpFile}"`.trim(),
+        WORK_TIMEOUT_MS,
+        undefined,
+        cwd,
+      );
       if (result.exitCode !== 0) {
         res.status(500).json({ error: result.stderr || result.stdout || 'git commit failed' });
         return;

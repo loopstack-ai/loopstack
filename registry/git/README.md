@@ -128,13 +128,17 @@ addresses the root itself.
 
 #### `git_status`
 
-Gets the git status of the workspace. Returns current branch, staged, modified, untracked, and deleted files.
+Gets the git status of the workspace. Returns the current branch, the staged, modified, untracked and deleted files, and each path's two status columns.
 
 | Arg   | Type     | Required | Description                                                               |
 | ----- | -------- | -------- | ------------------------------------------------------------------------- |
 | `dir` | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
-**Returns:** `{ branch: string; staged: string[]; modified: string[]; untracked: string[]; deleted: string[] }`
+**Returns:** `{ branch: string; staged: string[]; modified: string[]; untracked: string[]; deleted: string[]; entries: { path: string; index: string; worktree: string }[] }`
+
+The lists answer what changed. `entries` keeps git's own two columns per path — `index` is what is staged,
+`worktree` what is not, each a space when there is nothing — which is the only way to tell an index change
+from a working-tree one. A rename reads `old -> new`, as git prints it.
 
 ---
 
@@ -155,12 +159,19 @@ Stages files for the next git commit.
 
 Creates a git commit with the currently staged changes.
 
-| Arg       | Type     | Required | Description                                                               |
-| --------- | -------- | -------- | ------------------------------------------------------------------------- |
-| `message` | `string` | Yes      | The commit message                                                        |
-| `dir`     | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
+| Arg           | Type      | Required | Description                                                               |
+| ------------- | --------- | -------- | ------------------------------------------------------------------------- |
+| `message`     | `string`  | Yes      | The commit message                                                        |
+| `authorName`  | `string`  | No       | Author of this commit; goes with `authorEmail`.                           |
+| `authorEmail` | `string`  | No       | Author email of this commit; goes with `authorName`.                      |
+| `skipHooks`   | `boolean` | No       | Do not run the repository's commit hooks.                                 |
+| `dir`         | `string`  | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ hash: string; message: string }`
+
+An author applies to this commit alone — the repository's own `user.name` and `user.email` are left as they
+are — and both halves are given together or not at all. Use `git_config_user` instead when every commit in
+that checkout should carry the same identity.
 
 ---
 

@@ -11,6 +11,19 @@ export {
   GlobResponse,
   GrepMatch,
   GrepResponse,
+  GitDirOptions,
+  GitStatusResponse,
+  GitStatusEntry,
+  GitCommit,
+  GitLogResponse,
+  GitBranchesResponse,
+  GitRemoteResponse,
+  GitDiffFile,
+  GitDiffResponse,
+  GitCommandResult,
+  GitWorktree,
+  GitWorktreeListResponse,
+  GitWorktreeAddResponse,
 } from './remote-client.service.js';
 export { EnvironmentService } from './environment.service.js';
 export { EnvironmentConfigService } from './environment-config.service.js';

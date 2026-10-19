@@ -154,14 +154,41 @@ function withDir(path: string, dir?: string): string {
   return `${path}${path.includes('?') ? '&' : '?'}dir=${encodeURIComponent(dir)}`;
 }
 
+/**
+ * Response from `RemoteClient.gitStatus` — the branch, the folded change lists, and `entries`.
+ *
+ * @public
+ */
 export interface GitStatusResponse {
   branch: string;
   staged: string[];
   modified: string[];
   untracked: string[];
   deleted: string[];
+  /**
+   * Git's own two status columns per path: `index` is what is staged, `worktree` what is not, each a space
+   * when there is nothing. The folded lists above answer what changed; these tell an index change from a
+   * working-tree one. The path is as git prints it, so a rename reads `old -> new`.
+   */
+  entries: GitStatusEntry[];
 }
 
+/**
+ * One line of `git status --porcelain`: the path and its two status columns.
+ *
+ * @public
+ */
+export interface GitStatusEntry {
+  path: string;
+  index: string;
+  worktree: string;
+}
+
+/**
+ * One commit in `RemoteClient.gitLog`.
+ *
+ * @public
+ */
 export interface GitCommit {
   hash: string;
   shortHash: string;
@@ -170,34 +197,69 @@ export interface GitCommit {
   date: string;
 }
 
+/**
+ * Response from `RemoteClient.gitLog` — the commits, newest first.
+ *
+ * @public
+ */
 export interface GitLogResponse {
   commits: GitCommit[];
 }
 
+/**
+ * Response from `RemoteClient.gitBranches` — the current branch and every local branch.
+ *
+ * @public
+ */
 export interface GitBranchesResponse {
   current: string;
   branches: { name: string; isCurrent: boolean }[];
 }
 
+/**
+ * Response from `RemoteClient.gitRemote` — the remote name and its URL.
+ *
+ * @public
+ */
 export interface GitRemoteResponse {
   name: string;
   url: string;
 }
 
+/**
+ * One changed file in `RemoteClient.gitDiff` — its path and status letter.
+ *
+ * @public
+ */
 export interface GitDiffFile {
   path: string;
   status: string;
 }
 
+/**
+ * Response from `RemoteClient.gitDiff` — the changed files.
+ *
+ * @public
+ */
 export interface GitDiffResponse {
   files: GitDiffFile[];
 }
 
+/**
+ * Outcome of a git command that only reports whether it worked, with git’s output when it has any.
+ *
+ * @public
+ */
 export interface GitCommandResult {
   success: boolean;
   output?: string;
 }
 
+/**
+ * One worktree in `RemoteClient.gitWorktreeList`.
+ *
+ * @public
+ */
 export interface GitWorktree {
   path: string;
   head?: string;
@@ -208,10 +270,20 @@ export interface GitWorktree {
   prunable?: string;
 }
 
+/**
+ * Response from `RemoteClient.gitWorktreeList` — every worktree of the repository.
+ *
+ * @public
+ */
 export interface GitWorktreeListResponse {
   worktrees: GitWorktree[];
 }
 
+/**
+ * Response from `RemoteClient.gitWorktreeAdd` — the created worktree’s path.
+ *
+ * @public
+ */
 export interface GitWorktreeAddResponse {
   success: boolean;
   path: string;
@@ -463,9 +535,10 @@ export class RemoteClient {
     return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/add', options);
   }
 
+  /** `authorName` and `authorEmail` go together and apply to this commit only, leaving the repo's config as it is. */
   async gitCommit(
     connectionUrl: string,
-    options: { message: string } & GitDirOptions,
+    options: { message: string; authorName?: string; authorEmail?: string; skipHooks?: boolean } & GitDirOptions,
   ): Promise<{ hash: string; message: string }> {
     return this.doRequest<{ hash: string; message: string }>(connectionUrl, 'POST', '/git/commit', options);
   }

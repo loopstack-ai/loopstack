@@ -10,6 +10,9 @@ import { GitDirArgSchema } from './git-dir.schema.js';
  */
 export type GitCommitArgs = {
   message: string;
+  authorName?: string;
+  authorEmail?: string;
+  skipHooks?: boolean;
   dir?: string;
 };
 
@@ -35,10 +38,15 @@ export const GitCommitResultSchema = z.strictObject({ hash: z.string(), message:
  */
 @Tool({
   name: 'git_commit',
-  description: 'Creates a git commit with the currently staged changes.',
+  description:
+    'Creates a git commit with the currently staged changes. An author name and email apply to this commit ' +
+    "only, leaving the repository's own config as it is.",
   schema: z
     .object({
       message: z.string().describe('The commit message'),
+      authorName: z.string().optional().describe('Author of this commit; goes with authorEmail.'),
+      authorEmail: z.string().optional().describe('Author email of this commit; goes with authorName.'),
+      skipHooks: z.boolean().optional().describe("Do not run the repository's commit hooks."),
       dir: GitDirArgSchema,
     })
     .strict(),

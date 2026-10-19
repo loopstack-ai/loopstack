@@ -32,7 +32,14 @@ describe('GitStatusTool', () => {
   });
 
   it('returns whatever RemoteClient.gitStatus yields', async () => {
-    const status = { branch: 'main', staged: [], modified: ['README.md'], untracked: [], deleted: [] };
+    const status = {
+      branch: 'main',
+      staged: [],
+      modified: ['README.md'],
+      untracked: [],
+      deleted: [],
+      entries: [{ path: 'README.md', index: ' ', worktree: 'M' }],
+    };
     mockRemoteClient.gitStatus.mockResolvedValue(status);
 
     const result = await tool.call();

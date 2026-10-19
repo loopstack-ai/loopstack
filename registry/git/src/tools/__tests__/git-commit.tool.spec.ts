@@ -64,6 +64,19 @@ describe('GitCommitTool', () => {
       expect(result.data).toEqual({ hash: 'abc123', message: 'update from workflow' });
     });
 
+    it('applies an author to this commit only', async () => {
+      mockRemoteClient.gitCommit.mockResolvedValue({ hash: 'abc123', message: 'fix' });
+
+      await tool.call({ message: 'fix', authorName: 'Ada', authorEmail: 'ada@example.com', skipHooks: true });
+
+      expect(mockRemoteClient.gitCommit).toHaveBeenCalledWith('https://agent.example', {
+        message: 'fix',
+        authorName: 'Ada',
+        authorEmail: 'ada@example.com',
+        skipHooks: true,
+      });
+    });
+
     it('commits in the repository named by dir', async () => {
       mockRemoteClient.gitCommit.mockResolvedValue({ hash: 'abc123', message: 'fix' });
 

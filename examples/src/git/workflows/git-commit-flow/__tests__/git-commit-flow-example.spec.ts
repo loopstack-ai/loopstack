@@ -30,7 +30,14 @@ describe('GitCommitFlowExampleWorkflow', () => {
           {
             tool: 'git_status',
             envelope: {
-              data: { branch: 'main', staged: [], modified: [], untracked: ['tmp/example.txt'], deleted: [] },
+              data: {
+                branch: 'main',
+                staged: [],
+                modified: [],
+                untracked: ['tmp/example.txt'],
+                deleted: [],
+                entries: [{ path: 'tmp/example.txt', index: '?', worktree: '?' }],
+              },
             },
           },
           { tool: 'git_add', envelope: { data: { success: true } } },
