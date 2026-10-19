@@ -257,20 +257,34 @@ export class RemoteClient {
     message: string;
   }>;
   getFileTree(connectionUrl: string, basePath?: string): Promise<FileTreeNode[]>;
-  gitStatus(connectionUrl: string): Promise<GitStatusResponse>;
-  gitLog(connectionUrl: string, limit?: number): Promise<GitLogResponse>;
-  gitDiff(connectionUrl: string, staged?: boolean): Promise<GitDiffResponse>;
-  gitBranches(connectionUrl: string): Promise<GitBranchesResponse>;
-  gitRemote(connectionUrl: string): Promise<GitRemoteResponse | null>;
+  gitStatus(connectionUrl: string, options?: GitDirOptions): Promise<GitStatusResponse>;
+  gitLog(
+    connectionUrl: string,
+    options?: {
+      limit?: number;
+    } & GitDirOptions,
+  ): Promise<GitLogResponse>;
+  gitDiff(
+    connectionUrl: string,
+    options?: {
+      staged?: boolean;
+    } & GitDirOptions,
+  ): Promise<GitDiffResponse>;
+  gitBranches(connectionUrl: string, options?: GitDirOptions): Promise<GitBranchesResponse>;
+  gitRemote(connectionUrl: string, options?: GitDirOptions): Promise<GitRemoteResponse | null>;
   gitAdd(
     connectionUrl: string,
-    files: string[],
+    options: {
+      files: string[];
+    } & GitDirOptions,
   ): Promise<{
     success: boolean;
   }>;
   gitCommit(
     connectionUrl: string,
-    message: string,
+    options: {
+      message: string;
+    } & GitDirOptions,
   ): Promise<{
     hash: string;
     message: string;
@@ -282,50 +296,74 @@ export class RemoteClient {
       branch?: string;
       force?: boolean;
       token?: string;
-    },
+    } & GitDirOptions,
   ): Promise<GitCommandResult>;
-  gitFetch(connectionUrl: string, remote?: string, token?: string): Promise<GitCommandResult>;
+  gitFetch(
+    connectionUrl: string,
+    options?: {
+      remote?: string;
+      token?: string;
+    } & GitDirOptions,
+  ): Promise<GitCommandResult>;
   gitPull(
     connectionUrl: string,
     options?: {
       remote?: string;
       branch?: string;
       token?: string;
-    },
+    } & GitDirOptions,
+  ): Promise<GitCommandResult>;
+  gitClone(
+    connectionUrl: string,
+    options: {
+      url: string;
+      branch?: string;
+      token?: string;
+    } & GitDirOptions,
   ): Promise<GitCommandResult>;
   gitCheckout(
     connectionUrl: string,
-    branch: string,
-    create?: boolean,
+    options: {
+      branch: string;
+      create?: boolean;
+    } & GitDirOptions,
   ): Promise<{
     branch: string;
   }>;
   gitBranch(
     connectionUrl: string,
-    name: string,
+    options: {
+      name: string;
+    } & GitDirOptions,
   ): Promise<{
     branch: string;
   }>;
   gitRemoveRemote(
     connectionUrl: string,
-    name?: string,
+    options?: {
+      name?: string;
+    } & GitDirOptions,
   ): Promise<{
     success: boolean;
   }>;
   gitConfigureRemote(
     connectionUrl: string,
-    url: string,
+    options: {
+      url: string;
+    } & GitDirOptions,
   ): Promise<{
     success: boolean;
   }>;
   gitConfigUser(
     connectionUrl: string,
-    name: string,
-    email: string,
+    options: {
+      name: string;
+      email: string;
+    } & GitDirOptions,
   ): Promise<{
     success: boolean;
   }>;
-  gitWorktreeList(connectionUrl: string): Promise<GitWorktreeListResponse>;
+  gitWorktreeList(connectionUrl: string, options?: GitDirOptions): Promise<GitWorktreeListResponse>;
   gitWorktreeAdd(
     connectionUrl: string,
     options: {
@@ -333,18 +371,18 @@ export class RemoteClient {
       branch?: string;
       newBranch?: boolean;
       force?: boolean;
-    },
+    } & GitDirOptions,
   ): Promise<GitWorktreeAddResponse>;
   gitWorktreeRemove(
     connectionUrl: string,
     options: {
       path: string;
       force?: boolean;
-    },
+    } & GitDirOptions,
   ): Promise<{
     success: boolean;
   }>;
-  gitWorktreePrune(connectionUrl: string): Promise<GitCommandResult>;
+  gitWorktreePrune(connectionUrl: string, options?: GitDirOptions): Promise<GitCommandResult>;
 }
 ```
 

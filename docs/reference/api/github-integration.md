@@ -34,7 +34,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     bash: BashTool,
     oAuth: OAuthWorkflow,
     askUser: AskUserWorkflow,
-    tokenStore: OAuthTokenStore,
     clientMessageService: ClientMessageService,
   );
   start(_state: ConnectGitHubState): Promise<void>;
@@ -68,15 +67,14 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       answer: string;
     }>,
   ): Promise<void>;
-  setupRemote(state: ConnectGitHubState, ctx: RunContext): Promise<void>;
-  pushDirectly(state: ConnectGitHubState, ctx: RunContext): Promise<void>;
+  setupRemote(state: ConnectGitHubState): Promise<void>;
+  pushDirectly(state: ConnectGitHubState): Promise<void>;
   askSyncStrategy(state: ConnectGitHubState): Promise<void>;
   syncStrategyChosen(
     state: ConnectGitHubState,
     input: TransitionInput<{
       answer: string;
     }>,
-    ctx: RunContext,
   ): Promise<void>;
   showSuccess(state: ConnectGitHubState, ctx: RunContext): Promise<void>;
 }

@@ -21,12 +21,13 @@ import { GitHubAddIssueAssigneesTool } from '@loopstack/github';
 ```ts
 export class GitHubAddIssueAssigneesTool extends BaseTool<
   GitHubAddIssueAssigneesArgs,
-  object,
+  GitHubToolConfig,
   GitHubAddIssueAssigneesResult
 > {
   protected handle(
     args: GitHubAddIssueAssigneesArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubAddIssueAssigneesResult>>;
 }
 ```
@@ -47,12 +48,13 @@ import { GitHubAddIssueDependencyTool } from '@loopstack/github';
 ```ts
 export class GitHubAddIssueDependencyTool extends BaseTool<
   GitHubAddIssueDependencyArgs,
-  object,
+  GitHubToolConfig,
   GitHubAddIssueDependencyResult
 > {
   protected handle(
     args: GitHubAddIssueDependencyArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubAddIssueDependencyResult>>;
 }
 ```
@@ -68,8 +70,16 @@ import { GitHubAddIssueLabelsTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubAddIssueLabelsTool extends BaseTool<GitHubAddIssueLabelsArgs, object, GitHubAddIssueLabelsResult> {
-  protected handle(args: GitHubAddIssueLabelsArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubAddIssueLabelsResult>>;
+export class GitHubAddIssueLabelsTool extends BaseTool<
+  GitHubAddIssueLabelsArgs,
+  GitHubToolConfig,
+  GitHubAddIssueLabelsResult
+> {
+  protected handle(
+    args: GitHubAddIssueLabelsArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubAddIssueLabelsResult>>;
 }
 ```
 
@@ -84,8 +94,12 @@ import { GitHubCloseIssueTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubCloseIssueTool extends BaseTool<GitHubCloseIssueArgs, object, GitHubCloseIssueResult> {
-  protected handle(args: GitHubCloseIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubCloseIssueResult>>;
+export class GitHubCloseIssueTool extends BaseTool<GitHubCloseIssueArgs, GitHubToolConfig, GitHubCloseIssueResult> {
+  protected handle(
+    args: GitHubCloseIssueArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubCloseIssueResult>>;
 }
 ```
 
@@ -102,12 +116,13 @@ import { GitHubCreateIssueCommentTool } from '@loopstack/github';
 ```ts
 export class GitHubCreateIssueCommentTool extends BaseTool<
   GitHubCreateIssueCommentArgs,
-  object,
+  GitHubToolConfig,
   GitHubCreateIssueCommentResult
 > {
   protected handle(
     args: GitHubCreateIssueCommentArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubCreateIssueCommentResult>>;
 }
 ```
@@ -123,8 +138,12 @@ import { GitHubCreateIssueTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, object, GitHubCreateIssueResult> {
-  protected handle(args: GitHubCreateIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubCreateIssueResult>>;
+export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, GitHubToolConfig, GitHubCreateIssueResult> {
+  protected handle(
+    args: GitHubCreateIssueArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubCreateIssueResult>>;
 }
 ```
 
@@ -142,12 +161,13 @@ import { GitHubCreateOrUpdateFileTool } from '@loopstack/github';
 ```ts
 export class GitHubCreateOrUpdateFileTool extends BaseTool<
   GitHubCreateOrUpdateFileArgs,
-  object,
+  GitHubToolConfig,
   GitHubCreateOrUpdateFileResult
 > {
   protected handle(
     args: GitHubCreateOrUpdateFileArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubCreateOrUpdateFileResult>>;
 }
 ```
@@ -165,12 +185,13 @@ import { GitHubCreatePullRequestTool } from '@loopstack/github';
 ```ts
 export class GitHubCreatePullRequestTool extends BaseTool<
   GitHubCreatePullRequestArgs,
-  object,
+  GitHubToolConfig,
   GitHubCreatePullRequestResult
 > {
   protected handle(
     args: GitHubCreatePullRequestArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubCreatePullRequestResult>>;
 }
 ```
@@ -186,8 +207,12 @@ import { GitHubCreateRepoTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object, GitHubCreateRepoResult> {
-  protected handle(args: GitHubCreateRepoArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubCreateRepoResult>>;
+export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, GitHubToolConfig, GitHubCreateRepoResult> {
+  protected handle(
+    args: GitHubCreateRepoArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubCreateRepoResult>>;
 }
 ```
 
@@ -202,8 +227,16 @@ import { GitHubDeleteBranchTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubDeleteBranchTool extends BaseTool<GitHubDeleteBranchArgs, object, GitHubDeleteBranchResult> {
-  protected handle(args: GitHubDeleteBranchArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubDeleteBranchResult>>;
+export class GitHubDeleteBranchTool extends BaseTool<
+  GitHubDeleteBranchArgs,
+  GitHubToolConfig,
+  GitHubDeleteBranchResult
+> {
+  protected handle(
+    args: GitHubDeleteBranchArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubDeleteBranchResult>>;
 }
 ```
 
@@ -218,8 +251,12 @@ import { GitHubEnsureLabelTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubEnsureLabelTool extends BaseTool<GitHubEnsureLabelArgs, object, GitHubEnsureLabelResult> {
-  protected handle(args: GitHubEnsureLabelArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubEnsureLabelResult>>;
+export class GitHubEnsureLabelTool extends BaseTool<GitHubEnsureLabelArgs, GitHubToolConfig, GitHubEnsureLabelResult> {
+  protected handle(
+    args: GitHubEnsureLabelArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubEnsureLabelResult>>;
 }
 ```
 
@@ -236,12 +273,13 @@ import { GitHubGetAuthenticatedUserTool } from '@loopstack/github';
 ```ts
 export class GitHubGetAuthenticatedUserTool extends BaseTool<
   GitHubGetAuthenticatedUserArgs,
-  object,
+  GitHubToolConfig,
   GitHubGetAuthenticatedUserResult
 > {
   protected handle(
     _args: GitHubGetAuthenticatedUserArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubGetAuthenticatedUserResult>>;
 }
 ```
@@ -258,8 +296,12 @@ import { GitHubGetCommitTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, GitHubGetCommitResult> {
-  protected handle(args: GitHubGetCommitArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetCommitResult>>;
+export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, GitHubToolConfig, GitHubGetCommitResult> {
+  protected handle(
+    args: GitHubGetCommitArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetCommitResult>>;
 }
 ```
 
@@ -275,8 +317,16 @@ import { GitHubGetFileContentTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs, object, GitHubGetFileContentResult> {
-  protected handle(args: GitHubGetFileContentArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetFileContentResult>>;
+export class GitHubGetFileContentTool extends BaseTool<
+  GitHubGetFileContentArgs,
+  GitHubToolConfig,
+  GitHubGetFileContentResult
+> {
+  protected handle(
+    args: GitHubGetFileContentArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetFileContentResult>>;
 }
 ```
 
@@ -291,8 +341,12 @@ import { GitHubGetIssueTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, GitHubGetIssueResult> {
-  protected handle(args: GitHubGetIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetIssueResult>>;
+export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, GitHubToolConfig, GitHubGetIssueResult> {
+  protected handle(
+    args: GitHubGetIssueArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetIssueResult>>;
 }
 ```
 
@@ -307,8 +361,16 @@ import { GitHubGetPullRequestTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs, object, GitHubGetPullRequestResult> {
-  protected handle(args: GitHubGetPullRequestArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetPullRequestResult>>;
+export class GitHubGetPullRequestTool extends BaseTool<
+  GitHubGetPullRequestArgs,
+  GitHubToolConfig,
+  GitHubGetPullRequestResult
+> {
+  protected handle(
+    args: GitHubGetPullRequestArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetPullRequestResult>>;
 }
 ```
 
@@ -324,8 +386,12 @@ import { GitHubGetRepoTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, object, GitHubGetRepoResult> {
-  protected handle(args: GitHubGetRepoArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetRepoResult>>;
+export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, GitHubToolConfig, GitHubGetRepoResult> {
+  protected handle(
+    args: GitHubGetRepoArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetRepoResult>>;
 }
 ```
 
@@ -340,8 +406,16 @@ import { GitHubGetWorkflowRunTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs, object, GitHubGetWorkflowRunResult> {
-  protected handle(args: GitHubGetWorkflowRunArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetWorkflowRunResult>>;
+export class GitHubGetWorkflowRunTool extends BaseTool<
+  GitHubGetWorkflowRunArgs,
+  GitHubToolConfig,
+  GitHubGetWorkflowRunResult
+> {
+  protected handle(
+    args: GitHubGetWorkflowRunArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetWorkflowRunResult>>;
 }
 ```
 
@@ -356,8 +430,16 @@ import { GitHubListBranchesTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, object, GitHubListBranchesResult> {
-  protected handle(args: GitHubListBranchesArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListBranchesResult>>;
+export class GitHubListBranchesTool extends BaseTool<
+  GitHubListBranchesArgs,
+  GitHubToolConfig,
+  GitHubListBranchesResult
+> {
+  protected handle(
+    args: GitHubListBranchesArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubListBranchesResult>>;
 }
 ```
 
@@ -372,8 +454,16 @@ import { GitHubListDirectoryTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, object, GitHubListDirectoryResult> {
-  protected handle(args: GitHubListDirectoryArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListDirectoryResult>>;
+export class GitHubListDirectoryTool extends BaseTool<
+  GitHubListDirectoryArgs,
+  GitHubToolConfig,
+  GitHubListDirectoryResult
+> {
+  protected handle(
+    args: GitHubListDirectoryArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubListDirectoryResult>>;
 }
 ```
 
@@ -390,12 +480,13 @@ import { GitHubListIssueCommentsTool } from '@loopstack/github';
 ```ts
 export class GitHubListIssueCommentsTool extends BaseTool<
   GitHubListIssueCommentsArgs,
-  object,
+  GitHubToolConfig,
   GitHubListIssueCommentsResult
 > {
   protected handle(
     args: GitHubListIssueCommentsArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubListIssueCommentsResult>>;
 }
 ```
@@ -412,8 +503,12 @@ import { GitHubListIssuesTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object, GitHubListIssuesResult> {
-  protected handle(args: GitHubListIssuesArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListIssuesResult>>;
+export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, GitHubToolConfig, GitHubListIssuesResult> {
+  protected handle(
+    args: GitHubListIssuesArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubListIssuesResult>>;
 }
 ```
 
@@ -428,8 +523,16 @@ import { GitHubListPrReviewsTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, object, GitHubListPrReviewsResult> {
-  protected handle(args: GitHubListPrReviewsArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListPrReviewsResult>>;
+export class GitHubListPrReviewsTool extends BaseTool<
+  GitHubListPrReviewsArgs,
+  GitHubToolConfig,
+  GitHubListPrReviewsResult
+> {
+  protected handle(
+    args: GitHubListPrReviewsArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubListPrReviewsResult>>;
 }
 ```
 
@@ -446,12 +549,13 @@ import { GitHubListPullRequestsTool } from '@loopstack/github';
 ```ts
 export class GitHubListPullRequestsTool extends BaseTool<
   GitHubListPullRequestsArgs,
-  object,
+  GitHubToolConfig,
   GitHubListPullRequestsResult
 > {
   protected handle(
     args: GitHubListPullRequestsArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubListPullRequestsResult>>;
 }
 ```
@@ -468,8 +572,12 @@ import { GitHubListReposTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubListReposTool extends BaseTool<GitHubListReposArgs, object, GitHubListReposResult> {
-  protected handle(args: GitHubListReposArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListReposResult>>;
+export class GitHubListReposTool extends BaseTool<GitHubListReposArgs, GitHubToolConfig, GitHubListReposResult> {
+  protected handle(
+    args: GitHubListReposArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubListReposResult>>;
 }
 ```
 
@@ -484,8 +592,16 @@ import { GitHubListUserOrgsTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubListUserOrgsTool extends BaseTool<GitHubListUserOrgsArgs, object, GitHubListUserOrgsResult> {
-  protected handle(args: GitHubListUserOrgsArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListUserOrgsResult>>;
+export class GitHubListUserOrgsTool extends BaseTool<
+  GitHubListUserOrgsArgs,
+  GitHubToolConfig,
+  GitHubListUserOrgsResult
+> {
+  protected handle(
+    args: GitHubListUserOrgsArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubListUserOrgsResult>>;
 }
 ```
 
@@ -502,12 +618,13 @@ import { GitHubListWorkflowRunsTool } from '@loopstack/github';
 ```ts
 export class GitHubListWorkflowRunsTool extends BaseTool<
   GitHubListWorkflowRunsArgs,
-  object,
+  GitHubToolConfig,
   GitHubListWorkflowRunsResult
 > {
   protected handle(
     args: GitHubListWorkflowRunsArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubListWorkflowRunsResult>>;
 }
 ```
@@ -525,12 +642,13 @@ import { GitHubMergePullRequestTool } from '@loopstack/github';
 ```ts
 export class GitHubMergePullRequestTool extends BaseTool<
   GitHubMergePullRequestArgs,
-  object,
+  GitHubToolConfig,
   GitHubMergePullRequestResult
 > {
   protected handle(
     args: GitHubMergePullRequestArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubMergePullRequestResult>>;
 }
 ```
@@ -543,14 +661,14 @@ for repositories, issues, pull requests, file content/git ops, actions/workflow 
 Registration:
 
 - `GitHubModule` — bare import; it internally imports `OAuthModule`, registers `GitHubOAuthProvider` and
-  all tools, and authenticates every tool with the signed-in user's OAuth token.
-- `GitHubModule.forRoot({ tokenProvider })` — the same tools, authenticated with a token the app supplies
-  through its own `GitHubTokenProvider `. What a headless app needs, which has no signed-in user and
-  runs on a personal access token or an app installation token of its own.
+  all tools, and authenticates every tool with the OAuth token of the person the run belongs to.
+- `GitHubModule.forRoot({ tokenEnv })` — the same tools, authenticated with the token in that environment
+  variable. What a headless app needs, which has no signed-in user and runs on a token of the machine's. A
+  single call names a different variable through its config, for an operation that needs another credential.
 
 Requires, for the OAuth default: a configured GitHub OAuth app via the environment variables
-`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI`. A run whose token provider
-has no token gets `{ error: 'unauthorized' }` from every tool.
+`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI`. A call with no token to be
+found gets `{ error: 'unauthorized' }` from every tool.
 
 ```ts
 import { GitHubModule } from '@loopstack/github';
@@ -558,7 +676,7 @@ import { GitHubModule } from '@loopstack/github';
 
 ```ts
 export class GitHubModule {
-  static forRoot(options: { tokenProvider: Provider }): DynamicModule;
+  static forRoot(options: { tokenEnv: string }): DynamicModule;
 }
 ```
 
@@ -575,12 +693,13 @@ import { GitHubRemoveIssueAssigneesTool } from '@loopstack/github';
 ```ts
 export class GitHubRemoveIssueAssigneesTool extends BaseTool<
   GitHubRemoveIssueAssigneesArgs,
-  object,
+  GitHubToolConfig,
   GitHubRemoveIssueAssigneesResult
 > {
   protected handle(
     args: GitHubRemoveIssueAssigneesArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubRemoveIssueAssigneesResult>>;
 }
 ```
@@ -598,12 +717,13 @@ import { GitHubRemoveIssueLabelTool } from '@loopstack/github';
 ```ts
 export class GitHubRemoveIssueLabelTool extends BaseTool<
   GitHubRemoveIssueLabelArgs,
-  object,
+  GitHubToolConfig,
   GitHubRemoveIssueLabelResult
 > {
   protected handle(
     args: GitHubRemoveIssueLabelArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubRemoveIssueLabelResult>>;
 }
 ```
@@ -619,8 +739,12 @@ import { GitHubSearchCodeTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubSearchCodeTool extends BaseTool<GitHubSearchCodeArgs, object, GitHubSearchCodeResult> {
-  protected handle(args: GitHubSearchCodeArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubSearchCodeResult>>;
+export class GitHubSearchCodeTool extends BaseTool<GitHubSearchCodeArgs, GitHubToolConfig, GitHubSearchCodeResult> {
+  protected handle(
+    args: GitHubSearchCodeArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubSearchCodeResult>>;
 }
 ```
 
@@ -635,8 +759,16 @@ import { GitHubSearchIssuesTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubSearchIssuesTool extends BaseTool<GitHubSearchIssuesArgs, object, GitHubSearchIssuesResult> {
-  protected handle(args: GitHubSearchIssuesArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubSearchIssuesResult>>;
+export class GitHubSearchIssuesTool extends BaseTool<
+  GitHubSearchIssuesArgs,
+  GitHubToolConfig,
+  GitHubSearchIssuesResult
+> {
+  protected handle(
+    args: GitHubSearchIssuesArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubSearchIssuesResult>>;
 }
 ```
 
@@ -651,8 +783,12 @@ import { GitHubSearchReposTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, object, GitHubSearchReposResult> {
-  protected handle(args: GitHubSearchReposArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubSearchReposResult>>;
+export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, GitHubToolConfig, GitHubSearchReposResult> {
+  protected handle(
+    args: GitHubSearchReposArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubSearchReposResult>>;
 }
 ```
 
@@ -670,8 +806,36 @@ import { GitHubSetIssueFieldsTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubSetIssueFieldsTool extends BaseTool<GitHubSetIssueFieldsArgs, object, GitHubSetIssueFieldsResult> {
-  protected handle(args: GitHubSetIssueFieldsArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubSetIssueFieldsResult>>;
+export class GitHubSetIssueFieldsTool extends BaseTool<
+  GitHubSetIssueFieldsArgs,
+  GitHubToolConfig,
+  GitHubSetIssueFieldsResult
+> {
+  protected handle(
+    args: GitHubSetIssueFieldsArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubSetIssueFieldsResult>>;
+}
+```
+
+### GitHubTokenService
+
+Where the tools in this package get their GitHub token, in this order: the environment variable the call
+names, the one the module names, and otherwise the OAuth token of the person the run belongs to.
+
+An environment variable is the right source for a token that belongs to the machine: a headless app running
+on a personal access token names it once at registration. The OAuth token is the right source for an app
+with people in front of it, where the token says who is acting.
+
+```ts
+import { GitHubTokenService } from '@loopstack/github';
+```
+
+```ts
+export class GitHubTokenService {
+  constructor(config: ConfigService, tokenStore: OAuthTokenStore, moduleTokenEnv?: string | undefined);
+  resolve(ctx: RunContext, options?: ToolCallOptions<GitHubToolConfig>): Promise<string | null>;
 }
 ```
 
@@ -688,12 +852,13 @@ import { GitHubTriggerWorkflowTool } from '@loopstack/github';
 ```ts
 export class GitHubTriggerWorkflowTool extends BaseTool<
   GitHubTriggerWorkflowArgs,
-  object,
+  GitHubToolConfig,
   GitHubTriggerWorkflowResult
 > {
   protected handle(
     args: GitHubTriggerWorkflowArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubTriggerWorkflowResult>>;
 }
 ```
@@ -709,44 +874,12 @@ import { GitHubUpdateIssueTool } from '@loopstack/github';
 **Provided by:** `GitHubModule`
 
 ```ts
-export class GitHubUpdateIssueTool extends BaseTool<GitHubUpdateIssueArgs, object, GitHubUpdateIssueResult> {
-  protected handle(args: GitHubUpdateIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubUpdateIssueResult>>;
-}
-```
-
-### OAuthGitHubTokenProvider
-
-The default `GitHubTokenProvider`: the OAuth token the signed-in user granted, refreshed when it has
-expired. A user who never authenticated with GitHub has none, and the tools answer unauthorized.
-
-```ts
-import { OAuthGitHubTokenProvider } from '@loopstack/github';
-```
-
-```ts
-export class OAuthGitHubTokenProvider implements GitHubTokenProvider {
-  getToken(ctx: RunContext): Promise<string | null>;
-}
-```
-
-## Interfaces
-
-### GitHubTokenProvider
-
-Where the tools in this package get their GitHub token.
-
-The default implementation reads the signed-in user's OAuth token, which is what an app with people in
-front of it wants. A headless app has no such user: it runs on a personal access token or an app
-installation token it keeps itself. Such an app provides its own implementation through
-`GitHubModule.forRoot({ tokenProvider })`, and every tool picks it up.
-
-```ts
-import { GitHubTokenProvider } from '@loopstack/github';
-```
-
-```ts
-export interface GitHubTokenProvider {
-  getToken(ctx: RunContext): Promise<string | null>;
+export class GitHubUpdateIssueTool extends BaseTool<GitHubUpdateIssueArgs, GitHubToolConfig, GitHubUpdateIssueResult> {
+  protected handle(
+    args: GitHubUpdateIssueArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubUpdateIssueResult>>;
 }
 ```
 
@@ -891,7 +1024,10 @@ export type GitHubCloseIssueResult =
 ### GitHubCreateIssueArgs
 
 Args for `GitHubCreateIssueTool`: the repository `owner`, `repo`, issue `title` and
-optional `body`, `labels` and `assignees`.
+optional `body`, `labels`, `assignees` and `type`, the organization's issue type by name.
+
+A repository whose organization does not define that type answers 422, which comes back as an error
+envelope; a caller that wants the issue either way creates it without the type.
 
 ```ts
 import { GitHubCreateIssueArgs } from '@loopstack/github';
@@ -1045,8 +1181,12 @@ export type GitHubCreatePullRequestResult =
 
 ### GitHubCreateRepoArgs
 
-Args for `GitHubCreateRepoTool`: repository `name`, optional `description`,
+Args for `GitHubCreateRepoTool`: repository `name`, optional `owner`, `description`,
 `private` visibility and `autoInit` to seed an initial commit.
+
+GitHub has one endpoint for a person's repositories and another for an organization's. `owner` picks
+between them: left out, or equal to the token's own account, the repository is created for that account;
+any other owner is treated as an organization, which the token must be allowed to create in.
 
 ```ts
 import { GitHubCreateRepoArgs } from '@loopstack/github';
@@ -1071,6 +1211,7 @@ export type GitHubCreateRepoResult = {
     fullName: string;
     name: string;
     htmlUrl: string;
+    cloneUrl: string;
     private: boolean;
     defaultBranch: string;
   };
@@ -1237,7 +1378,7 @@ export type GitHubGetCommitResult =
           deletions: number;
           changes: number;
         }>;
-      };
+      } | null;
     }
   | {
       error: string;
@@ -1278,7 +1419,7 @@ export type GitHubGetFileContentResult =
         type: string;
         content: string | null;
         htmlUrl: string;
-      };
+      } | null;
     }
   | {
       error: string;
@@ -1327,7 +1468,7 @@ export type GitHubGetIssueResult =
         comments: number;
         fields: Record<string, string>;
         type: string | null;
-      };
+      } | null;
     }
   | {
       error: string;
@@ -1381,7 +1522,7 @@ export type GitHubGetPullRequestResult =
         htmlUrl: string;
         comments: number;
         reviewComments: number;
-      };
+      } | null;
     }
   | {
       error: string;
@@ -1430,7 +1571,7 @@ export type GitHubGetRepoResult = {
     updatedAt: string;
     topics: string[];
     license: string | null;
-  };
+  } | null;
   error?: string;
   message?: string;
 };
@@ -1475,7 +1616,7 @@ export type GitHubGetWorkflowRunResult =
         updatedAt: string;
         runStartedAt: string;
         htmlUrl: string;
-      };
+      } | null;
     }
   | {
       error: string;
@@ -2088,6 +2229,18 @@ export type GitHubSetIssueFieldsResult =
     };
 ```
 
+### GitHubToolConfig
+
+Config type for every tool in this package — see `GitHubToolConfigSchema`.
+
+```ts
+import { GitHubToolConfig } from '@loopstack/github';
+```
+
+```ts
+export type GitHubToolConfig = z.infer<typeof GitHubToolConfigSchema>;
+```
+
 ### GitHubTriggerWorkflowArgs
 
 Args for `GitHubTriggerWorkflowTool`: the repository `owner`, `repo`, `workflowId`,
@@ -2159,16 +2312,17 @@ export type GitHubUpdateIssueResult =
 
 ## Variables
 
-### GITHUB_TOKEN_PROVIDER
+### GITHUB_TOKEN_ENV
 
-DI token for the `GitHubTokenProvider` every tool in this package authenticates with.
+DI token for the name of the environment variable the tools read their GitHub token from, set once with
+`GitHubModule.forRoot({ tokenEnv })`.
 
 ```ts
-import { GITHUB_TOKEN_PROVIDER } from '@loopstack/github';
+import { GITHUB_TOKEN_ENV } from '@loopstack/github';
 ```
 
 ```ts
-GITHUB_TOKEN_PROVIDER = 'GITHUB_TOKEN_PROVIDER';
+GITHUB_TOKEN_ENV = 'GITHUB_TOKEN_ENV';
 ```
 
 ### GitHubAddIssueAssigneesResultSchema
@@ -2375,6 +2529,7 @@ GitHubCreateRepoResultSchema: z.ZodObject<
         fullName: z.ZodString;
         name: z.ZodString;
         htmlUrl: z.ZodString;
+        cloneUrl: z.ZodString;
         private: z.ZodBoolean;
         defaultBranch: z.ZodString;
       },
@@ -2464,49 +2619,51 @@ import { GitHubGetCommitResultSchema } from '@loopstack/github';
 ```ts
 GitHubGetCommitResultSchema: z.ZodObject<
   {
-    commit: z.ZodObject<
-      {
-        sha: z.ZodString;
-        message: z.ZodString;
-        author: z.ZodObject<
-          {
-            name: z.ZodString;
-            email: z.ZodString;
-            date: z.ZodString;
-            login: z.ZodNullable<z.ZodString>;
-          },
-          z.core.$strict
-        >;
-        committer: z.ZodObject<
-          {
-            name: z.ZodString;
-            date: z.ZodString;
-          },
-          z.core.$strict
-        >;
-        htmlUrl: z.ZodString;
-        stats: z.ZodObject<
-          {
-            additions: z.ZodNumber;
-            deletions: z.ZodNumber;
-            total: z.ZodNumber;
-          },
-          z.core.$strict
-        >;
-        files: z.ZodArray<
-          z.ZodObject<
+    commit: z.ZodNullable<
+      z.ZodObject<
+        {
+          sha: z.ZodString;
+          message: z.ZodString;
+          author: z.ZodObject<
             {
-              filename: z.ZodString;
-              status: z.ZodString;
-              additions: z.ZodNumber;
-              deletions: z.ZodNumber;
-              changes: z.ZodNumber;
+              name: z.ZodString;
+              email: z.ZodString;
+              date: z.ZodString;
+              login: z.ZodNullable<z.ZodString>;
             },
             z.core.$strict
-          >
-        >;
-      },
-      z.core.$strict
+          >;
+          committer: z.ZodObject<
+            {
+              name: z.ZodString;
+              date: z.ZodString;
+            },
+            z.core.$strict
+          >;
+          htmlUrl: z.ZodString;
+          stats: z.ZodObject<
+            {
+              additions: z.ZodNumber;
+              deletions: z.ZodNumber;
+              total: z.ZodNumber;
+            },
+            z.core.$strict
+          >;
+          files: z.ZodArray<
+            z.ZodObject<
+              {
+                filename: z.ZodString;
+                status: z.ZodString;
+                additions: z.ZodNumber;
+                deletions: z.ZodNumber;
+                changes: z.ZodNumber;
+              },
+              z.core.$strict
+            >
+          >;
+        },
+        z.core.$strict
+      >
     >;
   },
   z.core.$strict
@@ -2524,17 +2681,19 @@ import { GitHubGetFileContentResultSchema } from '@loopstack/github';
 ```ts
 GitHubGetFileContentResultSchema: z.ZodObject<
   {
-    file: z.ZodObject<
-      {
-        name: z.ZodString;
-        path: z.ZodString;
-        sha: z.ZodString;
-        size: z.ZodNumber;
-        type: z.ZodString;
-        content: z.ZodNullable<z.ZodString>;
-        htmlUrl: z.ZodString;
-      },
-      z.core.$strict
+    file: z.ZodNullable<
+      z.ZodObject<
+        {
+          name: z.ZodString;
+          path: z.ZodString;
+          sha: z.ZodString;
+          size: z.ZodNumber;
+          type: z.ZodString;
+          content: z.ZodNullable<z.ZodString>;
+          htmlUrl: z.ZodString;
+        },
+        z.core.$strict
+      >
     >;
   },
   z.core.$strict
@@ -2552,26 +2711,28 @@ import { GitHubGetIssueResultSchema } from '@loopstack/github';
 ```ts
 GitHubGetIssueResultSchema: z.ZodObject<
   {
-    issue: z.ZodObject<
-      {
-        id: z.ZodNumber;
-        number: z.ZodNumber;
-        title: z.ZodString;
-        body: z.ZodNullable<z.ZodString>;
-        state: z.ZodString;
-        user: z.ZodString;
-        labels: z.ZodArray<z.ZodString>;
-        assignees: z.ZodArray<z.ZodString>;
-        milestone: z.ZodNullable<z.ZodString>;
-        createdAt: z.ZodString;
-        updatedAt: z.ZodString;
-        closedAt: z.ZodNullable<z.ZodString>;
-        htmlUrl: z.ZodString;
-        comments: z.ZodNumber;
-        fields: z.ZodRecord<z.ZodString, z.ZodString>;
-        type: z.ZodNullable<z.ZodString>;
-      },
-      z.core.$strict
+    issue: z.ZodNullable<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          number: z.ZodNumber;
+          title: z.ZodString;
+          body: z.ZodNullable<z.ZodString>;
+          state: z.ZodString;
+          user: z.ZodString;
+          labels: z.ZodArray<z.ZodString>;
+          assignees: z.ZodArray<z.ZodString>;
+          milestone: z.ZodNullable<z.ZodString>;
+          createdAt: z.ZodString;
+          updatedAt: z.ZodString;
+          closedAt: z.ZodNullable<z.ZodString>;
+          htmlUrl: z.ZodString;
+          comments: z.ZodNumber;
+          fields: z.ZodRecord<z.ZodString, z.ZodString>;
+          type: z.ZodNullable<z.ZodString>;
+        },
+        z.core.$strict
+      >
     >;
   },
   z.core.$strict
@@ -2589,31 +2750,33 @@ import { GitHubGetPullRequestResultSchema } from '@loopstack/github';
 ```ts
 GitHubGetPullRequestResultSchema: z.ZodObject<
   {
-    pullRequest: z.ZodObject<
-      {
-        id: z.ZodNumber;
-        number: z.ZodNumber;
-        title: z.ZodString;
-        body: z.ZodNullable<z.ZodString>;
-        state: z.ZodString;
-        user: z.ZodString;
-        head: z.ZodString;
-        headSha: z.ZodString;
-        base: z.ZodString;
-        merged: z.ZodBoolean;
-        mergeable: z.ZodNullable<z.ZodBoolean>;
-        draft: z.ZodBoolean;
-        additions: z.ZodNumber;
-        deletions: z.ZodNumber;
-        changedFiles: z.ZodNumber;
-        createdAt: z.ZodString;
-        updatedAt: z.ZodString;
-        mergedAt: z.ZodNullable<z.ZodString>;
-        htmlUrl: z.ZodString;
-        comments: z.ZodNumber;
-        reviewComments: z.ZodNumber;
-      },
-      z.core.$strict
+    pullRequest: z.ZodNullable<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          number: z.ZodNumber;
+          title: z.ZodString;
+          body: z.ZodNullable<z.ZodString>;
+          state: z.ZodString;
+          user: z.ZodString;
+          head: z.ZodString;
+          headSha: z.ZodString;
+          base: z.ZodString;
+          merged: z.ZodBoolean;
+          mergeable: z.ZodNullable<z.ZodBoolean>;
+          draft: z.ZodBoolean;
+          additions: z.ZodNumber;
+          deletions: z.ZodNumber;
+          changedFiles: z.ZodNumber;
+          createdAt: z.ZodString;
+          updatedAt: z.ZodString;
+          mergedAt: z.ZodNullable<z.ZodString>;
+          htmlUrl: z.ZodString;
+          comments: z.ZodNumber;
+          reviewComments: z.ZodNumber;
+        },
+        z.core.$strict
+      >
     >;
   },
   z.core.$strict
@@ -2631,27 +2794,29 @@ import { GitHubGetRepoResultSchema } from '@loopstack/github';
 ```ts
 GitHubGetRepoResultSchema: z.ZodObject<
   {
-    repo: z.ZodObject<
-      {
-        id: z.ZodNumber;
-        fullName: z.ZodString;
-        name: z.ZodString;
-        owner: z.ZodString;
-        ownerAvatar: z.ZodString;
-        private: z.ZodBoolean;
-        htmlUrl: z.ZodString;
-        description: z.ZodNullable<z.ZodString>;
-        language: z.ZodNullable<z.ZodString>;
-        defaultBranch: z.ZodString;
-        stars: z.ZodNumber;
-        forks: z.ZodNumber;
-        openIssues: z.ZodNumber;
-        createdAt: z.ZodString;
-        updatedAt: z.ZodString;
-        topics: z.ZodArray<z.ZodString>;
-        license: z.ZodNullable<z.ZodString>;
-      },
-      z.core.$strict
+    repo: z.ZodNullable<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          fullName: z.ZodString;
+          name: z.ZodString;
+          owner: z.ZodString;
+          ownerAvatar: z.ZodString;
+          private: z.ZodBoolean;
+          htmlUrl: z.ZodString;
+          description: z.ZodNullable<z.ZodString>;
+          language: z.ZodNullable<z.ZodString>;
+          defaultBranch: z.ZodString;
+          stars: z.ZodNumber;
+          forks: z.ZodNumber;
+          openIssues: z.ZodNumber;
+          createdAt: z.ZodString;
+          updatedAt: z.ZodString;
+          topics: z.ZodArray<z.ZodString>;
+          license: z.ZodNullable<z.ZodString>;
+        },
+        z.core.$strict
+      >
     >;
   },
   z.core.$strict
@@ -2669,24 +2834,26 @@ import { GitHubGetWorkflowRunResultSchema } from '@loopstack/github';
 ```ts
 GitHubGetWorkflowRunResultSchema: z.ZodObject<
   {
-    run: z.ZodObject<
-      {
-        id: z.ZodNumber;
-        name: z.ZodString;
-        status: z.ZodString;
-        conclusion: z.ZodNullable<z.ZodString>;
-        headBranch: z.ZodString;
-        headSha: z.ZodString;
-        event: z.ZodString;
-        workflowId: z.ZodNumber;
-        runNumber: z.ZodNumber;
-        runAttempt: z.ZodNumber;
-        createdAt: z.ZodString;
-        updatedAt: z.ZodString;
-        runStartedAt: z.ZodString;
-        htmlUrl: z.ZodString;
-      },
-      z.core.$strict
+    run: z.ZodNullable<
+      z.ZodObject<
+        {
+          id: z.ZodNumber;
+          name: z.ZodString;
+          status: z.ZodString;
+          conclusion: z.ZodNullable<z.ZodString>;
+          headBranch: z.ZodString;
+          headSha: z.ZodString;
+          event: z.ZodString;
+          workflowId: z.ZodNumber;
+          runNumber: z.ZodNumber;
+          runAttempt: z.ZodNumber;
+          createdAt: z.ZodString;
+          updatedAt: z.ZodString;
+          runStartedAt: z.ZodString;
+          htmlUrl: z.ZodString;
+        },
+        z.core.$strict
+      >
     >;
   },
   z.core.$strict
@@ -3136,6 +3303,28 @@ GitHubSetIssueFieldsResultSchema: z.ZodObject<
     fields: z.ZodArray<z.ZodString>;
   },
   z.core.$strict
+>;
+```
+
+### GitHubToolConfigSchema
+
+The config every tool in this package accepts.
+
+`tokenEnv` names the environment variable to read the token from for that one call. It is set by the author
+at the call site, never by a model, which is why it is config rather than an argument. Use it where a single
+operation needs a different credential from the rest of the app, such as a token allowed to create
+repositories.
+
+```ts
+import { GitHubToolConfigSchema } from '@loopstack/github';
+```
+
+```ts
+GitHubToolConfigSchema: z.ZodObject<
+  {
+    tokenEnv: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strip
 >;
 ```
 

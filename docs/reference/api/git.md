@@ -36,9 +36,31 @@ import { GitBranchTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitBranchTool extends BaseTool<object, object, GitBranchResult> {
+export class GitBranchTool extends BaseTool<GitDirArgs, object, GitBranchResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(): Promise<ToolEnvelope<GitBranchResult>>;
+  protected handle(args: GitDirArgs): Promise<ToolEnvelope<GitBranchResult>>;
+}
+```
+
+### GitCheckoutStateTool
+
+Tool that reads what state a checkout is in before something is done to it.
+
+`git_status` answers what changed; this answers whether the checkout is in a fit state to act on: is a
+rebase still open, is the tree clean, did anything keep its conflict markers, and — with a `baseRef` — is
+the work built on that base and how far beyond it. It is the read to make after handing a checkout to
+someone else, where what you need is not a diff but a verdict.
+
+```ts
+import { GitCheckoutStateTool } from '@loopstack/git';
+```
+
+**Provided by:** `GitModule`
+
+```ts
+export class GitCheckoutStateTool extends BaseTool<GitCheckoutStateArgs, object, GitCheckoutStateResult> {
+  constructor(env: EnvironmentService, remote: RemoteClient);
+  protected handle(args: GitCheckoutStateArgs): Promise<ToolEnvelope<GitCheckoutStateResult>>;
 }
 ```
 
@@ -121,9 +143,13 @@ import { GitFetchTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitFetchTool extends BaseTool<GitFetchArgs, object, GitFetchResult> {
-  constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(args: GitFetchArgs): Promise<ToolEnvelope<GitFetchResult>>;
+export class GitFetchTool extends BaseTool<GitFetchArgs, GitToolConfig, GitFetchResult> {
+  constructor(env: EnvironmentService, remote: RemoteClient, tokens: GitTokenService);
+  protected handle(
+    args: GitFetchArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitToolConfig>,
+  ): Promise<ToolEnvelope<GitFetchResult>>;
 }
 ```
 
@@ -147,13 +173,17 @@ export class GitLogTool extends BaseTool<GitLogArgs, object, GitLogResult> {
 ### GitModule
 
 NestJS module that provides the git version control tools (status, add, commit, push, pull, log,
-diff, fetch, checkout, branch, remote/user config, worktree operations) and the `GitController` REST API.
+diff, fetch, checkout, branch, remote/user config, worktree operations), the operations that take several
+git commands (squash, rebase, checkout state) and the `GitController` REST API.
 
 Registration:
 
 - `GitModule` — bare import; registers all git tools and the REST controller unconditionally.
 - `GitModule.forFeature({ enabled?: boolean; environments?: string[] })` — use to feature-gate the module
   so its tools are only active when enabled and/or limited to specific environments.
+- `GitModule.forRoot({ tokenEnv | tokenSecret | oauthProvider })` — the same tools, with a default source
+  for the credential `git_push`, `git_pull` and `git_fetch` authenticate with. A single call overrides it
+  through its config.
 
 Requires: `RemoteClientModule` must be available in the DI container — every git tool delegates to a remote
 agent via `RemoteClient`, so the git commands run on the repository host.
@@ -165,6 +195,7 @@ import { GitModule } from '@loopstack/git';
 ```ts
 export class GitModule {
   static forFeature(config?: { enabled?: boolean; environments?: string[] }): DynamicModule;
+  static forRoot(source: GitToolConfig): DynamicModule;
 }
 ```
 
@@ -179,9 +210,13 @@ import { GitPullTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
-  constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(args: GitPullArgs): Promise<ToolEnvelope<GitPullResult>>;
+export class GitPullTool extends BaseTool<GitPullArgs, GitToolConfig, GitPullResult> {
+  constructor(env: EnvironmentService, remote: RemoteClient, tokens: GitTokenService);
+  protected handle(
+    args: GitPullArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitToolConfig>,
+  ): Promise<ToolEnvelope<GitPullResult>>;
 }
 ```
 
@@ -196,9 +231,36 @@ import { GitPushTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitPushTool extends BaseTool<GitPushArgs, object, GitPushResult> {
+export class GitPushTool extends BaseTool<GitPushArgs, GitToolConfig, GitPushResult> {
+  constructor(env: EnvironmentService, remote: RemoteClient, tokens: GitTokenService);
+  protected handle(
+    args: GitPushArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitToolConfig>,
+  ): Promise<ToolEnvelope<GitPushResult>>;
+}
+```
+
+### GitRebaseTool
+
+Tool that rebases the current branch onto another ref.
+
+There are three outcomes and they are told apart on purpose. A rebase that finishes answers `clean`. A
+rebase that stops on conflicting files answers those files and **leaves the rebase in progress**, so an
+agent or a person can resolve them and run `git rebase --continue` in the same checkout. A rebase that
+fails for any other reason is aborted here — leaving no half-finished state behind — and reported as an
+error with git's own output, because nobody can act on it.
+
+```ts
+import { GitRebaseTool } from '@loopstack/git';
+```
+
+**Provided by:** `GitModule`
+
+```ts
+export class GitRebaseTool extends BaseTool<GitRebaseArgs, object, GitRebaseResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(args: GitPushArgs): Promise<ToolEnvelope<GitPushResult>>;
+  protected handle(args: GitRebaseArgs): Promise<ToolEnvelope<GitRebaseResult>>;
 }
 ```
 
@@ -219,6 +281,28 @@ export class GitRemoteConfigureTool extends BaseTool<GitRemoteConfigureArgs, obj
 }
 ```
 
+### GitSquashTool
+
+Tool that replaces everything the branch added since `baseRef` with a single commit.
+
+The commits are reset into the index and committed again, so the tree is untouched and only the history
+changes. The commit is made under the repository's configured identity — set it with `git_config_user`
+first — and the message is taken verbatim, so a trailer such as `Closes #12` survives. A branch whose net
+change is nothing still becomes a commit, which keeps "the branch landed" true either way.
+
+```ts
+import { GitSquashTool } from '@loopstack/git';
+```
+
+**Provided by:** `GitModule`
+
+```ts
+export class GitSquashTool extends BaseTool<GitSquashArgs, object, GitSquashResult> {
+  constructor(env: EnvironmentService, remote: RemoteClient);
+  protected handle(args: GitSquashArgs): Promise<ToolEnvelope<GitSquashResult>>;
+}
+```
+
 ### GitStatusTool
 
 Tool that reports the git status of the workspace: current branch plus staged, modified,
@@ -231,9 +315,34 @@ import { GitStatusTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitStatusTool extends BaseTool<object, object, GitStatusResult> {
+export class GitStatusTool extends BaseTool<GitDirArgs, object, GitStatusResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(): Promise<ToolEnvelope<GitStatusResult>>;
+  protected handle(args: GitDirArgs): Promise<ToolEnvelope<GitStatusResult>>;
+}
+```
+
+### GitTokenService
+
+Where the git tools get the token they push, pull and fetch with.
+
+A credential is config rather than an argument on purpose. Arguments are the model-facing input of a tool
+and are kept in the run trace, so a token passed as one is written to the database; config carries the
+name of a source instead, and the value is read here, at the moment of the call, and handed straight to
+the remote server, which applies it through a throwaway `GIT_ASKPASS`.
+
+```ts
+import { GitTokenService } from '@loopstack/git';
+```
+
+```ts
+export class GitTokenService {
+  constructor(
+    config: ConfigService,
+    secrets?: SecretService | undefined,
+    tokenStore?: OAuthTokenStore | undefined,
+    moduleSource?: GitToolConfig | undefined,
+  );
+  resolve(ctx: RunContext, options?: ToolCallOptions<GitToolConfig>): Promise<string | undefined>;
 }
 ```
 
@@ -265,9 +374,9 @@ import { GitWorktreeListTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitWorktreeListTool extends BaseTool<object, object, GitWorktreeListResult> {
+export class GitWorktreeListTool extends BaseTool<GitDirArgs, object, GitWorktreeListResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(): Promise<ToolEnvelope<GitWorktreeListResult>>;
+  protected handle(args: GitDirArgs): Promise<ToolEnvelope<GitWorktreeListResult>>;
 }
 ```
 
@@ -282,9 +391,9 @@ import { GitWorktreePruneTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitWorktreePruneTool extends BaseTool<object, object, GitWorktreePruneResult> {
+export class GitWorktreePruneTool extends BaseTool<GitDirArgs, object, GitWorktreePruneResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(): Promise<ToolEnvelope<GitWorktreePruneResult>>;
+  protected handle(args: GitDirArgs): Promise<ToolEnvelope<GitWorktreePruneResult>>;
 }
 ```
 
@@ -318,6 +427,7 @@ import { GitAddArgs } from '@loopstack/git';
 ```ts
 export type GitAddArgs = {
   files: string[];
+  dir?: string;
 };
 ```
 
@@ -365,6 +475,7 @@ import { GitCheckoutArgs } from '@loopstack/git';
 export type GitCheckoutArgs = {
   branch: string;
   create?: boolean;
+  dir?: string;
 };
 ```
 
@@ -379,6 +490,40 @@ import { GitCheckoutResult } from '@loopstack/git';
 ```ts
 export type GitCheckoutResult = {
   branch: string;
+};
+```
+
+### GitCheckoutStateArgs
+
+Args for `GitCheckoutStateTool`: optionally the `baseRef` to measure the checkout against.
+
+```ts
+import { GitCheckoutStateArgs } from '@loopstack/git';
+```
+
+```ts
+export type GitCheckoutStateArgs = {
+  baseRef?: string;
+  dir?: string;
+};
+```
+
+### GitCheckoutStateResult
+
+Result for `GitCheckoutStateTool`: what state the checkout is in, and where it stands against `baseRef`.
+
+```ts
+import { GitCheckoutStateResult } from '@loopstack/git';
+```
+
+```ts
+export type GitCheckoutStateResult = {
+  branch: string;
+  rebaseInProgress: boolean;
+  dirty: boolean;
+  conflictMarkers: boolean;
+  onBase?: boolean;
+  commitsAhead?: number;
 };
 ```
 
@@ -411,6 +556,7 @@ import { GitCommitArgs } from '@loopstack/git';
 ```ts
 export type GitCommitArgs = {
   message: string;
+  dir?: string;
 };
 ```
 
@@ -441,6 +587,7 @@ import { GitConfigUserArgs } from '@loopstack/git';
 export type GitConfigUserArgs = {
   name: string;
   email: string;
+  dir?: string;
 };
 ```
 
@@ -469,6 +616,7 @@ import { GitDiffArgs } from '@loopstack/git';
 ```ts
 export type GitDiffArgs = {
   staged?: boolean;
+  dir?: string;
 };
 ```
 
@@ -501,6 +649,20 @@ export type GitDiffResult = {
 };
 ```
 
+### GitDirArgs
+
+Args for the git tools whose only argument is the repository `dir`.
+
+```ts
+import { GitDirArgs } from '@loopstack/git';
+```
+
+```ts
+export type GitDirArgs = {
+  dir?: string;
+};
+```
+
 ### GitFetchArgs
 
 Args for `GitFetchTool`.
@@ -512,7 +674,7 @@ import { GitFetchArgs } from '@loopstack/git';
 ```ts
 export type GitFetchArgs = {
   remote?: string;
-  token?: string;
+  dir?: string;
 };
 ```
 
@@ -542,6 +704,7 @@ import { GitLogArgs } from '@loopstack/git';
 ```ts
 export type GitLogArgs = {
   limit?: number;
+  dir?: string;
 };
 ```
 
@@ -571,7 +734,7 @@ import { GitPullArgs } from '@loopstack/git';
 export type GitPullArgs = {
   remote?: string;
   branch?: string;
-  token?: string;
+  dir?: string;
 };
 ```
 
@@ -603,7 +766,7 @@ export type GitPushArgs = {
   remote?: string;
   branch?: string;
   force?: boolean;
-  token?: string;
+  dir?: string;
 };
 ```
 
@@ -622,6 +785,36 @@ export type GitPushResult = {
 };
 ```
 
+### GitRebaseArgs
+
+Args for `GitRebaseTool`: the ref to rebase `onto`.
+
+```ts
+import { GitRebaseArgs } from '@loopstack/git';
+```
+
+```ts
+export type GitRebaseArgs = {
+  onto: string;
+  dir?: string;
+};
+```
+
+### GitRebaseResult
+
+Result for `GitRebaseTool`: whether the rebase finished, and the unmerged files when it stopped.
+
+```ts
+import { GitRebaseResult } from '@loopstack/git';
+```
+
+```ts
+export type GitRebaseResult = {
+  clean: boolean;
+  conflicts?: string[];
+};
+```
+
 ### GitRemoteConfigureArgs
 
 Args for `GitRemoteConfigureTool`.
@@ -633,6 +826,7 @@ import { GitRemoteConfigureArgs } from '@loopstack/git';
 ```ts
 export type GitRemoteConfigureArgs = {
   url: string;
+  dir?: string;
 };
 ```
 
@@ -647,6 +841,38 @@ import { GitRemoteConfigureResult } from '@loopstack/git';
 ```ts
 export type GitRemoteConfigureResult = {
   success: boolean;
+};
+```
+
+### GitSquashArgs
+
+Args for `GitSquashTool`: the `baseRef` the branch grew from and the `message` the one commit carries.
+
+```ts
+import { GitSquashArgs } from '@loopstack/git';
+```
+
+```ts
+export type GitSquashArgs = {
+  baseRef: string;
+  message: string;
+  skipHooks?: boolean;
+  dir?: string;
+};
+```
+
+### GitSquashResult
+
+Result for `GitSquashTool`: how many commits were squashed, and the message of the commit they became.
+
+```ts
+import { GitSquashResult } from '@loopstack/git';
+```
+
+```ts
+export type GitSquashResult = {
+  commits: number;
+  message: string;
 };
 ```
 
@@ -666,6 +892,18 @@ export type GitStatusResult = {
   untracked: string[];
   deleted: string[];
 };
+```
+
+### GitToolConfig
+
+Config type for the git tools that need a credential — see `GitToolConfigSchema`.
+
+```ts
+import { GitToolConfig } from '@loopstack/git';
+```
+
+```ts
+export type GitToolConfig = z.infer<typeof GitToolConfigSchema>;
 ```
 
 ### GitWorktree
@@ -773,6 +1011,18 @@ export type GitWorktreeRemoveResult = {
 
 ## Variables
 
+### GIT_TOKEN_SOURCE
+
+DI token for the default credential source of the git tools, set once with `GitModule.forRoot()`.
+
+```ts
+import { GIT_TOKEN_SOURCE } from '@loopstack/git';
+```
+
+```ts
+GIT_TOKEN_SOURCE = 'GIT_TOKEN_SOURCE';
+```
+
 ### GitAddResultSchema
 
 Zod schema for `GitAddResult`.
@@ -828,6 +1078,28 @@ import { GitCheckoutResultSchema } from '@loopstack/git';
 GitCheckoutResultSchema: z.ZodObject<
   {
     branch: z.ZodString;
+  },
+  z.core.$strict
+>;
+```
+
+### GitCheckoutStateResultSchema
+
+Zod schema for `GitCheckoutStateResult`.
+
+```ts
+import { GitCheckoutStateResultSchema } from '@loopstack/git';
+```
+
+```ts
+GitCheckoutStateResultSchema: z.ZodObject<
+  {
+    branch: z.ZodString;
+    rebaseInProgress: z.ZodBoolean;
+    dirty: z.ZodBoolean;
+    conflictMarkers: z.ZodBoolean;
+    onBase: z.ZodOptional<z.ZodBoolean>;
+    commitsAhead: z.ZodOptional<z.ZodNumber>;
   },
   z.core.$strict
 >;
@@ -891,6 +1163,19 @@ GitDiffResultSchema: z.ZodObject<
   },
   z.core.$strict
 >;
+```
+
+### GitDirArgSchema
+
+The `dir` argument every git tool accepts: the repository it addresses, as a path relative to the workspace
+root. A workspace can hold several repositories in one tree, so each call names the one it works on.
+
+```ts
+import { GitDirArgSchema } from '@loopstack/git';
+```
+
+```ts
+GitDirArgSchema: z.ZodOptional<z.ZodString>;
 ```
 
 ### GitFetchResultSchema
@@ -975,6 +1260,24 @@ GitPushResultSchema: z.ZodObject<
 >;
 ```
 
+### GitRebaseResultSchema
+
+Zod schema for `GitRebaseResult`.
+
+```ts
+import { GitRebaseResultSchema } from '@loopstack/git';
+```
+
+```ts
+GitRebaseResultSchema: z.ZodObject<
+  {
+    clean: z.ZodBoolean;
+    conflicts: z.ZodOptional<z.ZodArray<z.ZodString>>;
+  },
+  z.core.$strict
+>;
+```
+
 ### GitRemoteConfigureResultSchema
 
 Zod schema for `GitRemoteConfigureResult`.
@@ -987,6 +1290,24 @@ import { GitRemoteConfigureResultSchema } from '@loopstack/git';
 GitRemoteConfigureResultSchema: z.ZodObject<
   {
     success: z.ZodBoolean;
+  },
+  z.core.$strict
+>;
+```
+
+### GitSquashResultSchema
+
+Zod schema for `GitSquashResult`.
+
+```ts
+import { GitSquashResultSchema } from '@loopstack/git';
+```
+
+```ts
+GitSquashResultSchema: z.ZodObject<
+  {
+    commits: z.ZodNumber;
+    message: z.ZodString;
   },
   z.core.$strict
 >;
@@ -1010,6 +1331,37 @@ GitStatusResultSchema: z.ZodObject<
     deleted: z.ZodArray<z.ZodString>;
   },
   z.core.$strict
+>;
+```
+
+### GitToolConfigSchema
+
+Where a git tool gets the token for one call. Every field is a **name**, never a token: the name is what
+the author knows at the call site, and what is safe to keep in the run trace.
+
+- `tokenEnv` — an environment variable of the machine the app runs on. The right source for a headless app
+  running on a personal access token.
+- `tokenSecret` — a secret of the workspace the run belongs to. The right source where each workspace
+  pushes with its own credential.
+- `oauthProvider` — the OAuth provider whose token belongs to the person the run belongs to, such as
+  `github`. The right source for an app with people in front of it, where the token says who is acting.
+
+The first one set wins, in that order, and what the module was registered with fills in whatever the call
+leaves out. With none of them set the command runs without a credential, which is all a public repository
+or an already-authenticated remote needs.
+
+```ts
+import { GitToolConfigSchema } from '@loopstack/git';
+```
+
+```ts
+GitToolConfigSchema: z.ZodObject<
+  {
+    tokenEnv: z.ZodOptional<z.ZodString>;
+    tokenSecret: z.ZodOptional<z.ZodString>;
+    oauthProvider: z.ZodOptional<z.ZodString>;
+  },
+  z.core.$strip
 >;
 ```
 
@@ -1047,6 +1399,7 @@ GitWorktreeAddSchema: z.ZodObject<
     branch: z.ZodOptional<z.ZodString>;
     newBranch: z.ZodOptional<z.ZodBoolean>;
     force: z.ZodOptional<z.ZodBoolean>;
+    dir: z.ZodOptional<z.ZodString>;
   },
   z.core.$strict
 >;
@@ -1130,6 +1483,7 @@ GitWorktreeRemoveSchema: z.ZodObject<
   {
     path: z.ZodString;
     force: z.ZodOptional<z.ZodBoolean>;
+    dir: z.ZodOptional<z.ZodString>;
   },
   z.core.$strict
 >;
