@@ -1,6 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getBlockArgsSchema } from '@loopstack/common';
+import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
+import type { ToolPipeline } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { createToolTest } from '@loopstack/testing';
 import { GitSquashTool } from '../git-squash.tool.js';
@@ -90,6 +91,23 @@ describe('GitSquashTool', () => {
 
       expect(remote.calls.every((c) => c.timeout === 600_000)).toBe(true);
       expect(remote.calls.every((c) => c.cwd === '.')).toBe(true);
+    });
+
+    // A workflow that provisioned its own container holds its URL; no environment row points at it.
+    it('runs on the agent the call names, without asking the environment', async () => {
+      await build({
+        'git merge-base': { exitCode: 0, stdout: 'abc1234' },
+        'git rev-list': { exitCode: 0, stdout: '1' },
+      });
+
+      mockEnv.getAgentUrl.mockClear();
+
+      await module
+        .get<ToolPipeline>(TOOL_PIPELINE)
+        .execute(tool, { baseRef: 'origin/main', message: 'x' }, { config: { agentUrl: 'https://landing.example' } });
+
+      expect(mockEnv.getAgentUrl).not.toHaveBeenCalled();
+      expect(remote.executeCommand.mock.calls.every((call) => call[0] === 'https://landing.example')).toBe(true);
     });
 
     it('turns the hooks off only when asked', async () => {

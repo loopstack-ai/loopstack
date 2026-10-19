@@ -1,4 +1,6 @@
-import type { ExecResponse, RemoteClient } from '@loopstack/remote-client';
+import { z } from 'zod';
+import type { ToolCallOptions } from '@loopstack/common';
+import type { EnvironmentService, ExecResponse, RemoteClient } from '@loopstack/remote-client';
 
 /**
  * How long a git command that walks the tree is allowed to take.
@@ -59,4 +61,32 @@ export async function gitRun(remote: RemoteClient, agentUrl: string, command: st
     throw new Error(`\`${command.slice(0, 80)}\` failed:\n${(result.stderr || result.stdout).slice(-2000)}`);
   }
   return result.stdout.trim();
+}
+
+/**
+ * The config the composed operations accept: which agent to run on.
+ *
+ * A tool resolves its agent from the workspace's environments, which is right when the workspace *is* the
+ * container. A workflow that provisions a container for one piece of work — a landing, a publish — holds
+ * that container's URL in its own state, and no environment row points at it; naming it here is how such a
+ * workflow uses these tools. It is config rather than an argument because the author knows the container and
+ * a model must not be the one to choose it.
+ *
+ * @public
+ */
+export const GitTargetConfigSchema = z.object({
+  agentUrl: z.string().optional(),
+});
+
+/**
+ * Config type for the composed operations — see {@link GitTargetConfigSchema}.
+ *
+ * @public
+ */
+export type GitTargetConfig = z.infer<typeof GitTargetConfigSchema>;
+
+/** The agent this call runs on: the one it names, or the one the workspace's environment resolves to. */
+export function targetAgentUrl(env: EnvironmentService, options?: ToolCallOptions<GitTargetConfig>): Promise<string> {
+  const named = options?.config?.agentUrl;
+  return named ? Promise.resolve(named) : env.getAgentUrl();
 }

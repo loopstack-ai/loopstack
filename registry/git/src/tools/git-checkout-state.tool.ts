@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { GitDirArgSchema } from './git-dir.schema.js';
-import { gitExec, gitRun, safeRef } from './git-exec.js';
+import { type GitTargetConfig, GitTargetConfigSchema, gitExec, gitRun, safeRef, targetAgentUrl } from './git-exec.js';
 
 /**
  * Args for `GitCheckoutStateTool`: optionally the `baseRef` to measure the checkout against.
@@ -70,10 +71,11 @@ export const GitCheckoutStateResultSchema = z.strictObject({
       dir: GitDirArgSchema,
     })
     .strict(),
+  configSchema: GitTargetConfigSchema,
   resultSchema: GitCheckoutStateResultSchema,
   effects: 'none',
 })
-export class GitCheckoutStateTool extends BaseTool<GitCheckoutStateArgs, object, GitCheckoutStateResult> {
+export class GitCheckoutStateTool extends BaseTool<GitCheckoutStateArgs, GitTargetConfig, GitCheckoutStateResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
@@ -81,8 +83,12 @@ export class GitCheckoutStateTool extends BaseTool<GitCheckoutStateArgs, object,
     super();
   }
 
-  protected async handle(args: GitCheckoutStateArgs): Promise<ToolEnvelope<GitCheckoutStateResult>> {
-    const agentUrl = await this.env.getAgentUrl();
+  protected async handle(
+    args: GitCheckoutStateArgs,
+    _ctx: RunContext,
+    options?: ToolCallOptions<GitTargetConfig>,
+  ): Promise<ToolEnvelope<GitCheckoutStateResult>> {
+    const agentUrl = await targetAgentUrl(this.env, options);
     const exec = (command: string) => gitExec(this.remote, agentUrl, command, args.dir);
     const run = (command: string) => gitRun(this.remote, agentUrl, command, args.dir);
 

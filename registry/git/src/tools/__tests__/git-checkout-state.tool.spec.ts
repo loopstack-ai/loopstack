@@ -1,6 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getBlockArgsSchema } from '@loopstack/common';
+import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
+import type { ToolPipeline } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { createToolTest } from '@loopstack/testing';
 import { GitCheckoutStateTool } from '../git-checkout-state.tool.js';
@@ -99,6 +100,18 @@ describe('GitCheckoutStateTool', () => {
       const result = await tool.call({});
 
       expect(result.data).toMatchObject({ rebaseInProgress: true, dirty: true, conflictMarkers: true });
+    });
+
+    it('runs on the agent the call names, without asking the environment', async () => {
+      await build(SETTLED);
+
+      mockEnv.getAgentUrl.mockClear();
+
+      await module
+        .get<ToolPipeline>(TOOL_PIPELINE)
+        .execute(tool, {}, { config: { agentUrl: 'https://landing.example' } });
+
+      expect(mockEnv.getAgentUrl).not.toHaveBeenCalled();
     });
 
     it('refuses a base that is not a ref', async () => {

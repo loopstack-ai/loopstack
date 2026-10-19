@@ -89,6 +89,18 @@ describe('GitRebaseTool', () => {
       expect(remote.calls).toContain('git rebase --abort');
     });
 
+    it('runs on the agent the call names, without asking the environment', async () => {
+      await build({ 'git rebase': { exitCode: 0 } });
+
+      mockEnv.getAgentUrl.mockClear();
+
+      await module
+        .get<ToolPipeline>(TOOL_PIPELINE)
+        .execute(tool, { onto: 'origin/main' }, { config: { agentUrl: 'https://landing.example' } });
+
+      expect(mockEnv.getAgentUrl).not.toHaveBeenCalled();
+    });
+
     it('refuses a ref that is not a ref', async () => {
       await build({});
 

@@ -287,6 +287,17 @@ The tools above each run one git command. These run a **sequence** of them and a
 is what the caller actually wants to know: a squash either happened or it did not, a rebase either finished,
 stopped on files, or failed.
 
+They resolve their agent from the workspace's environments, like every other tool. A workflow that
+provisions a container for one piece of work holds that container's URL itself, and no environment points at
+it, so it names the target in the call's config:
+
+```ts
+await this.gitSquash.call(
+  { baseRef: `origin/${base}`, message, dir: repoDir },
+  { config: { agentUrl: state.agentUrl } },
+);
+```
+
 #### `git_squash`
 
 Replaces every commit the branch added since `baseRef` with one commit carrying the given message. Returns how many commits were squashed.
@@ -480,11 +491,11 @@ Each endpoint also takes `?dir=` to address a repository below the workspace roo
 - **Module:** `GitModule` (with `forFeature()` for environment gating)
 - **Controller:** `GitController`
 - **Tools:** `GitSquashTool`, `GitRebaseTool`, `GitCheckoutStateTool`, `GitStatusTool`, `GitAddTool`, `GitCommitTool`, `GitPushTool`, `GitPullTool`, `GitLogTool`, `GitDiffTool`, `GitFetchTool`, `GitCheckoutTool`, `GitBranchTool`, `GitRemoteConfigureTool`, `GitConfigUserTool`, `GitWorktreeAddTool`, `GitWorktreeListTool`, `GitWorktreeRemoveTool`, `GitWorktreePruneTool`
-- **Types:** `GitStatusResult`, `GitAddArgs`, `GitAddResult`, `GitCommitArgs`, `GitCommitResult`, `GitPushArgs`, `GitPushResult`, `GitPullArgs`, `GitPullResult`, `GitLogArgs`, `GitCommit`, `GitLogResult`, `GitDiffArgs`, `GitDiffFile`, `GitDiffResult`, `GitFetchArgs`, `GitFetchResult`, `GitCheckoutArgs`, `GitCheckoutResult`, `GitBranchResult`, `GitRemoteConfigureArgs`, `GitRemoteConfigureResult`, `GitConfigUserArgs`, `GitConfigUserResult`, `GitWorktreeAddArgs`, `GitWorktreeAddResult`, `GitWorktreeListResult`, `GitWorktree`, `GitWorktreeRemoveArgs`, `GitWorktreeRemoveResult`, `GitWorktreePruneResult`, `GitDirArgs`, `GitToolConfig`, `GitSquashArgs`, `GitSquashResult`, `GitRebaseArgs`, `GitRebaseResult`, `GitCheckoutStateArgs`, `GitCheckoutStateResult`
+- **Types:** `GitStatusResult`, `GitAddArgs`, `GitAddResult`, `GitCommitArgs`, `GitCommitResult`, `GitPushArgs`, `GitPushResult`, `GitPullArgs`, `GitPullResult`, `GitLogArgs`, `GitCommit`, `GitLogResult`, `GitDiffArgs`, `GitDiffFile`, `GitDiffResult`, `GitFetchArgs`, `GitFetchResult`, `GitCheckoutArgs`, `GitCheckoutResult`, `GitBranchResult`, `GitRemoteConfigureArgs`, `GitRemoteConfigureResult`, `GitConfigUserArgs`, `GitConfigUserResult`, `GitWorktreeAddArgs`, `GitWorktreeAddResult`, `GitWorktreeListResult`, `GitWorktree`, `GitWorktreeRemoveArgs`, `GitWorktreeRemoveResult`, `GitWorktreePruneResult`, `GitDirArgs`, `GitToolConfig`, `GitSquashArgs`, `GitSquashResult`, `GitRebaseArgs`, `GitRebaseResult`, `GitCheckoutStateArgs`, `GitCheckoutStateResult`, `GitTargetConfig`
 - **Services:** `GitTokenService`
 - **Tokens:** `GIT_REPOSITORY_SOURCE`, `GIT_TOKEN_SOURCE`
 - **Interfaces:** `GitRepositorySource`, `GitRepository`
-- **Schemas:** `GitWorktreeAddSchema`, `GitWorktreeRemoveSchema`, `GitDirArgSchema`, `GitToolConfigSchema`
+- **Schemas:** `GitWorktreeAddSchema`, `GitWorktreeRemoveSchema`, `GitDirArgSchema`, `GitToolConfigSchema`, `GitTargetConfigSchema`
 
 ## Dependencies
 

@@ -1,8 +1,16 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { GitDirArgSchema } from './git-dir.schema.js';
-import { gitRun, safeRef, shellQuote } from './git-exec.js';
+import {
+  type GitTargetConfig,
+  GitTargetConfigSchema,
+  gitRun,
+  safeRef,
+  shellQuote,
+  targetAgentUrl,
+} from './git-exec.js';
 
 /**
  * Args for `GitSquashTool`: the `baseRef` the branch grew from and the `message` the one commit carries.
@@ -57,10 +65,11 @@ export const GitSquashResultSchema = z.strictObject({ commits: z.number(), messa
       dir: GitDirArgSchema,
     })
     .strict(),
+  configSchema: GitTargetConfigSchema,
   resultSchema: GitSquashResultSchema,
   effects: 'external',
 })
-export class GitSquashTool extends BaseTool<GitSquashArgs, object, GitSquashResult> {
+export class GitSquashTool extends BaseTool<GitSquashArgs, GitTargetConfig, GitSquashResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
@@ -68,8 +77,12 @@ export class GitSquashTool extends BaseTool<GitSquashArgs, object, GitSquashResu
     super();
   }
 
-  protected async handle(args: GitSquashArgs): Promise<ToolEnvelope<GitSquashResult>> {
-    const agentUrl = await this.env.getAgentUrl();
+  protected async handle(
+    args: GitSquashArgs,
+    _ctx: RunContext,
+    options?: ToolCallOptions<GitTargetConfig>,
+  ): Promise<ToolEnvelope<GitSquashResult>> {
+    const agentUrl = await targetAgentUrl(this.env, options);
     const run = (command: string) => gitRun(this.remote, agentUrl, command, args.dir);
 
     const baseRef = safeRef(args.baseRef);

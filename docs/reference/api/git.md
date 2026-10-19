@@ -58,9 +58,13 @@ import { GitCheckoutStateTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitCheckoutStateTool extends BaseTool<GitCheckoutStateArgs, object, GitCheckoutStateResult> {
+export class GitCheckoutStateTool extends BaseTool<GitCheckoutStateArgs, GitTargetConfig, GitCheckoutStateResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(args: GitCheckoutStateArgs): Promise<ToolEnvelope<GitCheckoutStateResult>>;
+  protected handle(
+    args: GitCheckoutStateArgs,
+    _ctx: RunContext,
+    options?: ToolCallOptions<GitTargetConfig>,
+  ): Promise<ToolEnvelope<GitCheckoutStateResult>>;
 }
 ```
 
@@ -258,9 +262,13 @@ import { GitRebaseTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitRebaseTool extends BaseTool<GitRebaseArgs, object, GitRebaseResult> {
+export class GitRebaseTool extends BaseTool<GitRebaseArgs, GitTargetConfig, GitRebaseResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(args: GitRebaseArgs): Promise<ToolEnvelope<GitRebaseResult>>;
+  protected handle(
+    args: GitRebaseArgs,
+    _ctx: RunContext,
+    options?: ToolCallOptions<GitTargetConfig>,
+  ): Promise<ToolEnvelope<GitRebaseResult>>;
 }
 ```
 
@@ -297,9 +305,13 @@ import { GitSquashTool } from '@loopstack/git';
 **Provided by:** `GitModule`
 
 ```ts
-export class GitSquashTool extends BaseTool<GitSquashArgs, object, GitSquashResult> {
+export class GitSquashTool extends BaseTool<GitSquashArgs, GitTargetConfig, GitSquashResult> {
   constructor(env: EnvironmentService, remote: RemoteClient);
-  protected handle(args: GitSquashArgs): Promise<ToolEnvelope<GitSquashResult>>;
+  protected handle(
+    args: GitSquashArgs,
+    _ctx: RunContext,
+    options?: ToolCallOptions<GitTargetConfig>,
+  ): Promise<ToolEnvelope<GitSquashResult>>;
 }
 ```
 

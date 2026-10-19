@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { GitDirArgSchema } from './git-dir.schema.js';
-import { gitExec, safeRef } from './git-exec.js';
+import { type GitTargetConfig, GitTargetConfigSchema, gitExec, safeRef, targetAgentUrl } from './git-exec.js';
 
 /**
  * Args for `GitRebaseTool`: the ref to rebase `onto`.
@@ -58,10 +59,11 @@ export const GitRebaseResultSchema = z.strictObject({
       dir: GitDirArgSchema,
     })
     .strict(),
+  configSchema: GitTargetConfigSchema,
   resultSchema: GitRebaseResultSchema,
   effects: 'external',
 })
-export class GitRebaseTool extends BaseTool<GitRebaseArgs, object, GitRebaseResult> {
+export class GitRebaseTool extends BaseTool<GitRebaseArgs, GitTargetConfig, GitRebaseResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
@@ -69,8 +71,12 @@ export class GitRebaseTool extends BaseTool<GitRebaseArgs, object, GitRebaseResu
     super();
   }
 
-  protected async handle(args: GitRebaseArgs): Promise<ToolEnvelope<GitRebaseResult>> {
-    const agentUrl = await this.env.getAgentUrl();
+  protected async handle(
+    args: GitRebaseArgs,
+    _ctx: RunContext,
+    options?: ToolCallOptions<GitTargetConfig>,
+  ): Promise<ToolEnvelope<GitRebaseResult>> {
+    const agentUrl = await targetAgentUrl(this.env, options);
     const exec = (command: string) => gitExec(this.remote, agentUrl, command, args.dir);
 
     const onto = safeRef(args.onto);
