@@ -138,6 +138,22 @@ export interface FileTreeNode {
 
 // --- Git interfaces ---
 
+/**
+ * The repository a git call addresses: a path relative to the workspace root. Omitting it addresses the root.
+ * The server validates the path and rejects anything outside the workspace.
+ *
+ * @public
+ */
+export interface GitDirOptions {
+  dir?: string;
+}
+
+/** Adds `dir` to a GET path, keeping whatever query the path already carries. */
+function withDir(path: string, dir?: string): string {
+  if (!dir) return path;
+  return `${path}${path.includes('?') ? '&' : '?'}dir=${encodeURIComponent(dir)}`;
+}
+
 export interface GitStatusResponse {
   branch: string;
   staged: string[];
@@ -417,114 +433,139 @@ export class RemoteClient {
   }
 
   // --- Git operations ---
+  //
+  // A workspace can hold several repositories in one tree, so every call takes an optional `dir`, relative to
+  // the workspace root, naming the repository it addresses. Omitting it addresses the root.
 
-  async gitStatus(connectionUrl: string): Promise<GitStatusResponse> {
-    return this.doRequest<GitStatusResponse>(connectionUrl, 'GET', '/git/status');
+  async gitStatus(connectionUrl: string, options?: GitDirOptions): Promise<GitStatusResponse> {
+    return this.doRequest<GitStatusResponse>(connectionUrl, 'GET', withDir('/git/status', options?.dir));
   }
 
-  async gitLog(connectionUrl: string, limit?: number): Promise<GitLogResponse> {
-    const query = limit ? `?limit=${limit}` : '';
-    return this.doRequest<GitLogResponse>(connectionUrl, 'GET', `/git/log${query}`);
+  async gitLog(connectionUrl: string, options?: { limit?: number } & GitDirOptions): Promise<GitLogResponse> {
+    const query = options?.limit ? `?limit=${options.limit}` : '';
+    return this.doRequest<GitLogResponse>(connectionUrl, 'GET', withDir(`/git/log${query}`, options?.dir));
   }
 
-  async gitDiff(connectionUrl: string, staged?: boolean): Promise<GitDiffResponse> {
-    const query = staged ? '?staged=true' : '';
-    return this.doRequest<GitDiffResponse>(connectionUrl, 'GET', `/git/diff${query}`);
+  async gitDiff(connectionUrl: string, options?: { staged?: boolean } & GitDirOptions): Promise<GitDiffResponse> {
+    const query = options?.staged ? '?staged=true' : '';
+    return this.doRequest<GitDiffResponse>(connectionUrl, 'GET', withDir(`/git/diff${query}`, options?.dir));
   }
 
-  async gitBranches(connectionUrl: string): Promise<GitBranchesResponse> {
-    return this.doRequest<GitBranchesResponse>(connectionUrl, 'GET', '/git/branches');
+  async gitBranches(connectionUrl: string, options?: GitDirOptions): Promise<GitBranchesResponse> {
+    return this.doRequest<GitBranchesResponse>(connectionUrl, 'GET', withDir('/git/branches', options?.dir));
   }
 
-  async gitRemote(connectionUrl: string): Promise<GitRemoteResponse | null> {
-    return this.doRequest<GitRemoteResponse | null>(connectionUrl, 'GET', '/git/remote');
+  async gitRemote(connectionUrl: string, options?: GitDirOptions): Promise<GitRemoteResponse | null> {
+    return this.doRequest<GitRemoteResponse | null>(connectionUrl, 'GET', withDir('/git/remote', options?.dir));
   }
 
-  async gitAdd(connectionUrl: string, files: string[]): Promise<{ success: boolean }> {
-    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/add', { files });
+  async gitAdd(connectionUrl: string, options: { files: string[] } & GitDirOptions): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/add', options);
   }
 
-  async gitCommit(connectionUrl: string, message: string): Promise<{ hash: string; message: string }> {
-    return this.doRequest<{ hash: string; message: string }>(connectionUrl, 'POST', '/git/commit', { message });
+  async gitCommit(
+    connectionUrl: string,
+    options: { message: string } & GitDirOptions,
+  ): Promise<{ hash: string; message: string }> {
+    return this.doRequest<{ hash: string; message: string }>(connectionUrl, 'POST', '/git/commit', options);
   }
 
   async gitPush(
     connectionUrl: string,
-    options?: { remote?: string; branch?: string; force?: boolean; token?: string },
+    options?: { remote?: string; branch?: string; force?: boolean; token?: string } & GitDirOptions,
   ): Promise<GitCommandResult> {
     return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/push', options ?? {}, {
       redactBody: !!options?.token,
     });
   }
 
-  async gitFetch(connectionUrl: string, remote?: string, token?: string): Promise<GitCommandResult> {
-    return this.doRequest<GitCommandResult>(
-      connectionUrl,
-      'POST',
-      '/git/fetch',
-      { remote, token },
-      {
-        redactBody: !!token,
-      },
-    );
+  async gitFetch(
+    connectionUrl: string,
+    options?: { remote?: string; token?: string } & GitDirOptions,
+  ): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/fetch', options ?? {}, {
+      redactBody: !!options?.token,
+    });
   }
 
   async gitPull(
     connectionUrl: string,
-    options?: { remote?: string; branch?: string; token?: string },
+    options?: { remote?: string; branch?: string; token?: string } & GitDirOptions,
   ): Promise<GitCommandResult> {
     return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/pull', options ?? {}, {
       redactBody: !!options?.token,
     });
   }
 
-  async gitCheckout(connectionUrl: string, branch: string, create?: boolean): Promise<{ branch: string }> {
-    return this.doRequest<{ branch: string }>(connectionUrl, 'POST', '/git/checkout', { branch, create });
+  /** Clones `url` into `dir` (default: the workspace root), which must be empty. */
+  async gitClone(
+    connectionUrl: string,
+    options: { url: string; branch?: string; token?: string } & GitDirOptions,
+  ): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/clone', options, {
+      redactBody: !!options.token,
+    });
   }
 
-  async gitBranch(connectionUrl: string, name: string): Promise<{ branch: string }> {
-    return this.doRequest<{ branch: string }>(connectionUrl, 'POST', '/git/branch', { name });
+  async gitCheckout(
+    connectionUrl: string,
+    options: { branch: string; create?: boolean } & GitDirOptions,
+  ): Promise<{ branch: string }> {
+    return this.doRequest<{ branch: string }>(connectionUrl, 'POST', '/git/checkout', options);
   }
 
-  async gitRemoveRemote(connectionUrl: string, name?: string): Promise<{ success: boolean }> {
-    return this.doRequest<{ success: boolean }>(connectionUrl, 'DELETE', '/git/remote', { name: name ?? 'origin' });
+  async gitBranch(connectionUrl: string, options: { name: string } & GitDirOptions): Promise<{ branch: string }> {
+    return this.doRequest<{ branch: string }>(connectionUrl, 'POST', '/git/branch', options);
   }
 
-  async gitConfigureRemote(connectionUrl: string, url: string): Promise<{ success: boolean }> {
-    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/remote/configure', { url });
+  async gitRemoveRemote(
+    connectionUrl: string,
+    options?: { name?: string } & GitDirOptions,
+  ): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'DELETE', '/git/remote', options ?? {});
   }
 
-  async gitConfigUser(connectionUrl: string, name: string, email: string): Promise<{ success: boolean }> {
-    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/config-user', { name, email });
+  async gitConfigureRemote(
+    connectionUrl: string,
+    options: { url: string } & GitDirOptions,
+  ): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/remote/configure', options);
   }
 
-  async gitWorktreeList(connectionUrl: string): Promise<GitWorktreeListResponse> {
-    return this.doRequest<GitWorktreeListResponse>(connectionUrl, 'GET', '/git/worktree/list');
+  async gitConfigUser(
+    connectionUrl: string,
+    options: { name: string; email: string } & GitDirOptions,
+  ): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/config-user', options);
+  }
+
+  async gitWorktreeList(connectionUrl: string, options?: GitDirOptions): Promise<GitWorktreeListResponse> {
+    return this.doRequest<GitWorktreeListResponse>(connectionUrl, 'GET', withDir('/git/worktree/list', options?.dir));
   }
 
   async gitWorktreeAdd(
     connectionUrl: string,
-    options: { path: string; branch?: string; newBranch?: boolean; force?: boolean },
+    options: { path: string; branch?: string; newBranch?: boolean; force?: boolean } & GitDirOptions,
   ): Promise<GitWorktreeAddResponse> {
     return this.doRequest<GitWorktreeAddResponse>(connectionUrl, 'POST', '/git/worktree/add', options);
   }
 
   async gitWorktreeRemove(
     connectionUrl: string,
-    options: { path: string; force?: boolean },
+    options: { path: string; force?: boolean } & GitDirOptions,
   ): Promise<{ success: boolean }> {
     return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/worktree/remove', options);
   }
 
-  async gitWorktreePrune(connectionUrl: string): Promise<GitCommandResult> {
-    return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/worktree/prune');
+  async gitWorktreePrune(connectionUrl: string, options?: GitDirOptions): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/worktree/prune', options ?? {});
   }
 
   private async doRequest<T = void>(
     connectionUrl: string,
     method: string,
     path: string,
-    body?: Record<string, unknown>,
+    body?: object,
     options?: { redactBody?: boolean },
   ): Promise<T> {
     const url = `${connectionUrl}${path}`;

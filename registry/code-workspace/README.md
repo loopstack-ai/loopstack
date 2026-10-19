@@ -101,9 +101,11 @@ removal, which is the safe reading of "none declared".
 
 ## The git routes
 
-`RepoGitClient` posts to `/git/clone`, `/git/fetch` and `/git/push` on the in-container agent. Those three
-carry a **token**, and the agent applies it through a throwaway `GIT_ASKPASS` so it never reaches the URL,
-the argv or `.git/config`. Every other git command is a plain `executeCommand(agentUrl, cmd, dir)`.
+A checkout can hold several repositories in one tree, so every git call names the one it addresses: the
+methods on `RemoteClient` from `@loopstack/remote-client` take a `dir` relative to the workspace root, and
+omitting it addresses the root. `gitClone`, `gitFetch` and `gitPush` also carry a **token**, which the agent
+applies through a throwaway `GIT_ASKPASS` so it never reaches the URL, the argv or `.git/config`. A git
+command with no route of its own is a plain `executeCommand(agentUrl, cmd, dir)`.
 
-So a consumer needs an agent image whose server implements those three routes. Everything else the module
-asks of the container is ordinary command execution.
+So a consumer needs an agent image whose server implements the `/git/*` routes — `@loopstack/remote-server`
+does. Everything else the module asks of the container is ordinary command execution.

@@ -1,13 +1,25 @@
 import { exec } from 'child_process';
-import { Request, Router } from 'express';
+import { Request, Response, Router } from 'express';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as tls from 'tls';
 import { WORKSPACE_ROOT } from '../config.js';
+import { isValidRef, quotePath, resolveRepoDir } from './git-paths.js';
 
 const router = Router();
-const GIT_TIMEOUT_MS = 30_000;
+// What a git command is allowed to take. A command that only reads or writes refs, config or the index
+// header is quick or it is stuck, so it gets the short budget. A command that walks the working tree, or
+// talks to a remote, is routinely slow: a workspace is a bind mount from the host, and `status`, `add`,
+// `commit`, `diff` and `checkout` over a monorepo through it take minutes rather than seconds, while a
+// clone or a push takes as long as the repository and the network need. Every call names its budget, so a
+// new route decides rather than inherits.
+const METADATA_TIMEOUT_MS = 30_000;
+const WORK_TIMEOUT_MS = 600_000;
+
+// Every route takes an optional `dir`, relative to the workspace root, and runs git there. A workspace can
+// hold several repositories in one tree, so an address is part of the request; omitting it means the root.
+// The path is validated rather than trusted — see `resolveRepoDir`.
 
 // Export Node's built-in CA bundle so git can use it for HTTPS.
 // This works on any OS (macOS, Linux, Docker) without requiring ca-certificates.
@@ -20,8 +32,9 @@ fs.writeFileSync(CA_BUNDLE_PATH, tls.rootCertificates.join('\n'), 'utf-8');
 
 function gitExec(
   args: string,
-  timeout = GIT_TIMEOUT_MS,
+  timeout: number,
   token?: string,
+  cwd?: string,
 ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   // If a token is provided, create a temporary GIT_ASKPASS script that returns it.
   // The token only exists on disk for the duration of the command.
@@ -45,7 +58,7 @@ function gitExec(
     exec(
       `git ${args}`,
       {
-        cwd: WORKSPACE_ROOT,
+        cwd: cwd ?? WORKSPACE_ROOT,
         timeout,
         maxBuffer: 10 * 1024 * 1024,
         env,
@@ -72,21 +85,28 @@ function gitExec(
   });
 }
 
-function isValidRef(name: string): boolean {
-  return /^[a-zA-Z0-9._\-/]+$/.test(name) && !name.includes('..');
-}
-
-function quotePath(p: string): string {
-  return `"${p.replace(/"/g, '\\"')}"`;
-}
-
-// ---------------------------------------------------------------------------
-// GET /status
-// ---------------------------------------------------------------------------
-
-router.get('/status', async (_req: Request, res) => {
+/**
+ * The directory a request addresses, or a 400 when it points outside the workspace. Returns `undefined` when
+ * the response has already been sent.
+ */
+function requestedDir(dir: string | undefined, res: Response): string | undefined {
   try {
-    const result = await gitExec('status --porcelain=v1 -b');
+    return resolveRepoDir(dir);
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+    return undefined;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /status?dir=
+// ---------------------------------------------------------------------------
+
+router.get('/status', async (req: Request, res) => {
+  try {
+    const cwd = requestedDir(req.query.dir as string | undefined, res);
+    if (cwd === undefined) return;
+    const result = await gitExec('status --porcelain=v1 -b', WORK_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git status failed' });
       return;
@@ -139,7 +159,7 @@ router.get('/status', async (_req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /log?limit=20
+// GET /log?limit=20&dir=
 // ---------------------------------------------------------------------------
 
 router.get('/log', async (req: Request, res) => {
@@ -147,7 +167,14 @@ router.get('/log', async (req: Request, res) => {
     const rawLimit = typeof req.query.limit === 'string' ? req.query.limit : '20';
     const limit = Math.min(Math.max(parseInt(rawLimit, 10) || 20, 1), 200);
     const SEP = '\x1f'; // ASCII Unit Separator — safe delimiter that won't appear in commit messages
-    const result = await gitExec(`log --format="%H${SEP}%h${SEP}%s${SEP}%an${SEP}%aI" -n ${limit}`);
+    const cwd = requestedDir(req.query.dir as string | undefined, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(
+      `log --format="%H${SEP}%h${SEP}%s${SEP}%an${SEP}%aI" -n ${limit}`,
+      METADATA_TIMEOUT_MS,
+      undefined,
+      cwd,
+    );
 
     if (result.exitCode !== 0) {
       // Empty repo with no commits
@@ -176,14 +203,16 @@ router.get('/log', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /diff?staged=true
+// GET /diff?staged=true&dir=
 // ---------------------------------------------------------------------------
 
 router.get('/diff', async (req: Request, res) => {
   try {
     const staged = req.query.staged === 'true';
     const args = staged ? 'diff --cached --name-status' : 'diff --name-status';
-    const result = await gitExec(args);
+    const cwd = requestedDir(req.query.dir as string | undefined, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(args, WORK_TIMEOUT_MS, undefined, cwd);
 
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git diff failed' });
@@ -207,12 +236,14 @@ router.get('/diff', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /branches
+// GET /branches?dir=
 // ---------------------------------------------------------------------------
 
-router.get('/branches', async (_req: Request, res) => {
+router.get('/branches', async (req: Request, res) => {
   try {
-    const result = await gitExec("branch --format='%(refname:short)||%(HEAD)'");
+    const cwd = requestedDir(req.query.dir as string | undefined, res);
+    if (cwd === undefined) return;
+    const result = await gitExec("branch --format='%(refname:short)||%(HEAD)'", METADATA_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git branch failed' });
       return;
@@ -239,12 +270,14 @@ router.get('/branches', async (_req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /remote
+// GET /remote?dir=
 // ---------------------------------------------------------------------------
 
-router.get('/remote', async (_req: Request, res) => {
+router.get('/remote', async (req: Request, res) => {
   try {
-    const result = await gitExec('remote -v');
+    const cwd = requestedDir(req.query.dir as string | undefined, res);
+    if (cwd === undefined) return;
+    const result = await gitExec('remote -v', METADATA_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0 || !result.stdout.trim()) {
       res.json(null);
       return;
@@ -272,19 +305,21 @@ router.get('/remote', async (_req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /add  { files: string[] }
+// POST /add  { files: string[], dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/add', async (req: Request, res) => {
   try {
-    const { files } = req.body as { files?: string[] };
+    const { files, dir } = req.body as { files?: string[]; dir?: string };
     if (!files || !Array.isArray(files) || files.length === 0) {
       res.status(400).json({ error: 'Missing required field: files (string[])' });
       return;
     }
 
     const safeFiles = files.map((f) => `"${f.replace(/"/g, '\\"')}"`).join(' ');
-    const result = await gitExec(`add ${safeFiles}`);
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(`add ${safeFiles}`, WORK_TIMEOUT_MS, undefined, cwd);
 
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git add failed' });
@@ -300,23 +335,26 @@ router.post('/add', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /commit  { message: string }
+// POST /commit  { message: string, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/commit', async (req: Request, res) => {
   try {
-    const { message } = req.body as { message?: string };
+    const { message, dir } = req.body as { message?: string; dir?: string };
     if (!message) {
       res.status(400).json({ error: 'Missing required field: message' });
       return;
     }
+
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
 
     // Write message to temp file to avoid shell escaping issues
     const tmpFile = path.join(os.tmpdir(), `git-commit-msg-${Date.now()}.txt`);
     fs.writeFileSync(tmpFile, message, 'utf-8');
 
     try {
-      const result = await gitExec(`commit -F "${tmpFile}"`);
+      const result = await gitExec(`commit -F "${tmpFile}"`, WORK_TIMEOUT_MS, undefined, cwd);
       if (result.exitCode !== 0) {
         res.status(500).json({ error: result.stderr || result.stdout || 'git commit failed' });
         return;
@@ -342,16 +380,17 @@ router.post('/commit', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /push  { remote?, branch?, force? }
+// POST /push  { remote?, branch?, force?, token?, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/push', async (req: Request, res) => {
   try {
-    const { remote, branch, force, token } = req.body as {
+    const { remote, branch, force, token, dir } = req.body as {
       remote?: string;
       branch?: string;
       force?: boolean;
       token?: string;
+      dir?: string;
     };
 
     let args = 'push';
@@ -371,7 +410,14 @@ router.post('/push', async (req: Request, res) => {
       args += ` ${branch}`;
     }
 
-    const result = await gitExec(args, 60_000, token);
+    let cwd: string;
+    try {
+      cwd = resolveRepoDir(dir);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      return;
+    }
+    const result = await gitExec(args, WORK_TIMEOUT_MS, token, cwd);
     if (result.exitCode !== 0) {
       res
         .status(500)
@@ -388,12 +434,12 @@ router.post('/push', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /fetch  { remote? }
+// POST /fetch  { remote?, token?, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/fetch', async (req: Request, res) => {
   try {
-    const { remote, token } = req.body as { remote?: string; token?: string };
+    const { remote, token, dir } = req.body as { remote?: string; token?: string; dir?: string };
 
     let args = 'fetch';
     if (remote) {
@@ -404,7 +450,14 @@ router.post('/fetch', async (req: Request, res) => {
       args += ` ${remote}`;
     }
 
-    const result = await gitExec(args, 60_000, token);
+    let cwd: string;
+    try {
+      cwd = resolveRepoDir(dir);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      return;
+    }
+    const result = await gitExec(args, WORK_TIMEOUT_MS, token, cwd);
     if (result.exitCode !== 0) {
       res
         .status(500)
@@ -421,12 +474,17 @@ router.post('/fetch', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /pull  { remote?, branch? }
+// POST /pull  { remote?, branch?, token?, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/pull', async (req: Request, res) => {
   try {
-    const { remote, branch, token } = req.body as { remote?: string; branch?: string; token?: string };
+    const { remote, branch, token, dir } = req.body as {
+      remote?: string;
+      branch?: string;
+      token?: string;
+      dir?: string;
+    };
 
     let args = 'pull';
     if (remote) {
@@ -444,7 +502,9 @@ router.post('/pull', async (req: Request, res) => {
       args += ` ${branch}`;
     }
 
-    const result = await gitExec(args, 60_000, token);
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(args, WORK_TIMEOUT_MS, token, cwd);
     if (result.exitCode !== 0) {
       res
         .status(500)
@@ -461,12 +521,12 @@ router.post('/pull', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /checkout  { branch, create? }
+// POST /checkout  { branch, create?, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/checkout', async (req: Request, res) => {
   try {
-    const { branch, create } = req.body as { branch?: string; create?: boolean };
+    const { branch, create, dir } = req.body as { branch?: string; create?: boolean; dir?: string };
     if (!branch) {
       res.status(400).json({ error: 'Missing required field: branch' });
       return;
@@ -477,7 +537,9 @@ router.post('/checkout', async (req: Request, res) => {
     }
 
     const flag = create ? '-b ' : '';
-    const result = await gitExec(`checkout ${flag}${branch}`);
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(`checkout ${flag}${branch}`, WORK_TIMEOUT_MS, undefined, cwd);
 
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git checkout failed' });
@@ -493,12 +555,64 @@ router.post('/checkout', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /branch  { name }
+// POST /clone  { url, branch?, token?, dir? }
+// ---------------------------------------------------------------------------
+
+router.post('/clone', async (req: Request, res) => {
+  try {
+    const { url, branch, token, dir } = req.body as {
+      url?: string;
+      branch?: string;
+      token?: string;
+      dir?: string;
+    };
+    if (!url) {
+      res.status(400).json({ error: 'Missing required field: url' });
+      return;
+    }
+    if (branch && !isValidRef(branch)) {
+      res.status(400).json({ error: 'Invalid branch name' });
+      return;
+    }
+
+    // Clone into `dir` (default: the workspace root), which must be empty. The target is created first so
+    // a nested path works, and the clone still runs from the root with an explicit target — keeping the
+    // validated path in one place. A token, if given, is supplied via GIT_ASKPASS — never embedded in the
+    // URL, so it can't leak into process listings or logs.
+    let target: string;
+    try {
+      target = resolveRepoDir(dir);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+      return;
+    }
+    fs.mkdirSync(target, { recursive: true });
+    const branchArg = branch ? ` --branch ${branch}` : '';
+    const result = await gitExec(`clone${branchArg} ${quotePath(url)} ${quotePath(target)}`, WORK_TIMEOUT_MS, token);
+
+    if (result.exitCode !== 0) {
+      res.status(500).json({
+        error: result.stderr || result.stdout || 'git clone failed',
+        output: result.stdout + result.stderr,
+      });
+      return;
+    }
+
+    res.json({ success: true, output: result.stdout + result.stderr });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[git] uncaught error: ${message}`);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /branch  { name, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/branch', async (req: Request, res) => {
   try {
-    const { name } = req.body as { name?: string };
+    const { name, dir } = req.body as { name?: string; dir?: string };
     if (!name) {
       res.status(400).json({ error: 'Missing required field: name' });
       return;
@@ -508,7 +622,9 @@ router.post('/branch', async (req: Request, res) => {
       return;
     }
 
-    const result = await gitExec(`branch ${name}`);
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(`branch ${name}`, METADATA_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git branch failed' });
       return;
@@ -523,26 +639,28 @@ router.post('/branch', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /remote/configure  { url }
+// POST /remote/configure  { url, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/remote/configure', async (req: Request, res) => {
   try {
-    const { url } = req.body as { url?: string };
+    const { url, dir } = req.body as { url?: string; dir?: string };
     if (!url) {
       res.status(400).json({ error: 'Missing required field: url' });
       return;
     }
 
     // Check if origin remote already exists
-    const check = await gitExec('remote');
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const check = await gitExec('remote', METADATA_TIMEOUT_MS, undefined, cwd);
     const remotes = check.stdout.split('\n').filter(Boolean);
 
     let result;
     if (remotes.includes('origin')) {
-      result = await gitExec(`remote set-url origin "${url}"`);
+      result = await gitExec(`remote set-url origin "${url}"`, METADATA_TIMEOUT_MS, undefined, cwd);
     } else {
-      result = await gitExec(`remote add origin "${url}"`);
+      result = await gitExec(`remote add origin "${url}"`, METADATA_TIMEOUT_MS, undefined, cwd);
     }
 
     if (result.exitCode !== 0) {
@@ -559,12 +677,12 @@ router.post('/remote/configure', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// DELETE /remote  { name? }
+// DELETE /remote  { name?, dir? }
 // ---------------------------------------------------------------------------
 
 router.delete('/remote', async (req: Request, res) => {
   try {
-    const { name } = req.body as { name?: string };
+    const { name, dir } = req.body as { name?: string; dir?: string };
     const remoteName = name || 'origin';
 
     if (!isValidRef(remoteName)) {
@@ -572,7 +690,9 @@ router.delete('/remote', async (req: Request, res) => {
       return;
     }
 
-    const result = await gitExec(`remote remove ${remoteName}`);
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(`remote remove ${remoteName}`, METADATA_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'Failed to remove remote' });
       return;
@@ -587,24 +707,36 @@ router.delete('/remote', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /config-user  { name, email }
+// POST /config-user  { name, email, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/config-user', async (req: Request, res) => {
   try {
-    const { name, email } = req.body as { name?: string; email?: string };
+    const { name, email, dir } = req.body as { name?: string; email?: string; dir?: string };
     if (!name || !email) {
       res.status(400).json({ error: 'Missing required fields: name, email' });
       return;
     }
 
-    const nameResult = await gitExec(`config user.name "${name.replace(/"/g, '\\"')}"`);
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const nameResult = await gitExec(
+      `config user.name "${name.replace(/"/g, '\\"')}"`,
+      METADATA_TIMEOUT_MS,
+      undefined,
+      cwd,
+    );
     if (nameResult.exitCode !== 0) {
       res.status(500).json({ error: nameResult.stderr || 'Failed to set user.name' });
       return;
     }
 
-    const emailResult = await gitExec(`config user.email "${email.replace(/"/g, '\\"')}"`);
+    const emailResult = await gitExec(
+      `config user.email "${email.replace(/"/g, '\\"')}"`,
+      METADATA_TIMEOUT_MS,
+      undefined,
+      cwd,
+    );
     if (emailResult.exitCode !== 0) {
       res.status(500).json({ error: emailResult.stderr || 'Failed to set user.email' });
       return;
@@ -619,12 +751,14 @@ router.post('/config-user', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /worktree/list
+// GET /worktree/list?dir=
 // ---------------------------------------------------------------------------
 
-router.get('/worktree/list', async (_req: Request, res) => {
+router.get('/worktree/list', async (req: Request, res) => {
   try {
-    const result = await gitExec('worktree list --porcelain');
+    const cwd = requestedDir(req.query.dir as string | undefined, res);
+    if (cwd === undefined) return;
+    const result = await gitExec('worktree list --porcelain', METADATA_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git worktree list failed' });
       return;
@@ -700,7 +834,7 @@ router.get('/worktree/list', async (_req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /worktree/add  { path, branch?, newBranch?, force? }
+// POST /worktree/add  { path, branch?, newBranch?, force?, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/worktree/add', async (req: Request, res) => {
@@ -710,8 +844,10 @@ router.post('/worktree/add', async (req: Request, res) => {
       branch,
       newBranch,
       force,
+      dir,
     } = req.body as {
       path?: string;
+      dir?: string;
       branch?: string;
       newBranch?: boolean;
       force?: boolean;
@@ -735,7 +871,9 @@ router.post('/worktree/add', async (req: Request, res) => {
       if (branch) args += ` ${branch}`;
     }
 
-    const result = await gitExec(args);
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(args, WORK_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0) {
       res.status(500).json({
         error: result.stderr || result.stdout || 'git worktree add failed',
@@ -753,12 +891,12 @@ router.post('/worktree/add', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /worktree/remove  { path, force? }
+// POST /worktree/remove  { path, force?, dir? }
 // ---------------------------------------------------------------------------
 
 router.post('/worktree/remove', async (req: Request, res) => {
   try {
-    const { path: wtPath, force } = req.body as { path?: string; force?: boolean };
+    const { path: wtPath, force, dir } = req.body as { path?: string; force?: boolean; dir?: string };
     if (!wtPath) {
       res.status(400).json({ error: 'Missing required field: path' });
       return;
@@ -768,7 +906,9 @@ router.post('/worktree/remove', async (req: Request, res) => {
     if (force) args += ' --force';
     args += ` ${quotePath(wtPath)}`;
 
-    const result = await gitExec(args);
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const result = await gitExec(args, WORK_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git worktree remove failed' });
       return;
@@ -783,12 +923,15 @@ router.post('/worktree/remove', async (req: Request, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /worktree/prune
+// POST /worktree/prune  { dir? }
 // ---------------------------------------------------------------------------
 
-router.post('/worktree/prune', async (_req: Request, res) => {
+router.post('/worktree/prune', async (req: Request, res) => {
   try {
-    const result = await gitExec('worktree prune -v');
+    const { dir } = req.body as { dir?: string };
+    const cwd = requestedDir(dir, res);
+    if (cwd === undefined) return;
+    const result = await gitExec('worktree prune -v', METADATA_TIMEOUT_MS, undefined, cwd);
     if (result.exitCode !== 0) {
       res.status(500).json({ error: result.stderr || result.stdout || 'git worktree prune failed' });
       return;

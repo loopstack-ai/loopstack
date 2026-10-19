@@ -8,7 +8,6 @@ import {
 } from './code-workspace.options.js';
 import { CODE_WORKSPACE_PROVISIONER } from './code-workspace.provisioner.js';
 import { LocalDockerProvisioner } from './local-docker.provisioner.js';
-import { RepoGitClient } from './repo-git-client.js';
 import { WorkspaceCleanupListener } from './workspace-cleanup.listener.js';
 import { WorkspaceInventoryService } from './workspace-inventory.service.js';
 
@@ -62,13 +61,12 @@ export class CodeWorkspaceModule {
       providers: [
         optionsProvider,
         { provide: CODE_WORKSPACE_PROVISIONER, useClass: LocalDockerProvisioner },
-        RepoGitClient,
         WorkspaceInventoryService,
         WorkspaceCleanupListener,
       ],
       // The options token is exported too: the maintenance app reads `knownBaseKeys` from it, and anything
       // else consuming this module may want the namespace or the state dir it was configured with.
-      exports: [CODE_WORKSPACE_OPTIONS, CODE_WORKSPACE_PROVISIONER, RepoGitClient, WorkspaceInventoryService],
+      exports: [CODE_WORKSPACE_OPTIONS, CODE_WORKSPACE_PROVISIONER, WorkspaceInventoryService],
     };
   }
 }

@@ -91,6 +91,8 @@ Workflow / Tool
 
 **`RemoteClient`** is a plain `@Injectable()` service that wraps all HTTP calls to the remote server. It handles file operations, shell execution, app lifecycle, and git operations. You can inject it directly for advanced use cases.
 
+Every git method takes one options object with an optional `dir`: the repository it addresses, as a path relative to the workspace root. A workspace can hold several repositories in one tree, so each call names the one it works on; omitting `dir` addresses the root. `gitClone`, `gitFetch`, `gitPull` and `gitPush` also take a `token`, which the server applies through a throwaway `GIT_ASKPASS` so it never reaches the URL, the argv or `.git/config`.
+
 ### Using `RemoteClient` directly
 
 For cases where tools are not sufficient, inject `RemoteClient` and `EnvironmentService`:

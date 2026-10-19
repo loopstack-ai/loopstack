@@ -9,7 +9,6 @@ export { CODE_WORKSPACE_OPTIONS, DEFAULT_NAMESPACE } from './code-workspace.opti
 export type { CodeWorkspaceOptions, ResolvedCodeWorkspaceOptions } from './code-workspace.options.js';
 export { CODE_WORKSPACE_PROVISIONER } from './code-workspace.provisioner.js';
 export { baseResource } from './base-resource.js';
-export { RepoGitClient } from './repo-git-client.js';
 export { CleanupOrphanedWorkflow } from './cleanup-orphaned.workflow.js';
 export { StateReportWorkflow } from './state-report.workflow.js';
 export { CodeWorkspaceMaintenanceModule } from './code-workspace-maintenance.module.js';
