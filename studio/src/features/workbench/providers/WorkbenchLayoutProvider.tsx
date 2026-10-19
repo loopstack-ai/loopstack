@@ -27,6 +27,11 @@ export interface WorkbenchLayoutContextType {
   setSelectedSlotId: (slotId: string) => void;
   openPreviewWithEnvironment: (slotId: string) => void;
 
+  // Which repository of the workspace the git panel addresses — a path relative to the workspace root,
+  // empty for the root itself. Kept here so the choice outlives opening and closing the panel.
+  selectedRepoDir: string;
+  setSelectedRepoDir: (dir: string) => void;
+
   // File-explorer deep-open: a card elsewhere requests a path; the explorer picks it up when it mounts,
   // resolves it against the loaded tree, and clears it.
   requestedFilePath: string | null;
@@ -69,6 +74,7 @@ export function WorkbenchLayoutProvider({
 
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string>('');
+  const [selectedRepoDir, setSelectedRepoDir] = useState<string>('');
 
   // Keep the active environment sensible: default to (and follow) a running slot. If the selected slot is
   // still running, leave the user's choice alone; otherwise switch to any running slot so environment-scoped
@@ -174,6 +180,9 @@ export function WorkbenchLayoutProvider({
       setSelectedSlotId,
       openPreviewWithEnvironment,
 
+      selectedRepoDir,
+      setSelectedRepoDir,
+
       requestedFilePath,
       openFileInExplorer,
       clearRequestedFile,
@@ -197,6 +206,7 @@ export function WorkbenchLayoutProvider({
       setPanelSize,
 
       selectedSlotId,
+      selectedRepoDir,
       openPreviewWithEnvironment,
 
       requestedFilePath,

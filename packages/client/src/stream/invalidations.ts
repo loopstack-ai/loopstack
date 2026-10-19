@@ -48,6 +48,8 @@ export function resolveInvalidations(message: ClientMessage, envKey: string): Qu
         queryKeys.gitStatus(envKey, message.workspaceId),
         queryKeys.gitLog(envKey, message.workspaceId),
         queryKeys.gitRemote(envKey, message.workspaceId),
+        // A run can add a repository to the checkout, so the list is part of what git.updated invalidates.
+        queryKeys.gitRepos(envKey, message.workspaceId),
       ];
     default:
       return [];

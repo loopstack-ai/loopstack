@@ -1,29 +1,51 @@
 import { GitBranch, Loader2 } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 import { useWorkbenchLayout } from '@/features/workbench';
 import { EnvironmentSelector } from '@/features/workbench/components/EnvironmentSelector';
 import { SidebarPanel } from '@/features/workbench/components/SidebarPanel';
 import { useRunWorkflow } from '@/hooks/useProcessor';
 import { useCreateWorkflow } from '@/hooks/useWorkflows';
 import { useStudio } from '@/providers/StudioProvider';
-import { useGitInvalidation, useGitLog, useGitRemote, useGitStatus, useRemoveGitRemote } from '../hooks/useGit';
+import {
+  useGitInvalidation,
+  useGitLog,
+  useGitRemote,
+  useGitRepos,
+  useGitStatus,
+  useRemoveGitRemote,
+} from '../hooks/useGit';
 import { GitBranchBadge } from './GitBranchBadge';
 import { GitCommitList } from './GitCommitList';
 import { GitRemoteStatus } from './GitRemoteStatus';
+import { GitRepoSelector } from './GitRepoSelector';
 
 interface WorkbenchGitPanelProps {
   workspaceId?: string;
 }
 
 export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
-  const { panelSize, setPanelSize, closePanel, selectedSlotId, environments } = useWorkbenchLayout();
+  const { panelSize, setPanelSize, closePanel, selectedSlotId, environments, selectedRepoDir, setSelectedRepoDir } =
+    useWorkbenchLayout();
   const { router } = useStudio();
   // Git talks to a live container; only query when the selected environment slot is actually running,
   // otherwise the backend has no agent URL to resolve and returns a 500.
   const envRunning = (environments ?? []).some((e) => e.slotId === selectedSlotId && e.status === 'running');
-  const { data: status, isLoading: statusLoading } = useGitStatus(workspaceId, selectedSlotId, envRunning);
-  const { data: logData, isLoading: logLoading } = useGitLog(workspaceId, 50, selectedSlotId, envRunning);
-  const { data: remote } = useGitRemote(workspaceId, selectedSlotId, envRunning);
+  // The repository list comes from the host, so it is there before any container is.
+  const { data: reposData } = useGitRepos(workspaceId);
+  const repos = useMemo(() => reposData?.repos ?? [], [reposData]);
+  const dir = selectedRepoDir;
+  const { data: status, isLoading: statusLoading } = useGitStatus(workspaceId, selectedSlotId, dir, envRunning);
+  const { data: logData, isLoading: logLoading } = useGitLog(workspaceId, 50, selectedSlotId, dir, envRunning);
+  const { data: remote } = useGitRemote(workspaceId, selectedSlotId, dir, envRunning);
   useGitInvalidation(workspaceId);
+
+  // Land on the repository the application calls primary, and stay out of the way once anything is chosen.
+  // A workspace that declares no repositories keeps the empty dir, which is the workspace root.
+  useEffect(() => {
+    if (!repos.length || dir) return;
+    const primary = repos.find((repo) => repo.primary) ?? repos[0];
+    if (primary.dir) setSelectedRepoDir(primary.dir);
+  }, [repos, dir, setSelectedRepoDir]);
 
   const createWorkflow = useCreateWorkflow();
   const runWorkflow = useRunWorkflow();
@@ -39,7 +61,8 @@ export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
         title: null,
         workspaceId,
         transition: null,
-        args: {},
+        // Each repository has its own remote, so the connect names the one the panel is showing.
+        args: dir ? { dir } : {},
       },
       {
         onSuccess: (createdWorkflow) => {
@@ -69,6 +92,7 @@ export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
     >
       <div className="flex h-full flex-col">
         <EnvironmentSelector />
+        <GitRepoSelector repos={repos} value={dir} onChange={setSelectedRepoDir} />
         <div className="flex-1 overflow-y-auto px-4 py-3">
           {!envRunning ? (
             <p className="text-muted-foreground py-4 text-sm">
@@ -89,7 +113,7 @@ export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
                   remote={remote}
                   onConnect={handleConnectGitHub}
                   isConnecting={isConnecting}
-                  onRemove={workspaceId ? () => removeRemote.mutate({ workspaceId }) : undefined}
+                  onRemove={workspaceId ? () => removeRemote.mutate({ workspaceId, dir }) : undefined}
                   isRemoving={removeRemote.isPending}
                 />
               </div>

@@ -22,3 +22,16 @@ export interface GitRemoteResponse {
   name: string;
   url: string;
 }
+
+/** One repository of the workspace, as the application declared it. `dir` is empty for the root. */
+export interface GitRepository {
+  key: string;
+  dir: string;
+  url?: string;
+  branch?: string;
+  primary?: boolean;
+}
+
+export interface GitReposResponse {
+  repos: GitRepository[];
+}

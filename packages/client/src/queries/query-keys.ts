@@ -44,4 +44,5 @@ export const queryKeys = {
   gitStatus: (envKey: string, workspaceId: string) => ['gitStatus', envKey, workspaceId] as const,
   gitLog: (envKey: string, workspaceId: string) => ['gitLog', envKey, workspaceId] as const,
   gitRemote: (envKey: string, workspaceId: string) => ['gitRemote', envKey, workspaceId] as const,
+  gitRepos: (envKey: string, workspaceId: string) => ['gitRepos', envKey, workspaceId] as const,
 };

@@ -68,6 +68,7 @@ describe('resolveInvalidations', () => {
       ['gitStatus', ENV, 'ws'],
       ['gitLog', ENV, 'ws'],
       ['gitRemote', ENV, 'ws'],
+      ['gitRepos', ENV, 'ws'],
     ]);
   });
 
