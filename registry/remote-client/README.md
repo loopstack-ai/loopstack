@@ -201,10 +201,11 @@ Searches file contents by regex pattern on a remote instance. Returns matching l
 
 Executes a shell command on a remote instance. Streams output live; returns the merged output (`output`) and exit code (`exitCode`).
 
-| Arg       | Type     | Required | Description                  |
-| --------- | -------- | -------- | ---------------------------- |
-| `command` | `string` | Yes      | The shell command to execute |
-| `timeout` | `number` | No       | Timeout in milliseconds      |
+| Arg       | Type     | Required | Description                                         |
+| --------- | -------- | -------- | --------------------------------------------------- |
+| `command` | `string` | Yes      | The shell command to execute                        |
+| `cwd`     | `string` | No       | Directory to run in, relative to the workspace root |
+| `timeout` | `number` | No       | Timeout in milliseconds                             |
 
 **Returns:** `{ stdout: string, stderr: string, exitCode: number }`
 

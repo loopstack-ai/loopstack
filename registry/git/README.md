@@ -6,6 +6,7 @@ description: Git version control tools for Loopstack workflows — GitStatusTool
   GitConfigUserTool, GitWorktreeAddTool, GitWorktreeListTool,
   GitWorktreeRemoveTool, GitWorktreePruneTool, GitModule, GitController REST API,
   forFeature configuration, GitSquashTool, GitRebaseTool, GitCheckoutStateTool,
+  GitRepositorySource for the repositories of a workspace,
   GitTokenService credentials via tokenEnv, tokenSecret or oauthProvider,
   per-repository dir argument
 ---
@@ -337,6 +338,34 @@ Reports whether a checkout is fit to act on: rebase in progress, dirty tree, lef
 `git_status` answers what changed; this answers whether the checkout is in a fit state to act on. It is the
 read to make after handing a checkout to someone else, where what you need is not a diff but a verdict.
 
+### Repositories
+
+A workspace can hold several repositories in one tree, and git cannot say which ones belong there on purpose:
+a tree walk would find every `.git` directory, including those of dependencies and fixtures, and could not
+say which is the primary one. So the application that created the checkout declares them, by providing a
+`GitRepositorySource` under `GIT_REPOSITORY_SOURCE`:
+
+```ts
+@Injectable()
+class CheckoutRepositories implements GitRepositorySource {
+  constructor(@Inject(CODE_WORKSPACE_PROVISIONER) private readonly workspace: CodeWorkspaceProvisioner) {}
+
+  list(workspaceId: string): GitRepository[] {
+    return this.workspace.listRepos(workspaceId);
+  }
+}
+
+@Module({
+  imports: [GitModule],
+  providers: [{ provide: GIT_REPOSITORY_SOURCE, useClass: CheckoutRepositories }],
+})
+export class AppModule {}
+```
+
+`GET .../git/repos` then answers `{ repos: [{ key, dir, url?, branch?, primary? }] }`, which is what a UI
+picks between before asking for a status or a log. Nothing has to provide it: without one the endpoint
+answers an empty list, which reads as "one repository, at the root".
+
 ### Credentials
 
 `git_push`, `git_pull` and `git_fetch` authenticate with a token they read themselves. The call names
@@ -435,15 +464,16 @@ Prunes worktree administrative files for worktrees whose directories no longer e
 
 `GitController` exposes endpoints under `/api/v1/workspaces/:workspaceId/git` for use by frontends (e.g. the Studio diff viewer):
 
-| Method   | Path           | Description       |
-| -------- | -------------- | ----------------- |
-| `GET`    | `/status`      | Get git status    |
-| `GET`    | `/log?limit=N` | Get commit log    |
-| `GET`    | `/remote`      | Get remote info   |
-| `GET`    | `/branches`    | List branches     |
-| `DELETE` | `/remote`      | Remove the remote |
+| Method   | Path           | Description                               |
+| -------- | -------------- | ----------------------------------------- |
+| `GET`    | `/status`      | Get git status                            |
+| `GET`    | `/log?limit=N` | Get commit log                            |
+| `GET`    | `/remote`      | Get remote info                           |
+| `GET`    | `/branches`    | List branches                             |
+| `DELETE` | `/remote`      | Remove the remote                         |
+| `GET`    | `/repos`       | List the repositories the workspace holds |
 
-Each endpoint also takes `?dir=` to address a repository below the workspace root, and `?slotId=` to pick the environment slot.
+Each endpoint also takes `?dir=` to address a repository below the workspace root, and `?slotId=` to pick the environment slot. `/repos` takes neither: the list is what the workspace was created with, so it needs no running container — see [Repositories](#repositories).
 
 ## Public API
 
@@ -452,6 +482,8 @@ Each endpoint also takes `?dir=` to address a repository below the workspace roo
 - **Tools:** `GitSquashTool`, `GitRebaseTool`, `GitCheckoutStateTool`, `GitStatusTool`, `GitAddTool`, `GitCommitTool`, `GitPushTool`, `GitPullTool`, `GitLogTool`, `GitDiffTool`, `GitFetchTool`, `GitCheckoutTool`, `GitBranchTool`, `GitRemoteConfigureTool`, `GitConfigUserTool`, `GitWorktreeAddTool`, `GitWorktreeListTool`, `GitWorktreeRemoveTool`, `GitWorktreePruneTool`
 - **Types:** `GitStatusResult`, `GitAddArgs`, `GitAddResult`, `GitCommitArgs`, `GitCommitResult`, `GitPushArgs`, `GitPushResult`, `GitPullArgs`, `GitPullResult`, `GitLogArgs`, `GitCommit`, `GitLogResult`, `GitDiffArgs`, `GitDiffFile`, `GitDiffResult`, `GitFetchArgs`, `GitFetchResult`, `GitCheckoutArgs`, `GitCheckoutResult`, `GitBranchResult`, `GitRemoteConfigureArgs`, `GitRemoteConfigureResult`, `GitConfigUserArgs`, `GitConfigUserResult`, `GitWorktreeAddArgs`, `GitWorktreeAddResult`, `GitWorktreeListResult`, `GitWorktree`, `GitWorktreeRemoveArgs`, `GitWorktreeRemoveResult`, `GitWorktreePruneResult`, `GitDirArgs`, `GitToolConfig`, `GitSquashArgs`, `GitSquashResult`, `GitRebaseArgs`, `GitRebaseResult`, `GitCheckoutStateArgs`, `GitCheckoutStateResult`
 - **Services:** `GitTokenService`
+- **Tokens:** `GIT_REPOSITORY_SOURCE`, `GIT_TOKEN_SOURCE`
+- **Interfaces:** `GitRepositorySource`, `GitRepository`
 - **Schemas:** `GitWorktreeAddSchema`, `GitWorktreeRemoveSchema`, `GitDirArgSchema`, `GitToolConfigSchema`
 
 ## Dependencies

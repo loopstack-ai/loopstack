@@ -5,12 +5,13 @@ import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
 /**
- * Args for `bash` — the shell `command` and an optional `timeout` in milliseconds.
+ * Args for `bash` — the shell `command`, the `cwd` to run it in and an optional `timeout` in milliseconds.
  *
  * @public
  */
 export type BashArgs = {
   command: string;
+  cwd?: string;
   timeout?: number;
 };
 
@@ -48,6 +49,7 @@ export const BashResultSchema = z.strictObject({
   schema: z
     .object({
       command: z.string().describe('The shell command to execute'),
+      cwd: z.string().optional().describe('Directory to run in, relative to the workspace root'),
       timeout: z.number().optional().describe('Timeout in milliseconds'),
     })
     .strict(),
@@ -69,6 +71,7 @@ export class BashTool extends BaseTool<BashArgs, object, BashResult> {
     let buffer = '';
     const { output, exitCode } = await this.remote.streamCommand(agentUrl, {
       command: args.command,
+      cwd: args.cwd,
       timeout: args.timeout,
       signal: ctx.signal,
       onChunk: async (chunk) => {
