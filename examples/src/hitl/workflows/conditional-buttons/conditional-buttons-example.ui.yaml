@@ -1,0 +1,15 @@
+widgets:
+  # Disabled outside `drafting` — the button stays visible.
+  - widget: button
+    enabledWhen:
+      - drafting
+    options:
+      transition: submitDraft
+      label: Submit draft
+  # Hidden outside `in_review` — the button is not rendered.
+  - widget: button
+    showWhen:
+      - in_review
+    options:
+      transition: approve
+      label: Approve

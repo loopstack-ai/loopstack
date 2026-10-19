@@ -8,6 +8,7 @@ import { AgentAskForApprovalExampleWorkflow } from './workflows/agent-ask-for-ap
 import { AskUserConfirmExampleWorkflow } from './workflows/ask-user-confirm/ask-user-confirm-example.workflow';
 import { AskUserOptionsExampleWorkflow } from './workflows/ask-user-options/ask-user-options-example.workflow';
 import { AskUserTextExampleWorkflow } from './workflows/ask-user-text/ask-user-text-example.workflow';
+import { ConditionalButtonsExampleWorkflow } from './workflows/conditional-buttons/conditional-buttons-example.workflow';
 import { ConfirmContentExampleWorkflow } from './workflows/confirm-content/confirm-content-example.workflow';
 import { FeedbackFormDocument } from './workflows/inline-form/feedback-form-document';
 import { InlineFormExampleWorkflow } from './workflows/inline-form/inline-form-example.workflow';
@@ -19,6 +20,7 @@ import { PromptInputChatExampleWorkflow } from './workflows/prompt-input-chat/pr
 const WORKFLOWS = [
   InlineFormExampleWorkflow,
   PromptInputChatExampleWorkflow,
+  ConditionalButtonsExampleWorkflow,
   AskUserTextExampleWorkflow,
   AskUserOptionsExampleWorkflow,
   AskUserConfirmExampleWorkflow,

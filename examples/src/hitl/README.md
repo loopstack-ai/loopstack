@@ -64,7 +64,7 @@ The agent and meeting-notes examples require Claude credentials:
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-The non-agent examples (Inline Form, Prompt Input Chat, Ask User \*, Confirm Content) work without any LLM provider.
+The non-agent examples (Inline Form, Prompt Input Chat, Conditional Buttons, Ask User \*, Confirm Content) work without any LLM provider.
 
 ## Examples
 
@@ -72,6 +72,7 @@ The non-agent examples (Inline Form, Prompt Input Chat, Ask User \*, Confirm Con
 | --------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
 | [Inline Form](#inline-form)                         | `HITL - Inline Form Example`             | Custom Document with a form widget, `wait: true` payload typed by the document schema |
 | [Prompt Input Chat](#prompt-input-chat)             | `HITL - Prompt Input Chat Example`       | Workflow-level prompt-input widget; loops on user messages without an LLM             |
+| [Conditional Buttons](#conditional-buttons)         | `HITL - Conditional Buttons Example`     | `enabledWhen` vs `showWhen`: one button disabled outside its place, one hidden        |
 | [Ask User Text](#ask-user-text)                     | `HITL - Ask User Text Example`           | `AskUserWorkflow` for a generic free-text question                                    |
 | [Ask User Options](#ask-user-options)               | `HITL - Ask User Options Example`        | `AskUserWorkflow` with `mode: 'options'` and `allowCustomAnswer`                      |
 | [Ask User Confirm](#ask-user-confirm)               | `HITL - Ask User Confirm Example`        | `AskUserWorkflow` with `mode: 'confirm'` for yes/no decisions                         |
@@ -100,6 +101,17 @@ Workflow-level `widget: prompt-input` with `enabledWhen: [waiting_for_user]`. Lo
 
 - `prompt-input-chat-example.workflow.ts` — workflow class
 - `prompt-input-chat-example.workflow.yaml` — workflow-level prompt-input widget
+
+## Conditional Buttons
+
+Two workflow-level buttons that differ only in their place rule. "Submit draft" sets `enabledWhen: [drafting]`: at `in_review` it is still on screen, but disabled. "Approve" sets `showWhen: [in_review]`: at `drafting` it is not rendered at all. Use `enabledWhen` for a control the user should always see, and `showWhen` for a control that belongs to one step only. When a widget sets both keys, `showWhen` decides whether it is rendered and `enabledWhen` whether it is enabled.
+
+Start the workflow in Studio: at `drafting` only "Submit draft" is shown. Click it — at `in_review` "Submit draft" is greyed out and "Approve" appears. Click "Approve" to complete the run.
+
+### Files
+
+- `conditional-buttons-example.workflow.ts` — workflow class
+- `conditional-buttons-example.ui.yaml` — the two button widgets
 
 ## Ask User Text
 
@@ -175,6 +187,7 @@ Every workflow ships with an inner-loop spec in its `__tests__/` folder — run 
 | HITL flavor                                                       | How its tests work                                                                                                                                                | Spec                                                |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | Custom document + own `wait: true` transition                     | Script the submission with `answers`, keyed by the wait-transition method name                                                                                    | `inline-form`                                       |
+| Workflow-level buttons gated by place                             | Answer one wait transition at a time; `parkView()` shows which button is the active prompt at each place                                                          | `conditional-buttons`                               |
 | Sub-workflow shortcut (`AskUserWorkflow` / `ConfirmUserWorkflow`) | Script the _child's_ wait transition (`userAnswered`, `userConfirmed` / `userDenied`) — `answers` reaches inline sub-workflows at any depth                       | `ask-user-*`, `confirm-content`                     |
 | Chat loop (same wait transition parks repeatedly)                 | `queue('first', 'second')` submits one message per park, then the run parks again; scripted LLM replies via `replay`                                              | `prompt-input-chat`                                 |
 | LLM step inside a predefined workflow                             | `replay` scripts the LLM response; `answers` drives the surrounding HITL steps                                                                                    | `meeting-notes`                                     |

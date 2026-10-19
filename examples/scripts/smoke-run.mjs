@@ -60,6 +60,7 @@ const SMOKE_WORKFLOWS = [
   // Human-in-the-loop — the run parks waiting for input
   { workflow: 'inline_form_example', expect: 'waiting' },
   { workflow: 'ask_user_text_example', expect: 'waiting' },
+  { workflow: 'conditional_buttons_example', expect: 'waiting' },
 ];
 
 const EXIT_CODES = { completed: 0, failed: 1, waiting: 3 };
