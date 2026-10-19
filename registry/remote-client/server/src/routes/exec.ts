@@ -2,8 +2,14 @@ import { exec } from 'child_process';
 import { Request, Router } from 'express';
 import * as path from 'path';
 import { WORKSPACE_ROOT } from '../config.js';
+import { execOutcome } from './exec-outcome.js';
 
 const router = Router();
+/**
+ * How long a command gets when the caller names no timeout. Short on purpose — it is the ceiling for the
+ * quick commands this blocking route is for. Anything that walks a tree or installs says how long it needs:
+ * see `GIT_TIMEOUT_MS` on the host side.
+ */
 const EXEC_TIMEOUT_MS = Number(process.env.EXEC_TIMEOUT_MS) || 30_000;
 
 router.post('/', async (req: Request, res) => {
@@ -33,12 +39,7 @@ router.post('/', async (req: Request, res) => {
               `[exec] error: code=${error.code} killed=${error.killed} signal=${error.signal} message=${error.message?.substring(0, 200)}`,
             );
           }
-          const exitCode = error ? (typeof error.code === 'number' ? error.code : 1) : 0;
-          resolve({
-            stdout: stdout || '',
-            stderr: stderr || '',
-            exitCode,
-          });
+          resolve(execOutcome(error, stdout, stderr, execTimeout));
         },
       );
     });
