@@ -53,7 +53,10 @@ describe('GitConfigUserTool', () => {
 
       const result = await tool.call({ name: 'Ada', email: 'ada@example.com' });
 
-      expect(mockRemoteClient.gitConfigUser).toHaveBeenCalledWith('https://agent.example', 'Ada', 'ada@example.com');
+      expect(mockRemoteClient.gitConfigUser).toHaveBeenCalledWith('https://agent.example', {
+        name: 'Ada',
+        email: 'ada@example.com',
+      });
       expect(result.data).toEqual({ success: true });
     });
 

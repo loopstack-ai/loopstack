@@ -58,8 +58,21 @@ describe('GitCommitTool', () => {
       const result = await tool.call({ message: 'update from workflow' });
 
       expect(mockEnv.getAgentUrl).toHaveBeenCalled();
-      expect(mockRemoteClient.gitCommit).toHaveBeenCalledWith('https://agent.example', 'update from workflow');
+      expect(mockRemoteClient.gitCommit).toHaveBeenCalledWith('https://agent.example', {
+        message: 'update from workflow',
+      });
       expect(result.data).toEqual({ hash: 'abc123', message: 'update from workflow' });
+    });
+
+    it('commits in the repository named by dir', async () => {
+      mockRemoteClient.gitCommit.mockResolvedValue({ hash: 'abc123', message: 'fix' });
+
+      await tool.call({ message: 'fix', dir: 'repos/hello' });
+
+      expect(mockRemoteClient.gitCommit).toHaveBeenCalledWith('https://agent.example', {
+        message: 'fix',
+        dir: 'repos/hello',
+      });
     });
   });
 });

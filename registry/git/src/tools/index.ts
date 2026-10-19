@@ -14,3 +14,7 @@ export * from './git-worktree-list.tool.js';
 export * from './git-worktree-add.tool.js';
 export * from './git-worktree-remove.tool.js';
 export * from './git-worktree-prune.tool.js';
+export * from './git-dir.schema.js';
+export * from './git-squash.tool.js';
+export * from './git-rebase.tool.js';
+export * from './git-checkout-state.tool.js';

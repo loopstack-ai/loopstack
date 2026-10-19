@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitCommitTool`.
@@ -9,6 +10,7 @@ import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
  */
 export type GitCommitArgs = {
   message: string;
+  dir?: string;
 };
 
 /**
@@ -37,6 +39,7 @@ export const GitCommitResultSchema = z.strictObject({ hash: z.string(), message:
   schema: z
     .object({
       message: z.string().describe('The commit message'),
+      dir: GitDirArgSchema,
     })
     .strict(),
   resultSchema: GitCommitResultSchema,
@@ -52,7 +55,7 @@ export class GitCommitTool extends BaseTool<GitCommitArgs, object, GitCommitResu
 
   protected async handle(args: GitCommitArgs): Promise<ToolEnvelope<GitCommitResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitCommit(agentUrl, args.message);
+    const result = await this.remote.gitCommit(agentUrl, args);
     return { data: result };
   }
 }

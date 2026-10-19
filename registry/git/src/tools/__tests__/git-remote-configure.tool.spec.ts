@@ -51,10 +51,9 @@ describe('GitRemoteConfigureTool', () => {
 
       const result = await tool.call({ url: 'https://github.com/octo/hello.git' });
 
-      expect(mockRemoteClient.gitConfigureRemote).toHaveBeenCalledWith(
-        'https://agent.example',
-        'https://github.com/octo/hello.git',
-      );
+      expect(mockRemoteClient.gitConfigureRemote).toHaveBeenCalledWith('https://agent.example', {
+        url: 'https://github.com/octo/hello.git',
+      });
       expect(result.data).toEqual({ success: true });
     });
 

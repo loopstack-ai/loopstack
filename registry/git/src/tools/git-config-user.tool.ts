@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitConfigUserTool`.
@@ -10,6 +11,7 @@ import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 export type GitConfigUserArgs = {
   name: string;
   email: string;
+  dir?: string;
 };
 
 /**
@@ -39,6 +41,7 @@ export const GitConfigUserResultSchema = z.strictObject({ success: z.boolean() }
     .object({
       name: z.string().describe('Git user name (user.name)'),
       email: z.string().describe('Git user email (user.email)'),
+      dir: GitDirArgSchema,
     })
     .strict(),
   resultSchema: GitConfigUserResultSchema,
@@ -54,7 +57,7 @@ export class GitConfigUserTool extends BaseTool<GitConfigUserArgs, object, GitCo
 
   protected async handle(args: GitConfigUserArgs): Promise<ToolEnvelope<GitConfigUserResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitConfigUser(agentUrl, args.name, args.email);
+    const result = await this.remote.gitConfigUser(agentUrl, args);
     return { data: result };
   }
 }

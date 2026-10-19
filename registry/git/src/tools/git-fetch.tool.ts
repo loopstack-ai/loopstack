@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitTokenService, type GitToolConfig, GitToolConfigSchema } from '../token/index.js';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitFetchTool`.
@@ -9,7 +12,7 @@ import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
  */
 export type GitFetchArgs = {
   remote?: string;
-  token?: string;
+  dir?: string;
 };
 
 /**
@@ -41,23 +44,30 @@ export const GitFetchResultSchema = z.strictObject({ success: z.boolean(), outpu
   schema: z
     .object({
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
-      token: z.string().optional().describe('Access token for authentication'),
+      dir: GitDirArgSchema,
     })
     .strict(),
+  configSchema: GitToolConfigSchema,
   resultSchema: GitFetchResultSchema,
   effects: 'external',
 })
-export class GitFetchTool extends BaseTool<GitFetchArgs, object, GitFetchResult> {
+export class GitFetchTool extends BaseTool<GitFetchArgs, GitToolConfig, GitFetchResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
+    private readonly tokens: GitTokenService,
   ) {
     super();
   }
 
-  protected async handle(args: GitFetchArgs): Promise<ToolEnvelope<GitFetchResult>> {
+  protected async handle(
+    args: GitFetchArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitToolConfig>,
+  ): Promise<ToolEnvelope<GitFetchResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitFetch(agentUrl, args.remote, args.token);
+    const token = await this.tokens.resolve(ctx, options);
+    const result = await this.remote.gitFetch(agentUrl, { ...args, ...(token ? { token } : {}) });
     return { data: result };
   }
 }

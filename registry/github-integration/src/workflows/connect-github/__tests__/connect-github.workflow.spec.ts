@@ -124,8 +124,7 @@ describe('ConnectGitHubWorkflow', () => {
       email: 'octocat@users.noreply.github.com',
     });
     expect(remoteConfigure.call).toHaveBeenCalledWith({ url: 'https://github.com/octocat/new-repo.git' });
-    expect(tokenStore.getValidAccessToken).toHaveBeenCalledWith('test-user', 'github');
-    expect(fetch.call).toHaveBeenCalledWith({ remote: 'origin', token: 'gh-token' });
+    expect(fetch.call).toHaveBeenCalledWith({ remote: 'origin' }, { config: { oauthProvider: 'github' } });
     expect(bash.call).not.toHaveBeenCalled();
     expect(push.call).not.toHaveBeenCalled();
     expect(result.result).toEqual({ repo: 'octocat/new-repo', url: 'https://github.com/octocat/new-repo' });
@@ -199,7 +198,10 @@ describe('ConnectGitHubWorkflow', () => {
         'if git rev-parse --verify --quiet refs/remotes/origin/feature >/dev/null; ' +
         'then git rev-list --left-right --count origin/feature...feature; else echo no_remote; fi',
     });
-    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'feature', token: 'gh-token' });
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'feature' },
+      { config: { oauthProvider: 'github' } },
+    );
   });
 
   it('fails when the divergence check output cannot be classified', async () => {
@@ -217,7 +219,10 @@ describe('ConnectGitHubWorkflow', () => {
     expect(result.status).toBe('completed');
     expect(result.path).toContain('pushDirectly');
     expect(result.path).not.toContain('askSyncStrategy');
-    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'feature', token: 'gh-token' });
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'feature' },
+      { config: { oauthProvider: 'github' } },
+    );
   });
 
   it('offers pull/push/cancel when the remote is ahead and force-pushes on request', async () => {
@@ -236,7 +241,10 @@ describe('ConnectGitHubWorkflow', () => {
       },
       expect.objectContaining({ onSuccess: { transition: 'syncStrategyChosen' } }),
     );
-    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'feature', force: true, token: 'gh-token' });
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'feature', force: true },
+      { config: { oauthProvider: 'github' } },
+    );
   });
 
   it('merges remote changes and pushes when pulling', async () => {
@@ -246,7 +254,10 @@ describe('ConnectGitHubWorkflow', () => {
     expect(bash.call).toHaveBeenLastCalledWith({
       command: 'git merge origin/feature --allow-unrelated-histories --no-edit',
     });
-    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'feature', token: 'gh-token' });
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'feature' },
+      { config: { oauthProvider: 'github' } },
+    );
   });
 
   it('replaces local files with the remote on diverged history', async () => {

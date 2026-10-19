@@ -56,7 +56,7 @@ describe('GitWorktreeListTool', () => {
 
       const result = await tool.call();
 
-      expect(mockRemoteClient.gitWorktreeList).toHaveBeenCalledWith('https://agent.example');
+      expect(mockRemoteClient.gitWorktreeList).toHaveBeenCalledWith('https://agent.example', {});
       expect(result.data).toEqual(worktrees);
     });
 

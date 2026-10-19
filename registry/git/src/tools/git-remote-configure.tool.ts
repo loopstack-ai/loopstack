@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitRemoteConfigureTool`.
@@ -9,6 +10,7 @@ import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
  */
 export type GitRemoteConfigureArgs = {
   url: string;
+  dir?: string;
 };
 
 /**
@@ -37,6 +39,7 @@ export const GitRemoteConfigureResultSchema = z.strictObject({ success: z.boolea
   schema: z
     .object({
       url: z.string().describe('Remote repository URL (HTTPS)'),
+      dir: GitDirArgSchema,
     })
     .strict(),
   resultSchema: GitRemoteConfigureResultSchema,
@@ -52,7 +55,7 @@ export class GitRemoteConfigureTool extends BaseTool<GitRemoteConfigureArgs, obj
 
   protected async handle(args: GitRemoteConfigureArgs): Promise<ToolEnvelope<GitRemoteConfigureResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitConfigureRemote(agentUrl, args.url);
+    const result = await this.remote.gitConfigureRemote(agentUrl, args);
     return { data: result };
   }
 }

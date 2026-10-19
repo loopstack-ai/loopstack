@@ -5,14 +5,16 @@ description: Git version control tools for Loopstack workflows — GitStatusTool
   GitFetchTool, GitCheckoutTool, GitBranchTool, GitRemoteConfigureTool,
   GitConfigUserTool, GitWorktreeAddTool, GitWorktreeListTool,
   GitWorktreeRemoveTool, GitWorktreePruneTool, GitModule, GitController REST API,
-  forFeature configuration
+  forFeature configuration, GitSquashTool, GitRebaseTool, GitCheckoutStateTool,
+  GitTokenService credentials via tokenEnv, tokenSecret or oauthProvider,
+  per-repository dir argument
 ---
 
 # @loopstack/git
 
 > Git version control module for the [Loopstack](https://loopstack.ai) automation framework.
 
-Provides 16 workflow tools that cover the full git lifecycle -- status, staging, commits, branches, remotes, worktrees, and more. Every tool delegates to a remote agent via `RemoteClient`, so the actual `git` commands run on the machine that hosts the repository, not on the workflow host.
+Provides 19 workflow tools that cover the full git lifecycle -- status, staging, commits, branches, remotes, worktrees, and more. Every tool delegates to a remote agent via `RemoteClient`, so the actual `git` commands run on the machine that hosts the repository, not on the workflow host.
 
 ## When to Use
 
@@ -47,6 +49,15 @@ Use `forFeature()` to restrict the module to specific environments:
 
 ```ts
 GitModule.forFeature({ enabled: true, environments: ['production'] });
+```
+
+### Default credential source
+
+Use `forRoot()` to name where `git_push`, `git_pull` and `git_fetch` read their token from — see
+[Credentials](#credentials):
+
+```ts
+GitModule.forRoot({ tokenEnv: 'GIT_TOKEN' });
 ```
 
 ## Quick Start
@@ -109,15 +120,19 @@ export class CommitModule {}
 
 Every tool is a NestJS provider resolved via `@Tool({ name })`. Inject the tool class directly in your workflow constructor.
 
+Every tool takes an optional `dir`: the repository it addresses, as a path relative to the workspace root. A
+workspace can hold several repositories in one tree, so each call names the one it works on; omitting `dir`
+addresses the root itself.
+
 ### Core Operations
 
 #### `git_status`
 
 Gets the git status of the workspace. Returns current branch, staged, modified, untracked, and deleted files.
 
-| Arg      | Type | Required | Description  |
-| -------- | ---- | -------- | ------------ |
-| _(none)_ |      |          | No arguments |
+| Arg   | Type     | Required | Description                                                               |
+| ----- | -------- | -------- | ------------------------------------------------------------------------- |
+| `dir` | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ branch: string; staged: string[]; modified: string[]; untracked: string[]; deleted: string[] }`
 
@@ -127,9 +142,10 @@ Gets the git status of the workspace. Returns current branch, staged, modified, 
 
 Stages files for the next git commit.
 
-| Arg     | Type       | Required | Description                                            |
-| ------- | ---------- | -------- | ------------------------------------------------------ |
-| `files` | `string[]` | Yes      | File paths to stage. Use `["."]` to stage all changes. |
+| Arg     | Type       | Required | Description                                                               |
+| ------- | ---------- | -------- | ------------------------------------------------------------------------- |
+| `files` | `string[]` | Yes      | File paths to stage. Use `["."]` to stage all changes.                    |
+| `dir`   | `string`   | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean }`
 
@@ -139,9 +155,10 @@ Stages files for the next git commit.
 
 Creates a git commit with the currently staged changes.
 
-| Arg       | Type     | Required | Description        |
-| --------- | -------- | -------- | ------------------ |
-| `message` | `string` | Yes      | The commit message |
+| Arg       | Type     | Required | Description                                                               |
+| --------- | -------- | -------- | ------------------------------------------------------------------------- |
+| `message` | `string` | Yes      | The commit message                                                        |
+| `dir`     | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ hash: string; message: string }`
 
@@ -151,9 +168,10 @@ Creates a git commit with the currently staged changes.
 
 Shows changed files in the workspace. Returns file paths and their change status.
 
-| Arg      | Type      | Required | Description                             |
-| -------- | --------- | -------- | --------------------------------------- |
-| `staged` | `boolean` | No       | Show staged changes instead of unstaged |
+| Arg      | Type      | Required | Description                                                               |
+| -------- | --------- | -------- | ------------------------------------------------------------------------- |
+| `staged` | `boolean` | No       | Show staged changes instead of unstaged                                   |
+| `dir`    | `string`  | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ files: { path: string; status: string }[] }`
 
@@ -163,9 +181,10 @@ Shows changed files in the workspace. Returns file paths and their change status
 
 Shows the git commit log for the workspace repository.
 
-| Arg     | Type     | Required | Description                                           |
-| ------- | -------- | -------- | ----------------------------------------------------- |
-| `limit` | `number` | No       | Maximum number of log entries to return (default: 20) |
+| Arg     | Type     | Required | Description                                                               |
+| ------- | -------- | -------- | ------------------------------------------------------------------------- |
+| `limit` | `number` | No       | Maximum number of log entries to return (default: 20)                     |
+| `dir`   | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ commits: { hash: string; shortHash: string; message: string; author: string; date: string }[] }`
 
@@ -175,10 +194,10 @@ Shows the git commit log for the workspace repository.
 
 Fetches refs and objects from a remote repository without merging.
 
-| Arg      | Type     | Required | Description                      |
-| -------- | -------- | -------- | -------------------------------- |
-| `remote` | `string` | No       | Remote name (defaults to origin) |
-| `token`  | `string` | No       | Access token for authentication  |
+| Arg      | Type     | Required | Description                                                               |
+| -------- | -------- | -------- | ------------------------------------------------------------------------- |
+| `remote` | `string` | No       | Remote name (defaults to origin)                                          |
+| `dir`    | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean; output?: string }`
 
@@ -188,11 +207,11 @@ Fetches refs and objects from a remote repository without merging.
 
 Pulls changes from a remote repository.
 
-| Arg      | Type     | Required | Description                      |
-| -------- | -------- | -------- | -------------------------------- |
-| `remote` | `string` | No       | Remote name (defaults to origin) |
-| `branch` | `string` | No       | Branch to pull                   |
-| `token`  | `string` | No       | Access token for authentication  |
+| Arg      | Type     | Required | Description                                                               |
+| -------- | -------- | -------- | ------------------------------------------------------------------------- |
+| `remote` | `string` | No       | Remote name (defaults to origin)                                          |
+| `branch` | `string` | No       | Branch to pull                                                            |
+| `dir`    | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean; output?: string }`
 
@@ -202,12 +221,12 @@ Pulls changes from a remote repository.
 
 Pushes commits to a remote repository.
 
-| Arg      | Type      | Required | Description                      |
-| -------- | --------- | -------- | -------------------------------- |
-| `remote` | `string`  | No       | Remote name (defaults to origin) |
-| `branch` | `string`  | No       | Branch to push                   |
-| `force`  | `boolean` | No       | Force push                       |
-| `token`  | `string`  | No       | Access token for authentication  |
+| Arg      | Type      | Required | Description                                                               |
+| -------- | --------- | -------- | ------------------------------------------------------------------------- |
+| `remote` | `string`  | No       | Remote name (defaults to origin)                                          |
+| `branch` | `string`  | No       | Branch to push                                                            |
+| `force`  | `boolean` | No       | Force push                                                                |
+| `dir`    | `string`  | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean; output?: string }`
 
@@ -217,9 +236,10 @@ Pushes commits to a remote repository.
 
 Configures a git remote. Adds the remote if not present, or updates its URL.
 
-| Arg   | Type     | Required | Description                   |
-| ----- | -------- | -------- | ----------------------------- |
-| `url` | `string` | Yes      | Remote repository URL (HTTPS) |
+| Arg   | Type     | Required | Description                                                               |
+| ----- | -------- | -------- | ------------------------------------------------------------------------- |
+| `url` | `string` | Yes      | Remote repository URL (HTTPS)                                             |
+| `dir` | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean }`
 
@@ -229,9 +249,9 @@ Configures a git remote. Adds the remote if not present, or updates its URL.
 
 Lists all local git branches and indicates the current branch.
 
-| Arg      | Type | Required | Description  |
-| -------- | ---- | -------- | ------------ |
-| _(none)_ |      |          | No arguments |
+| Arg   | Type     | Required | Description                                                               |
+| ----- | -------- | -------- | ------------------------------------------------------------------------- |
+| `dir` | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ current: string; branches: { name: string; isCurrent: boolean }[] }`
 
@@ -241,12 +261,96 @@ Lists all local git branches and indicates the current branch.
 
 Switches to a different git branch, optionally creating it.
 
-| Arg      | Type      | Required | Description                            |
-| -------- | --------- | -------- | -------------------------------------- |
-| `branch` | `string`  | Yes      | Branch name to switch to               |
-| `create` | `boolean` | No       | Create the branch if it does not exist |
+| Arg      | Type      | Required | Description                                                               |
+| -------- | --------- | -------- | ------------------------------------------------------------------------- |
+| `branch` | `string`  | Yes      | Branch name to switch to                                                  |
+| `create` | `boolean` | No       | Create the branch if it does not exist                                    |
+| `dir`    | `string`  | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ branch: string }`
+
+### Composed Operations
+
+The tools above each run one git command. These run a **sequence** of them and answer with the outcome, which
+is what the caller actually wants to know: a squash either happened or it did not, a rebase either finished,
+stopped on files, or failed.
+
+#### `git_squash`
+
+Replaces every commit the branch added since `baseRef` with one commit carrying the given message. Returns how many commits were squashed.
+
+| Arg         | Type      | Required | Description                                                               |
+| ----------- | --------- | -------- | ------------------------------------------------------------------------- |
+| `baseRef`   | `string`  | Yes      | The ref the branch grew from, e.g. `origin/main`.                         |
+| `message`   | `string`  | Yes      | The message of the single commit; taken verbatim, trailers included.      |
+| `skipHooks` | `boolean` | No       | Do not run the repository's commit hooks.                                 |
+| `dir`       | `string`  | No       | Repository path relative to the workspace root. Omit to address the root. |
+
+**Returns:** `{ commits: number; message: string }`
+
+The commits are reset into the index and committed again, so the tree is untouched and only the history
+changes. The commit is made under the repository's configured identity — set it with `git_config_user`
+first. A branch whose net change is nothing still becomes a commit.
+
+---
+
+#### `git_rebase`
+
+Rebases the current branch onto another ref. Returns `{ clean: true }` when it finished, or the unmerged files with the rebase left in progress. Any other failure is aborted and reported as an error.
+
+| Arg    | Type     | Required | Description                                                               |
+| ------ | -------- | -------- | ------------------------------------------------------------------------- |
+| `onto` | `string` | Yes      | The ref to rebase onto, e.g. `origin/main`.                               |
+| `dir`  | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
+
+**Returns:** `{ clean: boolean; conflicts?: string[] }`
+
+The three outcomes are told apart on purpose. A rebase that stops on conflicting files answers those files
+and **leaves the rebase in progress**, so an agent or a person can resolve them and run
+`git rebase --continue` in the same checkout. A rebase that fails for any other reason is aborted here,
+leaving no half-finished state behind, and reported as an error with git's own output.
+
+---
+
+#### `git_checkout_state`
+
+Reports whether a checkout is fit to act on: rebase in progress, dirty tree, leftover conflict markers, and with `baseRef` whether HEAD is built on it and how many commits beyond it.
+
+| Arg       | Type     | Required | Description                                                               |
+| --------- | -------- | -------- | ------------------------------------------------------------------------- |
+| `baseRef` | `string` | No       | Measure the checkout against this ref, e.g. `origin/main`.                |
+| `dir`     | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
+
+**Returns:** `{ branch: string; rebaseInProgress: boolean; dirty: boolean; conflictMarkers: boolean; onBase?: boolean; commitsAhead?: number }`
+
+`git_status` answers what changed; this answers whether the checkout is in a fit state to act on. It is the
+read to make after handing a checkout to someone else, where what you need is not a diff but a verdict.
+
+### Credentials
+
+`git_push`, `git_pull` and `git_fetch` authenticate with a token they read themselves. The call names
+**where** the token comes from, in its config; the token itself is never an argument, because arguments are
+the model-facing input of a tool and are kept in the run trace.
+
+| Config          | Reads                                                                   |
+| --------------- | ----------------------------------------------------------------------- |
+| `tokenEnv`      | An environment variable of the machine the app runs on.                 |
+| `tokenSecret`   | A secret of the workspace the run belongs to (needs `SecretsModule`).   |
+| `oauthProvider` | The OAuth token of the person the run belongs to (needs `OAuthModule`). |
+
+The first one set wins, in that order, and `GitModule.forRoot()` sets the default for every call:
+
+```ts
+// Every push, pull and fetch uses the token in GIT_TOKEN …
+GitModule.forRoot({ tokenEnv: 'GIT_TOKEN' });
+
+// … unless one call names another source.
+await this.gitPush.call({ remote: 'origin', branch }, { config: { oauthProvider: 'github' } });
+```
+
+With no source named the command runs unauthenticated, which is all a public remote needs. The resolved
+token goes to the remote server, which applies it through a throwaway `GIT_ASKPASS`, so it never reaches
+the URL, the argv or `.git/config`.
 
 ### Configuration
 
@@ -254,10 +358,11 @@ Switches to a different git branch, optionally creating it.
 
 Configures git user.name and user.email for the workspace repository.
 
-| Arg     | Type     | Required | Description                 |
-| ------- | -------- | -------- | --------------------------- |
-| `name`  | `string` | Yes      | Git user name (user.name)   |
-| `email` | `string` | Yes      | Git user email (user.email) |
+| Arg     | Type     | Required | Description                                                               |
+| ------- | -------- | -------- | ------------------------------------------------------------------------- |
+| `name`  | `string` | Yes      | Git user name (user.name)                                                 |
+| `email` | `string` | Yes      | Git user email (user.email)                                               |
+| `dir`   | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean }`
 
@@ -267,12 +372,13 @@ Configures git user.name and user.email for the workspace repository.
 
 Creates a new git worktree at the given path. Optionally checks out an existing branch or creates a new one.
 
-| Arg         | Type      | Required | Description                                                    |
-| ----------- | --------- | -------- | -------------------------------------------------------------- |
-| `path`      | `string`  | Yes      | Filesystem path for the new worktree (relative or absolute)    |
-| `branch`    | `string`  | No       | Branch to check out in the new worktree                        |
-| `newBranch` | `boolean` | No       | Create the branch as part of adding the worktree (passes `-b`) |
-| `force`     | `boolean` | No       | Pass `--force` to git worktree add                             |
+| Arg         | Type      | Required | Description                                                               |
+| ----------- | --------- | -------- | ------------------------------------------------------------------------- |
+| `path`      | `string`  | Yes      | Filesystem path for the new worktree (relative or absolute)               |
+| `branch`    | `string`  | No       | Branch to check out in the new worktree                                   |
+| `newBranch` | `boolean` | No       | Create the branch as part of adding the worktree (passes `-b`)            |
+| `force`     | `boolean` | No       | Pass `--force` to git worktree add                                        |
+| `dir`       | `string`  | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean; path: string; output?: string }`
 
@@ -282,9 +388,9 @@ Creates a new git worktree at the given path. Optionally checks out an existing 
 
 Lists all git worktrees attached to the repository.
 
-| Arg      | Type | Required | Description  |
-| -------- | ---- | -------- | ------------ |
-| _(none)_ |      |          | No arguments |
+| Arg   | Type     | Required | Description                                                               |
+| ----- | -------- | -------- | ------------------------------------------------------------------------- |
+| `dir` | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ worktrees: { path: string; head?: string; branch?: string; bare: boolean; detached: boolean; locked?: string; prunable?: string }[] }`
 
@@ -294,10 +400,11 @@ Lists all git worktrees attached to the repository.
 
 Removes a git worktree at the given path.
 
-| Arg     | Type      | Required | Description                                                      |
-| ------- | --------- | -------- | ---------------------------------------------------------------- |
-| `path`  | `string`  | Yes      | Path of the worktree to remove                                   |
-| `force` | `boolean` | No       | Remove even if the worktree has uncommitted changes or is locked |
+| Arg     | Type      | Required | Description                                                               |
+| ------- | --------- | -------- | ------------------------------------------------------------------------- |
+| `path`  | `string`  | Yes      | Path of the worktree to remove                                            |
+| `force` | `boolean` | No       | Remove even if the worktree has uncommitted changes or is locked          |
+| `dir`   | `string`  | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean }`
 
@@ -307,9 +414,9 @@ Removes a git worktree at the given path.
 
 Prunes worktree administrative files for worktrees whose directories no longer exist.
 
-| Arg      | Type | Required | Description  |
-| -------- | ---- | -------- | ------------ |
-| _(none)_ |      |          | No arguments |
+| Arg   | Type     | Required | Description                                                               |
+| ----- | -------- | -------- | ------------------------------------------------------------------------- |
+| `dir` | `string` | No       | Repository path relative to the workspace root. Omit to address the root. |
 
 **Returns:** `{ success: boolean; output?: string }`
 
@@ -325,13 +432,16 @@ Prunes worktree administrative files for worktrees whose directories no longer e
 | `GET`    | `/branches`    | List branches     |
 | `DELETE` | `/remote`      | Remove the remote |
 
+Each endpoint also takes `?dir=` to address a repository below the workspace root, and `?slotId=` to pick the environment slot.
+
 ## Public API
 
 - **Module:** `GitModule` (with `forFeature()` for environment gating)
 - **Controller:** `GitController`
-- **Tools:** `GitStatusTool`, `GitAddTool`, `GitCommitTool`, `GitPushTool`, `GitPullTool`, `GitLogTool`, `GitDiffTool`, `GitFetchTool`, `GitCheckoutTool`, `GitBranchTool`, `GitRemoteConfigureTool`, `GitConfigUserTool`, `GitWorktreeAddTool`, `GitWorktreeListTool`, `GitWorktreeRemoveTool`, `GitWorktreePruneTool`
-- **Types:** `GitStatusResult`, `GitAddArgs`, `GitAddResult`, `GitCommitArgs`, `GitCommitResult`, `GitPushArgs`, `GitPushResult`, `GitPullArgs`, `GitPullResult`, `GitLogArgs`, `GitCommit`, `GitLogResult`, `GitDiffArgs`, `GitDiffFile`, `GitDiffResult`, `GitFetchArgs`, `GitFetchResult`, `GitCheckoutArgs`, `GitCheckoutResult`, `GitBranchResult`, `GitRemoteConfigureArgs`, `GitRemoteConfigureResult`, `GitConfigUserArgs`, `GitConfigUserResult`, `GitWorktreeAddArgs`, `GitWorktreeAddResult`, `GitWorktreeListResult`, `GitWorktree`, `GitWorktreeRemoveArgs`, `GitWorktreeRemoveResult`, `GitWorktreePruneResult`
-- **Schemas:** `GitWorktreeAddSchema`, `GitWorktreeRemoveSchema`
+- **Tools:** `GitSquashTool`, `GitRebaseTool`, `GitCheckoutStateTool`, `GitStatusTool`, `GitAddTool`, `GitCommitTool`, `GitPushTool`, `GitPullTool`, `GitLogTool`, `GitDiffTool`, `GitFetchTool`, `GitCheckoutTool`, `GitBranchTool`, `GitRemoteConfigureTool`, `GitConfigUserTool`, `GitWorktreeAddTool`, `GitWorktreeListTool`, `GitWorktreeRemoveTool`, `GitWorktreePruneTool`
+- **Types:** `GitStatusResult`, `GitAddArgs`, `GitAddResult`, `GitCommitArgs`, `GitCommitResult`, `GitPushArgs`, `GitPushResult`, `GitPullArgs`, `GitPullResult`, `GitLogArgs`, `GitCommit`, `GitLogResult`, `GitDiffArgs`, `GitDiffFile`, `GitDiffResult`, `GitFetchArgs`, `GitFetchResult`, `GitCheckoutArgs`, `GitCheckoutResult`, `GitBranchResult`, `GitRemoteConfigureArgs`, `GitRemoteConfigureResult`, `GitConfigUserArgs`, `GitConfigUserResult`, `GitWorktreeAddArgs`, `GitWorktreeAddResult`, `GitWorktreeListResult`, `GitWorktree`, `GitWorktreeRemoveArgs`, `GitWorktreeRemoveResult`, `GitWorktreePruneResult`, `GitDirArgs`, `GitToolConfig`, `GitSquashArgs`, `GitSquashResult`, `GitRebaseArgs`, `GitRebaseResult`, `GitCheckoutStateArgs`, `GitCheckoutStateResult`
+- **Services:** `GitTokenService`
+- **Schemas:** `GitWorktreeAddSchema`, `GitWorktreeRemoveSchema`, `GitDirArgSchema`, `GitToolConfigSchema`
 
 ## Dependencies
 

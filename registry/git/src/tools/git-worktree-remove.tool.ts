@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Zod schema for `GitWorktreeRemoveTool` arguments.
@@ -14,6 +15,7 @@ export const GitWorktreeRemoveSchema = z
       .boolean()
       .optional()
       .describe('Pass --force to remove a worktree that has uncommitted changes or is locked'),
+    dir: GitDirArgSchema,
   })
   .strict();
 

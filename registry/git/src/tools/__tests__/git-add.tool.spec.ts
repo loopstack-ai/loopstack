@@ -53,7 +53,9 @@ describe('GitAddTool', () => {
       const result = await tool.call({ files: ['src/a.ts', 'src/b.ts'] });
 
       expect(mockEnv.getAgentUrl).toHaveBeenCalled();
-      expect(mockRemoteClient.gitAdd).toHaveBeenCalledWith('https://agent.example', ['src/a.ts', 'src/b.ts']);
+      expect(mockRemoteClient.gitAdd).toHaveBeenCalledWith('https://agent.example', {
+        files: ['src/a.ts', 'src/b.ts'],
+      });
       expect(result.data).toEqual({ success: true });
     });
 

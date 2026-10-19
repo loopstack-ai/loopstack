@@ -57,7 +57,7 @@ describe('GitCheckoutTool', () => {
 
       const result = await tool.call({ branch: 'main' });
 
-      expect(mockRemoteClient.gitCheckout).toHaveBeenCalledWith('https://agent.example', 'main', undefined);
+      expect(mockRemoteClient.gitCheckout).toHaveBeenCalledWith('https://agent.example', { branch: 'main' });
       expect(result.data).toEqual({ branch: 'main' });
     });
 
@@ -66,7 +66,10 @@ describe('GitCheckoutTool', () => {
 
       await tool.call({ branch: 'feature', create: true });
 
-      expect(mockRemoteClient.gitCheckout).toHaveBeenCalledWith('https://agent.example', 'feature', true);
+      expect(mockRemoteClient.gitCheckout).toHaveBeenCalledWith('https://agent.example', {
+        branch: 'feature',
+        create: true,
+      });
     });
 
     it('propagates RemoteClient failures', async () => {

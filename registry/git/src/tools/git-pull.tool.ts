@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitTokenService, type GitToolConfig, GitToolConfigSchema } from '../token/index.js';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitPullTool`.
@@ -10,7 +13,7 @@ import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 export type GitPullArgs = {
   remote?: string;
   branch?: string;
-  token?: string;
+  dir?: string;
 };
 
 /**
@@ -43,27 +46,30 @@ export const GitPullResultSchema = z.strictObject({ success: z.boolean(), output
     .object({
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
       branch: z.string().optional().describe('Branch to pull'),
-      token: z.string().optional().describe('Access token for authentication'),
+      dir: GitDirArgSchema,
     })
     .strict(),
+  configSchema: GitToolConfigSchema,
   resultSchema: GitPullResultSchema,
   effects: 'external',
 })
-export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
+export class GitPullTool extends BaseTool<GitPullArgs, GitToolConfig, GitPullResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
+    private readonly tokens: GitTokenService,
   ) {
     super();
   }
 
-  protected async handle(args: GitPullArgs): Promise<ToolEnvelope<GitPullResult>> {
+  protected async handle(
+    args: GitPullArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitToolConfig>,
+  ): Promise<ToolEnvelope<GitPullResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitPull(agentUrl, {
-      remote: args.remote,
-      branch: args.branch,
-      token: args.token,
-    });
+    const token = await this.tokens.resolve(ctx, options);
+    const result = await this.remote.gitPull(agentUrl, { ...args, ...(token ? { token } : {}) });
     return { data: result };
   }
 }

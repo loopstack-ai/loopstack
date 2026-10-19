@@ -56,7 +56,7 @@ describe('GitLogTool', () => {
 
       const result = await tool.call(getBlockArgsSchema(tool)!.parse({}) as { limit: number });
 
-      expect(mockRemoteClient.gitLog).toHaveBeenCalledWith('https://agent.example', 20);
+      expect(mockRemoteClient.gitLog).toHaveBeenCalledWith('https://agent.example', { limit: 20 });
       expect(result.data).toEqual(log);
     });
 
@@ -65,7 +65,7 @@ describe('GitLogTool', () => {
 
       await tool.call({ limit: 5 });
 
-      expect(mockRemoteClient.gitLog).toHaveBeenCalledWith('https://agent.example', 5);
+      expect(mockRemoteClient.gitLog).toHaveBeenCalledWith('https://agent.example', { limit: 5 });
     });
 
     it('propagates RemoteClient failures', async () => {

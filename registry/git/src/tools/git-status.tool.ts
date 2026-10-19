@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema, type GitDirArgs } from './git-dir.schema.js';
 
 /**
  * Result for `GitStatusTool`.
@@ -39,11 +40,11 @@ export const GitStatusResultSchema = z.strictObject({
   name: 'git_status',
   description:
     'Gets the git status of the workspace. Returns current branch, staged, modified, untracked, and deleted files.',
-  schema: z.object({}).strict(),
+  schema: z.object({ dir: GitDirArgSchema }).strict(),
   resultSchema: GitStatusResultSchema,
   effects: 'none',
 })
-export class GitStatusTool extends BaseTool<object, object, GitStatusResult> {
+export class GitStatusTool extends BaseTool<GitDirArgs, object, GitStatusResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
@@ -51,9 +52,9 @@ export class GitStatusTool extends BaseTool<object, object, GitStatusResult> {
     super();
   }
 
-  protected async handle(): Promise<ToolEnvelope<GitStatusResult>> {
+  protected async handle(args: GitDirArgs): Promise<ToolEnvelope<GitStatusResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitStatus(agentUrl);
+    const result = await this.remote.gitStatus(agentUrl, args);
     return { data: result };
   }
 }

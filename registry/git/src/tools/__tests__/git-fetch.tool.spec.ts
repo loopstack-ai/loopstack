@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBlockArgsSchema } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { createToolTest } from '@loopstack/testing';
+import { GitTokenService } from '../../token/index.js';
 import { GitFetchTool } from '../git-fetch.tool.js';
 
 describe('GitFetchTool', () => {
@@ -15,6 +16,9 @@ describe('GitFetchTool', () => {
   const mockEnv = {
     getAgentUrl: vi.fn().mockResolvedValue('https://agent.example'),
   };
+  const mockTokens = {
+    resolve: vi.fn(),
+  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -23,6 +27,7 @@ describe('GitFetchTool', () => {
       .forTool(GitFetchTool)
       .withMock(RemoteClient, mockRemoteClient)
       .withMock(EnvironmentService, mockEnv)
+      .withMock(GitTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitFetchTool);
@@ -33,10 +38,15 @@ describe('GitFetchTool', () => {
   });
 
   describe('validation', () => {
-    it('accepts optional remote and token', () => {
+    it('accepts an optional remote', () => {
       const schema = getBlockArgsSchema(tool)!;
       expect(() => schema.parse({})).not.toThrow();
-      expect(() => schema.parse({ remote: 'upstream', token: 'ghp_x' })).not.toThrow();
+      expect(() => schema.parse({ remote: 'upstream' })).not.toThrow();
+    });
+
+    it('refuses a token as an argument', () => {
+      const schema = getBlockArgsSchema(tool)!;
+      expect(() => schema.parse({ token: 'ghp_x' })).toThrow();
     });
 
     it('rejects extra properties (strict mode)', () => {
@@ -51,16 +61,20 @@ describe('GitFetchTool', () => {
 
       const result = await tool.call({});
 
-      expect(mockRemoteClient.gitFetch).toHaveBeenCalledWith('https://agent.example', undefined, undefined);
+      expect(mockRemoteClient.gitFetch).toHaveBeenCalledWith('https://agent.example', {});
       expect(result.data).toEqual({ success: true });
     });
 
-    it('forwards remote and token', async () => {
+    it('forwards the remote, with the token from the named source', async () => {
       mockRemoteClient.gitFetch.mockResolvedValue({ success: true, output: 'From github.com:octo/hello' });
+      mockTokens.resolve.mockResolvedValue('ghp_x');
 
-      const result = await tool.call({ remote: 'upstream', token: 'ghp_x' });
+      const result = await tool.call({ remote: 'upstream' });
 
-      expect(mockRemoteClient.gitFetch).toHaveBeenCalledWith('https://agent.example', 'upstream', 'ghp_x');
+      expect(mockRemoteClient.gitFetch).toHaveBeenCalledWith('https://agent.example', {
+        remote: 'upstream',
+        token: 'ghp_x',
+      });
       expect(result.data).toEqual({ success: true, output: 'From github.com:octo/hello' });
     });
 

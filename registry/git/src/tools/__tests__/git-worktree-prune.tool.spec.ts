@@ -50,7 +50,7 @@ describe('GitWorktreePruneTool', () => {
 
       const result = await tool.call();
 
-      expect(mockRemoteClient.gitWorktreePrune).toHaveBeenCalledWith('https://agent.example');
+      expect(mockRemoteClient.gitWorktreePrune).toHaveBeenCalledWith('https://agent.example', {});
       expect(result.data).toEqual({ success: true, output: 'Removing worktrees/wt' });
     });
 

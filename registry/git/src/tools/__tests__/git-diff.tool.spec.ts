@@ -53,7 +53,7 @@ describe('GitDiffTool', () => {
 
       const result = await tool.call({});
 
-      expect(mockRemoteClient.gitDiff).toHaveBeenCalledWith('https://agent.example', undefined);
+      expect(mockRemoteClient.gitDiff).toHaveBeenCalledWith('https://agent.example', {});
       expect(result.data).toEqual(diff);
     });
 
@@ -62,7 +62,7 @@ describe('GitDiffTool', () => {
 
       await tool.call({ staged: true });
 
-      expect(mockRemoteClient.gitDiff).toHaveBeenCalledWith('https://agent.example', true);
+      expect(mockRemoteClient.gitDiff).toHaveBeenCalledWith('https://agent.example', { staged: true });
     });
 
     it('propagates RemoteClient failures', async () => {

@@ -5,7 +5,7 @@ import { ClientMessageService } from '@loopstack/core';
 import { GitConfigUserTool, GitFetchTool, GitPushTool, GitRemoteConfigureTool, GitStatusTool } from '@loopstack/git';
 import { GitHubCreateRepoTool, GitHubGetAuthenticatedUserTool, GitHubListReposTool } from '@loopstack/github';
 import { AskUserWorkflow } from '@loopstack/hitl';
-import { OAuthTokenStore, OAuthWorkflow } from '@loopstack/oauth';
+import { OAuthWorkflow } from '@loopstack/oauth';
 import { BashTool } from '@loopstack/remote-client';
 
 const AnswerSchema = z.object({ answer: z.string() });
@@ -70,14 +70,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     private readonly bash: BashTool,
     private readonly oAuth: OAuthWorkflow,
     private readonly askUser: AskUserWorkflow,
-    private readonly tokenStore: OAuthTokenStore,
     private readonly clientMessageService: ClientMessageService,
   ) {
     super();
-  }
-
-  private async getGitHubToken(ctx: RunContext): Promise<string | undefined> {
-    return (await this.tokenStore.getValidAccessToken(ctx.userId, 'github')) ?? undefined;
   }
 
   /** Runs a shell command in the workspace and throws when it exits non-zero. */
@@ -262,7 +257,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   // ── Step 4b: Configure remote and check for divergence ──────────────
 
   @Transition({ from: 'setup_remote', to: 'check_divergence' })
-  async setupRemote(state: ConnectGitHubState, ctx: RunContext) {
+  async setupRemote(state: ConnectGitHubState) {
     // If cancelled during commit confirmation, skip to done
     if (!state.repo) {
       this.assignState({ divergenceState: 'none' });
@@ -275,9 +270,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     const remoteUrl = `https://github.com/${repo.fullName}.git`;
     await this.gitRemoteConfigure.call({ url: remoteUrl });
 
-    // Fetch remote refs using token for auth (token only exists in memory during the command)
-    const token = await this.getGitHubToken(ctx);
-    await this.gitFetch.call({ remote: 'origin', token });
+    // The token is read from the person's GitHub OAuth token at call time and applied by the remote
+    // server through a throwaway GIT_ASKPASS, so it reaches neither the args nor the run trace.
+    await this.gitFetch.call({ remote: 'origin' }, { config: { oauthProvider: 'github' } });
 
     if (state.isNewRepo) {
       this.assignState({ divergenceState: 'none' });
@@ -306,14 +301,13 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'check_divergence', to: 'done' })
   @Guard('canPushDirectly')
-  async pushDirectly(state: ConnectGitHubState, ctx: RunContext) {
+  async pushDirectly(state: ConnectGitHubState) {
     if (state.divergenceState === 'none') {
       // Already in sync — nothing to push
       return;
     }
     // local_ahead — fast-forward push (creates the remote branch if it does not exist yet)
-    const token = await this.getGitHubToken(ctx);
-    await this.gitPush.call({ remote: 'origin', branch: state.branch, token });
+    await this.gitPush.call({ remote: 'origin', branch: state.branch }, { config: { oauthProvider: 'github' } });
   }
 
   private canPushDirectly(state: ConnectGitHubState): boolean {
@@ -345,19 +339,17 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'awaiting_sync_choice', to: 'done', wait: true, schema: AnswerSchema })
-  async syncStrategyChosen(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>, ctx: RunContext) {
+  async syncStrategyChosen(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>) {
     const answer = input.data.answer;
     const branch = state.branch;
-
-    const token = await this.getGitHubToken(ctx);
 
     if (answer.startsWith('Use remote code')) {
       await this.runBash(`git reset --hard origin/${branch}`);
     } else if (answer.startsWith('Pull remote changes') || answer.startsWith('Merge remote changes')) {
       await this.runBash(`git merge origin/${branch} --allow-unrelated-histories --no-edit`);
-      await this.gitPush.call({ remote: 'origin', branch, token });
+      await this.gitPush.call({ remote: 'origin', branch }, { config: { oauthProvider: 'github' } });
     } else if (answer.startsWith('Push workspace code')) {
-      await this.gitPush.call({ remote: 'origin', branch, force: true, token });
+      await this.gitPush.call({ remote: 'origin', branch, force: true }, { config: { oauthProvider: 'github' } });
     } else {
       await this.runBash('git remote remove origin');
       this.assignState({ repo: undefined });

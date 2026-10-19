@@ -144,7 +144,10 @@ describe('ConnectGitHubWorkflow against real git', () => {
     expect(result.status).toBe('completed');
     expect(result.path).toContain('pushDirectly');
     expect(result.path).not.toContain('askSyncStrategy');
-    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'main', token: 'gh-token' });
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'main' },
+      { config: { oauthProvider: 'github' } },
+    );
   });
 
   it('does not push when the workspace matches the remote', async () => {
@@ -197,7 +200,10 @@ describe('ConnectGitHubWorkflow against real git', () => {
 
     expect(result.status).toBe('completed');
     expect(result.path).not.toContain('askSyncStrategy');
-    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'master', token: 'gh-token' });
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'master' },
+      { config: { oauthProvider: 'github' } },
+    );
   });
 
   it('pushes the checked-out branch when the remote does not have it yet', async () => {
@@ -209,7 +215,10 @@ describe('ConnectGitHubWorkflow against real git', () => {
 
     expect(result.status).toBe('completed');
     expect(result.path).not.toContain('askSyncStrategy');
-    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'feature', token: 'gh-token' });
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'feature' },
+      { config: { oauthProvider: 'github' } },
+    );
   });
 
   it('pushes an unrelated local branch when the remote only has another branch', async () => {
@@ -224,7 +233,10 @@ describe('ConnectGitHubWorkflow against real git', () => {
     expect(result.error).toBeUndefined();
     expect(result.status).toBe('completed');
     expect(result.path).not.toContain('askSyncStrategy');
-    expect(push.call).toHaveBeenCalledWith({ remote: 'origin', branch: 'master', token: 'gh-token' });
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'master' },
+      { config: { oauthProvider: 'github' } },
+    );
   });
 
   it('fails the run when replacing local files with the remote fails', async () => {

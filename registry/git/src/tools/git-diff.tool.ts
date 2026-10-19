@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitDiffTool`.
@@ -9,6 +10,7 @@ import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
  */
 export type GitDiffArgs = {
   staged?: boolean;
+  dir?: string;
 };
 
 /**
@@ -51,6 +53,7 @@ export const GitDiffResultSchema = z.strictObject({
   schema: z
     .object({
       staged: z.boolean().optional().describe('Show staged changes instead of unstaged'),
+      dir: GitDirArgSchema,
     })
     .strict(),
   resultSchema: GitDiffResultSchema,
@@ -66,7 +69,7 @@ export class GitDiffTool extends BaseTool<GitDiffArgs, object, GitDiffResult> {
 
   protected async handle(args: GitDiffArgs): Promise<ToolEnvelope<GitDiffResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitDiff(agentUrl, args.staged);
+    const result = await this.remote.gitDiff(agentUrl, args);
     return { data: result };
   }
 }

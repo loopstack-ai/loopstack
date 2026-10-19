@@ -14,10 +14,11 @@ export class GitController {
   async getStatus(
     @Param('workspaceId') workspaceId: string,
     @Query('slotId') slotId: string | undefined,
+    @Query('dir') dir: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
     const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
-    return this.remote.gitStatus(agentUrl);
+    return this.remote.gitStatus(agentUrl, { dir });
   }
 
   @Get('log')
@@ -25,40 +26,44 @@ export class GitController {
     @Param('workspaceId') workspaceId: string,
     @Query('limit') limit: string | undefined,
     @Query('slotId') slotId: string | undefined,
+    @Query('dir') dir: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
     const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
-    return this.remote.gitLog(agentUrl, parsedLimit);
+    return this.remote.gitLog(agentUrl, { limit: parsedLimit, dir });
   }
 
   @Get('remote')
   async getRemote(
     @Param('workspaceId') workspaceId: string,
     @Query('slotId') slotId: string | undefined,
+    @Query('dir') dir: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
     const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
-    return this.remote.gitRemote(agentUrl);
+    return this.remote.gitRemote(agentUrl, { dir });
   }
 
   @Get('branches')
   async getBranches(
     @Param('workspaceId') workspaceId: string,
     @Query('slotId') slotId: string | undefined,
+    @Query('dir') dir: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ): Promise<unknown> {
     const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
-    return this.remote.gitBranches(agentUrl);
+    return this.remote.gitBranches(agentUrl, { dir });
   }
 
   @Delete('remote')
   async removeRemote(
     @Param('workspaceId') workspaceId: string,
     @Query('slotId') slotId: string | undefined,
+    @Query('dir') dir: string | undefined,
     @CurrentUser() _user: CurrentUserInterface,
   ) {
     const agentUrl = await this.env.getAgentUrlForWorkspace(workspaceId, slotId);
-    return this.remote.gitRemoveRemote(agentUrl);
+    return this.remote.gitRemoveRemote(agentUrl, { dir });
   }
 }

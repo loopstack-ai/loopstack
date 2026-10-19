@@ -37,7 +37,21 @@ describe('GitStatusTool', () => {
 
     const result = await tool.call();
 
-    expect(mockRemoteClient.gitStatus).toHaveBeenCalledWith('https://agent.example');
+    expect(mockRemoteClient.gitStatus).toHaveBeenCalledWith('https://agent.example', {});
     expect(result.data).toEqual(status);
+  });
+
+  it('addresses the repository named by dir', async () => {
+    mockRemoteClient.gitStatus.mockResolvedValue({
+      branch: 'main',
+      staged: [],
+      modified: [],
+      untracked: [],
+      deleted: [],
+    });
+
+    await tool.call({ dir: 'repos/hello' });
+
+    expect(mockRemoteClient.gitStatus).toHaveBeenCalledWith('https://agent.example', { dir: 'repos/hello' });
   });
 });

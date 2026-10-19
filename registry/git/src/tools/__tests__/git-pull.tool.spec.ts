@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBlockArgsSchema } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { createToolTest } from '@loopstack/testing';
+import { GitTokenService } from '../../token/index.js';
 import { GitPullTool } from '../git-pull.tool.js';
 
 describe('GitPullTool', () => {
@@ -15,6 +16,9 @@ describe('GitPullTool', () => {
   const mockEnv = {
     getAgentUrl: vi.fn().mockResolvedValue('https://agent.example'),
   };
+  const mockTokens = {
+    resolve: vi.fn(),
+  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -23,6 +27,7 @@ describe('GitPullTool', () => {
       .forTool(GitPullTool)
       .withMock(RemoteClient, mockRemoteClient)
       .withMock(EnvironmentService, mockEnv)
+      .withMock(GitTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitPullTool);
@@ -33,10 +38,15 @@ describe('GitPullTool', () => {
   });
 
   describe('validation', () => {
-    it('accepts optional remote, branch and token', () => {
+    it('accepts optional remote and branch', () => {
       const schema = getBlockArgsSchema(tool)!;
       expect(() => schema.parse({})).not.toThrow();
-      expect(() => schema.parse({ remote: 'origin', branch: 'main', token: 'ghp_x' })).not.toThrow();
+      expect(() => schema.parse({ remote: 'origin', branch: 'main' })).not.toThrow();
+    });
+
+    it('refuses a token as an argument', () => {
+      const schema = getBlockArgsSchema(tool)!;
+      expect(() => schema.parse({ token: 'ghp_x' })).toThrow();
     });
 
     it('rejects extra properties (strict mode)', () => {
@@ -51,18 +61,15 @@ describe('GitPullTool', () => {
 
       const result = await tool.call({});
 
-      expect(mockRemoteClient.gitPull).toHaveBeenCalledWith('https://agent.example', {
-        remote: undefined,
-        branch: undefined,
-        token: undefined,
-      });
+      expect(mockRemoteClient.gitPull).toHaveBeenCalledWith('https://agent.example', {});
       expect(result.data).toEqual({ success: true });
     });
 
-    it('forwards remote, branch and token', async () => {
+    it('forwards remote and branch, with the token from the named source', async () => {
       mockRemoteClient.gitPull.mockResolvedValue({ success: true, output: 'Already up to date.' });
+      mockTokens.resolve.mockResolvedValue('ghp_x');
 
-      const result = await tool.call({ remote: 'upstream', branch: 'main', token: 'ghp_x' });
+      const result = await tool.call({ remote: 'upstream', branch: 'main' });
 
       expect(mockRemoteClient.gitPull).toHaveBeenCalledWith('https://agent.example', {
         remote: 'upstream',

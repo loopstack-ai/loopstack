@@ -61,6 +61,17 @@ describe('GitWorktreeAddTool', () => {
       expect(result.data).toEqual({ success: true, path: '/workspace/wt' });
     });
 
+    it('adds the worktree from the repository named by dir', async () => {
+      mockRemoteClient.gitWorktreeAdd.mockResolvedValue({ success: true, path: '/workspace/wt' });
+
+      await tool.call({ path: '../wt', dir: 'repos/hello' });
+
+      expect(mockRemoteClient.gitWorktreeAdd).toHaveBeenCalledWith('https://agent.example', {
+        path: '../wt',
+        dir: 'repos/hello',
+      });
+    });
+
     it('forwards branch, newBranch and force', async () => {
       mockRemoteClient.gitWorktreeAdd.mockResolvedValue({
         success: true,

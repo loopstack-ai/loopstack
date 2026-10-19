@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitAddTool`.
@@ -9,6 +10,7 @@ import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
  */
 export type GitAddArgs = {
   files: string[];
+  dir?: string;
 };
 
 /**
@@ -37,6 +39,7 @@ export const GitAddResultSchema = z.strictObject({ success: z.boolean() });
   schema: z
     .object({
       files: z.array(z.string()).describe('File paths to stage. Use ["."] to stage all changes.'),
+      dir: GitDirArgSchema,
     })
     .strict(),
   resultSchema: GitAddResultSchema,
@@ -52,7 +55,7 @@ export class GitAddTool extends BaseTool<GitAddArgs, object, GitAddResult> {
 
   protected async handle(args: GitAddArgs): Promise<ToolEnvelope<GitAddResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitAdd(agentUrl, args.files);
+    const result = await this.remote.gitAdd(agentUrl, args);
     return { data: result };
   }
 }

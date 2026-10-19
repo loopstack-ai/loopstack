@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema, type GitDirArgs } from './git-dir.schema.js';
 
 /**
  * Result for `GitWorktreePruneTool`.
@@ -28,11 +29,11 @@ export const GitWorktreePruneResultSchema = z.strictObject({ success: z.boolean(
 @Tool({
   name: 'git_worktree_prune',
   description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',
-  schema: z.object({}).strict(),
+  schema: z.object({ dir: GitDirArgSchema }).strict(),
   resultSchema: GitWorktreePruneResultSchema,
   effects: 'external',
 })
-export class GitWorktreePruneTool extends BaseTool<object, object, GitWorktreePruneResult> {
+export class GitWorktreePruneTool extends BaseTool<GitDirArgs, object, GitWorktreePruneResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
@@ -40,9 +41,9 @@ export class GitWorktreePruneTool extends BaseTool<object, object, GitWorktreePr
     super();
   }
 
-  protected async handle(): Promise<ToolEnvelope<GitWorktreePruneResult>> {
+  protected async handle(args: GitDirArgs): Promise<ToolEnvelope<GitWorktreePruneResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitWorktreePrune(agentUrl);
+    const result = await this.remote.gitWorktreePrune(agentUrl, args);
     return { data: result };
   }
 }

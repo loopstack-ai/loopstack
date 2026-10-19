@@ -57,7 +57,7 @@ describe('GitBranchTool', () => {
 
       const result = await tool.call();
 
-      expect(mockRemoteClient.gitBranches).toHaveBeenCalledWith('https://agent.example');
+      expect(mockRemoteClient.gitBranches).toHaveBeenCalledWith('https://agent.example', {});
       expect(result.data).toEqual(branches);
     });
 

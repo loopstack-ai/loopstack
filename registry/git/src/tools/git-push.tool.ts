@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitTokenService, type GitToolConfig, GitToolConfigSchema } from '../token/index.js';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitPushTool`.
@@ -11,7 +14,7 @@ export type GitPushArgs = {
   remote?: string;
   branch?: string;
   force?: boolean;
-  token?: string;
+  dir?: string;
 };
 
 /**
@@ -45,28 +48,30 @@ export const GitPushResultSchema = z.strictObject({ success: z.boolean(), output
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
       branch: z.string().optional().describe('Branch to push'),
       force: z.boolean().optional().describe('Force push'),
-      token: z.string().optional().describe('Access token for authentication'),
+      dir: GitDirArgSchema,
     })
     .strict(),
+  configSchema: GitToolConfigSchema,
   resultSchema: GitPushResultSchema,
   effects: 'external',
 })
-export class GitPushTool extends BaseTool<GitPushArgs, object, GitPushResult> {
+export class GitPushTool extends BaseTool<GitPushArgs, GitToolConfig, GitPushResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
+    private readonly tokens: GitTokenService,
   ) {
     super();
   }
 
-  protected async handle(args: GitPushArgs): Promise<ToolEnvelope<GitPushResult>> {
+  protected async handle(
+    args: GitPushArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitToolConfig>,
+  ): Promise<ToolEnvelope<GitPushResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitPush(agentUrl, {
-      remote: args.remote,
-      branch: args.branch,
-      force: args.force,
-      token: args.token,
-    });
+    const token = await this.tokens.resolve(ctx, options);
+    const result = await this.remote.gitPush(agentUrl, { ...args, ...(token ? { token } : {}) });
     return { data: result };
   }
 }

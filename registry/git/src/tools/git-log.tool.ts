@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Args for `GitLogTool`.
@@ -9,6 +10,7 @@ import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
  */
 export type GitLogArgs = {
   limit?: number;
+  dir?: string;
 };
 
 /**
@@ -62,6 +64,7 @@ export const GitLogResultSchema = z.strictObject({
   schema: z
     .object({
       limit: z.number().optional().default(20).describe('Maximum number of log entries to return'),
+      dir: GitDirArgSchema,
     })
     .strict(),
   resultSchema: GitLogResultSchema,
@@ -77,7 +80,7 @@ export class GitLogTool extends BaseTool<GitLogArgs, object, GitLogResult> {
 
   protected async handle(args: GitLogArgs): Promise<ToolEnvelope<GitLogResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitLog(agentUrl, args.limit);
+    const result = await this.remote.gitLog(agentUrl, args);
     return { data: result };
   }
 }

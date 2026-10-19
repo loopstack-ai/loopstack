@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema, type GitDirArgs } from './git-dir.schema.js';
 
 /**
  * Result for `GitBranchTool`.
@@ -31,11 +32,11 @@ export const GitBranchResultSchema = z.strictObject({
 @Tool({
   name: 'git_branch',
   description: 'Lists all local git branches and indicates the current branch.',
-  schema: z.object({}).strict(),
+  schema: z.object({ dir: GitDirArgSchema }).strict(),
   resultSchema: GitBranchResultSchema,
   effects: 'none',
 })
-export class GitBranchTool extends BaseTool<object, object, GitBranchResult> {
+export class GitBranchTool extends BaseTool<GitDirArgs, object, GitBranchResult> {
   constructor(
     private readonly env: EnvironmentService,
     private readonly remote: RemoteClient,
@@ -43,9 +44,9 @@ export class GitBranchTool extends BaseTool<object, object, GitBranchResult> {
     super();
   }
 
-  protected async handle(): Promise<ToolEnvelope<GitBranchResult>> {
+  protected async handle(args: GitDirArgs): Promise<ToolEnvelope<GitBranchResult>> {
     const agentUrl = await this.env.getAgentUrl();
-    const result = await this.remote.gitBranches(agentUrl);
+    const result = await this.remote.gitBranches(agentUrl, args);
     return { data: result };
   }
 }

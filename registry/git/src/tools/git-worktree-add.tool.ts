@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+import { GitDirArgSchema } from './git-dir.schema.js';
 
 /**
  * Zod schema for `GitWorktreeAddTool` arguments.
@@ -16,6 +17,7 @@ export const GitWorktreeAddSchema = z
       .optional()
       .describe('Create the branch as part of adding the worktree (passes -b to git worktree add)'),
     force: z.boolean().optional().describe('Pass --force to git worktree add'),
+    dir: GitDirArgSchema,
   })
   .strict();
 
