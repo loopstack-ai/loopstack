@@ -33,7 +33,8 @@ Email: [info@loopstack.com](mailto:info@loopstack.com)
 We use [**Plausible Analytics**](https://plausible.io/), a privacy-friendly analytics service.
 
 - Plausible does **not use cookies** and does not track you across websites.
-- All data is aggregated and anonymized (e.g. page views, referrers, device type, country).
+- All data is aggregated and anonymized (e.g. page views, referrers, device type, country,
+  and clicks on links that lead to other websites).
 - We do not store IP addresses or personal identifiers.
 
 The legal basis for this processing is **Art. 6(1)(f) GDPR** (legitimate interest in website optimization).

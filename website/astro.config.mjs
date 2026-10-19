@@ -20,9 +20,20 @@ export default defineConfig({
       favicon: '/favicon.svg',
       routeMiddleware: './src/middleware/title.ts',
       customCss: ['./src/styles/global.css'],
-      // Pages that do not set their own social image fall back to this one, so a link shared from
-      // any docs page or the blog index still previews.
       head: [
+        // Plausible Analytics: cookie-free, aggregated page views plus clicks on links that leave
+        // the site, as `docs/p/privacy-policy.md` declares. The script ignores localhost, so dev
+        // and preview runs send nothing.
+        {
+          tag: 'script',
+          attrs: {
+            defer: true,
+            'data-domain': 'loopstack.ai',
+            src: 'https://plausible.io/js/script.outbound-links.js',
+          },
+        },
+        // Pages that do not set their own social image fall back to this one, so a link shared from
+        // any docs page or the blog index still previews.
         { tag: 'meta', attrs: { property: 'og:image', content: 'https://loopstack.ai/og-image.png' } },
         { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
         { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
