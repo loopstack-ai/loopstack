@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubListIssuesArgs, GitHubListIssuesTool } from '../github-list-issues.tool.js';
 
 const HEADERS = {
@@ -16,8 +16,8 @@ describe('GitHubListIssuesTool', () => {
   let module: TestingModule;
   let tool: GitHubListIssuesTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -26,12 +26,9 @@ describe('GitHubListIssuesTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubListIssuesTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubListIssuesTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubListIssuesTool);
   });
@@ -99,7 +96,7 @@ describe('GitHubListIssuesTool', () => {
 
       const result = await tool.call({ owner: 'octo', repo: 'hello' });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith(
         'https://api.github.com/repos/octo/hello/issues?state=open&per_page=30&page=1',
         { headers: HEADERS },
@@ -155,7 +152,7 @@ describe('GitHubListIssuesTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute({ owner: 'octo', repo: 'hello' });
 

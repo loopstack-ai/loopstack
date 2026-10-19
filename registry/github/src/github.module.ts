@@ -1,7 +1,7 @@
-import { type DynamicModule, Module, type Provider } from '@nestjs/common';
+import { type DynamicModule, Module } from '@nestjs/common';
 import { OAuthModule } from '@loopstack/oauth';
 import { GitHubOAuthProvider } from './github-oauth.provider.js';
-import { GITHUB_TOKEN_PROVIDER, OAuthGitHubTokenProvider } from './token/index.js';
+import { GITHUB_TOKEN_ENV, GitHubTokenService } from './token/index.js';
 import { GitHubGetWorkflowRunTool } from './tools/actions/github-get-workflow-run.tool.js';
 import { GitHubListWorkflowRunsTool } from './tools/actions/github-list-workflow-runs.tool.js';
 import { GitHubTriggerWorkflowTool } from './tools/actions/github-trigger-workflow.tool.js';
@@ -84,33 +84,32 @@ const tools = [
  *
  * Registration:
  * - `GitHubModule` — bare import; it internally imports `OAuthModule`, registers `GitHubOAuthProvider` and
- *   all tools, and authenticates every tool with the signed-in user's OAuth token.
- * - `GitHubModule.forRoot({ tokenProvider })` — the same tools, authenticated with a token the app supplies
- *   through its own {@link GitHubTokenProvider}. What a headless app needs, which has no signed-in user and
- *   runs on a personal access token or an app installation token of its own.
+ *   all tools, and authenticates every tool with the OAuth token of the person the run belongs to.
+ * - `GitHubModule.forRoot({ tokenEnv })` — the same tools, authenticated with the token in that environment
+ *   variable. What a headless app needs, which has no signed-in user and runs on a token of the machine's. A
+ *   single call names a different variable through its config, for an operation that needs another credential.
  *
  * Requires, for the OAuth default: a configured GitHub OAuth app via the environment variables
- * `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI`. A run whose token provider
- * has no token gets `{ error: 'unauthorized' }` from every tool.
+ * `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and `GITHUB_OAUTH_REDIRECT_URI`. A call with no token to be
+ * found gets `{ error: 'unauthorized' }` from every tool.
  *
  * @public
  */
 @Module({
   imports: [OAuthModule],
-  providers: [GitHubOAuthProvider, { provide: GITHUB_TOKEN_PROVIDER, useClass: OAuthGitHubTokenProvider }, ...tools],
-  exports: [GitHubOAuthProvider, GITHUB_TOKEN_PROVIDER, ...tools],
+  providers: [GitHubOAuthProvider, GitHubTokenService, ...tools],
+  exports: [GitHubOAuthProvider, GitHubTokenService, ...tools],
 })
 export class GitHubModule {
   /**
-   * The tools, authenticated with the app's own token provider instead of the signed-in user's OAuth token.
-   * `tokenProvider` is a provider for {@link GITHUB_TOKEN_PROVIDER}, so it can inject whatever the app keeps
-   * its token in.
+   * The tools, authenticated with the token in the environment variable `tokenEnv` names, instead of the
+   * OAuth token of the person the run belongs to.
    */
-  static forRoot(options: { tokenProvider: Provider }): DynamicModule {
+  static forRoot(options: { tokenEnv: string }): DynamicModule {
     return {
       module: GitHubModule,
-      providers: [options.tokenProvider],
-      exports: [GITHUB_TOKEN_PROVIDER, ...tools],
+      providers: [{ provide: GITHUB_TOKEN_ENV, useValue: options.tokenEnv }],
+      exports: [GitHubTokenService, ...tools],
     };
   }
 }

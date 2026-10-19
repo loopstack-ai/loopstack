@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubSearchIssuesArgs, GitHubSearchIssuesTool } from '../github-search-issues.tool.js';
 
 const HEADERS = {
@@ -16,8 +16,8 @@ describe('GitHubSearchIssuesTool', () => {
   let module: TestingModule;
   let tool: GitHubSearchIssuesTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -26,12 +26,9 @@ describe('GitHubSearchIssuesTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubSearchIssuesTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubSearchIssuesTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubSearchIssuesTool);
   });
@@ -96,7 +93,7 @@ describe('GitHubSearchIssuesTool', () => {
 
       const result = await tool.call({ query: 'repo:octo/hello bug' });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith(
         'https://api.github.com/search/issues?q=repo%3Aocto%2Fhello+bug&per_page=30&page=1',
         { headers: HEADERS },
@@ -141,7 +138,7 @@ describe('GitHubSearchIssuesTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute({ query: 'is:open' });
 

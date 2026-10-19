@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -83,17 +83,22 @@ export const GitHubListIssuesResultSchema = z.strictObject({
   description:
     'Lists issues for a GitHub repository. Note: the GitHub API returns both issues and pull requests; pull requests have a pull_request key. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubListIssuesResultSchema,
   effects: 'none',
 })
-export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object, GitHubListIssuesResult> {
+export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, GitHubToolConfig, GitHubListIssuesResult> {
   private readonly logger = new Logger(GitHubListIssuesTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
-  protected async handle(args: GitHubListIssuesArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubListIssuesResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+  protected async handle(
+    args: GitHubListIssuesArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubListIssuesResult>> {
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {

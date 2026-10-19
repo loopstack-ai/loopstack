@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 import { encodeContentPath } from './encode-content-path.js';
 
 const inputSchema = z
@@ -69,20 +69,26 @@ export const GitHubListDirectoryResultSchema = z.strictObject({
   description:
     'Lists the contents of a directory in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubListDirectoryResultSchema,
   effects: 'none',
 })
-export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, object, GitHubListDirectoryResult> {
+export class GitHubListDirectoryTool extends BaseTool<
+  GitHubListDirectoryArgs,
+  GitHubToolConfig,
+  GitHubListDirectoryResult
+> {
   private readonly logger = new Logger(GitHubListDirectoryTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
   protected async handle(
     args: GitHubListDirectoryArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubListDirectoryResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {

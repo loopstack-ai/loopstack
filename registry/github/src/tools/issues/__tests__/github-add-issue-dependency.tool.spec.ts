@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubAddIssueDependencyArgs, GitHubAddIssueDependencyTool } from '../github-add-issue-dependency.tool.js';
 
 const HEADERS = {
@@ -22,8 +22,8 @@ describe('GitHubAddIssueDependencyTool', () => {
   let module: TestingModule;
   let tool: GitHubAddIssueDependencyTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -32,11 +32,11 @@ describe('GitHubAddIssueDependencyTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubAddIssueDependencyTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .withMock(GitHubTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitHubAddIssueDependencyTool);
@@ -88,7 +88,7 @@ describe('GitHubAddIssueDependencyTool', () => {
     });
 
     it('returns unauthorized without calling the API when the provider has no token', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 

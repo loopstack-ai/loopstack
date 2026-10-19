@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -62,24 +62,26 @@ export const GitHubCreateIssueCommentResultSchema = z.strictObject({
   description:
     'Creates a comment on a GitHub issue or pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubCreateIssueCommentResultSchema,
   effects: 'external',
 })
 export class GitHubCreateIssueCommentTool extends BaseTool<
   GitHubCreateIssueCommentArgs,
-  object,
+  GitHubToolConfig,
   GitHubCreateIssueCommentResult
 > {
   private readonly logger = new Logger(GitHubCreateIssueCommentTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
   protected async handle(
     args: GitHubCreateIssueCommentArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubCreateIssueCommentResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {

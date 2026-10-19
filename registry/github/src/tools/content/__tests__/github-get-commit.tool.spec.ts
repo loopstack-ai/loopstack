@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubGetCommitArgs, GitHubGetCommitTool } from '../github-get-commit.tool.js';
 
 const HEADERS = {
@@ -41,8 +41,8 @@ describe('GitHubGetCommitTool', () => {
   let module: TestingModule;
   let tool: GitHubGetCommitTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -51,12 +51,9 @@ describe('GitHubGetCommitTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubGetCommitTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubGetCommitTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubGetCommitTool);
   });
@@ -85,7 +82,7 @@ describe('GitHubGetCommitTool', () => {
 
       const result = await tool.call(args);
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/commits/abc123', {
         headers: HEADERS,
       });
@@ -118,8 +115,17 @@ describe('GitHubGetCommitTool', () => {
       expect(fetchMock.mock.calls[0][0]).toBe('https://api.github.com/repos/a%2Fb/c%20d/commits/feature%2Fx');
     });
 
+    it('answers with no commit when there is none of that ref', async () => {
+      fetchMock.mockResolvedValue(new Response('Not Found', { status: 404, statusText: 'Not Found' }));
+
+      const result = await tool.call({ ...args, ref: 'deadbeef' });
+
+      // A missing commit is an answer: `call()` returns instead of throwing, as it does on an error envelope.
+      expect(result.data).toEqual({ commit: null });
+    });
+
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 

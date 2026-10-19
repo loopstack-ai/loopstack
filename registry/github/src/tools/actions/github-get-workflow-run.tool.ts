@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -42,7 +42,7 @@ export type GitHubGetWorkflowRunResult =
         updatedAt: string;
         runStartedAt: string;
         htmlUrl: string;
-      };
+      } | null;
     }
   | { error: string; message: string };
 
@@ -52,22 +52,24 @@ export type GitHubGetWorkflowRunResult =
  * @public
  */
 export const GitHubGetWorkflowRunResultSchema = z.strictObject({
-  run: z.strictObject({
-    id: z.number(),
-    name: z.string(),
-    status: z.string(),
-    conclusion: z.string().nullable(),
-    headBranch: z.string(),
-    headSha: z.string(),
-    event: z.string(),
-    workflowId: z.number(),
-    runNumber: z.number(),
-    runAttempt: z.number(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-    runStartedAt: z.string(),
-    htmlUrl: z.string(),
-  }),
+  run: z
+    .strictObject({
+      id: z.number(),
+      name: z.string(),
+      status: z.string(),
+      conclusion: z.string().nullable(),
+      headBranch: z.string(),
+      headSha: z.string(),
+      event: z.string(),
+      workflowId: z.number(),
+      runNumber: z.number(),
+      runAttempt: z.number(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      runStartedAt: z.string(),
+      htmlUrl: z.string(),
+    })
+    .nullable(),
 });
 
 /**
@@ -79,22 +81,30 @@ export const GitHubGetWorkflowRunResultSchema = z.strictObject({
 @Tool({
   name: 'github_get_workflow_run',
   description:
-    'Gets detailed information about a specific GitHub Actions workflow run. Returns { error: "unauthorized" } if no valid token is available.',
+    'Gets detailed information about a specific GitHub Actions workflow run, or { run: null } when no workflow run ' +
+    'of that id exists or the token cannot see it. Returns { error: "unauthorized" } if no valid token is ' +
+    'available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubGetWorkflowRunResultSchema,
   effects: 'none',
 })
-export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs, object, GitHubGetWorkflowRunResult> {
+export class GitHubGetWorkflowRunTool extends BaseTool<
+  GitHubGetWorkflowRunArgs,
+  GitHubToolConfig,
+  GitHubGetWorkflowRunResult
+> {
   private readonly logger = new Logger(GitHubGetWorkflowRunTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
   protected async handle(
     args: GitHubGetWorkflowRunArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubGetWorkflowRunResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {
@@ -124,6 +134,12 @@ export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs,
         },
         error: 'GitHub token was rejected. Please re-authenticate.',
       };
+    }
+
+    // Asking whether a workflow run exists is a fair question, so a 404 is an answer rather than a failure: the
+    // caller reads `run: null` instead of catching an error it would have to tell apart from a real one.
+    if (response.status === 404) {
+      return { data: { run: null } };
     }
 
     if (!response.ok) {

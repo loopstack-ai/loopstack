@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubListWorkflowRunsArgs, GitHubListWorkflowRunsTool } from '../github-list-workflow-runs.tool.js';
 
 const HEADERS = {
@@ -16,8 +16,8 @@ describe('GitHubListWorkflowRunsTool', () => {
   let module: TestingModule;
   let tool: GitHubListWorkflowRunsTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -26,11 +26,11 @@ describe('GitHubListWorkflowRunsTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubListWorkflowRunsTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .withMock(GitHubTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitHubListWorkflowRunsTool);
@@ -103,7 +103,7 @@ describe('GitHubListWorkflowRunsTool', () => {
 
       const result = await tool.call({ owner: 'octo', repo: 'hello' });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith(
         'https://api.github.com/repos/octo/hello/actions/runs?per_page=30&page=1',
         { headers: HEADERS },
@@ -158,7 +158,7 @@ describe('GitHubListWorkflowRunsTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute({ owner: 'octo', repo: 'hello' });
 

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubListDirectoryArgs, GitHubListDirectoryTool } from '../github-list-directory.tool.js';
 
 const HEADERS = {
@@ -16,8 +16,8 @@ describe('GitHubListDirectoryTool', () => {
   let module: TestingModule;
   let tool: GitHubListDirectoryTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -26,12 +26,9 @@ describe('GitHubListDirectoryTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubListDirectoryTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubListDirectoryTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubListDirectoryTool);
   });
@@ -81,7 +78,7 @@ describe('GitHubListDirectoryTool', () => {
 
       const result = await tool.call({ owner: 'octo', repo: 'hello' });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/contents/', { headers: HEADERS });
       expect(result.data).toEqual({
         entries: [
@@ -144,7 +141,7 @@ describe('GitHubListDirectoryTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute({ owner: 'octo', repo: 'hello' });
 

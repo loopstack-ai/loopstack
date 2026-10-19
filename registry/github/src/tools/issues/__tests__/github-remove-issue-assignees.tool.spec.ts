@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import {
   GitHubRemoveIssueAssigneesArgs,
   GitHubRemoveIssueAssigneesTool,
@@ -22,8 +22,8 @@ describe('GitHubRemoveIssueAssigneesTool', () => {
   let module: TestingModule;
   let tool: GitHubRemoveIssueAssigneesTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -33,11 +33,11 @@ describe('GitHubRemoveIssueAssigneesTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubRemoveIssueAssigneesTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .withMock(GitHubTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitHubRemoveIssueAssigneesTool);
@@ -72,7 +72,7 @@ describe('GitHubRemoveIssueAssigneesTool', () => {
 
       const result = await tool.call(args);
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalled();
+      expect(mockTokens.resolve).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/issues/7/assignees', {
         method: 'DELETE',
         headers: HEADERS,
@@ -98,7 +98,7 @@ describe('GitHubRemoveIssueAssigneesTool', () => {
     });
 
     it('returns unauthorized without calling the API when the provider has no token', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 

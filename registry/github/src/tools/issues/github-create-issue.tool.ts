@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -12,12 +12,16 @@ const inputSchema = z
     body: z.string().optional(),
     labels: z.array(z.string()).optional(),
     assignees: z.array(z.string()).optional(),
+    type: z.string().optional(),
   })
   .strict();
 
 /**
  * Args for `GitHubCreateIssueTool`: the repository `owner`, `repo`, issue `title` and
- * optional `body`, `labels` and `assignees`.
+ * optional `body`, `labels`, `assignees` and `type`, the organization's issue type by name.
+ *
+ * A repository whose organization does not define that type answers 422, which comes back as an error
+ * envelope; a caller that wants the issue either way creates it without the type.
  *
  * @public
  */
@@ -64,19 +68,26 @@ export const GitHubCreateIssueResultSchema = z.strictObject({
 @Tool({
   name: 'github_create_issue',
   description:
-    'Creates a new issue in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
+    "Creates a new issue in a GitHub repository, with optional labels, assignees and the organization's issue " +
+    'type by name. A type the organization does not define is rejected with a 422. Returns ' +
+    '{ error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubCreateIssueResultSchema,
   effects: 'external',
 })
-export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, object, GitHubCreateIssueResult> {
+export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, GitHubToolConfig, GitHubCreateIssueResult> {
   private readonly logger = new Logger(GitHubCreateIssueTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
-  protected async handle(args: GitHubCreateIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubCreateIssueResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+  protected async handle(
+    args: GitHubCreateIssueArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubCreateIssueResult>> {
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {
@@ -95,6 +106,7 @@ export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, objec
     if (args.body) requestBody.body = args.body;
     if (args.labels) requestBody.labels = args.labels;
     if (args.assignees) requestBody.assignees = args.assignees;
+    if (args.type) requestBody.type = args.type;
 
     const url = `https://api.github.com/repos/${encodeURIComponent(args.owner)}/${encodeURIComponent(args.repo)}/issues`;
     const response = await fetch(url, {

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema, parseToolResult } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubListPrReviewsArgs, GitHubListPrReviewsTool } from '../github-list-pr-reviews.tool.js';
 
 const HEADERS = {
@@ -18,8 +18,8 @@ describe('GitHubListPrReviewsTool', () => {
   let module: TestingModule;
   let tool: GitHubListPrReviewsTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -28,12 +28,9 @@ describe('GitHubListPrReviewsTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubListPrReviewsTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubListPrReviewsTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubListPrReviewsTool);
   });
@@ -83,7 +80,7 @@ describe('GitHubListPrReviewsTool', () => {
 
       const result = await tool.call(args);
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/pulls/21/reviews', {
         headers: HEADERS,
       });
@@ -148,7 +145,7 @@ describe('GitHubListPrReviewsTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 

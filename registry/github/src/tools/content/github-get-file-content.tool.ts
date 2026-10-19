@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 import { encodeContentPath } from './encode-content-path.js';
 
 const inputSchema = z
@@ -38,7 +38,7 @@ export type GitHubGetFileContentResult =
         type: string;
         content: string | null;
         htmlUrl: string;
-      };
+      } | null;
     }
   | { error: string; message: string };
 
@@ -48,15 +48,17 @@ export type GitHubGetFileContentResult =
  * @public
  */
 export const GitHubGetFileContentResultSchema = z.strictObject({
-  file: z.strictObject({
-    name: z.string(),
-    path: z.string(),
-    sha: z.string(),
-    size: z.number(),
-    type: z.string(),
-    content: z.string().nullable(),
-    htmlUrl: z.string(),
-  }),
+  file: z
+    .strictObject({
+      name: z.string(),
+      path: z.string(),
+      sha: z.string(),
+      size: z.number(),
+      type: z.string(),
+      content: z.string().nullable(),
+      htmlUrl: z.string(),
+    })
+    .nullable(),
 });
 
 /**
@@ -69,22 +71,30 @@ export const GitHubGetFileContentResultSchema = z.strictObject({
 @Tool({
   name: 'github_get_file_content',
   description:
-    'Gets the content of a file from a GitHub repository. Decodes base64-encoded content from the API. Returns { error: "unauthorized" } if no valid token is available.',
+    'Gets the content of a file from a GitHub repository. Decodes base64-encoded content from the API. Answers ' +
+    '{ file: null } when no file of that path exists or the token cannot see it. Returns ' +
+    '{ error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubGetFileContentResultSchema,
   effects: 'none',
 })
-export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs, object, GitHubGetFileContentResult> {
+export class GitHubGetFileContentTool extends BaseTool<
+  GitHubGetFileContentArgs,
+  GitHubToolConfig,
+  GitHubGetFileContentResult
+> {
   private readonly logger = new Logger(GitHubGetFileContentTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
   protected async handle(
     args: GitHubGetFileContentArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubGetFileContentResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {
@@ -117,6 +127,12 @@ export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs,
         },
         error: 'GitHub token was rejected. Please re-authenticate.',
       };
+    }
+
+    // Asking whether a file exists is a fair question, so a 404 is an answer rather than a failure: the
+    // caller reads `file: null` instead of catching an error it would have to tell apart from a real one.
+    if (response.status === 404) {
+      return { data: { file: null } };
     }
 
     if (!response.ok) {

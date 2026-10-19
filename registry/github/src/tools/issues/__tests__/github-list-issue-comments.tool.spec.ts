@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubListIssueCommentsArgs, GitHubListIssueCommentsTool } from '../github-list-issue-comments.tool.js';
 
 const HEADERS = {
@@ -18,8 +18,8 @@ describe('GitHubListIssueCommentsTool', () => {
   let module: TestingModule;
   let tool: GitHubListIssueCommentsTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -28,11 +28,11 @@ describe('GitHubListIssueCommentsTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubListIssueCommentsTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .withMock(GitHubTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitHubListIssueCommentsTool);
@@ -70,7 +70,7 @@ describe('GitHubListIssueCommentsTool', () => {
 
       const result = await tool.call(args);
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalled();
+      expect(mockTokens.resolve).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/issues/7/comments?per_page=100', {
         headers: HEADERS,
       });
@@ -113,7 +113,7 @@ describe('GitHubListIssueCommentsTool', () => {
     });
 
     it('returns unauthorized without calling the API when the provider has no token', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 

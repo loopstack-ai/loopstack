@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubCreateOrUpdateFileArgs, GitHubCreateOrUpdateFileTool } from '../github-create-or-update-file.tool.js';
 
 const HEADERS = {
@@ -40,8 +40,8 @@ describe('GitHubCreateOrUpdateFileTool', () => {
   let module: TestingModule;
   let tool: GitHubCreateOrUpdateFileTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -52,11 +52,11 @@ describe('GitHubCreateOrUpdateFileTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubCreateOrUpdateFileTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .withMock(GitHubTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitHubCreateOrUpdateFileTool);
@@ -86,7 +86,7 @@ describe('GitHubCreateOrUpdateFileTool', () => {
 
       const result = await tool.call(args);
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       const [url, init] = request();
       expect(url).toBe('https://api.github.com/repos/octo/hello/contents/docs/readme.md');
       expect(init).toEqual({ method: 'PUT', headers: HEADERS, body: expect.any(String) });
@@ -135,7 +135,7 @@ describe('GitHubCreateOrUpdateFileTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 

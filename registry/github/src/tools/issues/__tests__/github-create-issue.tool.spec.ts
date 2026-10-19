@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubCreateIssueArgs, GitHubCreateIssueTool } from '../github-create-issue.tool.js';
 
 const HEADERS = {
@@ -26,8 +26,8 @@ describe('GitHubCreateIssueTool', () => {
   let module: TestingModule;
   let tool: GitHubCreateIssueTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -38,12 +38,9 @@ describe('GitHubCreateIssueTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubCreateIssueTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubCreateIssueTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubCreateIssueTool);
   });
@@ -79,7 +76,7 @@ describe('GitHubCreateIssueTool', () => {
         assignees: ['bob'],
       });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       const [url, init] = request();
       expect(url).toBe('https://api.github.com/repos/octo/hello/issues');
       expect(init).toEqual({ method: 'POST', headers: HEADERS, body: expect.any(String) });
@@ -117,7 +114,7 @@ describe('GitHubCreateIssueTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute({ owner: 'octo', repo: 'hello', title: 'Bug' });
 
@@ -145,6 +142,22 @@ describe('GitHubCreateIssueTool', () => {
 
       expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Unprocessable Entity' });
       expect(result.error).toBe('GitHub API error: Unprocessable Entity');
+    });
+
+    it("sends the organization's issue type when one is given", async () => {
+      fetchMock.mockResolvedValue(
+        Response.json({
+          id: 1,
+          number: 9,
+          title: 'T',
+          html_url: 'https://github.com/octo/hello/issues/9',
+          state: 'open',
+        }),
+      );
+
+      await tool.call({ owner: 'octo', repo: 'hello', title: 'T', type: 'Bug' });
+
+      expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).toEqual({ title: 'T', type: 'Bug' });
     });
   });
 });

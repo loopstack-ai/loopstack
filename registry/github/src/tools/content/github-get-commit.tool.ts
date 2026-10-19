@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -49,7 +49,7 @@ export type GitHubGetCommitResult =
           deletions: number;
           changes: number;
         }>;
-      };
+      } | null;
     }
   | { error: string; message: string };
 
@@ -59,35 +59,37 @@ export type GitHubGetCommitResult =
  * @public
  */
 export const GitHubGetCommitResultSchema = z.strictObject({
-  commit: z.strictObject({
-    sha: z.string(),
-    message: z.string(),
-    author: z.strictObject({
-      name: z.string(),
-      email: z.string(),
-      date: z.string(),
-      login: z.string().nullable(),
-    }),
-    committer: z.strictObject({
-      name: z.string(),
-      date: z.string(),
-    }),
-    htmlUrl: z.string(),
-    stats: z.strictObject({
-      additions: z.number(),
-      deletions: z.number(),
-      total: z.number(),
-    }),
-    files: z.array(
-      z.strictObject({
-        filename: z.string(),
-        status: z.string(),
+  commit: z
+    .strictObject({
+      sha: z.string(),
+      message: z.string(),
+      author: z.strictObject({
+        name: z.string(),
+        email: z.string(),
+        date: z.string(),
+        login: z.string().nullable(),
+      }),
+      committer: z.strictObject({
+        name: z.string(),
+        date: z.string(),
+      }),
+      htmlUrl: z.string(),
+      stats: z.strictObject({
         additions: z.number(),
         deletions: z.number(),
-        changes: z.number(),
+        total: z.number(),
       }),
-    ),
-  }),
+      files: z.array(
+        z.strictObject({
+          filename: z.string(),
+          status: z.string(),
+          additions: z.number(),
+          deletions: z.number(),
+          changes: z.number(),
+        }),
+      ),
+    })
+    .nullable(),
 });
 
 /**
@@ -100,19 +102,26 @@ export const GitHubGetCommitResultSchema = z.strictObject({
 @Tool({
   name: 'github_get_commit',
   description:
-    'Gets detailed information about a specific commit in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
+    'Gets detailed information about a specific commit in a GitHub repository, or { commit: null } when no commit ' +
+    'of that ref exists or the token cannot see it. Returns { error: "unauthorized" } if no valid token is ' +
+    'available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubGetCommitResultSchema,
   effects: 'none',
 })
-export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, GitHubGetCommitResult> {
+export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, GitHubToolConfig, GitHubGetCommitResult> {
   private readonly logger = new Logger(GitHubGetCommitTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
-  protected async handle(args: GitHubGetCommitArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetCommitResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+  protected async handle(
+    args: GitHubGetCommitArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetCommitResult>> {
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {
@@ -142,6 +151,12 @@ export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, G
         },
         error: 'GitHub token was rejected. Please re-authenticate.',
       };
+    }
+
+    // Asking whether a commit exists is a fair question, so a 404 is an answer rather than a failure: the
+    // caller reads `commit: null` instead of catching an error it would have to tell apart from a real one.
+    if (response.status === 404) {
+      return { data: { commit: null } };
     }
 
     if (!response.ok) {

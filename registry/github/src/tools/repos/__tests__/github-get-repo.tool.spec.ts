@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubGetRepoArgs, GitHubGetRepoTool } from '../github-get-repo.tool.js';
 
 const HEADERS = {
@@ -35,8 +35,8 @@ describe('GitHubGetRepoTool', () => {
   let module: TestingModule;
   let tool: GitHubGetRepoTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -45,12 +45,9 @@ describe('GitHubGetRepoTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubGetRepoTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubGetRepoTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubGetRepoTool);
   });
@@ -79,7 +76,7 @@ describe('GitHubGetRepoTool', () => {
 
       const result = await tool.call({ owner: 'octo', repo: 'hello' });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello', { headers: HEADERS });
       expect(result.data).toEqual({
         repo: {
@@ -120,8 +117,17 @@ describe('GitHubGetRepoTool', () => {
       expect(fetchMock.mock.calls[0][0]).toBe('https://api.github.com/repos/a%2Fb/c%20d');
     });
 
+    it('answers with no repository when there is none of that name', async () => {
+      fetchMock.mockResolvedValue(new Response('Not Found', { status: 404, statusText: 'Not Found' }));
+
+      const result = await tool.call({ owner: 'octo', repo: 'nope' });
+
+      // A missing repository is an answer: `call()` returns instead of throwing, as it does on an error envelope.
+      expect(result.data).toEqual({ repo: null });
+    });
+
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute({ owner: 'octo', repo: 'hello' });
 
@@ -143,12 +149,12 @@ describe('GitHubGetRepoTool', () => {
     });
 
     it('reports other API failures as api_error', async () => {
-      fetchMock.mockResolvedValue(new Response('missing', { status: 404, statusText: 'Not Found' }));
+      fetchMock.mockResolvedValue(new Response('boom', { status: 500, statusText: 'Server Error' }));
 
       const result = await execute({ owner: 'octo', repo: 'hello' });
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Not Found' });
-      expect(result.error).toBe('GitHub API error: Not Found');
+      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Server Error' });
+      expect(result.error).toBe('GitHub API error: Server Error');
     });
   });
 });

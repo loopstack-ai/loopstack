@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -107,20 +107,26 @@ const REPO_ISSUE_FIELDS_QUERY = `
   description:
     'Sets issue field values on a GitHub issue, by field name — a single select field by its option name. Fields that are not named are left as they are. Returns the field names that were set. Fails with { error: "unknown_field" } when the repository offers no field of that name, and with { error: "unknown_option" } when a select field has no such option, naming the field and listing the options it does have. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubSetIssueFieldsResultSchema,
   effects: 'external',
 })
-export class GitHubSetIssueFieldsTool extends BaseTool<GitHubSetIssueFieldsArgs, object, GitHubSetIssueFieldsResult> {
+export class GitHubSetIssueFieldsTool extends BaseTool<
+  GitHubSetIssueFieldsArgs,
+  GitHubToolConfig,
+  GitHubSetIssueFieldsResult
+> {
   private readonly logger = new Logger(GitHubSetIssueFieldsTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
   protected async handle(
     args: GitHubSetIssueFieldsArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubSetIssueFieldsResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {

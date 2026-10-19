@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubMergePullRequestArgs, GitHubMergePullRequestTool } from '../github-merge-pull-request.tool.js';
 
 const HEADERS = {
@@ -21,8 +21,8 @@ describe('GitHubMergePullRequestTool', () => {
   let module: TestingModule;
   let tool: GitHubMergePullRequestTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -33,11 +33,11 @@ describe('GitHubMergePullRequestTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubMergePullRequestTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .withMock(GitHubTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitHubMergePullRequestTool);
@@ -77,7 +77,7 @@ describe('GitHubMergePullRequestTool', () => {
         commitMessage: 'Squashed commits',
       });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       const [url, init] = request();
       expect(url).toBe('https://api.github.com/repos/octo/hello/pulls/21/merge');
       expect(init).toEqual({ method: 'PUT', headers: HEADERS, body: expect.any(String) });
@@ -108,7 +108,7 @@ describe('GitHubMergePullRequestTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 

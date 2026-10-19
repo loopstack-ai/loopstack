@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -25,6 +25,7 @@ export type GitHubGetRepoArgs = z.infer<typeof inputSchema>;
  * @public
  */
 export type GitHubGetRepoResult = {
+  /** `null` when the repository does not exist, or the token cannot see it. */
   repo?: {
     id: number;
     fullName: string;
@@ -43,7 +44,7 @@ export type GitHubGetRepoResult = {
     updatedAt: string;
     topics: string[];
     license: string | null;
-  };
+  } | null;
   error?: string;
   message?: string;
 };
@@ -54,25 +55,27 @@ export type GitHubGetRepoResult = {
  * @public
  */
 export const GitHubGetRepoResultSchema = z.strictObject({
-  repo: z.strictObject({
-    id: z.number(),
-    fullName: z.string(),
-    name: z.string(),
-    owner: z.string(),
-    ownerAvatar: z.string(),
-    private: z.boolean(),
-    htmlUrl: z.string(),
-    description: z.string().nullable(),
-    language: z.string().nullable(),
-    defaultBranch: z.string(),
-    stars: z.number(),
-    forks: z.number(),
-    openIssues: z.number(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-    topics: z.array(z.string()),
-    license: z.string().nullable(),
-  }),
+  repo: z
+    .strictObject({
+      id: z.number(),
+      fullName: z.string(),
+      name: z.string(),
+      owner: z.string(),
+      ownerAvatar: z.string(),
+      private: z.boolean(),
+      htmlUrl: z.string(),
+      description: z.string().nullable(),
+      language: z.string().nullable(),
+      defaultBranch: z.string(),
+      stars: z.number(),
+      forks: z.number(),
+      openIssues: z.number(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      topics: z.array(z.string()),
+      license: z.string().nullable(),
+    })
+    .nullable(),
 });
 
 /**
@@ -85,19 +88,25 @@ export const GitHubGetRepoResultSchema = z.strictObject({
 @Tool({
   name: 'github_get_repo',
   description:
-    'Gets detailed information about a specific GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
+    'Gets detailed information about a specific GitHub repository, or { repo: null } when no repository of that ' +
+    'name exists or the token cannot see it. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubGetRepoResultSchema,
   effects: 'none',
 })
-export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, object, GitHubGetRepoResult> {
+export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, GitHubToolConfig, GitHubGetRepoResult> {
   private readonly logger = new Logger(GitHubGetRepoTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
-  protected async handle(args: GitHubGetRepoArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetRepoResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+  protected async handle(
+    args: GitHubGetRepoArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetRepoResult>> {
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {
@@ -129,6 +138,12 @@ export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, object, GitHu
         },
         error: 'GitHub token was rejected. Please re-authenticate.',
       };
+    }
+
+    // Asking whether a repository exists is a fair question, so a 404 is an answer rather than a failure: the
+    // caller reads `repo: null` instead of catching an error it would have to tell apart from a real one.
+    if (response.status === 404) {
+      return { data: { repo: null } };
     }
 
     if (!response.ok) {

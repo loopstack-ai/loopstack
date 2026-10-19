@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 import { type RestIssueFieldValue, issueFieldValues } from './issue-field-values.js';
 
 const inputSchema = z
@@ -47,7 +47,7 @@ export type GitHubGetIssueResult =
         fields: Record<string, string>;
         /** GitHub's own issue type, as the organization names it, or `null` when the issue carries none. */
         type: string | null;
-      };
+      } | null;
     }
   | { error: string; message: string };
 
@@ -57,24 +57,26 @@ export type GitHubGetIssueResult =
  * @public
  */
 export const GitHubGetIssueResultSchema = z.strictObject({
-  issue: z.strictObject({
-    id: z.number(),
-    number: z.number(),
-    title: z.string(),
-    body: z.string().nullable(),
-    state: z.string(),
-    user: z.string(),
-    labels: z.array(z.string()),
-    assignees: z.array(z.string()),
-    milestone: z.string().nullable(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-    closedAt: z.string().nullable(),
-    htmlUrl: z.string(),
-    comments: z.number(),
-    fields: z.record(z.string(), z.string()),
-    type: z.string().nullable(),
-  }),
+  issue: z
+    .strictObject({
+      id: z.number(),
+      number: z.number(),
+      title: z.string(),
+      body: z.string().nullable(),
+      state: z.string(),
+      user: z.string(),
+      labels: z.array(z.string()),
+      assignees: z.array(z.string()),
+      milestone: z.string().nullable(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      closedAt: z.string().nullable(),
+      htmlUrl: z.string(),
+      comments: z.number(),
+      fields: z.record(z.string(), z.string()),
+      type: z.string().nullable(),
+    })
+    .nullable(),
 });
 
 /**
@@ -87,20 +89,26 @@ export const GitHubGetIssueResultSchema = z.strictObject({
   name: 'github_get_issue',
   description:
     'Gets detailed information about a specific GitHub issue, including the labels and assignees on it, the ' +
-    'organization\'s issue field values by field name, and the issue type. Returns { error: "unauthorized" } if ' +
-    'no valid token is available.',
+    "organization's issue field values by field name, and the issue type, or { issue: null } when no issue of " +
+    'that number exists or the token cannot see it. Returns { error: "unauthorized" } if no valid token is ' +
+    'available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubGetIssueResultSchema,
   effects: 'none',
 })
-export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, GitHubGetIssueResult> {
+export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, GitHubToolConfig, GitHubGetIssueResult> {
   private readonly logger = new Logger(GitHubGetIssueTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
-  protected async handle(args: GitHubGetIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubGetIssueResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+  protected async handle(
+    args: GitHubGetIssueArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubGetIssueResult>> {
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {
@@ -130,6 +138,12 @@ export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, Git
         },
         error: 'GitHub token was rejected. Please re-authenticate.',
       };
+    }
+
+    // Asking whether an issue exists is a fair question, so a 404 is an answer rather than a failure: the
+    // caller reads `issue: null` instead of catching an error it would have to tell apart from a real one.
+    if (response.status === 404) {
+      return { data: { issue: null } };
     }
 
     if (!response.ok) {

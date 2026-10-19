@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubSearchCodeArgs, GitHubSearchCodeTool } from '../github-search-code.tool.js';
 
 const HEADERS = {
@@ -16,8 +16,8 @@ describe('GitHubSearchCodeTool', () => {
   let module: TestingModule;
   let tool: GitHubSearchCodeTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -26,12 +26,9 @@ describe('GitHubSearchCodeTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubSearchCodeTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubSearchCodeTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubSearchCodeTool);
   });
@@ -75,7 +72,7 @@ describe('GitHubSearchCodeTool', () => {
 
       const result = await tool.call({ query: 'useState repo:octo/hello language:ts' });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith(
         'https://api.github.com/search/code?q=useState+repo%3Aocto%2Fhello+language%3Ats&per_page=30&page=1',
         { headers: HEADERS },
@@ -104,7 +101,7 @@ describe('GitHubSearchCodeTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute({ query: 'foo' });
 

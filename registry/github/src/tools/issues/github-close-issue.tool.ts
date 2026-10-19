@@ -1,9 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER } from '../../token/index.js';
-import type { GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -68,16 +67,22 @@ export const GitHubCloseIssueResultSchema = z.strictObject({
     'Returns the issue number, its state and its state reason. ' +
     'Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubCloseIssueResultSchema,
   effects: 'external',
 })
-export class GitHubCloseIssueTool extends BaseTool<GitHubCloseIssueArgs, object, GitHubCloseIssueResult> {
+export class GitHubCloseIssueTool extends BaseTool<GitHubCloseIssueArgs, GitHubToolConfig, GitHubCloseIssueResult> {
   private readonly logger = new Logger(GitHubCloseIssueTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER) private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
-  protected async handle(args: GitHubCloseIssueArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubCloseIssueResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+  protected async handle(
+    args: GitHubCloseIssueArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubCloseIssueResult>> {
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {

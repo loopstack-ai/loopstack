@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z.object({}).strict();
 
@@ -69,24 +69,26 @@ export const GitHubGetAuthenticatedUserResultSchema = z.strictObject({
   description:
     'Gets the profile of the currently authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubGetAuthenticatedUserResultSchema,
   effects: 'none',
 })
 export class GitHubGetAuthenticatedUserTool extends BaseTool<
   GitHubGetAuthenticatedUserArgs,
-  object,
+  GitHubToolConfig,
   GitHubGetAuthenticatedUserResult
 > {
   private readonly logger = new Logger(GitHubGetAuthenticatedUserTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
   protected async handle(
     _args: GitHubGetAuthenticatedUserArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubGetAuthenticatedUserResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {

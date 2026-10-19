@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -67,17 +67,22 @@ export const GitHubSearchCodeResultSchema = z.strictObject({
   description:
     'Searches for code across GitHub repositories using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubSearchCodeResultSchema,
   effects: 'none',
 })
-export class GitHubSearchCodeTool extends BaseTool<GitHubSearchCodeArgs, object, GitHubSearchCodeResult> {
+export class GitHubSearchCodeTool extends BaseTool<GitHubSearchCodeArgs, GitHubToolConfig, GitHubSearchCodeResult> {
   private readonly logger = new Logger(GitHubSearchCodeTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
-  protected async handle(args: GitHubSearchCodeArgs, ctx: RunContext): Promise<ToolEnvelope<GitHubSearchCodeResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+  protected async handle(
+    args: GitHubSearchCodeArgs,
+    ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
+  ): Promise<ToolEnvelope<GitHubSearchCodeResult>> {
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubCreateRepoArgs, GitHubCreateRepoTool } from '../github-create-repo.tool.js';
 
 const HEADERS = {
@@ -18,6 +18,7 @@ const repoPayload = {
   full_name: 'octo/new-repo',
   name: 'new-repo',
   html_url: 'https://github.com/octo/new-repo',
+  clone_url: 'https://github.com/octo/new-repo.git',
   private: true,
   default_branch: 'main',
 };
@@ -26,8 +27,8 @@ describe('GitHubCreateRepoTool', () => {
   let module: TestingModule;
   let tool: GitHubCreateRepoTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -38,12 +39,9 @@ describe('GitHubCreateRepoTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
-    module = await createToolTest()
-      .forTool(GitHubCreateRepoTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
-      .compile();
+    module = await createToolTest().forTool(GitHubCreateRepoTool).withMock(GitHubTokenService, mockTokens).compile();
 
     tool = module.get(GitHubCreateRepoTool);
   });
@@ -72,7 +70,7 @@ describe('GitHubCreateRepoTool', () => {
 
       const result = await tool.call({ name: 'new-repo', description: 'A new repo', private: true, autoInit: true });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       const [url, init] = request();
       expect(url).toBe('https://api.github.com/user/repos');
       expect(init).toEqual({ method: 'POST', headers: HEADERS, body: expect.any(String) });
@@ -83,10 +81,32 @@ describe('GitHubCreateRepoTool', () => {
           fullName: 'octo/new-repo',
           name: 'new-repo',
           htmlUrl: 'https://github.com/octo/new-repo',
+          cloneUrl: 'https://github.com/octo/new-repo.git',
           private: true,
           defaultBranch: 'main',
         },
       });
+    });
+
+    it("creates the repository under an organization when the owner is not the token's account", async () => {
+      fetchMock
+        .mockResolvedValueOnce(Response.json({ login: 'octo' }))
+        .mockResolvedValueOnce(Response.json(repoPayload, { status: 201 }));
+
+      await tool.call({ name: 'new-repo', owner: 'acme' });
+
+      expect(fetchMock.mock.calls[0][0]).toBe('https://api.github.com/user');
+      expect(fetchMock.mock.calls[1][0]).toBe('https://api.github.com/orgs/acme/repos');
+    });
+
+    it("creates it for the account itself when the owner is the token's own", async () => {
+      fetchMock
+        .mockResolvedValueOnce(Response.json({ login: 'octo' }))
+        .mockResolvedValueOnce(Response.json(repoPayload, { status: 201 }));
+
+      await tool.call({ name: 'new-repo', owner: 'octo' });
+
+      expect(fetchMock.mock.calls[1][0]).toBe('https://api.github.com/user/repos');
     });
 
     it('sends defaults and omits an absent description', async () => {
@@ -98,7 +118,7 @@ describe('GitHubCreateRepoTool', () => {
     });
 
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute({ name: 'new-repo' });
 

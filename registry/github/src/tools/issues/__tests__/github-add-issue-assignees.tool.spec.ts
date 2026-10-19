@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubAddIssueAssigneesArgs, GitHubAddIssueAssigneesTool } from '../github-add-issue-assignees.tool.js';
 
 const HEADERS = {
@@ -19,8 +19,8 @@ describe('GitHubAddIssueAssigneesTool', () => {
   let module: TestingModule;
   let tool: GitHubAddIssueAssigneesTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -29,11 +29,11 @@ describe('GitHubAddIssueAssigneesTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubAddIssueAssigneesTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .withMock(GitHubTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitHubAddIssueAssigneesTool);
@@ -70,7 +70,7 @@ describe('GitHubAddIssueAssigneesTool', () => {
 
       const result = await tool.call({ ...args, assignees: ['alice', 'bob'] });
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalled();
+      expect(mockTokens.resolve).toHaveBeenCalled();
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/issues/7/assignees', {
         method: 'POST',
         headers: HEADERS,
@@ -96,7 +96,7 @@ describe('GitHubAddIssueAssigneesTool', () => {
     });
 
     it('returns unauthorized without calling the API when the provider has no token', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 

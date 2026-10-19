@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TOOL_PIPELINE, getBlockArgsSchema } from '@loopstack/common';
 import type { ToolPipeline } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { GITHUB_TOKEN_PROVIDER } from '../../../token/index.js';
+import { GitHubTokenService } from '../../../token/index.js';
 import { GitHubGetFileContentArgs, GitHubGetFileContentTool } from '../github-get-file-content.tool.js';
 
 const HEADERS = {
@@ -36,8 +36,8 @@ describe('GitHubGetFileContentTool', () => {
   let module: TestingModule;
   let tool: GitHubGetFileContentTool;
 
-  const mockTokenProvider = {
-    getToken: vi.fn(),
+  const mockTokens = {
+    resolve: vi.fn(),
   };
   const fetchMock = vi.fn();
 
@@ -46,11 +46,11 @@ describe('GitHubGetFileContentTool', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', fetchMock);
-    mockTokenProvider.getToken.mockResolvedValue('gh-token');
+    mockTokens.resolve.mockResolvedValue('gh-token');
 
     module = await createToolTest()
       .forTool(GitHubGetFileContentTool)
-      .withMock(GITHUB_TOKEN_PROVIDER, mockTokenProvider)
+      .withMock(GitHubTokenService, mockTokens)
       .compile();
 
     tool = module.get(GitHubGetFileContentTool);
@@ -81,7 +81,7 @@ describe('GitHubGetFileContentTool', () => {
 
       const result = await tool.call(args);
 
-      expect(mockTokenProvider.getToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 'test-user' }));
+      expect(mockTokens.resolve.mock.calls[0][0]).toMatchObject({ userId: 'test-user' });
       expect(fetchMock).toHaveBeenCalledWith('https://api.github.com/repos/octo/hello/contents/src/index.ts', {
         headers: HEADERS,
       });
@@ -146,8 +146,17 @@ describe('GitHubGetFileContentTool', () => {
       expect(fetchMock.mock.calls[0][0]).toBe(`https://api.github.com/repos/octo/hello/contents/${encoded}?ref=main`);
     });
 
+    it('answers with no file when there is none at that path', async () => {
+      fetchMock.mockResolvedValue(new Response('Not Found', { status: 404, statusText: 'Not Found' }));
+
+      const result = await tool.call({ ...args, path: 'src/missing.ts' });
+
+      // A missing file is an answer: `call()` returns instead of throwing, as it does on an error envelope.
+      expect(result.data).toEqual({ file: null });
+    });
+
     it('returns unauthorized without calling the API when no token is available', async () => {
-      mockTokenProvider.getToken.mockResolvedValue(null);
+      mockTokens.resolve.mockResolvedValue(null);
 
       const result = await execute(args);
 
@@ -169,12 +178,12 @@ describe('GitHubGetFileContentTool', () => {
     });
 
     it('reports other API failures as api_error', async () => {
-      fetchMock.mockResolvedValue(new Response('missing', { status: 404, statusText: 'Not Found' }));
+      fetchMock.mockResolvedValue(new Response('boom', { status: 500, statusText: 'Server Error' }));
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Not Found' });
-      expect(result.error).toBe('GitHub API error: Not Found');
+      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Server Error' });
+      expect(result.error).toBe('GitHub API error: Server Error');
     });
   });
 });

@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
-import { GITHUB_TOKEN_PROVIDER, type GitHubTokenProvider } from '../../token/index.js';
+import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
   .object({
@@ -49,7 +49,7 @@ export type GitHubGetPullRequestResult =
         htmlUrl: string;
         comments: number;
         reviewComments: number;
-      };
+      } | null;
     }
   | { error: string; message: string };
 
@@ -59,29 +59,31 @@ export type GitHubGetPullRequestResult =
  * @public
  */
 export const GitHubGetPullRequestResultSchema = z.strictObject({
-  pullRequest: z.strictObject({
-    id: z.number(),
-    number: z.number(),
-    title: z.string(),
-    body: z.string().nullable(),
-    state: z.string(),
-    user: z.string(),
-    head: z.string(),
-    headSha: z.string(),
-    base: z.string(),
-    merged: z.boolean(),
-    mergeable: z.boolean().nullable(),
-    draft: z.boolean(),
-    additions: z.number(),
-    deletions: z.number(),
-    changedFiles: z.number(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-    mergedAt: z.string().nullable(),
-    htmlUrl: z.string(),
-    comments: z.number(),
-    reviewComments: z.number(),
-  }),
+  pullRequest: z
+    .strictObject({
+      id: z.number(),
+      number: z.number(),
+      title: z.string(),
+      body: z.string().nullable(),
+      state: z.string(),
+      user: z.string(),
+      head: z.string(),
+      headSha: z.string(),
+      base: z.string(),
+      merged: z.boolean(),
+      mergeable: z.boolean().nullable(),
+      draft: z.boolean(),
+      additions: z.number(),
+      deletions: z.number(),
+      changedFiles: z.number(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      mergedAt: z.string().nullable(),
+      htmlUrl: z.string(),
+      comments: z.number(),
+      reviewComments: z.number(),
+    })
+    .nullable(),
 });
 
 /**
@@ -93,22 +95,30 @@ export const GitHubGetPullRequestResultSchema = z.strictObject({
 @Tool({
   name: 'github_get_pull_request',
   description:
-    'Gets detailed information about a specific GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
+    'Gets detailed information about a specific GitHub pull request, or { pullRequest: null } when no pull request ' +
+    'of that number exists or the token cannot see it. Returns { error: "unauthorized" } if no valid token is ' +
+    'available.',
   schema: inputSchema,
+  configSchema: GitHubToolConfigSchema,
   resultSchema: GitHubGetPullRequestResultSchema,
   effects: 'none',
 })
-export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs, object, GitHubGetPullRequestResult> {
+export class GitHubGetPullRequestTool extends BaseTool<
+  GitHubGetPullRequestArgs,
+  GitHubToolConfig,
+  GitHubGetPullRequestResult
+> {
   private readonly logger = new Logger(GitHubGetPullRequestTool.name);
 
-  @Inject(GITHUB_TOKEN_PROVIDER)
-  private readonly tokenProvider!: GitHubTokenProvider;
+  @Inject()
+  private readonly tokens!: GitHubTokenService;
 
   protected async handle(
     args: GitHubGetPullRequestArgs,
     ctx: RunContext,
+    options?: ToolCallOptions<GitHubToolConfig>,
   ): Promise<ToolEnvelope<GitHubGetPullRequestResult>> {
-    const accessToken = await this.tokenProvider.getToken(ctx);
+    const accessToken = await this.tokens.resolve(ctx, options);
 
     if (!accessToken) {
       return {
@@ -138,6 +148,12 @@ export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs,
         },
         error: 'GitHub token was rejected. Please re-authenticate.',
       };
+    }
+
+    // Asking whether a pull request exists is a fair question, so a 404 is an answer rather than a failure: the
+    // caller reads `pullRequest: null` instead of catching an error it would have to tell apart from a real one.
+    if (response.status === 404) {
+      return { data: { pullRequest: null } };
     }
 
     if (!response.ok) {
