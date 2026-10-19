@@ -284,6 +284,9 @@ export class RemoteClient {
     connectionUrl: string,
     options: {
       message: string;
+      authorName?: string;
+      authorEmail?: string;
+      skipHooks?: boolean;
     } & GitDirOptions,
   ): Promise<{
     hash: string;
@@ -615,6 +618,215 @@ import { FileReadResponse } from '@loopstack/remote-client';
 ```ts
 export interface FileReadResponse {
   content: string;
+}
+```
+
+### GitBranchesResponse
+
+Response from `RemoteClient.gitBranches` — the current branch and every local branch.
+
+```ts
+import { GitBranchesResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitBranchesResponse {
+  current: string;
+  branches: {
+    name: string;
+    isCurrent: boolean;
+  }[];
+}
+```
+
+### GitCommandResult
+
+Outcome of a git command that only reports whether it worked, with git’s output when it has any.
+
+```ts
+import { GitCommandResult } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitCommandResult {
+  success: boolean;
+  output?: string;
+}
+```
+
+### GitCommit
+
+One commit in `RemoteClient.gitLog`.
+
+```ts
+import { GitCommit } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitCommit {
+  hash: string;
+  shortHash: string;
+  message: string;
+  author: string;
+  date: string;
+}
+```
+
+### GitDiffFile
+
+One changed file in `RemoteClient.gitDiff` — its path and status letter.
+
+```ts
+import { GitDiffFile } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitDiffFile {
+  path: string;
+  status: string;
+}
+```
+
+### GitDiffResponse
+
+Response from `RemoteClient.gitDiff` — the changed files.
+
+```ts
+import { GitDiffResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitDiffResponse {
+  files: GitDiffFile[];
+}
+```
+
+### GitDirOptions
+
+The repository a git call addresses: a path relative to the workspace root. Omitting it addresses the root.
+The server validates the path and rejects anything outside the workspace.
+
+```ts
+import { GitDirOptions } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitDirOptions {
+  dir?: string;
+}
+```
+
+### GitLogResponse
+
+Response from `RemoteClient.gitLog` — the commits, newest first.
+
+```ts
+import { GitLogResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitLogResponse {
+  commits: GitCommit[];
+}
+```
+
+### GitRemoteResponse
+
+Response from `RemoteClient.gitRemote` — the remote name and its URL.
+
+```ts
+import { GitRemoteResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitRemoteResponse {
+  name: string;
+  url: string;
+}
+```
+
+### GitStatusEntry
+
+One line of `git status --porcelain`: the path and its two status columns.
+
+```ts
+import { GitStatusEntry } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitStatusEntry {
+  path: string;
+  index: string;
+  worktree: string;
+}
+```
+
+### GitStatusResponse
+
+Response from `RemoteClient.gitStatus` — the branch, the folded change lists, and `entries`.
+
+```ts
+import { GitStatusResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitStatusResponse {
+  branch: string;
+  staged: string[];
+  modified: string[];
+  untracked: string[];
+  deleted: string[];
+  entries: GitStatusEntry[];
+}
+```
+
+### GitWorktree
+
+One worktree in `RemoteClient.gitWorktreeList`.
+
+```ts
+import { GitWorktree } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitWorktree {
+  path: string;
+  head?: string;
+  branch?: string;
+  bare: boolean;
+  detached: boolean;
+  locked?: string;
+  prunable?: string;
+}
+```
+
+### GitWorktreeAddResponse
+
+Response from `RemoteClient.gitWorktreeAdd` — the created worktree’s path.
+
+```ts
+import { GitWorktreeAddResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitWorktreeAddResponse {
+  success: boolean;
+  path: string;
+  output?: string;
+}
+```
+
+### GitWorktreeListResponse
+
+Response from `RemoteClient.gitWorktreeList` — every worktree of the repository.
+
+```ts
+import { GitWorktreeListResponse } from '@loopstack/remote-client';
+```
+
+```ts
+export interface GitWorktreeListResponse {
+  worktrees: GitWorktree[];
 }
 ```
 

@@ -556,6 +556,9 @@ import { GitCommitArgs } from '@loopstack/git';
 ```ts
 export type GitCommitArgs = {
   message: string;
+  authorName?: string;
+  authorEmail?: string;
+  skipHooks?: boolean;
   dir?: string;
 };
 ```
@@ -891,6 +894,11 @@ export type GitStatusResult = {
   modified: string[];
   untracked: string[];
   deleted: string[];
+  entries: {
+    path: string;
+    index: string;
+    worktree: string;
+  }[];
 };
 ```
 
@@ -1329,6 +1337,16 @@ GitStatusResultSchema: z.ZodObject<
     modified: z.ZodArray<z.ZodString>;
     untracked: z.ZodArray<z.ZodString>;
     deleted: z.ZodArray<z.ZodString>;
+    entries: z.ZodArray<
+      z.ZodObject<
+        {
+          path: z.ZodString;
+          index: z.ZodString;
+          worktree: z.ZodString;
+        },
+        z.core.$strict
+      >
+    >;
   },
   z.core.$strict
 >;
