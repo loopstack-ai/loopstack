@@ -32,9 +32,24 @@ export function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
+/**
+ * Checks the repository directory before it becomes a working directory.
+ *
+ * `dir` means the same thing on every tool in this package — a repository inside the workspace — and on the
+ * route-backed tools the server validates it. The operations below run their commands through `/exec`, which
+ * takes a directory as it is given, so the same rule is applied here. This is not a sandbox: `/exec` runs a
+ * shell command, and the container is the boundary. It keeps one argument meaning one thing.
+ */
+export function safeDir(dir?: string): string {
+  if (!dir) return '.';
+  if (dir.startsWith('/')) throw new Error('dir must be relative to the workspace root.');
+  if (dir.split('/').includes('..')) throw new Error('dir must stay inside the workspace root.');
+  return dir;
+}
+
 /** Runs a git command in `dir` of the workspace, with the long budget. */
 export function gitExec(remote: RemoteClient, agentUrl: string, command: string, dir?: string): Promise<ExecResponse> {
-  return remote.executeCommand(agentUrl, command, dir || '.', GIT_EXEC_TIMEOUT_MS);
+  return remote.executeCommand(agentUrl, command, safeDir(dir), GIT_EXEC_TIMEOUT_MS);
 }
 
 /** Runs a git command and returns its stdout, trimmed, or throws with git's own output. */
