@@ -10,6 +10,21 @@ import { BashTool } from '@loopstack/remote-client';
 
 const AnswerSchema = z.object({ answer: z.string() });
 
+/**
+ * A workspace can hold several repositories, and each one has its own remote, so a run connects the one it
+ * is given. Omitting `dir` connects the workspace root, which is what a workspace with a single repository
+ * wants and what every caller before this did.
+ */
+const InputSchema = z
+  .object({
+    dir: z
+      .string()
+      .optional()
+      .describe('The repository to connect, relative to the workspace root. Omit for the root itself.'),
+  })
+  .strict();
+type InputArgs = z.infer<typeof InputSchema>;
+
 /** Branch names safe to interpolate into a shell command. */
 const BRANCH_NAME = /^(?!-)(?!.*\.\.)(?!.*\/\/)[A-Za-z0-9._/-]+(?<![./])$/;
 
@@ -55,9 +70,9 @@ function parseDivergence(output: string): DivergenceState | undefined {
   title: 'Connect to GitHub',
   description:
     'Connects your workspace to a GitHub repository.\nAuthenticates with GitHub, lets you create or link a repo, and configures git push access.',
-  schema: z.object({}).strict(),
+  schema: InputSchema,
 })
-export class ConnectGitHubWorkflow extends BaseWorkflow {
+export class ConnectGitHubWorkflow extends BaseWorkflow<InputArgs> {
   constructor(
     private readonly gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
     private readonly gitHubCreateRepo: GitHubCreateRepoTool,
@@ -75,9 +90,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     super();
   }
 
-  /** Runs a shell command in the workspace and throws when it exits non-zero. */
-  private async runBash(command: string): Promise<string> {
-    const result = await this.bash.call({ command });
+  /** Runs a shell command in the repository being connected and throws when it exits non-zero. */
+  private async runBash(command: string, dir?: string): Promise<string> {
+    const result = await this.bash.call({ command, ...(dir ? { cwd: dir } : {}) });
     const { output, exitCode } = result.data;
     if (exitCode !== 0) {
       throw new Error(`\`${command}\` failed with exit code ${exitCode}: ${output.trim()}`);
@@ -198,7 +213,8 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   // ── Step 4a: Check for uncommitted changes ───────────────────────────
 
   @Transition({ from: 'configure_remote', to: 'check_uncommitted' })
-  async checkForUncommittedChanges(state: ConnectGitHubState) {
+  async checkForUncommittedChanges(state: ConnectGitHubState, ctx: RunContext<InputArgs>) {
+    const { dir } = ctx.args;
     const user = state.user;
 
     // Configure git user identity early
@@ -206,10 +222,11 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       await this.gitConfigUser.call({
         name: user.name || user.login,
         email: user.email || `${user.login}@users.noreply.github.com`,
+        dir,
       });
     }
 
-    const statusResult = await this.gitStatus.call();
+    const statusResult = await this.gitStatus.call({ dir });
     const status = statusResult.data;
     const hasUncommittedChanges =
       status.staged.length > 0 ||
@@ -244,20 +261,26 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'awaiting_commit_confirm', to: 'setup_remote', wait: true, schema: AnswerSchema })
-  async uncommittedChangesHandled(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>) {
+  async uncommittedChangesHandled(
+    state: ConnectGitHubState,
+    input: TransitionInput<{ answer: string }>,
+    ctx: RunContext<InputArgs>,
+  ) {
+    const { dir } = ctx.args;
     if (input.data.answer === 'Cancel') {
       this.assignState({ repo: undefined });
       return;
     }
 
-    await this.runBash('git add -A');
-    await this.runBash('git commit -m "Auto-commit before connecting to GitHub"');
+    await this.runBash('git add -A', dir);
+    await this.runBash('git commit -m "Auto-commit before connecting to GitHub"', dir);
   }
 
   // ── Step 4b: Configure remote and check for divergence ──────────────
 
   @Transition({ from: 'setup_remote', to: 'check_divergence' })
-  async setupRemote(state: ConnectGitHubState) {
+  async setupRemote(state: ConnectGitHubState, ctx: RunContext<InputArgs>) {
+    const { dir } = ctx.args;
     // If cancelled during commit confirmation, skip to done
     if (!state.repo) {
       this.assignState({ divergenceState: 'none' });
@@ -268,11 +291,11 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
     // Configure the remote URL (no credentials stored)
     const remoteUrl = `https://github.com/${repo.fullName}.git`;
-    await this.gitRemoteConfigure.call({ url: remoteUrl });
+    await this.gitRemoteConfigure.call({ url: remoteUrl, dir });
 
     // The token is read from the person's GitHub OAuth token at call time and applied by the remote
     // server through a throwaway GIT_ASKPASS, so it reaches neither the args nor the run trace.
-    await this.gitFetch.call({ remote: 'origin' }, { config: { oauthProvider: 'github' } });
+    await this.gitFetch.call({ remote: 'origin', dir }, { config: { oauthProvider: 'github' } });
 
     if (state.isNewRepo) {
       this.assignState({ divergenceState: 'none' });
@@ -280,7 +303,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     }
 
     // Compare the checked-out branch with the same branch on the remote
-    const statusResult = await this.gitStatus.call();
+    const statusResult = await this.gitStatus.call({ dir });
     const branch = statusResult.data.branch;
     if (!BRANCH_NAME.test(branch)) {
       throw new Error(`Cannot connect the workspace: no usable branch is checked out (git reports "${branch}").`);
@@ -289,6 +312,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
     const output = await this.runBash(
       `if git rev-parse --verify --quiet refs/remotes/origin/${branch} >/dev/null; ` +
         `then git rev-list --left-right --count origin/${branch}...${branch}; else echo no_remote; fi`,
+      dir,
     );
     const divergenceState = parseDivergence(output);
     if (!divergenceState) {
@@ -301,13 +325,14 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'check_divergence', to: 'done' })
   @Guard('canPushDirectly')
-  async pushDirectly(state: ConnectGitHubState) {
+  async pushDirectly(state: ConnectGitHubState, ctx: RunContext<InputArgs>) {
+    const { dir } = ctx.args;
     if (state.divergenceState === 'none') {
       // Already in sync — nothing to push
       return;
     }
     // local_ahead — fast-forward push (creates the remote branch if it does not exist yet)
-    await this.gitPush.call({ remote: 'origin', branch: state.branch }, { config: { oauthProvider: 'github' } });
+    await this.gitPush.call({ remote: 'origin', branch: state.branch, dir }, { config: { oauthProvider: 'github' } });
   }
 
   private canPushDirectly(state: ConnectGitHubState): boolean {
@@ -339,19 +364,24 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'awaiting_sync_choice', to: 'done', wait: true, schema: AnswerSchema })
-  async syncStrategyChosen(state: ConnectGitHubState, input: TransitionInput<{ answer: string }>) {
+  async syncStrategyChosen(
+    state: ConnectGitHubState,
+    input: TransitionInput<{ answer: string }>,
+    ctx: RunContext<InputArgs>,
+  ) {
+    const { dir } = ctx.args;
     const answer = input.data.answer;
     const branch = state.branch;
 
     if (answer.startsWith('Use remote code')) {
-      await this.runBash(`git reset --hard origin/${branch}`);
+      await this.runBash(`git reset --hard origin/${branch}`, dir);
     } else if (answer.startsWith('Pull remote changes') || answer.startsWith('Merge remote changes')) {
-      await this.runBash(`git merge origin/${branch} --allow-unrelated-histories --no-edit`);
-      await this.gitPush.call({ remote: 'origin', branch }, { config: { oauthProvider: 'github' } });
+      await this.runBash(`git merge origin/${branch} --allow-unrelated-histories --no-edit`, dir);
+      await this.gitPush.call({ remote: 'origin', branch, dir }, { config: { oauthProvider: 'github' } });
     } else if (answer.startsWith('Push workspace code')) {
-      await this.gitPush.call({ remote: 'origin', branch, force: true }, { config: { oauthProvider: 'github' } });
+      await this.gitPush.call({ remote: 'origin', branch, force: true, dir }, { config: { oauthProvider: 'github' } });
     } else {
-      await this.runBash('git remote remove origin');
+      await this.runBash('git remote remove origin', dir);
       this.assignState({ repo: undefined });
     }
   }

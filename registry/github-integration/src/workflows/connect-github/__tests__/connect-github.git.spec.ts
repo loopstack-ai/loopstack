@@ -96,7 +96,7 @@ describe('ConnectGitHubWorkflow against real git', () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  const run = (syncAnswer?: string) => {
+  const run = (syncAnswer?: string, args: { dir?: string } = {}) => {
     const listRepos = createToolMock('github_list_repos');
     listRepos.call.mockResolvedValue({ data: { repos: [{ fullName: 'acme/app' }] } });
     const getUser = createToolMock('github_get_authenticated_user');
@@ -106,33 +106,52 @@ describe('ConnectGitHubWorkflow against real git', () => {
     const configUser = createToolMock('git_config_user');
     configUser.call.mockResolvedValue({ data: {} });
 
-    return runWorkflow(
-      ConnectGitHubWorkflow,
-      {},
-      {
-        providers: [
-          { provide: GitHubGetAuthenticatedUserTool, useValue: getUser },
-          { provide: GitHubCreateRepoTool, useValue: createToolMock('github_create_repo') },
-          { provide: GitHubListReposTool, useValue: listRepos },
-          { provide: GitRemoteConfigureTool, useValue: remoteConfigure },
-          { provide: GitConfigUserTool, useValue: configUser },
-          { provide: GitStatusTool, useValue: status },
-          { provide: GitPushTool, useValue: push },
-          { provide: GitFetchTool, useValue: fetch },
-          { provide: BashTool, useValue: bash },
-          { provide: OAuthWorkflow, useValue: { run: vi.fn() } },
-          { provide: AskUserWorkflow, useValue: askUser },
-          { provide: OAuthTokenStore, useValue: { getValidAccessToken: vi.fn().mockResolvedValue('gh-token') } },
-          { provide: ClientMessageService, useValue: { dispatchWorkspaceEvent: vi.fn() } },
-        ],
-        answers: {
-          choiceReceived: { answer: 'Connect existing repository' },
-          repoSelected: { answer: 'acme/app' },
-          ...(syncAnswer ? { syncStrategyChosen: { answer: syncAnswer } } : {}),
-        },
+    return runWorkflow(ConnectGitHubWorkflow, args, {
+      providers: [
+        { provide: GitHubGetAuthenticatedUserTool, useValue: getUser },
+        { provide: GitHubCreateRepoTool, useValue: createToolMock('github_create_repo') },
+        { provide: GitHubListReposTool, useValue: listRepos },
+        { provide: GitRemoteConfigureTool, useValue: remoteConfigure },
+        { provide: GitConfigUserTool, useValue: configUser },
+        { provide: GitStatusTool, useValue: status },
+        { provide: GitPushTool, useValue: push },
+        { provide: GitFetchTool, useValue: fetch },
+        { provide: BashTool, useValue: bash },
+        { provide: OAuthWorkflow, useValue: { run: vi.fn() } },
+        { provide: AskUserWorkflow, useValue: askUser },
+        { provide: OAuthTokenStore, useValue: { getValidAccessToken: vi.fn().mockResolvedValue('gh-token') } },
+        { provide: ClientMessageService, useValue: { dispatchWorkspaceEvent: vi.fn() } },
+      ],
+      answers: {
+        choiceReceived: { answer: 'Connect existing repository' },
+        repoSelected: { answer: 'acme/app' },
+        ...(syncAnswer ? { syncStrategyChosen: { answer: syncAnswer } } : {}),
       },
-    );
+    });
   };
+
+  // A workspace can hold several repositories, and each has its own remote: everything this run touches
+  // has to be the one it was given.
+  it('addresses the repository it is given', async () => {
+    initRemote('main');
+    commit(work, 'local.txt');
+
+    const result = await run(undefined, { dir: 'repos/app' });
+
+    expect(result.error).toBeUndefined();
+    expect(fetch.call).toHaveBeenCalledWith(
+      { remote: 'origin', dir: 'repos/app' },
+      { config: { oauthProvider: 'github' } },
+    );
+    expect(push.call).toHaveBeenCalledWith(
+      { remote: 'origin', branch: 'main', dir: 'repos/app' },
+      { config: { oauthProvider: 'github' } },
+    );
+    expect(status.call).toHaveBeenCalledWith({ dir: 'repos/app' });
+    for (const call of bash.call.mock.calls) {
+      expect(call[0]).toMatchObject({ cwd: 'repos/app' });
+    }
+  });
 
   it('pushes directly when the workspace is ahead of the remote', async () => {
     initRemote('main');
