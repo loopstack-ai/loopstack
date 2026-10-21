@@ -476,7 +476,7 @@ export interface ToolDocumentDeclaration {
   options?: {
     key?: string;
     position?: 'keep' | 'end';
-    meta?: Record<string, unknown>;
+    meta?: DynamicDocumentMeta & Record<string, unknown>;
     validate?: 'strict' | 'safe' | 'skip';
   };
 }

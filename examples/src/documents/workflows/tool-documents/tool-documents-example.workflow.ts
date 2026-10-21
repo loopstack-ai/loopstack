@@ -15,7 +15,7 @@ const ToolDocumentsExampleArgsSchema = z
 type ToolDocumentsExampleArgs = z.infer<typeof ToolDocumentsExampleArgsSchema>;
 
 @Workflow({
-  title: 'Advanced - Tool Documents Example',
+  title: 'Documents - Tool Documents Example',
   description:
     'A tool that produces a document — it declares the document on its result envelope and the framework saves it.',
   schema: ToolDocumentsExampleArgsSchema,

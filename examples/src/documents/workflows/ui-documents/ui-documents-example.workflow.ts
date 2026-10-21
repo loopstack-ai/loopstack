@@ -9,7 +9,7 @@ import {
 } from '@loopstack/common';
 
 @Workflow({
-  title: 'Advanced - UI Documents Example',
+  title: 'Documents - UI Documents Example',
   description:
     'Smoke test for the built-in document types — MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument.',
 })

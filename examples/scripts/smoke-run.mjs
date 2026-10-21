@@ -21,13 +21,15 @@ import { fileURLToPath } from 'node:url';
 
 /** @type {Array<{ workflow: string; expect: 'completed' | 'waiting' | 'failed'; error?: string }>} */
 const SMOKE_WORKFLOWS = [
-  // Advanced workflows — state, result, routing, documents, batching
+  // Advanced workflows — state, result, routing, batching
   { workflow: 'workflow_state', expect: 'completed' },
   { workflow: 'workflow_result', expect: 'completed' },
   { workflow: 'dynamic_routing_example', expect: 'completed' },
-  { workflow: 'test_ui_documents', expect: 'completed' },
   { workflow: 'batch_processing_example', expect: 'completed' },
+  // Documents — built-in types, tool-declared documents, a revision kept live under a reused key
+  { workflow: 'test_ui_documents', expect: 'completed' },
   { workflow: 'tool_documents_example', expect: 'completed' },
+  { workflow: 'keep_revision_example', expect: 'completed' },
   // Sub-workflows — child completion delivered to the parent as a queued callback
   { workflow: 'run_sub_workflow_example_parent', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_error_handling', expect: 'completed' },

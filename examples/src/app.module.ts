@@ -7,6 +7,7 @@ import { RemoteClientModule } from '@loopstack/remote-client';
 import { SecretsModule } from '@loopstack/secrets';
 import { AdvancedWorkflowsExamplesModule } from './advanced-workflows/advanced-workflows-examples.module';
 import { AgentExamplesModule } from './agent/agent-examples.module';
+import { DocumentsExamplesModule } from './documents/documents-examples.module';
 import { ErrorHandlingExamplesModule } from './error-handling/error-handling-examples.module';
 import { ExamplesController } from './examples.controller';
 import { GitExamplesModule } from './git/git-examples.module';
@@ -58,6 +59,7 @@ import { TestingExamplesModule } from './testing/testing-examples.module';
     LocalFileExplorerExamplesModule,
     ObservabilityExamplesModule,
     AdvancedWorkflowsExamplesModule,
+    DocumentsExamplesModule,
     ErrorHandlingExamplesModule,
     SchedulingExamplesModule,
     TestingExamplesModule,

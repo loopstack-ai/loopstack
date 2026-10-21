@@ -99,13 +99,13 @@ await this.documentStore.save(draft, { key: 'notes-1' });
 
 ### Save Options
 
-| Option            | Type                           | Description                                                                                                                                                                                                                                   |
-| ----------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `key`             | `string`                       | Stable revision key — saving again with the same `key` writes a new revision and invalidates the previous ones.                                                                                                                               |
-| `position`        | `'keep' \| 'end'`              | Where a keyed save puts the new revision. Default `'end'` — appended, below everything saved since. `'keep'` — in the place of the revision it supersedes; use for documents that update over time (status tickers, form state, transcripts). |
-| `validate`        | `'strict' \| 'safe' \| 'skip'` | Validation mode. Default `'strict'` — throws on invalid content. `'safe'` stores partial data + error. `'skip'` bypasses validation. See [Validation](../../learn/document-store.md#validation).                                              |
-| `meta`            | `Record<string, unknown>`      | Free-form extension data persisted on the document row. Use for ad-hoc payload that downstream readers need. For framework concerns (hide from UI, etc.), use decorator options instead.                                                      |
-| `meta.invalidate` | `boolean`                      | When `false`, prevents the previous version with the same `key` from being invalidated. Default behavior replaces the old version.                                                                                                            |
+| Option            | Type                                            | Description                                                                                                                                                                                                                                                                                                                      |
+| ----------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `key`             | `string`                                        | Stable revision key — saving again with the same `key` writes a new revision and invalidates the previous ones.                                                                                                                                                                                                                  |
+| `position`        | `'keep' \| 'end'`                               | Where a keyed save puts the new revision. Default `'end'` — appended, below everything saved since. `'keep'` — in the place of the revision it supersedes; use for documents that update over time (status tickers, form state, transcripts).                                                                                    |
+| `validate`        | `'strict' \| 'safe' \| 'skip'`                  | Validation mode. Default `'strict'` — throws on invalid content. `'safe'` stores partial data + error. `'skip'` bypasses validation. See [Validation](../../learn/document-store.md#validation).                                                                                                                                 |
+| `meta`            | `DynamicDocumentMeta & Record<string, unknown>` | Per-instance data persisted on the document row. `invalidate` is read by the framework; any other key is free-form data for downstream readers. For framework concerns of a document type (hide from UI, etc.), use decorator options instead.                                                                                   |
+| `meta.invalidate` | `boolean`                                       | When `false`, this revision stays live when a later save reuses its `key`. It protects the revision it is saved with, not earlier ones: the later save still invalidates every earlier revision saved without it. Default: the revision is invalidated. See the [Keep Revision example](/docs/examples/documents#keep-revision). |
 
 ## Querying Documents
 
@@ -332,7 +332,8 @@ const result = await this.llmGenerateObject.call(
 
 - [Structured Output example](/docs/examples/llm#structured-output) — FileDocument with code-view widget for AI-generated code
 - [Meeting Notes example](/docs/examples/hitl#meeting-notes) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
-- [UI Documents example](/docs/examples/advanced-workflows#ui-documents) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
+- [UI Documents example](/docs/examples/documents#ui-documents) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
+- [Keep Revision example](/docs/examples/documents#keep-revision) — A keyed revision saved with `meta: { invalidate: false }` that stays live after later saves under its key
 
 ---
 

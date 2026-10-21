@@ -24,8 +24,9 @@ sandbox or OAuth app run as they are; the rest say in their README what they nee
 
 | Module                                                            | Directory                  | Workflows |
 | ----------------------------------------------------------------- | -------------------------- | --------- |
-| [Advanced Workflows Examples](src/advanced-workflows/README.md)   | `src/advanced-workflows/`  | 19        |
+| [Advanced Workflows Examples](src/advanced-workflows/README.md)   | `src/advanced-workflows/`  | 17        |
 | [Agent Examples](src/agent/README.md)                             | `src/agent/`               | 4         |
+| [Documents Examples](src/documents/README.md)                     | `src/documents/`           | 3         |
 | [Error Handling Examples](src/error-handling/README.md)           | `src/error-handling/`      | 8         |
 | [Git Examples](src/git/README.md)                                 | `src/git/`                 | 2         |
 | [GitHub Examples](src/github/README.md)                           | `src/github/`              | 2         |

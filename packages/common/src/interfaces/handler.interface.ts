@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { DynamicDocumentMeta } from '@loopstack/contracts/types';
 
 /**
  * A document a tool declares as part of its result envelope instead of writing it
@@ -17,7 +18,7 @@ export interface ToolDocumentDeclaration {
   options?: {
     key?: string;
     position?: 'keep' | 'end';
-    meta?: Record<string, unknown>;
+    meta?: DynamicDocumentMeta & Record<string, unknown>;
     validate?: 'strict' | 'safe' | 'skip';
   };
 }
@@ -29,7 +30,7 @@ export const ToolDocumentDeclarationSchema = z.object({
     .object({
       key: z.string().optional(),
       position: z.enum(['keep', 'end']).optional(),
-      meta: z.record(z.string(), z.unknown()).optional(),
+      meta: z.object({ invalidate: z.boolean().optional() }).catchall(z.unknown()).optional(),
       validate: z.enum(['strict', 'safe', 'skip']).optional(),
     })
     .optional(),
