@@ -30,7 +30,7 @@ import { TaskSchedulerService } from './task-scheduler.service.js';
  * anywhere — it is globally available once `LoopstackModule.forRoot()` is imported.
  *
  * - `run(WorkflowClass, args, options)` — enqueue on BullMQ and return a `RunResult` (`workflowId`).
- * - `runSync(WorkflowClass, args, options)` — execute inline and await a `SyncRunResult`; pass `{ stateless: true }` to skip persistence.
+ * - `runSync(WorkflowClass, args, options)` — execute inline and await a `SyncRunResult`; pass `{ stateless: true }` to skip persistence and get a `StatelessRunResult`.
  * - `execute(workflow, payload, options)` — controller-facing entry that starts, resumes, or retries based on the payload.
  * - `runById(workflowId, userId, options)` — resume/re-run an existing workflow by id.
  *
@@ -145,7 +145,25 @@ export class WorkflowRunner {
    * Start a new workflow synchronously — execute inline and await the result.
    * By default persists everything (checkpoints, documents, workflow entity).
    * Pass `{ stateless: true }` to skip all persistence.
+   *
+   * The return type follows `stateless`: a `SyncRunResult` (with `workflowId`) when it is not set,
+   * a `StatelessRunResult` when it is `true`.
    */
+  runSync<W extends BaseWorkflow>(
+    workflow: Type<W>,
+    args: WorkflowArgs<W>,
+    options: WorkflowRunnerSyncOptions & { stateless?: false },
+  ): Promise<SyncRunResult>;
+  runSync<W extends BaseWorkflow>(
+    workflow: Type<W>,
+    args: WorkflowArgs<W>,
+    options: WorkflowRunnerSyncOptions & { stateless: true },
+  ): Promise<StatelessRunResult>;
+  runSync<W extends BaseWorkflow>(
+    workflow: Type<W>,
+    args: WorkflowArgs<W>,
+    options: WorkflowRunnerSyncOptions,
+  ): Promise<SyncRunResult | StatelessRunResult>;
   async runSync<W extends BaseWorkflow>(
     workflow: Type<W>,
     args: WorkflowArgs<W>,

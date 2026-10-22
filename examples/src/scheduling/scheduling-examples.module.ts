@@ -12,15 +12,24 @@ import { CronTriggerWorkflow } from './workflows/cron-trigger/cron-trigger.workf
 import { CallSignupWorkflow } from './workflows/delayed-run/call-signup.workflow';
 import { DelayedRunController } from './workflows/delayed-run/delayed-run.controller';
 import { DelayedRunWorkflow } from './workflows/delayed-run/delayed-run.workflow';
+import { CallDirectRunWorkflow } from './workflows/direct-run/call-direct-run.workflow';
+import { DirectRunController } from './workflows/direct-run/direct-run.controller';
+import { DirectRunWorkflow } from './workflows/direct-run/direct-run.workflow';
 import { CallWebhookWorkflow } from './workflows/webhook-trigger/call-webhook.workflow';
 import { WebhookTriggerController } from './workflows/webhook-trigger/webhook-trigger.controller';
 import { WebhookTriggerWorkflow } from './workflows/webhook-trigger/webhook-trigger.workflow';
 
 // Only the trigger workflows are launchable in Studio; the work workflows are providers-only
 // so their triggers can resolve them via WorkflowRunner.
-const TRIGGER_WORKFLOWS = [CallWebhookWorkflow, CallSignupWorkflow, CallNewsletterWorkflow];
+const TRIGGER_WORKFLOWS = [CallDirectRunWorkflow, CallWebhookWorkflow, CallSignupWorkflow, CallNewsletterWorkflow];
 
-const WORK_WORKFLOWS = [CronTriggerWorkflow, WebhookTriggerWorkflow, DelayedRunWorkflow, BatchTriggerWorkflow];
+const WORK_WORKFLOWS = [
+  DirectRunWorkflow,
+  CronTriggerWorkflow,
+  WebhookTriggerWorkflow,
+  DelayedRunWorkflow,
+  BatchTriggerWorkflow,
+];
 
 const ALL_WORKFLOWS = [...TRIGGER_WORKFLOWS, ...WORK_WORKFLOWS];
 
@@ -31,7 +40,7 @@ const ALL_WORKFLOWS = [...TRIGGER_WORKFLOWS, ...WORK_WORKFLOWS];
 })
 @Module({
   imports: [ScheduleModule.forRoot(), TypeOrmModule.forFeature([User])],
-  controllers: [WebhookTriggerController, DelayedRunController, BatchTriggerController],
+  controllers: [DirectRunController, WebhookTriggerController, DelayedRunController, BatchTriggerController],
   providers: [RunUserResolver, CronTriggerScheduler, ...ALL_WORKFLOWS],
   exports: ALL_WORKFLOWS,
 })

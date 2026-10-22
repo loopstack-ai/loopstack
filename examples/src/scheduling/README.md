@@ -1,6 +1,6 @@
 ---
 title: Scheduling Examples
-description: Runnable Loopstack examples for the scheduling fundamentals — cron (@Cron), webhook (@Post + @Public controller), delayed runs (SchedulerRegistry timeout), and batch (Promise.all fan-out). Each trigger starts a workflow with WorkflowRunner.run.
+description: Runnable Loopstack examples for starting workflows from code — a direct WorkflowRunner.runSync call from a controller that reads the run's status and result, then the scheduling fundamentals cron (@Cron), webhook (@Post + @Public controller), delayed runs (SchedulerRegistry timeout), and batch (Promise.all fan-out), each starting a workflow with WorkflowRunner.run.
 ---
 
 # Scheduling Examples
@@ -8,8 +8,9 @@ description: Runnable Loopstack examples for the scheduling fundamentals — cro
 > Scheduling workflow examples for the [Loopstack](https://loopstack.ai) automation framework.
 
 This module demonstrates the **scheduling fundamentals** — the primitives you use to start
-workflows programmatically instead of clicking "Run" in Studio. Each fundamental ships as a small
-workflow (the _work_) plus the real trigger that fires it (the _primitive_): a cron schedule, a
+workflows programmatically instead of clicking "Run" in Studio. It starts with the base case — a
+plain controller that calls `WorkflowRunner` and reads what comes back. Then each fundamental ships as
+a small workflow (the _work_) plus the real trigger that fires it (the _primitive_): a cron schedule, a
 webhook endpoint, a delayed timeout, and a batch fan-out.
 
 Background reading: [Programmatic Execution](https://loopstack.ai/docs/build/integrations/programmatic-execution).
@@ -37,28 +38,31 @@ export class AppModule {}
 
 ## The core primitive: `WorkflowRunner`
 
-Every trigger boils down to injecting `WorkflowRunner` (from `@loopstack/core`, globally available
+Every example here boils down to injecting `WorkflowRunner` (from `@loopstack/core`, globally available
 once `LoopstackModule.forRoot()` is imported) and calling:
 
 - **`run(WorkflowClass, args, { appName, userId })`** — enqueue on BullMQ, return a `workflowId`. Used by
   all triggers here.
-- **`runSync(WorkflowClass, args, { appName, userId, stateless? })`** — execute inline and await the result.
+- **`runSync(WorkflowClass, args, { appName, userId, stateless? })`** — execute inline and await the
+  workflow's final `status` and published `result`. Used by the direct run.
 
-Background triggers (cron, webhooks, timeouts) have no HTTP request, so no user context. The
-[`RunUserResolver`](./src/support/run-user.resolver.ts) helper picks the local Studio user to run as —
+A controller behind your app's auth has a request user: take it with `@UserId()`, as the direct run
+does. Background triggers (cron, webhooks, timeouts) have no HTTP request, so no user context. The
+[`RunUserResolver`](./support/run-user.resolver.ts) helper picks the local Studio user to run as —
 open Studio once so that user exists.
 
 ## The fundamentals
 
-| Fundamental | The primitive (where it lives)                                                                                           | The work                                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| **Cron**    | [`CronTriggerScheduler`](./src/workflows/cron-trigger/cron-trigger.scheduler.ts) — `@Cron(EVERY_MINUTE)`                 | [`CronTriggerWorkflow`](./src/workflows/cron-trigger/cron-trigger.workflow.ts) posts a message            |
-| **Webhook** | [`WebhookTriggerController`](./src/workflows/webhook-trigger/webhook-trigger.controller.ts) — `@Public @Post('payment')` | [`WebhookTriggerWorkflow`](./src/workflows/webhook-trigger/webhook-trigger.workflow.ts) records a receipt |
-| **Delayed** | [`DelayedRunController`](./src/workflows/delayed-run/delayed-run.controller.ts) — `SchedulerRegistry` one-off timeout    | [`DelayedRunWorkflow`](./src/workflows/delayed-run/delayed-run.workflow.ts) sends a follow-up             |
-| **Batch**   | [`BatchTriggerController`](./src/workflows/batch-trigger/batch-trigger.controller.ts) — `Promise.all` fan-out            | [`BatchTriggerWorkflow`](./src/workflows/batch-trigger/batch-trigger.workflow.ts) emails one recipient    |
+| Fundamental | The primitive (where it lives)                                                                                       | The work                                                                                                |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Direct**  | [`DirectRunController`](./workflows/direct-run/direct-run.controller.ts) — `@Post('direct-run')` calls `runSync`     | [`DirectRunWorkflow`](./workflows/direct-run/direct-run.workflow.ts) counts words, publishes the counts |
+| **Cron**    | [`CronTriggerScheduler`](./workflows/cron-trigger/cron-trigger.scheduler.ts) — `@Cron(EVERY_MINUTE)`                 | [`CronTriggerWorkflow`](./workflows/cron-trigger/cron-trigger.workflow.ts) posts a message              |
+| **Webhook** | [`WebhookTriggerController`](./workflows/webhook-trigger/webhook-trigger.controller.ts) — `@Public @Post('payment')` | [`WebhookTriggerWorkflow`](./workflows/webhook-trigger/webhook-trigger.workflow.ts) records a receipt   |
+| **Delayed** | [`DelayedRunController`](./workflows/delayed-run/delayed-run.controller.ts) — `SchedulerRegistry` one-off timeout    | [`DelayedRunWorkflow`](./workflows/delayed-run/delayed-run.workflow.ts) sends a follow-up               |
+| **Batch**   | [`BatchTriggerController`](./workflows/batch-trigger/batch-trigger.controller.ts) — `Promise.all` fan-out            | [`BatchTriggerWorkflow`](./workflows/batch-trigger/batch-trigger.workflow.ts) emails one recipient      |
 
 The trigger is where the scheduling primitive actually lives; the work workflow is just what it
-launches.
+launches. The direct run has no trigger around the call: the controller is the caller.
 
 > The webhook/delayed/batch controllers are marked `@Public()` so you can `curl` them without a token.
 > Real integrations should secure them — verify a provider signature on webhooks, require auth on
@@ -66,19 +70,50 @@ launches.
 
 ### Run it all from Studio — no curl needed
 
-Studio exposes **three launchable workflows**, one per HTTP-triggered fundamental. Each makes the real
+Studio exposes **four launchable workflows**, one per HTTP-triggered fundamental. Each makes the real
 HTTP `POST` to its endpoint — the same call an external caller would make — and posts the response:
 
-| Run this in Studio                                                                    | What it does                                                                      |
-| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| [`CallWebhookWorkflow`](./src/workflows/webhook-trigger/call-webhook.workflow.ts)     | `POST /webhooks/scheduling-examples/payment` → fires `WebhookTriggerWorkflow`     |
-| [`CallSignupWorkflow`](./src/workflows/delayed-run/call-signup.workflow.ts)           | `POST /webhooks/scheduling-examples/signup` → schedules `DelayedRunWorkflow`      |
-| [`CallNewsletterWorkflow`](./src/workflows/batch-trigger/call-newsletter.workflow.ts) | `POST /webhooks/scheduling-examples/newsletter` → fans out `BatchTriggerWorkflow` |
+| Run this in Studio                                                                | What it does                                                                        |
+| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [`CallDirectRunWorkflow`](./workflows/direct-run/call-direct-run.workflow.ts)     | `POST /scheduling-examples/direct-run` → runs `DirectRunWorkflow`, shows its result |
+| [`CallWebhookWorkflow`](./workflows/webhook-trigger/call-webhook.workflow.ts)     | `POST /webhooks/scheduling-examples/payment` → fires `WebhookTriggerWorkflow`       |
+| [`CallSignupWorkflow`](./workflows/delayed-run/call-signup.workflow.ts)           | `POST /webhooks/scheduling-examples/signup` → schedules `DelayedRunWorkflow`        |
+| [`CallNewsletterWorkflow`](./workflows/batch-trigger/call-newsletter.workflow.ts) | `POST /webhooks/scheduling-examples/newsletter` → fans out `BatchTriggerWorkflow`   |
 
 They go over real HTTP (`fetch` to `http://localhost:$PORT`), so they prove the whole trigger path,
 not just the workflow body. The cron fundamental needs no launcher — it fires on its own schedule. The
 `curl` commands below do the same thing from a terminal. The launched "work" workflows
 (`WebhookTriggerWorkflow`, etc.) are registered but not listed as standalone Studio entries.
+
+### Direct — `runSync` from a controller
+
+The base case of every trigger: a controller injects `WorkflowRunner`, passes the workflow class, its
+`args`, the `appName` and the request's `userId`, and reads what comes back.
+
+```ts
+@Post('direct-run')
+async run(@UserId() userId: string, @Body() body: DirectRunBody) {
+  const args = DirectRunArgsSchema.parse(body ?? {});
+  const { workflowId, status, result } = await this.workflowRunner.runSync(DirectRunWorkflow, args, {
+    appName: SCHEDULING_EXAMPLES_APP,
+    userId,
+  });
+  return { workflowId, status, result };
+}
+```
+
+`runSync` runs the workflow inline and resolves when it stops, with its final `status` and the
+`result` it published with `assignResult`. `run` only enqueues the run and returns its ids, so use
+`runSync` when the caller needs the outcome in the same request.
+
+```bash
+curl -X POST http://localhost:3000/scheduling-examples/direct-run \
+  -H 'content-type: application/json' -d '{"text":"start a workflow from code"}'
+```
+
+Responds with `{ "workflowId": "…", "status": "completed", "result": { "words": 5, "characters": 26 } }`.
+The endpoint is not `@Public()`: with auth off (the default) a request without credentials runs as the
+local user, and with `LOOPSTACK_AUTH=true` it needs a token.
 
 ### Cron — `@Cron`
 

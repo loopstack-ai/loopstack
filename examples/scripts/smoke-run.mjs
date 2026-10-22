@@ -48,6 +48,7 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'transition_timeout_example', expect: 'failed', error: 'timed out after 2000ms' },
   { workflow: 'sub_workflow_error_place_example', expect: 'failed', error: 'Child workflow failed' },
   // Scheduling
+  { workflow: 'call_direct_run', expect: 'completed' },
   { workflow: 'call_webhook', expect: 'completed' },
   { workflow: 'call_signup', expect: 'completed' },
   { workflow: 'call_newsletter', expect: 'completed' },
