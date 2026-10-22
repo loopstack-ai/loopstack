@@ -36,6 +36,8 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'run_sub_workflow_example_show_modes', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_fan_out', expect: 'completed' },
   { workflow: 'run_sub_workflow_example_sequence', expect: 'completed' },
+  // LLM — a custom provider that needs no API key
+  { workflow: 'custom_provider_example', expect: 'completed' },
   // Module config — forRoot / forFeature scopes mounted side by side in one app
   { workflow: 'default_greeting', expect: 'completed' },
   { workflow: 'french_greeting', expect: 'completed' },
