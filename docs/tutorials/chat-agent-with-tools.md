@@ -314,7 +314,7 @@ The tool loop continues as long as the LLM keeps requesting tools. Once it produ
 
 For weather (a single sync tool), `toolResultReceived` is never entered — `allCompleted` is already true the moment `executeTools` returns. The wait-loop is in place so the same workflow shape scales the day you swap in or add a sub-workflow tool. Without it, the workflow would silently hang on the first async tool.
 
-**Shortcut:** if you don't need to own the FSM, `@loopstack/agent` ships `ChatAgentWorkflow` which encapsulates this exact loop. Call `chatAgent.run({ system, tools, userMessage })` from a parent workflow and skip writing the inner machinery.
+**Shortcut:** if you don't need to own the FSM, `@loopstack/agent` ships `ChatAgentWorkflow` which encapsulates this exact loop. Call `chatAgent.run({ system, tools, userMessage })` from a parent workflow and skip writing the inner machinery. The [Chat Agent example](/docs/examples/agent#chat-agent) shows it with the `weather_lookup` and `calculator` tools.
 
 ---
 

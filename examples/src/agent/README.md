@@ -1,13 +1,13 @@
 ---
 title: Agent Examples
-description: Workflow examples for LLM agents in Loopstack — basic AgentWorkflow with custom tools, tool errors fed back to the LLM, code-exploration agent, and a from-scratch custom agent loop with a turn budget.
+description: Workflow examples for LLM agents in Loopstack — basic AgentWorkflow with custom tools, a multi-turn ChatAgentWorkflow, a taskMode ChatAgentWorkflow that ends through agent_finish, tool errors fed back to the LLM, code-exploration agent, and a from-scratch custom agent loop with a turn budget.
 ---
 
 # Agent Examples
 
 > LLM agent workflow examples for the [Loopstack](https://loopstack.ai) automation framework.
 
-Three ways to build agents in Loopstack — from the recommended `AgentWorkflow` shortcut to a from-scratch custom loop. Pick the right shape for your control vs. simplicity tradeoff. One more example shows how an agent recovers when its tools fail.
+Ways to build agents in Loopstack — from the recommended `AgentWorkflow` shortcut and the multi-turn `ChatAgentWorkflow` to a from-scratch custom loop. Pick the right shape for your control vs. simplicity tradeoff. One more example shows how an agent recovers when its tools fail.
 
 ## Use in Your App
 
@@ -61,6 +61,8 @@ ANTHROPIC_API_KEY=sk-ant-...
 | Example                       | Studio title                   | Description                                                                         |
 | ----------------------------- | ------------------------------ | ----------------------------------------------------------------------------------- |
 | [Agent](#agent)               | `Agent - Basic Agent Example`  | Launch `AgentWorkflow` with custom tools — recommended starting point               |
+| [Chat Agent](#chat-agent)     | `Agent - Chat Agent Example`   | Launch `ChatAgentWorkflow` — the agent answers, then waits for the next message     |
+| [Task Agent](#task-agent)     | `Agent - Task Agent Example`   | `ChatAgentWorkflow` in `taskMode` — the agent ends the run through `agent_finish`   |
 | [Tool Errors](#tool-errors)   | `Agent - Tool Errors Example`  | Failing tools reach the LLM as `is_error` tool results, and the LLM corrects course |
 | [Code Agent](#code-agent)     | `Agent - Code Agent Example`   | Specialized codebase-exploration agent with `glob` / `grep` / `read`                |
 | [Custom Agent](#custom-agent) | `Agent - Custom Agent Example` | Build an agent loop from scratch — delegate primitives, guards, a turn budget       |
@@ -76,6 +78,42 @@ Launches a generic `AgentWorkflow` as a sub-workflow with two custom tools (`wea
 - `agent-example.workflow.ts` — workflow class
 - `tools/weather-lookup.tool.ts`, `tools/calculator.tool.ts` — custom tools
 - `templates/system.md` — agent system prompt
+
+## Chat Agent
+
+Launches `ChatAgentWorkflow` as a sub-workflow with the `weather_lookup` and `calculator` tools and renders the chat inline in the parent view. The agent runs the same tool loop as `AgentWorkflow`, but an answer does not end it: after each answer it waits in `waiting_for_user`, and the next user message continues the same conversation.
+
+The chat agent never ends on its own, so the parent passes no `onSuccess` transition to `run()`. Use it when the user talks to the agent over several turns.
+
+### Files
+
+- `chat-agent-example.workflow.ts` — workflow class
+- `templates/system.md` — agent system prompt
+
+## Task Agent
+
+Launches `ChatAgentWorkflow` with `taskMode: true`. The agent is then also offered the `agent_finish` tool, and calling it ends the run with the `result` the agent passes. Until then it is a chat agent: when it answers in text, for example to ask the user a question, it waits for the next user message.
+
+The agent looks up the weather in London and Tokyo, computes the difference, and calls `agent_finish` with `{ warmerCity, differenceCelsius }`. The parent receives that result in its `agentFinished` transition, named in `onSuccess`, which checks it with a Zod schema and publishes it with `setResult`:
+
+```ts
+await this.chatAgentWorkflow.run(
+  {
+    system: this.render(join(__dirname, 'templates', 'system.md')),
+    tools: ['weather_lookup', 'calculator'],
+    userMessage: 'Which city is warmer right now, London or Tokyo, and by how many degrees?',
+    taskMode: true,
+  },
+  { onSuccess: { transition: 'agentFinished' }, show: 'inline', label: 'Task Agent' },
+);
+```
+
+The system prompt tells the agent the shape of the result, because `agent_finish` accepts any value.
+
+### Files
+
+- `task-agent-example.workflow.ts` — workflow class
+- `templates/system.md` — agent system prompt with the result shape
 
 ## Tool Errors
 

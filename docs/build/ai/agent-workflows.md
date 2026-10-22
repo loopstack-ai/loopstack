@@ -228,7 +228,7 @@ async userMessage(state: AgentState, input: TransitionInput<string>) {
 }
 ```
 
-> **Tip:** The `@loopstack/agent` package ships `ChatAgentWorkflow` which implements this pattern out of the box. Use it when you need a multi-turn chat agent without customization.
+> **Tip:** The `@loopstack/agent` package ships `ChatAgentWorkflow` which implements this pattern out of the box. Use it when you need a multi-turn chat agent without customization. See the [Chat Agent example](/docs/examples/agent#chat-agent), and the [Task Agent example](/docs/examples/agent#task-agent) for `taskMode`, where the agent ends the run by calling `agent_finish`.
 
 ### Wrapping an Agent as a Tool
 
