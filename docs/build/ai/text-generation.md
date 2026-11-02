@@ -146,7 +146,7 @@ This is why you don't need to do anything special to "finalize" the stream: the 
 
 ### Custom providers
 
-If you're implementing a custom `LlmProviderInterface`, honor the `onStream` callback in `LlmGenerateTextArgs` — call it with `LlmStreamEvent`s (`start`, `text_delta`, `thinking_delta`, `tool_call`, `done`, `error`) as content arrives. Providers that don't stream can ignore it; the framework still returns the final result correctly. See [Creating LLM Providers](../../extend/llm-providers.md) for the full event union.
+If you're implementing a custom `LlmProviderInterface`, honor the `onStream` callback in `LlmGenerateTextArgs` — call it with `text_delta`, `thinking_delta` and `tool_call` events as content arrives. `LlmGenerateTextTool` sends the `start`, `done` and `error` events itself. Providers that don't stream can ignore it; the framework still returns the final result correctly. See [Creating LLM Providers](../../extend/llm-providers.md#streaming-support) for an example.
 
 ## Environment Variables
 

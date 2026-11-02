@@ -1,11 +1,13 @@
 ---
 title: Creating Custom LLM Providers
-description: Implementing a new LLM provider by extending LlmProviderInterface and registering with LlmProviderRegistry. Covers the provider architecture, required methods, replaying message history written by other providers (meta.response, meta.provider, toProviderMessage), rejecting unsupported server tools, and module setup.
+description: Implementing a new LLM provider with LlmProviderInterface and registering it with LlmProviderRegistry, shown on EchoLlmProvider, the runnable example provider. Covers the provider architecture, required methods, replaying message history written by other providers (meta.response, meta.provider, toProviderMessage), rejecting tools the provider cannot run, module setup, and streaming text_delta events.
 ---
 
 # Creating LLM Providers
 
 Add a new LLM provider to Loopstack by implementing `LlmProviderInterface` and registering it with the `LlmProviderRegistry`.
+
+The code on this page is `EchoLlmProvider` from the [Custom Provider example](/docs/examples/llm#custom-provider). It answers with the last user message, so it runs without an API key or a model server. Copy it and replace the echo client with your API's SDK client.
 
 ## Architecture
 
@@ -19,13 +21,41 @@ Add a new LLM provider to Loopstack by implementing `LlmProviderInterface` and r
 - **Provider modules** (e.g. `@loopstack/claude`, `@loopstack/openai`) — implement `LlmProviderInterface`, self-register at module init
 - Adapter tools route to the correct provider at runtime based on the `provider` config value
 
+## The API client
+
+A provider calls its LLM through a client. For a real API this is the SDK client; the example uses `EchoClient`, which builds the response itself. What matters is the shape the provider works with: the API's own message format and its native response.
+
+```typescript
+/** A message in the echo API format. */
+export interface EchoMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/** The native echo API response — what a real provider receives from its SDK. */
+export interface EchoResponse {
+  id: string;
+  model: string;
+  role: 'assistant';
+  content: string;
+  usage: { inputWords: number; outputWords: number };
+}
+
+@Injectable()
+export class EchoClient {
+  async complete(request: { model: string; messages: EchoMessage[] }): Promise<EchoResponse> {
+    // A real client sends the request to the LLM API here
+  }
+}
+```
+
 ## Implement `LlmProviderInterface`
 
 ```typescript
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import type { DocumentEntity } from '@loopstack/common';
 import type {
   LlmContext,
-  LlmGenerateObjectArgs,
   LlmGenerateObjectResult,
   LlmGenerateTextArgs,
   LlmGenerateTextResult,
@@ -34,69 +64,105 @@ import type {
   LlmUsage,
 } from '@loopstack/llm-provider';
 import { LlmProviderRegistry } from '@loopstack/llm-provider';
+import { EchoClient } from './echo-client';
+import type { EchoMessage, EchoResponse } from './echo-client';
 
 @Injectable()
-export class OllamaLlmProvider implements LlmProviderInterface, OnModuleInit {
-  readonly providerId = 'ollama';
+export class EchoLlmProvider implements LlmProviderInterface, OnModuleInit {
+  readonly providerId = 'echo';
 
-  constructor(private readonly registry: LlmProviderRegistry) {}
+  constructor(
+    private readonly registry: LlmProviderRegistry,
+    private readonly client: EchoClient,
+  ) {}
 
   onModuleInit(): void {
     this.registry.register(this);
   }
 
   async generateText(args: LlmGenerateTextArgs, ctx: LlmContext): Promise<LlmGenerateTextResult> {
-    // 1. Resolve messages from ctx.documents (or use args.messages / args.prompt)
-    // 2. Call your LLM API
-    // 3. Normalize the response to LlmNormalizedMessage format
-    // 4. Return { message, response }
+    if (args.tools?.length) {
+      throw new Error(`The echo provider cannot call tools: ${args.tools.map((tool) => tool.name).join(', ')}`);
+    }
 
-    const nativeResponse = await this.callOllamaApi(args, ctx);
+    const response = await this.client.complete({
+      model: args.model ?? 'echo-1',
+      messages: this.resolveMessages(args, ctx.documents),
+    });
+
+    // The echo API answers in one piece, so the provider streams the reply word by word.
+    // `llm_generate_text` sends the `start` and `done` events itself.
+    if (args.onStream && args.streamMessageId) {
+      for (const delta of response.content.split(/(?<= )/)) {
+        await args.onStream({ type: 'text_delta', messageId: args.streamMessageId, delta });
+      }
+    }
 
     return {
-      message: this.normalizeResponse(nativeResponse),
-      response: nativeResponse, // preserve native response for round-trips
+      message: this.normalizeResponse(response),
+      response, // `llm_generate_text` saves it as `meta.response`, for `resolveMessages` to replay
     };
   }
 
-  async generateObject(args: LlmGenerateObjectArgs, ctx: LlmContext): Promise<LlmGenerateObjectResult> {
-    // Similar to generateText, but force structured output
-    // Use args.outputSchema to constrain the response
-
-    const nativeResponse = await this.callOllamaStructuredApi(args, ctx);
-
-    return {
-      data: nativeResponse.parsedOutput,
-      response: nativeResponse,
-    };
+  async generateObject(): Promise<LlmGenerateObjectResult> {
+    throw new Error('The echo provider cannot generate structured output.');
   }
 
   extractUsage(response: unknown): LlmUsage | undefined {
-    // Extract token usage from the native API response
-    const r = response as { usage?: { prompt_tokens: number; completion_tokens: number } };
-    if (!r.usage) return undefined;
-    return {
-      inputTokens: r.usage.prompt_tokens,
-      outputTokens: r.usage.completion_tokens,
-    };
+    const usage = (response as EchoResponse | undefined)?.usage;
+    if (!usage) return undefined;
+    return { inputTokens: usage.inputWords, outputTokens: usage.outputWords };
   }
 
-  toProviderMessage(message: LlmNormalizedMessage): unknown {
-    // Convert normalized message back to provider-specific message format
-    // Used by resolveMessages() for API round-trips
+  /** Converts a message this provider did not write. Blocks the echo API cannot express are left out. */
+  toProviderMessage(message: LlmNormalizedMessage): EchoMessage {
+    const content = message.blocks?.length
+      ? message.blocks.flatMap((block) => (block.type === 'text' ? [block.text] : [])).join('\n')
+      : message.text;
+    return { role: message.role, content };
+  }
+
+  private resolveMessages(args: LlmGenerateTextArgs, documents: DocumentEntity[]): EchoMessage[] {
+    if (args.prompt) {
+      return [{ role: 'user', content: args.prompt }];
+    }
+
+    if (args.messages?.length) {
+      return args.messages.map((m) => this.toProviderMessage({ role: m.role, text: m.text ?? '', blocks: m.blocks }));
+    }
+
+    const tag = args.messagesSearchTag ?? 'message';
+    return documents
+      .filter((doc) => !doc.isInvalidated && doc.tags?.includes(tag))
+      .sort((a, b) => a.index - b.index)
+      .map((doc) => {
+        // Only a response this provider wrote is in the echo format; any other message is converted
+        const ownResponse = doc.meta?.provider === this.providerId ? (doc.meta.response as EchoResponse) : undefined;
+        return ownResponse
+          ? { role: ownResponse.role, content: ownResponse.content }
+          : this.toProviderMessage(doc.content as LlmNormalizedMessage);
+      });
+  }
+
+  private normalizeResponse(response: EchoResponse): LlmNormalizedMessage {
     return {
-      role: message.role,
-      content: message.blocks ? message.blocks.map((block) => this.convertBlock(block)) : message.text,
+      id: response.id,
+      role: 'assistant',
+      text: response.content,
+      blocks: [{ type: 'text', text: response.content }],
+      stopReason: 'end_turn',
     };
   }
 }
 ```
 
+The echo API has no structured output, so `generateObject` throws. A provider whose API can constrain its output to a JSON Schema calls it with `args.outputSchema` and returns `{ data, response }`. A provider with settings of its own (temperature, max tokens) types them as `LlmProviderInterface<MyProviderConfig>` and reads them from `args.providerConfig`.
+
 ## The Interface
 
 ```typescript
 interface LlmProviderInterface<TProviderConfig = Record<string, unknown>> {
-  /** Unique provider identifier (e.g. 'ollama'). Used in config. */
+  /** Unique provider identifier (e.g. 'echo'). Used in config. */
   readonly providerId: string;
 
   /** Invoke the LLM and return a normalized response. */
@@ -130,12 +196,16 @@ A conversation may switch provider between turns, so the history your provider r
 2. **Convert everything else with `toProviderMessage`.** Map every block your API can express — `text`, `tool_call`, `tool_result` — and leave out the blocks it cannot, such as another provider's `thinking` or `server_tool_use` / `server_tool_result` blocks.
 3. **Reject server tools you cannot run.** A `server_tool` entry in `args.tools` carries one provider's native tool spec in `config`. Throw an error that names the tool instead of dropping it.
 
+`EchoLlmProvider` follows all three. Its `resolveMessages` replays its own responses and converts the rest:
+
 ```typescript
-const ownResponse = doc.meta?.provider === this.providerId ? doc.meta.response : undefined;
-const message = ownResponse
-  ? this.fromNativeResponse(ownResponse)
+const ownResponse = doc.meta?.provider === this.providerId ? (doc.meta.response as EchoResponse) : undefined;
+return ownResponse
+  ? { role: ownResponse.role, content: ownResponse.content }
   : this.toProviderMessage(doc.content as LlmNormalizedMessage);
 ```
+
+The echo API can express only text, so its `toProviderMessage` keeps the `text` blocks and leaves out all others. It cannot run any tool, so `generateText` rejects every entry in `args.tools`.
 
 ### What you DON'T implement
 
@@ -149,10 +219,12 @@ The context passed to provider methods:
 interface LlmContext {
   /** Runtime documents for the current workflow execution (used for message history). */
   documents: DocumentEntity[];
+  /** Forwarded to the provider SDK call so an aborted run cancels the in-flight request. */
+  signal?: AbortSignal;
 }
 ```
 
-Use `ctx.documents` with `args.messagesSearchTag` to resolve message history from saved documents.
+Use `ctx.documents` with `args.messagesSearchTag` to resolve message history from saved documents. Pass `ctx.signal` to your API call so that a canceled run stops the request.
 
 ## `LlmGenerateTextArgs`
 
@@ -199,14 +271,14 @@ Content blocks are a union of:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { OllamaLlmProvider } from './ollama-llm-provider';
-import { OllamaClientService } from './services/ollama-client.service';
+import { EchoClient } from './echo-client';
+import { EchoLlmProvider } from './echo-llm-provider';
 
 @Module({
-  providers: [OllamaClientService, OllamaLlmProvider],
-  exports: [OllamaClientService, OllamaLlmProvider],
+  providers: [EchoClient, EchoLlmProvider],
+  exports: [EchoClient, EchoLlmProvider],
 })
-export class OllamaModule {}
+export class EchoModule {}
 ```
 
 ## Usage
@@ -215,7 +287,7 @@ Users import your module — no other changes needed:
 
 ```typescript
 @Module({
-  imports: [LoopstackModule.forRoot(), OllamaModule],
+  imports: [LoopstackModule.forRoot(), LlmProviderModule.forRoot({ model: 'claude-sonnet-4-6' }), EchoModule],
 })
 export class AppModule {}
 ```
@@ -223,48 +295,34 @@ export class AppModule {}
 Then use it via config:
 
 ```typescript
-const result = await this.llmGenerateText.call(
-  { prompt: 'Hello' },
-  { config: { provider: 'ollama', model: 'llama3' } },
-);
+const result = await this.llmGenerateText.call({ prompt: 'Hello' }, { config: { provider: 'echo', model: 'echo-1' } });
 ```
 
 ## Streaming support
 
-If your provider supports streaming, use the `args.onStream` callback:
+`LlmGenerateTextTool` passes `args.onStream` and `args.streamMessageId` when a client in Studio can receive the response live. The tool itself sends the `start` event before it calls your provider, the `done` event with the final message after it, and the `error` event when your provider throws. Your provider sends only the content as it arrives: `text_delta`, `thinking_delta` and `tool_call` events.
 
 ```typescript
-async generateText(args: LlmGenerateTextArgs, ctx: LlmContext): Promise<LlmGenerateTextResult> {
-  const stream = this.client.stream(/* ... */);
-
-  if (args.onStream) {
-    const messageId = args.streamMessageId ?? crypto.randomUUID();
-    await args.onStream({ type: 'start', messageId });
-
-    for await (const chunk of stream) {
-      await args.onStream({ type: 'text_delta', messageId, delta: chunk.text });
-    }
-
-    const finalMessage = this.normalizeResponse(stream.finalResponse);
-    await args.onStream({ type: 'done', messageId, message: finalMessage });
+if (args.onStream && args.streamMessageId) {
+  for (const delta of response.content.split(/(?<= )/)) {
+    await args.onStream({ type: 'text_delta', messageId: args.streamMessageId, delta });
   }
-
-  // Always return the complete final response regardless of streaming
-  return { message: finalMessage, response: stream.finalResponse };
 }
 ```
+
+A provider whose API streams sends each chunk as it receives it. Always return the complete final response as well, whether or not you streamed.
 
 ## Key types reference
 
 | Type                      | Description                                                                                                  |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `LlmProviderInterface`    | Contract for provider implementations                                                                        |
-| `LlmProviderRegistry`     | Runtime registry — `register()`, `get()`, `has()`                                                            |
+| `LlmProviderRegistry`     | Runtime registry — `register()`, `get()`, `has()`, `getProviderIds()`                                        |
 | `LlmGenerateTextArgs`     | Input for text generation                                                                                    |
 | `LlmGenerateTextResult`   | Response: `{ message, response }`                                                                            |
 | `LlmGenerateObjectArgs`   | Input for structured output (includes `outputSchema`)                                                        |
 | `LlmGenerateObjectResult` | Response: `{ data, response }`                                                                               |
-| `LlmNormalizedMessage`    | Normalized message: `role`, `content`, `stopReason`                                                          |
+| `LlmNormalizedMessage`    | Normalized message: `id`, `role`, `text`, `blocks`, `stopReason`                                             |
 | `LlmContentBlock`         | Content block union: `text`, `thinking`, `tool_call`, `tool_result`, `server_tool_use`, `server_tool_result` |
 | `LlmStopReason`           | `'end_turn'` \| `'tool_use'` \| `'max_tokens'` \| `'stop_sequence'`                                          |
 | `LlmToolCall`             | Normalized tool call: `id`, `name`, `args`                                                                   |
