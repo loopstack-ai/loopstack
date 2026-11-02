@@ -9,7 +9,6 @@ import { AdvancedWorkflowsExamplesModule } from './advanced-workflows/advanced-w
 import { AgentExamplesModule } from './agent/agent-examples.module';
 import { DocumentsExamplesModule } from './documents/documents-examples.module';
 import { ErrorHandlingExamplesModule } from './error-handling/error-handling-examples.module';
-import { ExamplesController } from './examples.controller';
 import { GitExamplesModule } from './git/git-examples.module';
 import { GitHubExamplesModule } from './github/github-examples.module';
 import { GoogleWorkspaceExamplesModule } from './google-workspace/google-workspace-examples.module';
@@ -65,6 +64,5 @@ import { TestingExamplesModule } from './testing/testing-examples.module';
     TestingExamplesModule,
     IntegrationExamplesModule,
   ],
-  controllers: [ExamplesController],
 })
 export class AppModule {}

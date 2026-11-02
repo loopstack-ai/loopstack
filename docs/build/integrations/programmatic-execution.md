@@ -17,7 +17,7 @@ Use the `WorkflowRunner` to execute workflows in response to:
 - Internal application events
 - Batch processing tasks
 
-For a runnable version of every pattern below — cron, webhook, delayed run, and batch — see the
+For a runnable version of every pattern below — a direct call, cron, webhook, delayed run, and batch — see the
 [scheduling examples](/docs/examples/scheduling). Each fundamental ships as a small
 workflow plus the real trigger that fires it, and you can drive the HTTP-triggered ones straight from
 Studio.
@@ -26,8 +26,11 @@ Studio.
 
 ### Create a Controller
 
+A controller behind your app's auth takes the user from the request with `@UserId()`:
+
 ```typescript
 import { Body, Controller, Post } from '@nestjs/common';
+import { UserId } from '@loopstack/common';
 import { WorkflowRunner } from '@loopstack/core';
 import { MyWorkflow } from './workflows/my.workflow';
 
@@ -36,8 +39,7 @@ export class AppController {
   constructor(private readonly workflowRunner: WorkflowRunner) {}
 
   @Post('run-my-workflow')
-  async runMyWorkflow(@Body() payload: any) {
-    const userId = '...'; // define a user id to run the workflow
+  async runMyWorkflow(@UserId() userId: string, @Body() payload: any) {
     const result = await this.workflowRunner.run(MyWorkflow, payload, {
       appName: 'default',
       userId,
@@ -47,6 +49,9 @@ export class AppController {
   }
 }
 ```
+
+The [direct run example](/docs/examples/scheduling#direct--runsync-from-a-controller) is a runnable
+version of this controller that calls `runSync` and returns the run's `status` and `result`.
 
 ### WorkflowRunner Methods
 
@@ -210,4 +215,4 @@ export class OrderProcessingService {
 
 ## Registry References
 
-- [Scheduling examples](/docs/examples/scheduling) — Runnable examples of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.
+- [Scheduling examples](/docs/examples/scheduling) — Runnable examples of a direct `WorkflowRunner.runSync` call from a controller that reads the run's `status` and `result`, and of every scheduling fundamental: cron (`@Cron` + `WorkflowRunner.run`), webhook (`@Public @Post` controller), delayed run (`SchedulerRegistry` timeout), and batch (`Promise.all` fan-out). Includes Studio-launchable workflows that make the real HTTP call to each trigger endpoint.

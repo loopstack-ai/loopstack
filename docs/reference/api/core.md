@@ -89,7 +89,7 @@ delayed timeouts, batch fan-out) instead of the Studio "Run" button. Inject it
 anywhere — it is globally available once `LoopstackModule.forRoot()` is imported.
 
 - `run(WorkflowClass, args, options)` — enqueue on BullMQ and return a `RunResult` (`workflowId`).
-- `runSync(WorkflowClass, args, options)` — execute inline and await a `SyncRunResult`; pass `{ stateless: true }` to skip persistence.
+- `runSync(WorkflowClass, args, options)` — execute inline and await a `SyncRunResult`; pass `{ stateless: true }` to skip persistence and get a `StatelessRunResult`.
 - `execute(workflow, payload, options)` — controller-facing entry that starts, resumes, or retries based on the payload.
 - `runById(workflowId, userId, options)` — resume/re-run an existing workflow by id.
 
@@ -123,6 +123,20 @@ export class WorkflowRunner {
     args: WorkflowArgs<W>,
     options: WorkflowRunnerOptions,
   ): Promise<RunResult>;
+  runSync<W extends BaseWorkflow>(
+    workflow: Type<W>,
+    args: WorkflowArgs<W>,
+    options: WorkflowRunnerSyncOptions & {
+      stateless?: false;
+    },
+  ): Promise<SyncRunResult>;
+  runSync<W extends BaseWorkflow>(
+    workflow: Type<W>,
+    args: WorkflowArgs<W>,
+    options: WorkflowRunnerSyncOptions & {
+      stateless: true;
+    },
+  ): Promise<StatelessRunResult>;
   runSync<W extends BaseWorkflow>(
     workflow: Type<W>,
     args: WorkflowArgs<W>,
