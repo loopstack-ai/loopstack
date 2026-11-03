@@ -66,6 +66,8 @@ On submit, Studio creates a run of the workflow in the current workspace, starts
 })
 ```
 
+For a runnable app with a home page, see the [HITL examples](/docs/examples/hitl#home-page): one card for each way to pause a workflow for the user.
+
 ## Available Features
 
 Some registry modules light up additional Studio surfaces when imported by your app — sidebars, panels, or richer document widgets. Importing a module through its `forFeature()` (or `forRoot()`) registers its feature at bootstrap, and the feature then appears under `StudioAppConfig.features`, which Studio reads to decide what UI to expose. A bare import of the module class does not register the feature.

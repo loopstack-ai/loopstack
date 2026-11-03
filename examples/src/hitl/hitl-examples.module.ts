@@ -33,6 +33,39 @@ const WORKFLOWS = [
 @StudioApp({
   title: 'HITL Examples',
   workflows: WORKFLOWS,
+  ui: {
+    // The workspace home page: one launch card per row of the README's decision matrix, so a new user
+    // starts with the three ways to pause a workflow for the user.
+    widgets: [
+      {
+        widget: 'start-form',
+        options: {
+          workflow: 'inline_form_example',
+          title: 'Custom document with a form',
+          subtitle: 'The workflow saves its own form document and waits until you submit it.',
+          label: 'Open Form',
+        },
+      },
+      {
+        widget: 'start-form',
+        options: {
+          workflow: 'agent_ask_clarification_example',
+          title: 'Agent that asks back',
+          subtitle: 'An LLM agent pauses to ask you for missing information. Needs ANTHROPIC_API_KEY.',
+          label: 'Start Agent',
+        },
+      },
+      {
+        widget: 'start-form',
+        options: {
+          workflow: 'ask_user_text_example',
+          title: 'Quick question',
+          subtitle: 'The workflow hands one free-text question to AskUserWorkflow.',
+          label: 'Ask',
+        },
+      },
+    ],
+  },
 })
 @Module({
   imports: [HitlModule, AgentModule, ClaudeModule],

@@ -66,6 +66,35 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 The non-agent examples (Inline Form, Prompt Input Chat, Conditional Buttons, Ask User \*, Confirm Content) work without any LLM provider.
 
+## Home page
+
+When you open a workspace of this app in Studio, its home page shows three launch cards, one for each row of the decision matrix: **Custom document with a form** (Inline Form), **Agent that asks back** (Agent Ask Clarification) and **Quick question** (Ask User Text). Each card starts its workflow and opens the run.
+
+The cards are `start-form` widgets in the `ui` option of `@StudioApp` in `hitl-examples.module.ts`:
+
+```typescript
+@StudioApp({
+  title: 'HITL Examples',
+  workflows: WORKFLOWS,
+  ui: {
+    widgets: [
+      {
+        widget: 'start-form',
+        options: {
+          workflow: 'inline_form_example',
+          title: 'Custom document with a form',
+          subtitle: 'The workflow saves its own form document and waits until you submit it.',
+          label: 'Open Form',
+        },
+      },
+      // ...one entry per card
+    ],
+  },
+})
+```
+
+`workflow` is the workflow name: the class name without `Workflow`, in snake_case (`InlineFormExampleWorkflow` → `inline_form_example`). It must name a workflow in the app's `workflows`. `src/hitl/__tests__/studio-home-page.spec.ts` checks this, because Studio does not report a wrong name. These three workflows take no args, so each card shows only its button. When a workflow declares an args `schema`, its card renders the schema as a form and starts the run with the values. See [Studio Configuration](https://loopstack.ai/docs/build/fundamentals/studio-config#start-form) for all options.
+
 ## Examples
 
 | Example                                             | Studio title                             | Description                                                                           |
