@@ -10,6 +10,7 @@ import { AgentExampleWorkflow } from './workflows/agent/agent-example.workflow';
 import { ChatAgentExampleWorkflow } from './workflows/chat-agent/chat-agent-example.workflow';
 import { CodeAgentExampleWorkflow } from './workflows/code-agent/code-agent-example.workflow';
 import { CustomAgentExampleWorkflow } from './workflows/custom-agent/custom-agent-example.workflow';
+import { ExploreTaskExampleWorkflow } from './workflows/explore-task/explore-task-example.workflow';
 import { TaskAgentExampleWorkflow } from './workflows/task-agent/task-agent-example.workflow';
 import { ToolErrorsExampleWorkflow } from './workflows/tool-errors/tool-errors-example.workflow';
 import { ToolErrorsFailingSubWorkflow } from './workflows/tool-errors/tool-errors-failing-sub.workflow';
@@ -23,6 +24,7 @@ const WORKFLOWS = [
   TaskAgentExampleWorkflow,
   ToolErrorsExampleWorkflow,
   CodeAgentExampleWorkflow,
+  ExploreTaskExampleWorkflow,
   CustomAgentExampleWorkflow,
 ];
 

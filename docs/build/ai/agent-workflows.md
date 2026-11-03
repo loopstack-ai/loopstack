@@ -272,10 +272,11 @@ export class ExploreTask extends BaseTool {
 }
 ```
 
-This enables multi-agent architectures where an orchestrator agent delegates tasks to specialized sub-agents.
+This enables multi-agent architectures where an orchestrator agent delegates tasks to specialized sub-agents. The [Explore Task example](/docs/examples/agent#explore-task) shows a main agent that calls `explore_task` from `@loopstack/code-agent` and answers from the sub-agent's findings.
 
 ## Registry References
 
 - [@loopstack/agent](/docs/registry/agent) — Built-in agent workflow module
 - [@loopstack/code-agent](/docs/registry/code-agent) — Code exploration agent (ExploreTask) built on @loopstack/agent
 - [Tool Errors example](/docs/examples/agent#tool-errors) — Example demonstrating tool error handling and recovery
+- [Explore Task example](/docs/examples/agent#explore-task) — A main agent that delegates codebase exploration to a sub-agent through `explore_task`

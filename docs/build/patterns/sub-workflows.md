@@ -416,3 +416,4 @@ The sub-workflow can be an `AgentWorkflow` itself, enabling multi-agent architec
 
 - [Sub-Workflow example](/docs/examples/advanced-workflows#sub-workflow) — Parent calling sub-workflows with callbacks and typed output, all three `show` modes chained, `FanOutWorkflow` / `SequenceWorkflow` coordination, and a failing-child workflow paired with a parent that names one transition per outcome
 - [@loopstack/code-agent](/docs/registry/code-agent) — ExploreTask wrapping AgentWorkflow as a task tool
+- [Explore Task example](/docs/examples/agent#explore-task) — A main agent that calls `explore_task`, which runs a sub-agent and returns its answer as the tool result

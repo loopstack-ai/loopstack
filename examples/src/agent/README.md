@@ -1,6 +1,6 @@
 ---
 title: Agent Examples
-description: Workflow examples for LLM agents in Loopstack — basic AgentWorkflow with custom tools, a multi-turn ChatAgentWorkflow, a taskMode ChatAgentWorkflow that ends through agent_finish, tool errors fed back to the LLM, code-exploration agent, and a from-scratch custom agent loop with a turn budget.
+description: Workflow examples for LLM agents in Loopstack — basic AgentWorkflow with custom tools, a multi-turn ChatAgentWorkflow, a taskMode ChatAgentWorkflow that ends through agent_finish, tool errors fed back to the LLM, a code-exploration agent, a main agent that delegates exploration to a sub-agent through explore_task, and a from-scratch custom agent loop with a turn budget.
 ---
 
 # Agent Examples
@@ -48,7 +48,7 @@ export class AppModule {}
 
 `AgentExamplesModule` re-imports `ClaudeModule` (provider), `AgentModule` (the `AgentWorkflow` / `ChatAgentWorkflow` classes), `CodeAgentModule`, and `RemoteClientModule.forFeature({ type: 'sandbox' })`. `LlmProviderModule.forRoot(...)` sets the default model the tools dispatch to.
 
-The Code Agent example additionally requires `RemoteClientModule.forRoot({ environments })` — see [Code Agent → Setup](#code-agent) below.
+The Code Agent and Explore Task examples additionally require `RemoteClientModule.forRoot({ environments })` — see [Code Agent → Setup](#code-agent) below.
 
 ## Environment
 
@@ -65,6 +65,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 | [Task Agent](#task-agent)     | `Agent - Task Agent Example`   | `ChatAgentWorkflow` in `taskMode` — the agent ends the run through `agent_finish`   |
 | [Tool Errors](#tool-errors)   | `Agent - Tool Errors Example`  | Failing tools reach the LLM as `is_error` tool results, and the LLM corrects course |
 | [Code Agent](#code-agent)     | `Agent - Code Agent Example`   | Specialized codebase-exploration agent with `glob` / `grep` / `read`                |
+| [Explore Task](#explore-task) | `Agent - Explore Task Example` | A main agent delegates exploration to a sub-agent through `explore_task`            |
 | [Custom Agent](#custom-agent) | `Agent - Custom Agent Example` | Build an agent loop from scratch — delegate primitives, guards, a turn budget       |
 
 ---
@@ -176,6 +177,32 @@ export class AppModule {}
 ### Files
 
 - `code-agent-example.workflow.ts` — workflow class
+
+## Explore Task
+
+Launches `AgentWorkflow` as a main agent whose only tool is `explore_task` from `@loopstack/code-agent`. The main agent cannot read the code itself, so it calls `explore_task` with instructions. The tool starts a sub-agent with `glob`, `grep` and `read`, renders it inline, and returns the sub-agent's answer as the tool result. The main agent then answers the user from that result.
+
+```ts
+await this.agentWorkflow.run(
+  {
+    system: this.render(join(__dirname, 'templates', 'system.md')),
+    tools: ['explore_task'],
+    userMessage: 'Which modules does the root module of this project import? Name the one to read first.',
+  },
+  { onSuccess: { transition: 'agentComplete' }, show: 'inline', label: 'Main agent' },
+);
+```
+
+The files the sub-agent reads stay in the sub-agent's conversation. Only its answer reaches the main agent, so the main agent's context stays small. Use this pattern when an agent needs facts about the code as one step of a larger task.
+
+The [Code Agent](#code-agent) example runs the same exploration agent, but a workflow starts it directly and no other agent is involved. Use that one when exploring the code is the whole task.
+
+`explore_task` runs `glob`, `grep` and `read` on the remote agent, so this example needs the same `sandbox` environment as the Code Agent example — see [Code Agent → Setup](#code-agent).
+
+### Files
+
+- `explore-task-example.workflow.ts` — workflow class
+- `templates/system.md` — main agent system prompt
 
 ## Custom Agent
 

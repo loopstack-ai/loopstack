@@ -184,14 +184,14 @@ An async tool's answer is never replayed from the fixture — it always comes fr
    }
    ```
 
-2. **An LLM answers** (`explore_task` — its result comes from a sub-agent) → replay reaches _inside_ the child instead. Recording covers the whole run tree in call order, so the sub-agent's own `llm_generate_text` turns are part of the script. With `replayTools: [LlmGenerateTextTool]` the tool runs live, launches the real sub-agent, and the sub-agent's inner LLM calls consume the script — the tool's answer reproduces deterministically from its actual source of nondeterminism.
+2. **An LLM answers** (`explore_task` — its result comes from a sub-agent) → replay reaches _inside_ the child instead. Recording covers the whole run tree in call order, so the sub-agent's own `llm_generate_text` turns are part of the script. With `replayTools: [LlmGenerateTextTool]` the tool runs live, launches the real sub-agent, and the sub-agent's inner LLM calls consume the script — the tool's answer reproduces deterministically from its actual source of nondeterminism. The [Explore Task example](/docs/examples/agent#explore-task) tests it this way.
 
 3. **You want the tool gone entirely** → mock it wholesale via `providers` or `overrides`. The mock returns a plain _data_ envelope, so the tool never goes async and no child machinery is involved:
 
    ```ts
    const explore = createToolMock('explore_task');
    explore.call.mockResolvedValue({ data: { summary: 'Three call sites, all in core.' } });
-   // providers: [{ provide: ExploreTaskTool, useValue: explore }]
+   // providers: [{ provide: ExploreTask, useValue: explore }]
    ```
 
 What is deliberately not supported: replaying the pending envelope itself and fabricating the completion — that would require hand-reimplementing the callback delivery and `complete()` transformation the replay skipped. Strategy 3 expresses that intent in one line instead.
