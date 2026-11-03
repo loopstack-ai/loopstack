@@ -1,13 +1,13 @@
 ---
 title: LLM Examples
-description: Workflow examples for LLM integration in Loopstack — simple prompts, structured output with Zod schemas, multi-provider comparison, a custom LLM provider (EchoLlmProvider registered with LlmProviderRegistry), web fetch with summarization
+description: Workflow examples for LLM integration in Loopstack — simple prompts, structured output with Zod schemas, multi-provider comparison, Claude prompt caching, a custom LLM provider (EchoLlmProvider registered with LlmProviderRegistry), web fetch with summarization
 ---
 
 # LLM Examples
 
 > LLM workflow examples for the [Loopstack](https://loopstack.ai) automation framework.
 
-A collection of workflow examples that demonstrate how to integrate LLMs into Loopstack workflows. Use these as starting points for prompts, structured output, multi-provider setups, writing your own LLM provider, and fetching web content.
+A collection of workflow examples that demonstrate how to integrate LLMs into Loopstack workflows. Use these as starting points for prompts, structured output, multi-provider setups, prompt caching, writing your own LLM provider, and fetching web content.
 
 ## Use in Your App
 
@@ -61,13 +61,14 @@ The Custom Provider example needs no key.
 
 ## Examples
 
-| Example                                 | Studio title                                           | Description                                                             |
-| --------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------- |
-| [Prompt](#prompt)                       | `LLM - Prompt Example (Write a haiku)`                 | Single-shot LLM call with a Handlebars-rendered prompt template         |
-| [Structured Output](#structured-output) | `LLM - Structured Output Example (Hello World Script)` | Generate Zod-validated structured output with a custom document widget  |
-| [Multi-Provider](#multi-provider)       | `LLM - Multi-Provider Example`                         | Run the same prompt through Claude and OpenAI side by side              |
-| [Custom Provider](#custom-provider)     | `LLM - Custom Provider Example`                        | A minimal LLM provider, registered and called through `config.provider` |
-| [Web Fetch](#web-fetch)                 | `LLM - Web Fetch Example`                              | Fetch a URL, convert HTML to Markdown, summarize with an LLM            |
+| Example                                 | Studio title                                           | Description                                                                 |
+| --------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------- |
+| [Prompt](#prompt)                       | `LLM - Prompt Example (Write a haiku)`                 | Single-shot LLM call with a Handlebars-rendered prompt template             |
+| [Structured Output](#structured-output) | `LLM - Structured Output Example (Hello World Script)` | Generate Zod-validated structured output with a custom document widget      |
+| [Multi-Provider](#multi-provider)       | `LLM - Multi-Provider Example`                         | Run the same prompt through Claude and OpenAI side by side                  |
+| [Prompt Caching](#prompt-caching)       | `LLM - Prompt Caching Example`                         | Two calls with the same long system prompt: one cache write, one cache read |
+| [Custom Provider](#custom-provider)     | `LLM - Custom Provider Example`                        | A minimal LLM provider, registered and called through `config.provider`     |
+| [Web Fetch](#web-fetch)                 | `LLM - Web Fetch Example`                              | Fetch a URL, convert HTML to Markdown, summarize with an LLM                |
 
 ---
 
@@ -169,6 +170,55 @@ The `save: false` opt-out lets us prefix each response with the provider name so
 ### Files
 
 - `multi-provider-example.workflow.ts` — workflow class
+
+## Prompt Caching
+
+Asks Claude two questions about the same long handbook with Anthropic prompt caching turned on. The first call writes the handbook to the cache, and the second call reads it from there instead of processing it again. Turn caching on when many calls start with the same long text: a system prompt, tool definitions, or a growing conversation in an agent loop. Cache reads cost about a tenth of normal input tokens.
+
+### What it demonstrates
+
+- Turning on Claude prompt caching per call with `providerConfig: { cache: true }`
+- Reading `cacheCreationInputTokens` and `cacheReadInputTokens` from `result.metadata.usage`
+- Keeping the shared text in the system prompt, so that both calls start with the same prefix
+
+### Key code
+
+```ts
+const result = await this.llmGenerateText.call(
+  { prompt: question },
+  {
+    config: {
+      provider: 'claude',
+      model: 'claude-sonnet-4-6',
+      system: this.render(join(__dirname, 'templates', 'handbook.md')),
+      providerConfig: { cache: true },
+    },
+  },
+);
+
+const { usage } = result.metadata;
+// usage?.cacheCreationInputTokens: tokens written to the cache by this call
+// usage?.cacheReadInputTokens:     tokens read from the cache by this call
+```
+
+With `cache: true`, the Claude provider places cache breakpoints on the system prompt, the last tool definition and the last message. A cache hit needs a prefix that is byte-identical up to a breakpoint. That is why the handbook is the system prompt and the question is the prompt: if the handbook were part of each prompt, the two different questions would make the two prefixes differ, and the second call would read nothing from the cache.
+
+Anthropic caches nothing shorter than a minimum that depends on the model: 1,024 tokens for `claude-sonnet-4-6`, and up to 4,096 tokens for other models. The handbook is about 1,700 tokens. A shorter prefix gives no error, only `0` for both cache fields.
+
+Run it with an `ANTHROPIC_API_KEY` and the workflow ends with a chat message of this form (the numbers depend on the model and the questions):
+
+```
+**Call 1:** cache write 1726 tokens, cache read 0 tokens
+
+**Call 2:** cache write 14 tokens, cache read 1712 tokens
+```
+
+The first call writes the handbook and its question, up to the breakpoint on the last message. The second call reads the handbook from the cache, through the breakpoint on the system prompt, and writes only its own question. A cache entry lives for five minutes after its last use, so a run started within five minutes of the previous one reads the handbook already in the first call. The workflow result holds the question, the answer and both cache fields of each call.
+
+### Files
+
+- `prompt-caching-example.workflow.ts` — workflow class
+- `templates/handbook.md` — the long system prompt both calls share
 
 ## Custom Provider
 
