@@ -96,7 +96,7 @@ export function RunView({ workflowId, settings }: { workflowId: string | undefin
   };
 
   return (
-    <div className="w-full max-w-3xl">
+    <div className="w-full">
       {isLoading && <p className="text-muted-foreground text-sm">Loading run…</p>}
       <Transcript
         entries={visibleEntries}
