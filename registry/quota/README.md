@@ -1,13 +1,13 @@
 ---
 title: Quota Module
-description: Opt-in quota tracking and enforcement for Loopstack tool calls — QuotaModule.forRoot(), QuotaInterceptor, QuotaCalculatorRegistry, QuotaClientService, AiGenerateTextQuotaCalculator, ProcessingTimeQuotaCalculator, Redis-backed usage counters, model pricing lookup
+description: Opt-in quota tracking and enforcement for Loopstack tool calls — QuotaModule.forRoot(), QuotaInterceptor, QuotaCalculatorRegistry, QuotaClientService, AiGenerateTextQuotaCalculator, processing-time quota, Redis-backed usage counters, model pricing lookup
 ---
 
 # @loopstack/quota
 
 > Quota tracking module for the [Loopstack](https://loopstack.ai) automation framework.
 
-Opt-in, Redis-backed quota tracking and enforcement for tool calls. Ships with calculators for AI token cost (USD-based, per-model pricing) and processing time, and lets you register custom calculators for any tool.
+Opt-in, Redis-backed quota tracking and enforcement for tool calls. Measures the processing time of every tool call, ships with a calculator for AI token cost (USD-based, per-model pricing), and lets you register custom calculators for any tool.
 
 ## When to Use
 
@@ -99,7 +99,7 @@ Check tool-specific quota --> exceeded? --> throw Error
 Execute tool
   |
   v
-Report processing-time usage (wall-clock ms)
+Report processing-time usage (measured wall-clock ms of the tool call)
   |
   v
 Report tool-specific usage (e.g. LLM cost in microcents)
@@ -112,10 +112,10 @@ Return result
 
 Two quota types are tracked out of the box:
 
-| Quota Type           | Calculator                      | Unit                             | Description                                                          |
+| Quota Type           | Measured by                     | Unit                             | Description                                                          |
 | -------------------- | ------------------------------- | -------------------------------- | -------------------------------------------------------------------- |
 | `llm-cost`           | `AiGenerateTextQuotaCalculator` | Microcents (1 USD = 100,000,000) | Computes cost from input/output/cache tokens using per-model pricing |
-| `processing-time-ms` | `ProcessingTimeQuotaCalculator` | Milliseconds                     | Wall-clock duration of each tool call                                |
+| `processing-time-ms` | `QuotaInterceptor`              | Milliseconds                     | Wall-clock duration of each tool call, measured around the call      |
 
 ### Model pricing
 
@@ -191,7 +191,7 @@ The registry key is the tool's **class name** (not the `@Tool({ name })` value).
 - **Services:** `QuotaClientService` — `checkQuota(userId, quotaType)`, `report(userId, quotaType, amount)`
 - **Services:** `QuotaCalculatorRegistry` — `register(toolClassName, calculator)`, `get(toolClassName)`, `has(toolClassName)`
 - **Interceptor:** `QuotaInterceptor` — auto-discovered via `@UseToolInterceptor({ priority: 50 })`
-- **Calculators:** `AiGenerateTextQuotaCalculator` (quota type: `llm-cost`), `ProcessingTimeQuotaCalculator` (quota type: `processing-time-ms`)
+- **Calculators:** `AiGenerateTextQuotaCalculator` (quota type: `llm-cost`)
 - **Interfaces:** `ToolQuotaCalculator`, `QuotaClientServiceInterface`, `QuotaCheckResult`, `QuotaUsage`
 - **Tokens:** `QUOTA_CLIENT_SERVICE`, `QUOTA_REDIS`
 - **Utilities:** `getModelPricing(provider, model)`, `ModelPricing`

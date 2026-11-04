@@ -1,13 +1,13 @@
 import { Logger } from '@nestjs/common';
 import { ToolEnvelope, ToolExecutionContext, ToolInterceptor, UseToolInterceptor } from '@loopstack/common';
-import { ProcessingTimeQuotaCalculator } from '../calculators/index.js';
 import { QuotaCalculatorRegistry } from './quota-calculator-registry.service.js';
 import { QuotaClientService } from './quota-client.service.js';
+
+const PROCESSING_TIME_QUOTA_TYPE = 'processing-time-ms';
 
 @UseToolInterceptor({ priority: 50 })
 export class QuotaInterceptor implements ToolInterceptor {
   private readonly logger = new Logger(QuotaInterceptor.name);
-  private readonly processingTimeCalculator = new ProcessingTimeQuotaCalculator();
 
   constructor(
     private readonly quotaClientService: QuotaClientService,
@@ -19,11 +19,9 @@ export class QuotaInterceptor implements ToolInterceptor {
     const toolClassName = context.tool.constructor.name;
 
     // Check quotas before execution
-    const timeCheck = await this.quotaClientService.checkQuota(userId, this.processingTimeCalculator.quotaType);
+    const timeCheck = await this.quotaClientService.checkQuota(userId, PROCESSING_TIME_QUOTA_TYPE);
     if (timeCheck.exceeded) {
-      throw new Error(
-        `Quota exceeded for "${this.processingTimeCalculator.quotaType}": ${timeCheck.used}/${timeCheck.limit}`,
-      );
+      throw new Error(`Quota exceeded for "${PROCESSING_TIME_QUOTA_TYPE}": ${timeCheck.used}/${timeCheck.limit}`);
     }
 
     const calculator = this.calculatorRegistry.get(toolClassName);
@@ -34,16 +32,14 @@ export class QuotaInterceptor implements ToolInterceptor {
       }
     }
 
-    // Execute the tool
+    // Execute the tool and measure its wall-clock duration
+    const startedAt = performance.now();
     const result = await next();
+    const durationMs = Math.round(performance.now() - startedAt);
 
     // Report usage after execution
-    const durationMs = (context.metadata.durationMs as number) ?? 0;
-    const timeUsage = this.processingTimeCalculator.calculateQuotaUsage(context, result);
-    if (timeUsage) {
-      // Use actual duration from the logging interceptor if available
-      const amount = durationMs || timeUsage.actualAmount;
-      await this.quotaClientService.report(userId, timeUsage.quotaType, amount);
+    if (durationMs > 0) {
+      await this.quotaClientService.report(userId, PROCESSING_TIME_QUOTA_TYPE, durationMs);
     }
 
     if (calculator) {

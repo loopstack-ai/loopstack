@@ -22,7 +22,7 @@ export interface QuotaModuleOptions {
 /**
  * NestJS module that provides opt-in quota tracking and enforcement for tool calls — the
  * `QuotaInterceptor`, `QuotaClientService`, `QuotaCalculatorRegistry`, and built-in
- * AI-cost and processing-time calculators.
+ * AI-cost calculator; the interceptor measures processing time itself.
  *
  * Registration:
  * - `QuotaModule.forRoot(QuotaModuleOptions)` — use when you configure the module in code; sets the

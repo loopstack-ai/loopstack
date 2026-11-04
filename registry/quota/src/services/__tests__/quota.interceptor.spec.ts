@@ -1,4 +1,4 @@
-import { type Mocked, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type Mocked, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToolExecutionContext, ToolResult } from '@loopstack/common';
 import { QuotaCalculatorRegistry } from '../quota-calculator-registry.service.js';
 import { QuotaClientService } from '../quota-client.service.js';
@@ -106,16 +106,41 @@ describe('QuotaInterceptor', () => {
     });
   });
 
+
   describe('after execution (usage reporting)', () => {
-    it('should report processing time for every tool', async () => {
-      const context = createContext('UnknownTool', { metadata: { durationMs: 250 } });
+    /** Makes the tool call appear to take `ms` on the interceptor's clock. */
+    function mockToolDuration(ms: number) {
+      vi.spyOn(performance, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(1000 + ms);
+    }
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('should report the measured duration of the tool call as processing time', async () => {
+      const context = createContext('UnknownTool');
+      const slowNext = () => new Promise<ToolResult>((resolve) => setTimeout(() => resolve({ data: {} }), 50));
+
+      await interceptor.intercept(context, slowNext);
+
+      expect(quotaClientService.report).toHaveBeenCalledTimes(1);
+      const [userId, quotaType, amount] = quotaClientService.report.mock.calls[0];
+      expect(userId).toBe('user-1');
+      expect(quotaType).toBe('processing-time-ms');
+      expect(amount).toBeGreaterThanOrEqual(45);
+    });
+
+    it('should report processing time rounded to whole milliseconds', async () => {
+      mockToolDuration(250.4);
+      const context = createContext('UnknownTool');
 
       await interceptor.intercept(context, noopNext);
 
       expect(quotaClientService.report).toHaveBeenCalledWith('user-1', 'processing-time-ms', 250);
     });
 
-    it('should not report processing time when metadata has no durationMs', async () => {
+    it('should not report processing time when the call took under a millisecond', async () => {
+      mockToolDuration(0.4);
       const context = createContext('UnknownTool');
 
       await interceptor.intercept(context, noopNext);
@@ -128,7 +153,8 @@ describe('QuotaInterceptor', () => {
         quotaType: 'llm-cost',
         calculateQuotaUsage: vi.fn().mockReturnValue({ quotaType: 'llm-cost', actualAmount: 500 }),
       });
-      const context = createContext('AiGenerateText', { metadata: { durationMs: 1000 } });
+      mockToolDuration(1000);
+      const context = createContext('AiGenerateText');
 
       await interceptor.intercept(context, noopNext);
 
@@ -142,7 +168,8 @@ describe('QuotaInterceptor', () => {
         quotaType: 'llm-cost',
         calculateQuotaUsage: vi.fn().mockReturnValue(null),
       });
-      const context = createContext('AiGenerateText', { metadata: { durationMs: 100 } });
+      mockToolDuration(100);
+      const context = createContext('AiGenerateText');
 
       await interceptor.intercept(context, noopNext);
 
