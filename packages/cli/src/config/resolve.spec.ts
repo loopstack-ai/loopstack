@@ -6,7 +6,7 @@ import { resolveConnection } from './resolve.js';
 const config: CliConfig = {
   defaultEnvironment: 'prod',
   environments: {
-    prod: { url: 'https://api.example.com', token: 'lsk_saved', workspaceId: 'ws-1' },
+    prod: { url: 'https://api.example.com', token: 'lsk_saved' },
     staging: { url: 'https://staging.example.com' },
   },
 };
@@ -19,13 +19,12 @@ describe('resolveConnection', () => {
     expect(resolved).toMatchObject({ url: 'http://other:4000', source: 'flags' });
   });
 
-  it('--env picks the named environment with its saved token and workspace', () => {
+  it('--env picks the named environment with its saved token', () => {
     const resolved = resolveConnection({ env: 'prod' }, noEnv, config);
     expect(resolved).toMatchObject({
       name: 'prod',
       url: 'https://api.example.com',
       token: 'lsk_saved',
-      workspaceId: 'ws-1',
     });
   });
 

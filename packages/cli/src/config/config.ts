@@ -6,8 +6,6 @@ import { CliError } from '../errors.js';
 export interface EnvironmentConfig {
   url: string;
   token?: string;
-  /** CLI-owned default workspace for zero-ceremony runs (created lazily). */
-  workspaceId?: string;
   /** Studio frontend of this environment — enables deep links in run output. */
   studioUrl?: string;
 }

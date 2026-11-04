@@ -3,18 +3,15 @@ import { SortOrder } from '@loopstack/contracts/enums';
 import { CliError } from '../errors.js';
 
 /**
- * Picks the workspace for a run: the explicit flag, then the environment's
- * pinned `workspaceId` from the config file, then the newest workspace of the
- * app declaring the workflow — created on the fly when none exists yet.
+ * Picks the workspace for a run: the explicit flag, else the newest workspace
+ * of the app declaring the workflow — created on the fly when none exists yet.
  */
 export async function resolveWorkspaceId(
   client: LoopstackClient,
   workflowName: string,
   explicit?: string,
-  pinned?: string,
 ): Promise<string> {
   if (explicit) return explicit;
-  if (pinned) return pinned;
 
   const apps = await client.config.apps();
   const app = apps.find((candidate) => candidate.workflows?.some((workflow) => workflow.workflowName === workflowName));

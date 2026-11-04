@@ -54,7 +54,7 @@ export function registerRunCommand(program: Command): void {
       const statusOut = json || quiet ? process.stderr : process.stdout;
 
       const args = parseRunArgs(options.arg);
-      const workspaceId = await resolveWorkspaceId(client, workflowName, options.workspace, connection.workspaceId);
+      const workspaceId = await resolveWorkspaceId(client, workflowName, options.workspace);
 
       // Subscribe before starting so no event of the run is missed, and wait for the
       // connection to actually open — a fast run can otherwise finish inside the connect

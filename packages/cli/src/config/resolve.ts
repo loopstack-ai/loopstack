@@ -15,7 +15,6 @@ export interface ResolvedConnection {
   name: string;
   url: string;
   token?: string;
-  workspaceId?: string;
   /** Studio frontend for deep links — saved via `login`, `LOOPSTACK_STUDIO_URL`, or the local default. */
   studioUrl?: string;
   source: 'flags' | 'env-vars' | 'config' | 'default';
@@ -52,7 +51,6 @@ export function resolveConnection(
       name: flags.env,
       url: saved.url,
       token: tokenOverride ?? saved.token,
-      workspaceId: saved.workspaceId,
       studioUrl: studioOverride ?? saved.studioUrl,
       source: 'flags',
     };
@@ -74,7 +72,6 @@ export function resolveConnection(
       name: config.defaultEnvironment,
       url: saved.url,
       token: tokenOverride ?? saved.token,
-      workspaceId: saved.workspaceId,
       studioUrl: studioOverride ?? saved.studioUrl,
       source: 'config',
     };
