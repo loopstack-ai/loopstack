@@ -297,7 +297,7 @@ When `prompt` is omitted, `WebFetchTool` returns the raw Markdown (truncated if 
 ### Related modules
 
 - `@loopstack/web` — fetch + Markdown conversion + summarization
-- `@loopstack/claude` — `claude_native_web_search`, Claude's server-side web search tool (alternative when you want the LLM to search rather than fetch a specific URL)
+- `@loopstack/claude` — `claude_native_web_search`, Claude's server-side web search tool (alternative when you want the LLM to search rather than fetch a specific URL). The [Web Search Examples](/docs/examples/web-search) show it and the `claude_web_search_step` workflow step.
 
 ## About
 

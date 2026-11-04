@@ -23,6 +23,7 @@ import { SandboxExamplesModule } from './sandbox/sandbox-examples.module';
 import { SchedulingExamplesModule } from './scheduling/scheduling-examples.module';
 import { SecretsExamplesModule } from './secrets/secrets-examples.module';
 import { TestingExamplesModule } from './testing/testing-examples.module';
+import { WebSearchExamplesModule } from './web-search/web-search-examples.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { TestingExamplesModule } from './testing/testing-examples.module';
     SchedulingExamplesModule,
     TestingExamplesModule,
     IntegrationExamplesModule,
+    WebSearchExamplesModule,
   ],
 })
 export class AppModule {}

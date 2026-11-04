@@ -1,7 +1,7 @@
 # Loopstack Examples
 
 Every Loopstack example in one runnable app. Each theme is a NestJS module under `src/`, registered
-as its own `@StudioApp`, so starting this app once gives you all 69 example workflows side by side in
+as its own `@StudioApp`, so starting this app once gives you all 73 example workflows side by side in
 Studio.
 
 Read a module's README to understand a pattern, run its workflow to watch it work, then copy the
@@ -24,23 +24,25 @@ sandbox or OAuth app run as they are; the rest say in their README what they nee
 
 | Module                                                            | Directory                  | Workflows |
 | ----------------------------------------------------------------- | -------------------------- | --------- |
-| [Advanced Workflows Examples](src/advanced-workflows/README.md)   | `src/advanced-workflows/`  | 17        |
-| [Agent Examples](src/agent/README.md)                             | `src/agent/`               | 4         |
+| [Advanced Workflows Examples](src/advanced-workflows/README.md)   | `src/advanced-workflows/`  | 14        |
+| [Agent Examples](src/agent/README.md)                             | `src/agent/`               | 7         |
 | [Documents Examples](src/documents/README.md)                     | `src/documents/`           | 3         |
 | [Error Handling Examples](src/error-handling/README.md)           | `src/error-handling/`      | 8         |
 | [Git Examples](src/git/README.md)                                 | `src/git/`                 | 2         |
 | [GitHub Examples](src/github/README.md)                           | `src/github/`              | 2         |
 | [Google Workspace Examples](src/google-workspace/README.md)       | `src/google-workspace/`    | 2         |
-| [HITL Examples](src/hitl/README.md)                               | `src/hitl/`                | 9         |
+| [HITL Examples](src/hitl/README.md)                               | `src/hitl/`                | 10        |
 | [Integration Examples (placeholder)](src/integrations/README.md)  | `src/integrations/`        | 0         |
-| [LLM Examples](src/llm/README.md)                                 | `src/llm/`                 | 4         |
+| [LLM Examples](src/llm/README.md)                                 | `src/llm/`                 | 6         |
 | [Local File Explorer Examples](src/local-file-explorer/README.md) | `src/local-file-explorer/` | 1         |
+| [MCP Examples](src/mcp/README.md)                                 | `src/mcp/`                 | 1         |
 | [Observability Examples](src/observability/README.md)             | `src/observability/`       | 5         |
 | [Remote Client Examples](src/remote-client/README.md)             | `src/remote-client/`       | 2         |
 | [Sandbox Examples](src/sandbox/README.md)                         | `src/sandbox/`             | 1         |
-| [Scheduling Examples](src/scheduling/README.md)                   | `src/scheduling/`          | 7         |
+| [Scheduling Examples](src/scheduling/README.md)                   | `src/scheduling/`          | 4         |
 | [Secrets Examples](src/secrets/README.md)                         | `src/secrets/`             | 2         |
 | [Testing Examples](src/testing/README.md)                         | `src/testing/`             | 1         |
+| [Web Search Examples](src/web-search/README.md)                   | `src/web-search/`          | 2         |
 
 ## Tests
 

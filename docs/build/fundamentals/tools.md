@@ -345,6 +345,8 @@ src/
 
 - [Custom Tool example](/docs/examples/advanced-workflows#custom-tool) — MathSumTool with injected service, stateful CounterTool, and workflow demonstrating tool usage
 - [Server Tool example](/docs/examples/advanced-workflows#server-tool) — a code-execution `ServerTool` listed in an `llm_generate_text` call, with the code and its output read from the reply blocks
+- [Native Search example](/docs/examples/web-search#native-search) — `claude_native_web_search` listed in an `llm_generate_text` call, with the queries and sources read from the reply blocks
+- [Search Step example](/docs/examples/web-search#search-step) — `claude_web_search_step` called from workflow code, with the hits rendered as links
 - [Custom Agent example](/docs/examples/agent#custom-agent) — `weather_lookup` and `calculator` tools exposed to the LLM for function calling
 
 ---
