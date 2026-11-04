@@ -61,7 +61,7 @@ async runAgent(state: MyState) {
       tools: ['glob', 'grep', 'read'],
       userMessage: 'Find all API endpoints.',
     },
-    { callback: { transition: 'agentDone' } },
+    { onSuccess: { transition: 'agentDone' } },
   );
 }`;
 
@@ -70,7 +70,7 @@ async delegate(state, ctx) {
   await this.researchWorkflow.run(
     { topic: ctx.args.topic },
     {
-      callback: { transition: 'onComplete' },
+      onSuccess: { transition: 'onComplete' },
       show: 'inline',
     },
   );

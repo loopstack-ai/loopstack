@@ -56,7 +56,7 @@ export class MyWorkflow extends BaseWorkflow {
   async start(state: Record<string, unknown>) {
     await this.askUser.run(
       { question: 'What is your name?' },
-      { callback: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },
+      { onSuccess: { transition: 'answerReceived' }, show: 'inline', label: 'Waiting for answer...' },
     );
   }
 
@@ -115,9 +115,9 @@ The `show_question` state uses guard-based routing to save the correct document 
 
 **Immediate return from `.run()`:** `QueueResult` — `{ workflowId: string }`. `.run()` schedules the child and returns synchronously; it does **not** wait for the user. Use `workflowId` to embed the child in the parent's UI via `LinkDocument` (or pass `show: 'inline'` on `.run()` to do this automatically).
 
-**Callback `input.data`:** `{ answer: string }` — delivered as the `data` field of a `TransitionInput<{ answer: string }>` to the wait transition named in `options.callback.transition`. The `schema:` on the wait transition validates `input.data` only; the surrounding envelope (`workflowId`, `status`, `hasError`, `errorMessage`) is added by the framework.
+**Callback `input.data`:** `{ answer: string }` — delivered as the `data` field of a `TransitionInput<{ answer: string }>` to the wait transition named in `onSuccess`. The `schema:` on the wait transition validates `input.data` only; the surrounding envelope (`workflowId`, `meta`) is added by the framework. A failed or canceled workflow goes to the transition named in `onFailure` as a `FailureInput` (`workflowId`, `status`, `errorMessage`, `meta`); without `onFailure`, the parent parks as failed at the place it waits at.
 
-For the full sub-workflow callback pattern — typing `data` via the wait transition schema, branching on `input.hasError` / `input.status`, and embedding the child UI with `show: 'inline'` — see [the sub-workflow example](/docs/examples/advanced-workflows#sub-workflow).
+For the full sub-workflow callback pattern — typing `data` via the wait transition schema, handling a failed child with `onFailure`, and embedding the child UI with `show: 'inline'` — see [the sub-workflow example](/docs/examples/advanced-workflows#sub-workflow).
 
 #### Multiple-choice and confirmation modes
 
@@ -130,7 +130,7 @@ await this.askUser.run(
     options: ['staging', 'production'],
     allowCustomAnswer: false,
   },
-  { callback: { transition: 'envSelected' } },
+  { onSuccess: { transition: 'envSelected' } },
 );
 
 // Yes/No confirmation
@@ -139,7 +139,7 @@ await this.askUser.run(
     question: 'Proceed with deletion?',
     mode: 'confirm',
   },
-  { callback: { transition: 'confirmed' } },
+  { onSuccess: { transition: 'confirmed' } },
 );
 ```
 
@@ -162,7 +162,7 @@ import { ConfirmUserWorkflow } from '@loopstack/hitl';
 
 const result = await this.confirmUser.run(
   { markdown: '## About to commit\n\n- 3 files changed' },
-  { callback: { transition: 'decisionReceived' } },
+  { onSuccess: { transition: 'decisionReceived' } },
 );
 ```
 

@@ -94,9 +94,9 @@ A scripted (non-agent) GitHub workflow that walks every major GitHub read tool: 
 This is the reference for the sign-in flow of a scripted workflow. The [Google Calendar Summary](/docs/examples/google-workspace#google-calendar-summary) example uses the same flow. It has four parts:
 
 1. **Catch the error.** A tool with no valid token throws an error whose message contains "authenticate" ("Please authenticate first." / "Please re-authenticate."). `fetchUser` catches it and sets `requiresAuthentication` in the state. It rethrows any other error.
-2. **Start the sign-in.** `authRequired` has `priority: 10` and the `needsAuth` guard, so it runs before the normal next step when the state asks for sign-in. It calls `OAuthWorkflow.run()` with the provider, the scopes and `callback: { transition: 'authCompleted' }`, and shows the sub-workflow inline.
-3. **Retry.** `authCompleted` is a `wait: true` transition back to `start`. The sub-workflow's callback fires it, and the run fetches again with the new token.
-4. **Stop on a failed sign-in.** `authCompleted` sets `errorPlace: 'auth_failed'`. A failed or canceled sub-workflow ends the run at `auth_failed` instead of starting the sign-in again. From there `retryAuth`, also `wait: true`, goes back to `start` once the OAuth app is configured.
+2. **Start the sign-in.** `authRequired` has `priority: 10` and the `needsAuth` guard, so it runs before the normal next step when the state asks for sign-in. It calls `OAuthWorkflow.run()` with the provider, the scopes, `onSuccess: { transition: 'authCompleted' }` and `onFailure: { transition: 'authFailed' }`, and shows the sub-workflow inline.
+3. **Retry.** `authCompleted` is a `wait: true` transition back to `start`. A completed sub-workflow calls it, and the run fetches again with the new token.
+4. **Stop on a failed sign-in.** A failed or canceled sub-workflow calls `authFailed`, a `wait: true` transition to `auth_failed` that saves the reason as an `ErrorDocument`. The run waits there instead of starting the sign-in again. From there `retryAuth`, also `wait: true`, goes back to `start` once the OAuth app is configured.
 
 ### Files
 

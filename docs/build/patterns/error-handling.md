@@ -1,17 +1,17 @@
 ---
 title: Error Handling, Retry & Timeout
-description: Recovering from transition errors with auto-retry and exponential backoff, retryTarget for retry-via-another-place, errorPlace routing for sync throws and sub-workflow failure callbacks, manual retry via Studio UI, and transition timeouts.
+description: Recovering from transition errors with auto-retry and exponential backoff, retryTarget for retry-via-another-place, errorPlace routing for a throwing transition, manual retry via Studio UI, transition timeouts, and the onFailure transition for a failed sub-workflow.
 ---
 
 # Error Handling, Retry & Timeout
 
-When a transition fails — by throwing, timing out, or receiving a `failed` / `canceled` callback from a sub-workflow — the framework rolls back local changes and then runs a single decision tree:
+When a transition fails — by throwing or timing out — the framework rolls back local changes and then runs a single decision tree:
 
 1. **Auto-retry** if `retryAttempts` has budget left.
 2. **Route to `errorPlace`** if declared (retries exhausted, or no retries configured).
 3. **Manual retry (default)** — stay at the current place and surface a Retry button in the UI.
 
-The same rule applies to sync throws, timeouts, and sub-workflow failure callbacks — there's one mental model.
+A sub-workflow that fails is a different cause: the parent handles it in the transition named by `onFailure` (see [Sub-Workflow Failures](#sub-workflow-failures)).
 
 ## Retry Modes
 
@@ -135,23 +135,34 @@ async retryDeploy() {
 
 Retries twice automatically. If both fail, transitions to `deploy_failed` for manual intervention.
 
-## Sub-Workflow Failure Callbacks
+## Sub-Workflow Failures
 
-A wait transition that resumes from a sub-workflow callback can fail just like a synchronous transition — when the child finishes with `status: failed` or `canceled`. The same `retryAttempts` / `retryTarget` / `errorPlace` rules apply:
+A child that finishes with `status: 'failed'` or `'canceled'` does not make the parent's wait transition throw. The parent names one transition per outcome on `run()`, and the failed child calls the `onFailure` transition with a `FailureInput` (`workflowId`, `status`, `errorMessage`, `meta`):
 
 ```typescript
-@Transition({ from: 'awaiting_child', to: 'done', wait: true, errorPlace: 'sub_failed' })
-async childCompleted(_state, _input) {
-  // Happy path only — the child succeeded.
+@Transition({ to: 'awaiting_child' })
+async launch() {
+  await this.child.run(
+    {},
+    {
+      onSuccess: { transition: 'childCompleted' },
+      onFailure: { transition: 'childFailed' },
+    },
+  );
 }
 
-@Transition({ from: 'sub_failed', to: 'done', wait: true })
-async handleSubFailed() {
-  // Recovery when the child failed — surfaces a Recover button.
+@Transition({ from: 'awaiting_child', to: 'done', wait: true })
+childCompleted(_state, _input: TransitionInput) {
+  // The child succeeded.
+}
+
+@Transition({ from: 'awaiting_child', to: 'sub_failed', wait: true })
+async childFailed(_state, input: FailureInput) {
+  // The child failed or was canceled — input.errorMessage says why.
 }
 ```
 
-Without `errorPlace` (or `retryAttempts`), a sub-workflow failure callback still fires the body — for accumulator patterns where the body itself handles error results (e.g. LLM tool delegation). With either declared, the framework treats the failure as the wait transition failing and skips the body entirely. That protects schema-validated bodies from receiving `null` / malformed data when the child never reached `setResult(...)`.
+Without `onFailure`, the parent is parked as failed at the place it waits at, with the child's error message. The child keeps its Retry, and a retried child that then succeeds calls `onSuccess`. `errorPlace` and `retryAttempts` on these transitions apply only when their own body throws. See [Sub-Workflows](/docs/build/patterns/sub-workflows#error-handling) for the full pattern.
 
 ## Failure-Handling Configuration
 

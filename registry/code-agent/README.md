@@ -75,7 +75,7 @@ export class MyWorkflow extends BaseWorkflow {
         tools: ['glob', 'grep', 'read'],
         userMessage: 'Find the entry-point module and list its top-level providers.',
       },
-      { callback: { transition: 'onExploreComplete' }, show: 'inline', label: 'Exploring codebase...' },
+      { onSuccess: { transition: 'onExploreComplete' }, show: 'inline', label: 'Exploring codebase...' },
     );
   }
 
@@ -103,7 +103,7 @@ export class MyModule {}
 ```
 start ──► exploring (wait) ──► end
              │                   ▲
-             └── callback ───────┘
+             └── onSuccess ──────┘
 ```
 
 1. The parent workflow calls `agentWorkflow.run()` with a system prompt, tool list, and user message
@@ -141,28 +141,34 @@ Parent Agent ──► explore_task tool call ──► AgentWorkflow sub-agent
 
 Second argument (options):
 
-| Arg                   | Type     | Required | Description                                     |
-| --------------------- | -------- | -------- | ----------------------------------------------- |
-| `callback.transition` | `string` | No       | Transition name to call when the agent finishes |
+| Option                 | Type                             | Required | Description                                                                        |
+| ---------------------- | -------------------------------- | -------- | ---------------------------------------------------------------------------------- |
+| `onSuccess.transition` | `string`                         | No       | Wait transition that receives the agent's result when it completes                 |
+| `onFailure.transition` | `string`                         | No       | Wait transition that receives a `FailureInput` when the agent fails or is canceled |
+| `metadata`             | `Record<string, unknown>`        | No       | Carried into both callbacks as `input.meta`                                        |
+| `show`                 | `'inline' \| 'link' \| 'hidden'` | No       | How the agent appears in the parent's view (default: `'inline'`)                   |
+| `label`                | `string`                         | No       | Label of the agent in the parent's view (defaults to the workflow's name)          |
+
+Without `onFailure`, a failed or canceled agent parks the parent as failed at the place it waits at, with the agent's error message.
 
 **Returns:** `QueueResult` with `{ workflowId: string }`
 
 ### Callback Envelope
 
-The parent's wait transition receives a `TransitionInput<TData>`. Pass only the `data` shape as the schema — the framework wraps it:
+The `onSuccess` transition receives a `TransitionInput<TData>`. Pass only the `data` shape as the schema — the framework wraps it:
 
 ```ts
 const ExploreResponseSchema = z.object({ response: z.string() });
 // Receiver: input: TransitionInput<{ response: string }>
 ```
 
-| Field                 | Type             | Description                                               |
-| --------------------- | ---------------- | --------------------------------------------------------- |
-| `input.workflowId`    | `string`         | ID of the completed sub-workflow                          |
-| `input.status`        | enum             | `'completed'` / `'failed'` / `'canceled'`                 |
-| `input.hasError`      | `boolean`        | Whether the sub-agent terminated in failure               |
-| `input.errorMessage`  | `string \| null` | Error description when `hasError`                         |
-| `input.data.response` | `string`         | The agent's synthesized text answer (validated by schema) |
+| Field                 | Type      | Description                                               |
+| --------------------- | --------- | --------------------------------------------------------- |
+| `input.workflowId`    | `string`  | ID of the completed sub-workflow                          |
+| `input.data.response` | `string`  | The agent's synthesized text answer (validated by schema) |
+| `input.meta`          | `unknown` | The `metadata` passed to `run()`, if any                  |
+
+The `onFailure` transition receives a `FailureInput` instead: `workflowId`, `status` (`'failed'` or `'canceled'`), `errorMessage` and `meta`, with no `data`.
 
 ## Tools Reference
 

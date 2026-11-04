@@ -67,7 +67,7 @@ export class MyWorkflow extends BaseWorkflow {
         tools: ['search', 'summarize'],
         userMessage: 'Find and summarize the latest news about AI.',
       },
-      { callback: { transition: 'agentDone' }, show: 'inline', label: 'Agent working...' },
+      { onSuccess: { transition: 'agentDone' }, show: 'inline', label: 'Agent working...' },
     );
   }
 
@@ -81,7 +81,7 @@ export class MyWorkflow extends BaseWorkflow {
 }
 ```
 
-The agent loops autonomously until the LLM responds without tool calls, then returns `{ response: string }` via the callback.
+The agent loops autonomously until the LLM responds without tool calls, then delivers `{ response: string }` to the transition named in `onSuccess`.
 
 ## How It Works
 
@@ -151,7 +151,7 @@ export class MyChatWorkflow extends BaseWorkflow {
 }
 ```
 
-Note that `ChatAgentWorkflow.run()` does not need a callback — the chat agent stays running until the user is done (or until `agent_finish` is called in task mode).
+Note that `ChatAgentWorkflow.run()` does not need an `onSuccess` transition — the chat agent stays running until the user is done (or until `agent_finish` is called in task mode).
 
 ### Tool Resolution
 

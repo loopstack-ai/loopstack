@@ -50,7 +50,6 @@ const SubWorkflowMessageSchema = z.object({ message: z.string() });
 })
 onSubComplete(state: MyState, input: TransitionInput<{ message: string }>) {
   // input.workflowId — the sub-workflow's ID
-  // input.status — 'completed' | 'failed' | 'canceled'
   // a child that failed goes to the transition named by onFailure instead
   // input.data — the sub-workflow's published result (validated against schema)
   const message = input.data.message;

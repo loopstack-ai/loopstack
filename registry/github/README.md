@@ -106,7 +106,7 @@ export class GitHubAssistantWorkflow extends BaseWorkflow {
         ],
         userMessage: 'List my five most recently updated repositories.',
       },
-      { callback: { transition: 'agentDone' }, show: 'inline', label: 'Working...' },
+      { onSuccess: { transition: 'agentDone' }, show: 'inline', label: 'Working...' },
     );
   }
 }
@@ -155,7 +155,7 @@ export class MyGitHubWorkflow extends BaseWorkflow {
   async startAuth(state: State) {
     await this.oAuthWorkflow.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
+      { onSuccess: { transition: 'authCompleted' }, show: 'inline', label: 'GitHub authentication required' },
     );
   }
 

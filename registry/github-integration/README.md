@@ -61,7 +61,7 @@ export class SetupProjectWorkflow extends BaseWorkflow {
   async start(state: Record<string, never>) {
     await this.connectGitHub.run(
       {},
-      { callback: { transition: 'onGitHubConnected' }, show: 'inline', label: 'Connect to GitHub' },
+      { onSuccess: { transition: 'onGitHubConnected' }, show: 'inline', label: 'Connect to GitHub' },
     );
   }
 

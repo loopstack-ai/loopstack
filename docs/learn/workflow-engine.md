@@ -174,7 +174,7 @@ async callExternalApi(...) { ... }
 
 Without `errorPlace`, the workflow stays at the current place with `hasError: true`. The Studio toolbar shows a **Retry** button that re-triggers the failed transition immediately.
 
-The same routing applies to **wait transitions that resume from a failed sub-workflow callback** (`status: 'failed' | 'canceled'`). If the wait transition declares `errorPlace` or `retryAttempts > 0`, the framework treats the failed callback as a transition failure and routes accordingly — the happy-path body never sees the bad data. Without either, the body is invoked with the raw callback so accumulator patterns (e.g. LLM tool delegation) can handle errors inline.
+A **failed sub-workflow** (`status: 'failed' | 'canceled'`) is not routed this way. The parent handles it in the wait transition named by `onFailure` on `run()`; without `onFailure`, the parent is parked as failed at the place it waits at, with the child's error message.
 
 ---
 

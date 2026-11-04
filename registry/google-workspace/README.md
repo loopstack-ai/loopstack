@@ -80,7 +80,7 @@ export class GoogleAssistantWorkflow extends BaseWorkflow {
         ],
         userMessage: 'Summarize my calendar events for today.',
       },
-      { callback: { transition: 'agentDone' }, show: 'inline', label: 'Working...' },
+      { onSuccess: { transition: 'agentDone' }, show: 'inline', label: 'Working...' },
     );
   }
 }
@@ -108,7 +108,7 @@ Tools check for a valid OAuth token via `OAuthTokenStore`. When no token exists 
 ```typescript
 const result = await this.oAuth.run(
   { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-  { callback: { transition: 'authCompleted' } },
+  { onSuccess: { transition: 'authCompleted' } },
 );
 ```
 

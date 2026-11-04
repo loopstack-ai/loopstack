@@ -71,7 +71,7 @@ export class CalendarWorkflow extends BaseWorkflow<CalendarArgs> {
   async authRequired(state: CalendarState) {
     await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-      { callback: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
+      { onSuccess: { transition: 'authCompleted' }, show: 'inline', label: 'Google authentication required' },
     );
   }
 
@@ -202,9 +202,13 @@ export class MyApiFetchTool extends BaseTool {
 
 **Run options:**
 
-| Option     | Type     | Description                                                                              |
-| ---------- | -------- | ---------------------------------------------------------------------------------------- |
-| `callback` | `object` | `{ transition: string }` — transition to call on the parent workflow when auth completes |
+| Option      | Type                      | Description                                                                                         |
+| ----------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
+| `onSuccess` | `object`                  | `{ transition: string }` — transition to call on the parent workflow when auth completes            |
+| `onFailure` | `object`                  | `{ transition: string }` — transition that receives a `FailureInput` when auth fails or is canceled |
+| `metadata`  | `Record<string, unknown>` | Carried into both callbacks as `input.meta`                                                         |
+
+Without `onFailure`, a failed or canceled sign-in parks the parent as failed at the place it waits at. `show`, `label` and `workspaceId` work as for any sub-workflow — see [Sub-Workflows](https://loopstack.ai/docs/build/patterns/sub-workflows).
 
 **Returns:** `{ authenticated: boolean }`
 

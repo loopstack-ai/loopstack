@@ -201,7 +201,7 @@ What is deliberately not supported: replaying the pending envelope itself and fa
 Error paths are behavior worth asserting, and every failure mode has a scripting mechanism:
 
 - **A tool fails** — script a replay entry whose envelope carries an error: `{ tool: 'fetch_data', envelope: { error: 'upstream 503' } }`. The call throws, and the transition's error handling (retry, `errorPlace`, or manual-retry default) runs for real.
-- **A sub-workflow fails or is canceled** — script `failure()` as the answer: `answers: { onProvisioned: failure('Provisioning crashed') }` delivers a `status: 'failed'` callback (pass `'canceled'` as the second argument for cancellation) instead of answer data. A wait transition with `errorPlace`/`retryAttempts` routes accordingly; one without them runs its body with `input.status === 'failed'` for inline handling. Composes with `queue()`: `queue(answer, failure('then the child dies'))`.
+- **A sub-workflow fails or is canceled** — script `failure()` as the answer for the parent's `onFailure` transition: `answers: { provisioningFailed: failure('Provisioning crashed') }` runs its body with a `FailureInput` of `status: 'failed'` (pass `'canceled'` as the second argument for cancellation). For a parent that names no `onFailure`, script `unhandledFailure()` for its `onSuccess` transition instead: the run parks as failed at the place it waits at, and no body runs. `failure()` composes with `queue()`: `queue(answer, failure('then the child dies'))`.
 - **The user declines** — that is not a failure but an ordinary answer with negative content (`{ confirmed: false }`); script it like any other answer.
 
 ## Live-LLM regression tests
