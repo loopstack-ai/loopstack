@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AgentModule } from '@loopstack/agent';
 import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { GoogleWorkspaceModule } from '@loopstack/google-workspace';
@@ -13,7 +14,7 @@ const WORKFLOWS = [GoogleCalendarSummaryExampleWorkflow, GoogleWorkspaceAgentExa
   workflows: WORKFLOWS,
 })
 @Module({
-  imports: [ClaudeModule, GoogleWorkspaceModule],
+  imports: [AgentModule, ClaudeModule, GoogleWorkspaceModule],
   providers: [AuthenticateGoogleTask, ...WORKFLOWS],
   exports: [AuthenticateGoogleTask, ...WORKFLOWS],
 })

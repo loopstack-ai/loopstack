@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AgentModule } from '@loopstack/agent';
 import { ClaudeModule } from '@loopstack/claude';
 import { StudioApp } from '@loopstack/common';
 import { GitHubModule } from '@loopstack/github';
@@ -13,7 +14,7 @@ const WORKFLOWS = [GithubOverviewExampleWorkflow, GithubAgentExampleWorkflow];
   workflows: WORKFLOWS,
 })
 @Module({
-  imports: [ClaudeModule, GitHubModule],
+  imports: [AgentModule, ClaudeModule, GitHubModule],
   providers: [AuthenticateGitHubTask, ...WORKFLOWS],
   exports: [AuthenticateGitHubTask, ...WORKFLOWS],
 })

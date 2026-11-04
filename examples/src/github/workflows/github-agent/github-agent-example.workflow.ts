@@ -1,51 +1,10 @@
 import { join } from 'node:path';
 import { z } from 'zod';
-import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { TransitionInput } from '@loopstack/common';
-import {
-  GitHubCreateIssueCommentTool,
-  GitHubCreateIssueTool,
-  GitHubCreateOrUpdateFileTool,
-  GitHubCreatePullRequestTool,
-  GitHubCreateRepoTool,
-  GitHubGetAuthenticatedUserTool,
-  GitHubGetCommitTool,
-  GitHubGetFileContentTool,
-  GitHubGetIssueTool,
-  GitHubGetPullRequestTool,
-  GitHubGetRepoTool,
-  GitHubGetWorkflowRunTool,
-  GitHubListBranchesTool,
-  GitHubListDirectoryTool,
-  GitHubListIssuesTool,
-  GitHubListPrReviewsTool,
-  GitHubListPullRequestsTool,
-  GitHubListReposTool,
-  GitHubListUserOrgsTool,
-  GitHubListWorkflowRunsTool,
-  GitHubMergePullRequestTool,
-  GitHubSearchCodeTool,
-  GitHubSearchIssuesTool,
-  GitHubSearchReposTool,
-  GitHubTriggerWorkflowTool,
-} from '@loopstack/github';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
-import {
-  LlmContextDocument,
-  LlmDelegateToolCallsTool,
-  LlmGenerateTextTool,
-  LlmMessageDocument,
-  LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider';
-import { OAuthWorkflow } from '@loopstack/oauth';
-import { AuthenticateGitHubTask } from '../../shared/github/authenticate-github-task.tool';
+import { ChatAgentWorkflow } from '@loopstack/agent';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
-interface GitHubAgentState {
-  llmResult?: LlmGenerateTextResult;
-  delegateResult?: LlmDelegateResult;
-}
-
-/** The tools offered to the LLM — and the only ones its tool calls may execute. */
+/** The tools the agent is offered, by their `@Tool({ name })` — `authenticate_github` launches the sign-in. */
 const TOOLS = [
   'github_list_repos',
   'github_get_repo',
@@ -75,123 +34,38 @@ const TOOLS = [
   'authenticate_github',
 ];
 
+const GithubAgentExampleArgsSchema = z.object({
+  initialMessage: z
+    .string()
+    .optional()
+    .default('Show my GitHub profile and list my five most recently updated repositories.')
+    .describe('Initial message shown to the agent.'),
+});
+
+type GithubAgentExampleArgs = z.infer<typeof GithubAgentExampleArgsSchema>;
+
 @Workflow({
   title: 'GitHub - Agent Example',
   description:
-    'An interactive chat agent with access to GitHub. Manages repositories, issues, pull requests, code, CI/CD, and search. Handles OAuth authentication automatically — the agent detects unauthorized errors and launches authentication on its own.',
+    'Chat agent with 25 GitHub tools for repositories, issues, pull requests, code, actions, and search. When a tool returns unauthorized, the agent calls authenticate_github to let the user sign in, then retries.',
   name: 'github_agent_example',
-  widget: './github-agent-example.ui.yaml',
+  schema: GithubAgentExampleArgsSchema,
 })
-export class GithubAgentExampleWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
-    private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
-    private readonly authenticateGitHub: AuthenticateGitHubTask,
-    // GitHub Repos tools
-    private readonly gitHubListRepos: GitHubListReposTool,
-    private readonly gitHubGetRepo: GitHubGetRepoTool,
-    private readonly gitHubCreateRepo: GitHubCreateRepoTool,
-    private readonly gitHubListBranches: GitHubListBranchesTool,
-    // GitHub Issues tools
-    private readonly gitHubListIssues: GitHubListIssuesTool,
-    private readonly gitHubGetIssue: GitHubGetIssueTool,
-    private readonly gitHubCreateIssue: GitHubCreateIssueTool,
-    private readonly gitHubCreateIssueComment: GitHubCreateIssueCommentTool,
-    // GitHub Pull Requests tools
-    private readonly gitHubListPullRequests: GitHubListPullRequestsTool,
-    private readonly gitHubGetPullRequest: GitHubGetPullRequestTool,
-    private readonly gitHubCreatePullRequest: GitHubCreatePullRequestTool,
-    private readonly gitHubMergePullRequest: GitHubMergePullRequestTool,
-    private readonly gitHubListPrReviews: GitHubListPrReviewsTool,
-    // GitHub Content / Git Ops tools
-    private readonly gitHubGetFileContent: GitHubGetFileContentTool,
-    private readonly gitHubCreateOrUpdateFile: GitHubCreateOrUpdateFileTool,
-    private readonly gitHubListDirectory: GitHubListDirectoryTool,
-    private readonly gitHubGetCommit: GitHubGetCommitTool,
-    // GitHub Actions tools
-    private readonly gitHubListWorkflowRuns: GitHubListWorkflowRunsTool,
-    private readonly gitHubTriggerWorkflow: GitHubTriggerWorkflowTool,
-    private readonly gitHubGetWorkflowRun: GitHubGetWorkflowRunTool,
-    // GitHub Search tools
-    private readonly gitHubSearchCode: GitHubSearchCodeTool,
-    private readonly gitHubSearchRepos: GitHubSearchReposTool,
-    private readonly gitHubSearchIssues: GitHubSearchIssuesTool,
-    // GitHub Users & Orgs tools
-    private readonly gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
-    private readonly gitHubListUserOrgs: GitHubListUserOrgsTool,
-    private readonly oAuth: OAuthWorkflow,
-  ) {
+export class GithubAgentExampleWorkflow extends BaseWorkflow<GithubAgentExampleArgs> {
+  constructor(private readonly chatAgentWorkflow: ChatAgentWorkflow) {
     super();
   }
 
-  @Transition({ to: 'waiting_for_user' })
-  async setup() {
-    await this.documentStore.save(LlmContextDocument, {
-      role: 'user',
-      text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
-    });
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'assistant',
-      text: this.render(join(__dirname, 'templates', 'welcomeMessage.md')),
-    });
-  }
-
-  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(_state: GitHubAgentState, input: TransitionInput<string>) {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
-  }
-
-  @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn() {
-    const result = await this.llmGenerateText.call(
-      {},
+  // Without `taskMode` the chat agent never ends on its own, so the parent names no `onSuccess` transition.
+  @Transition({ to: 'chatting' })
+  async startChat(_state: Record<string, unknown>, ctx: RunContext<GithubAgentExampleArgs>) {
+    await this.chatAgentWorkflow.run(
       {
-        config: {
-          provider: 'claude',
-          model: 'claude-sonnet-4-6',
-          system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
-and search tools. When a tool returns an unauthorized error, use authenticateGitHub
-to let the user sign in, then retry. Be concise and format results using markdown.`,
-          tools: TOOLS,
-        },
+        system: this.render(join(__dirname, 'templates', 'system.md')),
+        tools: TOOLS,
+        userMessage: ctx.args.initialMessage,
       },
+      { show: 'inline', label: 'GitHub Agent Chat' },
     );
-    this.assignState({ llmResult: result.data });
   }
-
-  @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
-  @Guard('hasToolCalls')
-  async executeToolCalls(state: GitHubAgentState) {
-    const result = await this.llmDelegateToolCalls.call({
-      message: state.llmResult!.message,
-      tools: TOOLS,
-      callback: { transition: 'toolResultReceived' },
-    });
-    this.assignState({ delegateResult: result.data });
-  }
-
-  hasToolCalls(state: GitHubAgentState): boolean {
-    return state.llmResult?.message.stopReason === 'tool_use';
-  }
-
-  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(state: GitHubAgentState, input: TransitionInput<Record<string, unknown>>) {
-    const result = await this.llmUpdateToolResult.call({
-      delegateResult: state.delegateResult!,
-      completedTool: input,
-    });
-    this.assignState({ delegateResult: result.data });
-  }
-
-  @Transition({ from: 'awaiting_tools', to: 'ready' })
-  @Guard('allToolsComplete')
-  allToolsCompleteTransition() {}
-
-  allToolsComplete(state: GitHubAgentState): boolean {
-    return state.delegateResult?.allCompleted ?? false;
-  }
-
-  @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  respond() {}
 }

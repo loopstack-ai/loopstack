@@ -1,37 +1,10 @@
 import { join } from 'node:path';
 import { z } from 'zod';
-import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
-import type { TransitionInput } from '@loopstack/common';
-import {
-  GmailGetMessageTool,
-  GmailReplyToMessageTool,
-  GmailSearchMessagesTool,
-  GmailSendMessageTool,
-  GoogleCalendarCreateEventTool,
-  GoogleCalendarFetchEventsTool,
-  GoogleCalendarListCalendarsTool,
-  GoogleDriveDownloadFileTool,
-  GoogleDriveGetFileMetadataTool,
-  GoogleDriveListFilesTool,
-  GoogleDriveUploadFileTool,
-} from '@loopstack/google-workspace';
-import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider';
-import {
-  LlmContextDocument,
-  LlmDelegateToolCallsTool,
-  LlmGenerateTextTool,
-  LlmMessageDocument,
-  LlmUpdateToolResultTool,
-} from '@loopstack/llm-provider';
-import { OAuthWorkflow } from '@loopstack/oauth';
-import { AuthenticateGoogleTask } from '../../shared/google/authenticate-google-task.tool';
+import { ChatAgentWorkflow } from '@loopstack/agent';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { RunContext } from '@loopstack/common';
 
-interface GoogleWorkspaceAgentState {
-  llmResult?: LlmGenerateTextResult;
-  delegateResult?: LlmDelegateResult;
-}
-
-/** The tools offered to the LLM — and the only ones its tool calls may execute. */
+/** The tools the agent is offered, by their `@Tool({ name })` — `authenticate_google` launches the sign-in. */
 const TOOLS = [
   'google_calendar_list_calendars',
   'google_calendar_fetch_events',
@@ -47,105 +20,38 @@ const TOOLS = [
   'authenticate_google',
 ];
 
+const GoogleWorkspaceAgentExampleArgsSchema = z.object({
+  initialMessage: z
+    .string()
+    .optional()
+    .default('List my calendars, then summarize the events in my primary calendar for the next seven days.')
+    .describe('Initial message shown to the agent.'),
+});
+
+type GoogleWorkspaceAgentExampleArgs = z.infer<typeof GoogleWorkspaceAgentExampleArgsSchema>;
+
 @Workflow({
   title: 'Google Workspace - Agent Example',
   description:
-    'An interactive chat agent with access to Google Calendar, Gmail, and Google Drive. Handles OAuth automatically — the agent detects unauthorized errors and launches authentication on its own.',
+    'Chat agent with 11 Google Calendar, Gmail, and Google Drive tools. When a tool returns unauthorized, the agent calls authenticate_google to let the user sign in, then retries.',
   name: 'google_workspace_agent_example',
-  widget: './google-workspace-agent-example.ui.yaml',
+  schema: GoogleWorkspaceAgentExampleArgsSchema,
 })
-export class GoogleWorkspaceAgentExampleWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
-    private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
-    private readonly authenticateGoogle: AuthenticateGoogleTask,
-    // Google Calendar tools
-    private readonly googleCalendarListCalendars: GoogleCalendarListCalendarsTool,
-    private readonly googleCalendarFetchEvents: GoogleCalendarFetchEventsTool,
-    private readonly googleCalendarCreateEvent: GoogleCalendarCreateEventTool,
-    // Gmail tools
-    private readonly gmailSearchMessages: GmailSearchMessagesTool,
-    private readonly gmailGetMessage: GmailGetMessageTool,
-    private readonly gmailSendMessage: GmailSendMessageTool,
-    private readonly gmailReplyToMessage: GmailReplyToMessageTool,
-    // Google Drive tools
-    private readonly googleDriveListFiles: GoogleDriveListFilesTool,
-    private readonly googleDriveGetFileMetadata: GoogleDriveGetFileMetadataTool,
-    private readonly googleDriveDownloadFile: GoogleDriveDownloadFileTool,
-    private readonly googleDriveUploadFile: GoogleDriveUploadFileTool,
-    private readonly oAuth: OAuthWorkflow,
-  ) {
+export class GoogleWorkspaceAgentExampleWorkflow extends BaseWorkflow<GoogleWorkspaceAgentExampleArgs> {
+  constructor(private readonly chatAgentWorkflow: ChatAgentWorkflow) {
     super();
   }
 
-  @Transition({ to: 'waiting_for_user' })
-  async setup() {
-    await this.documentStore.save(LlmContextDocument, {
-      role: 'user',
-      text: this.render(join(__dirname, 'templates', 'systemMessage.md')),
-    });
-    await this.documentStore.save(LlmMessageDocument, {
-      role: 'assistant',
-      text: this.render(join(__dirname, 'templates', 'welcomeMessage.md')),
-    });
-  }
-
-  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(_state: GoogleWorkspaceAgentState, input: TransitionInput<string>) {
-    await this.documentStore.save(LlmMessageDocument, { role: 'user', text: input.data });
-  }
-
-  @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn() {
-    const result = await this.llmGenerateText.call(
-      {},
+  // Without `taskMode` the chat agent never ends on its own, so the parent names no `onSuccess` transition.
+  @Transition({ to: 'chatting' })
+  async startChat(_state: Record<string, unknown>, ctx: RunContext<GoogleWorkspaceAgentExampleArgs>) {
+    await this.chatAgentWorkflow.run(
       {
-        config: {
-          provider: 'claude',
-          model: 'claude-sonnet-4-6',
-          system: `You are a helpful Google Workspace assistant with access to Calendar, Gmail, and Drive tools.
-When a tool returns an unauthorized error, use authenticateGoogle to let the user sign in,
-then retry. Be concise and format results using markdown.`,
-          tools: TOOLS,
-        },
+        system: this.render(join(__dirname, 'templates', 'system.md')),
+        tools: TOOLS,
+        userMessage: ctx.args.initialMessage,
       },
+      { show: 'inline', label: 'Google Workspace Agent Chat' },
     );
-    this.assignState({ llmResult: result.data });
   }
-
-  @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
-  @Guard('hasToolCalls')
-  async executeToolCalls(state: GoogleWorkspaceAgentState) {
-    const result = await this.llmDelegateToolCalls.call({
-      message: state.llmResult!.message,
-      tools: TOOLS,
-      callback: { transition: 'toolResultReceived' },
-    });
-    this.assignState({ delegateResult: result.data });
-  }
-
-  hasToolCalls(state: GoogleWorkspaceAgentState): boolean {
-    return state.llmResult?.message.stopReason === 'tool_use';
-  }
-
-  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(state: GoogleWorkspaceAgentState, input: TransitionInput<Record<string, unknown>>) {
-    const result = await this.llmUpdateToolResult.call({
-      delegateResult: state.delegateResult!,
-      completedTool: input,
-    });
-    this.assignState({ delegateResult: result.data });
-  }
-
-  @Transition({ from: 'awaiting_tools', to: 'ready' })
-  @Guard('allToolsComplete')
-  allToolsCompleteTransition() {}
-
-  allToolsComplete(state: GoogleWorkspaceAgentState): boolean {
-    return state.delegateResult?.allCompleted ?? false;
-  }
-
-  @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  respond() {}
 }

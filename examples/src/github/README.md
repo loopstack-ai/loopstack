@@ -1,6 +1,6 @@
 ---
 title: GitHub Examples
-description: GitHub integration workflow examples for Loopstack — a scripted repo overview that walks the GitHub read tools, and an interactive Claude agent with 25 GitHub tools. Both sign in through the OAuth sub-workflow when a tool reports unauthorized.
+description: GitHub integration workflow examples for Loopstack — a scripted repo overview that walks the GitHub read tools, and a chat agent built on ChatAgentWorkflow with 25 GitHub tools. Both sign in through the OAuth sub-workflow when a tool reports unauthorized.
 ---
 
 # GitHub Examples
@@ -10,9 +10,9 @@ description: GitHub integration workflow examples for Loopstack — a scripted r
 Two ways to use the `@loopstack/github` tools:
 
 - A **scripted overview** workflow — single pass, hand-rolled tool sequence
-- An **interactive agent** workflow — Claude with the full GitHub tool set
+- An **interactive agent** workflow — `ChatAgentWorkflow` from `@loopstack/agent` with the GitHub tools
 
-Both share the same sign-in pattern: when a tool returns unauthorized, launch the `OAuthWorkflow` sub-workflow inline, then retry.
+Both share the same sign-in pattern: when a tool returns unauthorized, launch the `OAuthWorkflow` sub-workflow inline, then retry. The overview launches it in its own transitions; the agent calls the `authenticate_github` task tool, which launches it.
 
 For syncing a workspace to a GitHub repository, see the [GitHub Repo Sync](/docs/examples/git#github-repo-sync) example in `git`.
 
@@ -21,7 +21,7 @@ For syncing a workspace to a GitHub repository, see the [GitHub Repo Sync](/docs
 Copy this directory into your app, then install what it imports:
 
 ```bash
-npm install @loopstack/claude @loopstack/common @loopstack/github @loopstack/llm-provider @loopstack/oauth
+npm install @loopstack/agent @loopstack/claude @loopstack/common @loopstack/github @loopstack/oauth
 ```
 
 Register the module:
@@ -39,7 +39,7 @@ export class AppModule {}
 
 ## Required app-module configuration
 
-Both examples use Claude via `@loopstack/llm-provider` — `@Global`, configured once in your root module to set the default model:
+The agent example uses Claude via `@loopstack/llm-provider` — `@Global`, configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -53,7 +53,7 @@ import { GitHubExamplesModule } from './github/github-examples.module';
 export class AppModule {}
 ```
 
-`GitHubExamplesModule` re-imports `ClaudeModule` and `GitHubModule`. `GitHubModule` transitively pulls in the global `OAuthModule` and registers the GitHub OAuth provider — no additional OAuth wiring required in your AppModule.
+`GitHubExamplesModule` re-imports `AgentModule`, `ClaudeModule` and `GitHubModule`. The chat agent takes its provider and model from the `LlmProviderModule` configuration. `GitHubModule` transitively pulls in the global `OAuthModule` and registers the GitHub OAuth provider — no additional OAuth wiring required in your AppModule.
 
 ## Environment
 
@@ -71,17 +71,17 @@ Start a workflow from Studio (app **GitHub Examples**) or with the Loopstack CLI
 
 ```bash
 loopstack run github_overview_example --arg owner=octocat --arg repo=Hello-World
-loopstack run github_agent_example
+loopstack run github_agent_example --arg initialMessage="List my open pull requests."
 ```
 
-On the first run you are asked to sign in to GitHub; after that the overview renders a markdown summary of the repository, and the agent waits for your chat messages.
+On the first run you are asked to sign in to GitHub; after that the overview renders a markdown summary of the repository, and the agent answers the initial message and waits for your next one.
 
 ## Examples
 
 | Example                             | Studio title                | Description                                              |
 | ----------------------------------- | --------------------------- | -------------------------------------------------------- |
 | [GitHub Overview](#github-overview) | `GitHub - Overview Example` | Scripted walk of GitHub read tools with markdown summary |
-| [GitHub Agent](#github-agent)       | `GitHub - Agent Example`    | Interactive Claude agent with 25 GitHub tools            |
+| [GitHub Agent](#github-agent)       | `GitHub - Agent Example`    | Chat agent with 25 GitHub tools                          |
 
 ---
 
@@ -105,13 +105,15 @@ This is the reference for the sign-in flow of a scripted workflow. The [Google C
 
 ## GitHub Agent
 
-An interactive Claude chat agent with 25 GitHub tools wired in: repos, issues, PRs, code, actions, and search. When a tool returns unauthorized, the agent calls `authenticateGitHub` to launch the OAuth sub-workflow and retries.
+A chat agent with 25 GitHub tools: repos, issues, PRs, code, actions, and search. The workflow injects only `ChatAgentWorkflow` and runs it with the system prompt, the tool names, and `initialMessage` as the first user message. The agent resolves each tool by its `@Tool({ name })`, so the workflow does not inject the tools.
+
+When a tool returns `{ error: "unauthorized" }`, the agent calls `authenticate_github` with the scopes it needs. `AuthenticateGitHubTask` (in `shared/github`) runs the `OAuthWorkflow` sub-workflow inline. The tool call stays pending until the sign-in completes, then the agent retries the request.
 
 ### Files
 
-- `github-agent-example.workflow.ts` — workflow class
-- `github-agent-example.ui.yaml` — chat prompt-input widget
-- `templates/systemMessage.md` — system prompt
+- `github-agent-example.workflow.ts` — workflow class with the tool names
+- `templates/system.md` — system prompt
+- `../../shared/github/authenticate-github-task.tool.ts` — the `authenticate_github` task tool
 
 ## About
 
