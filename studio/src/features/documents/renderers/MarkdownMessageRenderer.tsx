@@ -13,7 +13,7 @@ interface MarkdownMessageRendererProps {
 
 const MarkdownMessageRenderer: React.FC<MarkdownMessageRendererProps> = ({ document }) => {
   return (
-    <CompletionMessagePaper>
+    <CompletionMessagePaper document={document} copyText={document.content.markdown}>
       <MarkdownContent content={document.content.markdown} />
     </CompletionMessagePaper>
   );

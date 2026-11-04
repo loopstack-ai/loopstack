@@ -1,6 +1,8 @@
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import type { DocumentItemInterface } from '@loopstack/contracts/api';
 import type { ParkView } from '@loopstack/contracts/park-view';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
+import DocumentBoxActions from '@/components/messages/DocumentBoxActions.tsx';
 import { Button } from '@/components/ui/button.tsx';
 
 /** A picked prompt the run view has no component for — inert, no handoff. */
@@ -54,7 +56,7 @@ export function FailedRunCard({
 }
 
 /** An interactive prompt rendered as inert transcript history (answered or inactive). */
-export function InertPromptEntry({ document }: { document: { content: unknown } }) {
+export function InertPromptEntry({ document }: { document: DocumentItemInterface }) {
   const content = (document.content ?? {}) as { question?: unknown; answer?: unknown; markdown?: unknown };
   const question =
     typeof content.question === 'string'
@@ -64,7 +66,8 @@ export function InertPromptEntry({ document }: { document: { content: unknown } 
         : undefined;
   const answered = content.answer !== undefined;
   return (
-    <div className="rounded-md border p-3 text-sm">
+    <div className="group/document relative rounded-md border p-3 text-sm">
+      <DocumentBoxActions document={document} />
       {question && <MarkdownContent content={question} className="text-sm" />}
       {answered && <p className="text-muted-foreground mt-1">Answered: {formatAnswer(content.answer)}</p>}
     </div>

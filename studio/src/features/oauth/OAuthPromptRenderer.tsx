@@ -75,7 +75,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflo
   // If the backend already marked this as success (e.g. on page reload after completion)
   if (content.status === 'success') {
     return (
-      <CompletionMessagePaper>
+      <CompletionMessagePaper document={document}>
         <StatusDisplay status="success" provider={content.provider} message={content.message} />
       </CompletionMessagePaper>
     );
@@ -83,7 +83,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflo
 
   if (content.status === 'error') {
     return (
-      <CompletionMessagePaper>
+      <CompletionMessagePaper document={document}>
         <StatusDisplay status="error" provider={content.provider} message={content.message} />
         {isActive && <RetryButton onClick={handleRetry} />}
       </CompletionMessagePaper>
@@ -91,7 +91,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflo
   }
 
   return (
-    <CompletionMessagePaper>
+    <CompletionMessagePaper document={document}>
       <PopupResultView
         result={result}
         provider={content.provider}

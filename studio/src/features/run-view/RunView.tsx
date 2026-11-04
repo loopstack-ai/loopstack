@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useRunWorkflow } from '@loopstack/react';
 import { useDocumentConfigs } from '@/hooks/useConfig.ts';
 import { usePendingTransition } from '@/hooks/usePendingTransition.ts';
+import { resolveWidgetName } from '@/lib/document-widget.ts';
 import { Transcript } from './Transcript.tsx';
 import { ControlPrompt } from './prompts/ControlPrompt.tsx';
 import { SandboxRunButton } from './prompts/SandboxRunButton.tsx';
@@ -11,12 +12,6 @@ import { composeTranscript } from './transcript-model.ts';
 import { useRunPrompts } from './useRunPrompts.ts';
 import { useRunTree } from './useRunTree.ts';
 import { useStreamingNodes } from './useTreeLlmStreams.ts';
-
-/** Extract the primary widget name from a document's UI config (no `form` default — honesty over legacy quirk). */
-function resolveWidgetName(ui: unknown): string | undefined {
-  const typed = ui as { widgets?: { widget?: string }[]; form?: { widget?: string } } | undefined;
-  return typed?.widgets?.[0]?.widget ?? typed?.form?.widget;
-}
 
 /**
  * A run rendered the way the CLI follows it — chronological transcript over the whole

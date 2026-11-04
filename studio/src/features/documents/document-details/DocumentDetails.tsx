@@ -1,11 +1,12 @@
-import { AlertCircle, CheckIcon, CopyIcon, Cpu, FileJson, Settings2, Timer, Workflow } from 'lucide-react';
-import React, { useState } from 'react';
+import { AlertCircle, Cpu, FileJson, Settings2, Timer, Workflow } from 'lucide-react';
+import React from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import { CodeBlock } from '@/components/ai-elements/code-block.tsx';
+import { BadgeList, CopyableId, DetailRow, formatDate } from '@/components/messages/detail-parts.tsx';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
-import { Button } from '@/components/ui/button.tsx';
 import { useDocumentConfigs } from '@/hooks/useConfig';
+import { resolveWidgetName } from '@/lib/document-widget.ts';
 import {
   type ApiResponseInfo,
   type ContentSummary,
@@ -31,53 +32,6 @@ export interface DocumentDetailsProps {
   content?: unknown;
   workflowContext?: WorkflowDebugContext;
 }
-
-const formatDate = (date: Date | string): string => {
-  try {
-    return new Date(date).toLocaleString();
-  } catch {
-    return String(date);
-  }
-};
-
-const DetailRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="grid min-w-0 grid-cols-[7.5rem_1fr] gap-x-3 gap-y-0.5 text-sm">
-    <span className="text-muted-foreground font-medium">{label}</span>
-    <span className="min-w-0 wrap-break-word">{children}</span>
-  </div>
-);
-
-const CopyableId = ({ value }: { value: string }) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  return (
-    <span className="flex w-full min-w-0 items-center gap-1.5">
-      <code className="bg-muted min-w-0 flex-1 truncate rounded px-1.5 py-0.5 font-mono text-xs">{value}</code>
-      <Button type="button" variant="ghost" size="icon" className="size-6 shrink-0" onClick={handleCopy}>
-        {copied ? <CheckIcon className="size-3" /> : <CopyIcon className="size-3" />}
-      </Button>
-    </span>
-  );
-};
-
-const BadgeList = ({ items, emptyLabel = 'None' }: { items?: string[] | null; emptyLabel?: string }) => {
-  if (!items?.length) return <span className="text-muted-foreground">{emptyLabel}</span>;
-  return (
-    <span className="flex flex-wrap gap-1">
-      {items.map((item) => (
-        <Badge key={item} variant="outline" className="text-xs">
-          {item}
-        </Badge>
-      ))}
-    </span>
-  );
-};
 
 const ContentSummarySection = ({ summary }: { summary: ContentSummary }) => (
   <div className="space-y-2 pb-1">
@@ -176,7 +130,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
   const docConfig = documentConfigs.get(data.documentName);
   const staticMeta = docConfig?.meta;
   const dynMeta = (data.meta ?? {}) as DynMeta;
-  const widget = docConfig?.ui?.widgets?.[0]?.widget ?? 'form';
+  const widget = resolveWidgetName(docConfig?.ui) ?? 'no widget';
   const contentSummary = summarizeDocumentContent(content);
   const apiInfo = extractApiResponseInfo(dynMeta.response);
   const hasValidationError = !!data.validationError;

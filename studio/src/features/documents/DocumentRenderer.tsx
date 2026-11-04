@@ -6,6 +6,7 @@ import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper
 import { useFeatureRegistry } from '@/features/feature-registry';
 import { OAuthPromptRenderer } from '@/features/oauth';
 import { useDocumentConfigs } from '@/hooks/useConfig';
+import { resolveWidgetName } from '@/lib/document-widget.ts';
 import { lookupTable } from '@/lib/lookup-table.ts';
 import AiMessage from './renderers/AiMessage.tsx';
 import ChoicesRenderer from './renderers/ChoicesRenderer.tsx';
@@ -45,7 +46,7 @@ const coreRendererRegistry = lookupTable<WidgetRenderer>({
     </div>
   ),
   form: ({ parentWorkflow, workflow, document, isActive }) => (
-    <CompletionMessagePaper role={'document'} fullWidth={true} timestamp={new Date(document.createdAt)}>
+    <CompletionMessagePaper document={document} fullWidth={true}>
       <DocumentFormRenderer
         parentWorkflow={parentWorkflow}
         workflow={workflow}
@@ -80,24 +81,13 @@ const coreRendererRegistry = lookupTable<WidgetRenderer>({
   ),
 });
 
-/** Extract the primary widget name from a UI config object. */
-function resolveWidgetName(ui: unknown): string {
-  const typed = ui as { widgets?: { widget?: string }[]; form?: { widget?: string } } | undefined;
-  if (typed?.widgets?.[0]?.widget) {
-    return typed.widgets[0].widget;
-  }
-  if (typed?.form?.widget) {
-    return typed.form.widget;
-  }
-  return 'form';
-}
-
 const DocumentRenderer: React.FC<DocumentRendererProps> = (props) => {
   const features = useFeatureRegistry();
   const documentConfigs = useDocumentConfigs();
   const doc = props.document as unknown as DocumentItemInterface;
   const docConfig = documentConfigs.get(doc.documentName);
-  const widget = resolveWidgetName(docConfig?.ui);
+  // A document that declares no widget renders as a form.
+  const widget = resolveWidgetName(docConfig?.ui) ?? 'form';
 
   const featureRenderers = useMemo(
     () => lookupTable<WidgetRenderer>(...features.map((feature) => feature.documentRenderers ?? {})),

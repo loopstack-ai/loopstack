@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { DocumentItemInterface, WorkflowFullInterface } from '@loopstack/contracts/api';
+import DocumentBoxActions from '@/components/messages/DocumentBoxActions.tsx';
 import type { DocumentRendererProps } from '@/features/documents/DocumentRenderer.tsx';
 import AiMessage from '@/features/documents/renderers/AiMessage.tsx';
 import DocumentDebugRenderer from '@/features/documents/renderers/DocumentDebugRenderer.tsx';
@@ -52,7 +53,8 @@ function TranscriptDocument({
   // renderer in viewOnly mode carries no submit UI.
   if (entry.widget === 'form' && workflow) {
     return (
-      <div className="rounded-md border p-3">
+      <div className="group/document relative rounded-md border p-3">
+        <DocumentBoxActions document={entry.document} />
         <DocumentFormRenderer
           parentWorkflow={rootWorkflow ?? workflow}
           workflow={workflow}
@@ -83,9 +85,12 @@ function TranscriptDocument({
   if (entry.widget) return <InertPromptEntry document={entry.document} />;
   // No widget config — JSON fallback, the CLI's honest default for unknown documents.
   return (
-    <pre className="bg-muted/50 overflow-x-auto rounded-md p-3 font-mono text-xs">
-      {JSON.stringify(entry.document.content, null, 2)}
-    </pre>
+    <div className="group/document relative">
+      <DocumentBoxActions document={entry.document} />
+      <pre className="bg-muted/50 overflow-x-auto rounded-md p-3 font-mono text-xs">
+        {JSON.stringify(entry.document.content, null, 2)}
+      </pre>
+    </div>
   );
 }
 

@@ -92,7 +92,7 @@ const SecretInputRenderer: React.FC<SecretInputRendererProps> = ({ parentWorkflo
   };
 
   return (
-    <CompletionMessagePaper role="document" fullWidth={true} timestamp={new Date(document.createdAt)}>
+    <CompletionMessagePaper document={document} fullWidth={true}>
       <div className="flex flex-col gap-4 p-1">
         <div className="text-sm font-medium">Secrets</div>
 

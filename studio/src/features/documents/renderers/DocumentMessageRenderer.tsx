@@ -31,7 +31,7 @@ const DocumentMessageRenderer: React.FC<{ document: DocumentItemInterface }> = (
   }
 
   return (
-    <CompletionMessagePaper role={renderedRole}>
+    <CompletionMessagePaper document={document} role={renderedRole} copyText={text ?? ''}>
       <MarkdownContent content={text ?? ''} />
     </CompletionMessagePaper>
   );

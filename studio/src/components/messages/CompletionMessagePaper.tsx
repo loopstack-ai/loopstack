@@ -1,63 +1,29 @@
 import React from 'react';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import { cn } from '../../lib/utils.ts';
-import { useTheme } from '../../providers/ThemeProvider.tsx';
 import { Card } from '../ui/card';
+import DocumentBoxActions from './DocumentBoxActions.tsx';
 
 interface CompletionMessagePaperProps {
+  document: DocumentItemInterface;
+  /** The speaker of a message document; a `user` message aligns to the right. */
   role?: 'system' | 'user' | 'assistant' | 'tool' | 'error' | 'document';
+  /** What the copy action copies; the document content as JSON when not given. */
+  copyText?: string;
   children: React.ReactNode;
-  timestamp?: Date;
-  metadata?: Record<string, any>;
   fullWidth?: boolean;
   className?: string;
 }
 
 const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
+  document,
   role,
+  copyText,
   children,
-  timestamp,
-  metadata,
   fullWidth = false,
   className,
 }) => {
-  const { theme } = useTheme();
-
-  const roleConfig = {
-    system: {
-      color: theme === 'dark' ? '#e0bb65' : '#efb108',
-      align: 'left',
-    },
-    user: {
-      color: theme === 'dark' ? '#2aacb8' : '#0496d0',
-      align: 'right',
-    },
-    assistant: {
-      color: theme === 'dark' ? '#56a8f5' : '#004a98',
-      align: 'left',
-    },
-    document: {
-      color: theme === 'dark' ? '#9da0a8' : '#0e2135',
-      align: 'left',
-    },
-    tool: {
-      color: theme === 'dark' ? '#e0bb65' : '#efb108',
-      align: 'left',
-    },
-    error: {
-      color: theme === 'dark' ? '#f75464' : '#dc0d33',
-      align: 'left',
-    },
-  };
-
-  const config = (role ? roleConfig[role] : undefined) ?? roleConfig['assistant'];
   const isUser = role === 'user';
-
-  const formatTimestamp = (date: Date): string => {
-    return date.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   return (
     <div
@@ -74,30 +40,13 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
           isUser ? 'items-end' : 'items-start',
         )}
       >
-        <div className="mb-2 flex items-center gap-2 opacity-70">
-          {role ? (
-            <span className="text-xs font-semibold tracking-wider uppercase" style={{ color: config.color }}>
-              {role}
-            </span>
-          ) : (
-            ''
-          )}
-          {timestamp && <span className="text-muted-foreground font-mono text-xs">{formatTimestamp(timestamp)}</span>}
-        </div>
-
-        {metadata && Object.keys(metadata).length > 0 && (
-          <div className={cn('bg-muted mFax-w-full mb-2 rounded-md p-2', isUser ? 'self-end' : 'self-start')}>
-            {Object.entries(metadata).map(([key, value]) => (
-              <div key={key} className="text-muted-foreground font-mono text-xs">
-                <strong>{key}:</strong> {String(value)}
-              </div>
-            ))}
-          </div>
-        )}
-
         <Card
-          className={cn('relative max-w-full px-6 py-4 wrap-break-word shadow-none', fullWidth ? 'w-full' : 'w-auto')}
+          className={cn(
+            'group/document relative max-w-full p-4 wrap-break-word shadow-none',
+            fullWidth ? 'w-full' : 'w-auto',
+          )}
         >
+          <DocumentBoxActions document={document} role={role} copyText={copyText} />
           <div className="text-foreground leading-relaxed wrap-break-word whitespace-pre-wrap">
             <div className="message-content">{children}</div>
           </div>

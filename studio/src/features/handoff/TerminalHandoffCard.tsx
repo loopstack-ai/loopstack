@@ -36,7 +36,7 @@ export function TerminalHandoffCard({ parentWorkflow, workflow, document, isActi
   const open = isActive && canSubmit;
 
   return (
-    <CompletionMessagePaper role="document" fullWidth={true} timestamp={new Date(document.createdAt)}>
+    <CompletionMessagePaper document={document} fullWidth={true}>
       <div className="flex flex-col gap-3 p-1">
         <div className="space-y-1">
           <div className="text-sm font-medium">Interactive session</div>

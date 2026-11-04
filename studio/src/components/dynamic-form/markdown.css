@@ -11,10 +11,6 @@
   margin-top: 1.5rem;
 }
 
-.markdown-content h1:first-child {
-  margin-top: 0;
-}
-
 .markdown-content h2 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -241,4 +237,13 @@
 
 .markdown-content .math.math-inline {
   color: var(--foreground, #000);
+}
+
+/* The box around the content sets the space at its edges, so the outer blocks bring no margin of their own. */
+.markdown-content > :first-child {
+  margin-top: 0;
+}
+
+.markdown-content > :last-child {
+  margin-bottom: 0;
 }
