@@ -1,6 +1,6 @@
 ---
 title: CLI Reference
-description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition, LLM token, and tool call streaming, answer human-in-the-loop prompts inline (text, confirm, choices, forms with $EDITOR, chat inputs, secret entry) or non-interactively with loopstack answer, reattach to running or waiting runs with loopstack attach, retry failed runs interactively, inspect and watch runs, derive replay fixtures with runs --record, manage backend environments and API tokens. Covers loopstack create, list, run, runs (incl. pendingPrompt and --record), answer, attach, watch, login, env, the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
+description: The loopstack CLI — scaffold a new app with loopstack create, run workflows from the terminal with live transition, LLM token, and tool call streaming, answer human-in-the-loop prompts inline (text, confirm, choices, forms with $EDITOR/$VISUAL, chat inputs, secret entry, terminal-handoff sessions) or non-interactively with loopstack answer, reattach to running or waiting runs with loopstack attach, retry failed runs interactively, inspect and watch runs, derive replay fixtures with runs --record and --tools, manage backend environments and API tokens. Covers loopstack create, list, run, runs (incl. --limit, pendingPrompt, --record and --tools), answer, attach, watch (incl. --workflow and --type), login, env, the ~/.loopstack/config.json format (defaultEnvironment, environments with url/token/studioUrl), the --json/--quiet output modes, exit codes for CI, stdin args (@-), --open, and LOOPSTACK_URL/LOOPSTACK_TOKEN/LOOPSTACK_STUDIO_URL configuration.
 ---
 
 # CLI Reference
@@ -46,6 +46,32 @@ loopstack env use staging       # switch the default
 
 `loopstack login` probes the backend before saving, so bad URLs or tokens fail immediately. The config file is written user-only (`0600`). API tokens for real deployments are created via `POST /api/v1/auth/tokens` (or Studio) and start with `lsk_`.
 
+### The config file
+
+`~/.loopstack/config.json` holds the saved environments:
+
+```json
+{
+  "defaultEnvironment": "local",
+  "environments": {
+    "local": {
+      "url": "http://localhost:3000",
+      "studioUrl": "http://localhost:5173"
+    },
+    "staging": {
+      "url": "https://loopstack.staging.example.com",
+      "token": "lsk_…",
+      "studioUrl": "https://studio.staging.example.com"
+    }
+  }
+}
+```
+
+- `defaultEnvironment` — the environment a command uses when no flag or environment variable selects a backend. `loopstack login` sets it only when it is not set yet; `loopstack env use <name>` changes it.
+- `environments` — a map from environment name to its connection. `url` is required; `token` (an `lsk_` API token) and `studioUrl` (the Studio frontend, for deep links) are optional. `--env <name>` selects one entry for a single command.
+
+`loopstack login` writes these keys; the CLI ignores any other key in the file. `loopstack env list --json` prints the whole file.
+
 ### Studio deep links
 
 An environment can carry the URL of its Studio frontend — `loopstack login` asks for it (`--studio-url` non-interactively), `LOOPSTACK_STUDIO_URL` overrides it, and the zero-config local fallback assumes `http://localhost:5173`. When the CLI knows where Studio lives, its output links there: a detached run prints its Studio URL, a run waiting for input shows where to answer it in the browser, failures link to the run for inspection, and `loopstack runs --json` carries a `studioUrl` per run. `--open` (on `run` and `runs <run-id>`) opens the run in the browser directly.
@@ -84,9 +110,11 @@ What is your name?
 
 Free-text questions, yes/no confirmations, option choices, approval buttons, chat inputs (workflows with a `prompt-input` widget loop right in the terminal), and secret entry (`secret-input` — values collected without echo, stored via the secrets API, never shown or logged) are all answered inline. The terminal prompt and Studio race fairly: while a prompt is open the CLI stays attached to the event stream, so an answer given in Studio (or by anyone else) is picked up immediately and following continues.
 
-Forms are picker-first: the form's content renders, its actions are offered as a numbered picker (an action submits the current content, exactly like Studio's buttons), and `e` optionally opens the complete content JSON in `$EDITOR` first. Fields marked `readonly: true` in the widget config are protected — the CLI discards edits to them (`field "subject" is read-only — change discarded`), and the backend rejects them regardless of client.
+Forms are picker-first: the form's content renders, its actions are offered as a numbered picker (an action submits the current content, exactly like Studio's buttons), and `e` optionally opens the complete content JSON in an editor first — `$EDITOR`, else `$VISUAL`, else `vi`. Fields marked `readonly: true` in the widget config are protected — the CLI discards edits to them (`field "subject" is read-only — change discarded`), and the backend rejects them regardless of client.
 
 Input the terminal cannot collect is named instead of guessed: a widget without a CLI implementation prints what it is waiting for plus the Studio deep link, and waits that resolve in the browser — an OAuth sign-in link, for example — resume the attached session automatically once completed. Failed runs offer an interactive retry (`r. retry` re-runs the failed step, Studio's Retry equivalent), and a workflow parked at a custom error place surfaces its recovery button in the same prompt.
+
+A `terminal-handoff` prompt hands the terminal to a local command, for example an interactive session inside a container. The workflow saves a document with this widget and a `command` — the `TerminalHandoffDocument` of [`@loopstack/handoff`](/docs/extend/features) is one. The CLI runs that command with the terminal attached; when the command exits, with any exit code, the CLI fires the widget's wait transition, so the workflow can continue (for example, remove the container). This needs a terminal on both stdin and stdout. Without one, the run stays waiting and the command exits with code `3`, like for any other prompt; when only stdout is redirected, the CLI first prints the command, so you can run it by hand.
 
 In non-interactive shells (CI), the question is printed to stderr and the command exits with code `3`.
 
@@ -119,21 +147,23 @@ A CI quality gate is the same command, unchanged:
 
 ```bash
 loopstack runs                          # recent runs — waiting-for-input first
-loopstack runs --limit 5 --json
+loopstack runs --limit 5 --json         # at most 5 runs (default: 20)
 loopstack runs --search invoice --status waiting
 loopstack runs <run-id>                 # full transcript: steps, documents, result
 loopstack runs <run-id> --record fixture.json    # replay fixture from recorded tool calls
+loopstack runs <run-id> --record fixture.json --tools llm_generate_text   # only the calls of these tools
 loopstack answer <run-id> --arg answer=yes       # answer a waiting prompt, non-interactive
 loopstack attach <run-id>               # rejoin live — streams and answers prompts
 loopstack watch                         # the environment's event firehose
+loopstack watch --workflow <run-id>     # only the events of one workflow run
 loopstack watch --type workflow.updated --json   # NDJSON, filterable
 ```
 
-`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, and `--search`/`--status`/`--workspace` narrow it down. With a run id, it prints the run's full transcript — step lines with durations (its checkpoint history, one line per place; `--json` carries the raw rows under `checkpoints`), the run tree's documents in chronological order, and the published result. When the run is waiting, `--json` additionally carries a `pendingPrompt` object — the question's description, the expected answer schema, the widget type, and the transition to answer — everything a script or agent needs to relay the question. `--record <file>` writes the run's recorded tool calls as a replay fixture for [workflow tests](/docs/build/testing) (requires the run to have been started with `loopstack run --trace`, or the backend to record every run via the `trace` module option / `LOOPSTACK_TRACE=true`).
+`loopstack runs` is the inbox: runs paused on human input are surfaced at the top of the listing, `--limit` caps its length (default `20`), and `--search`/`--status`/`--workspace` narrow it down. With a run id, it prints the run's full transcript — step lines with durations (its checkpoint history, one line per place; `--json` carries the raw rows under `checkpoints`), the run tree's documents in chronological order, and the published result. When the run is waiting, `--json` additionally carries a `pendingPrompt` object — the question's description, the expected answer schema, the widget type, and the transition to answer — everything a script or agent needs to relay the question. `--record <file>` writes the run's recorded tool calls as a replay fixture for [workflow tests](/docs/build/testing) (requires the run to have been started with `loopstack run --trace`, or the backend to record every run via the `trace` module option / `LOOPSTACK_TRACE=true`). `--tools <names>` takes a comma-separated list of tool names and writes only their calls into the fixture (default: all tools). It selects the replay mock boundary: the tools whose responses a replayed test scripts.
 
 `loopstack answer` is the non-interactive counterpart of the prompt widgets: it finds the prompt the run is parked on (following sub-workflows, exactly like `attach`), and submits the answer built from `--arg key=value` pairs (or `--payload '<json>'`, `@file`, `@-`). The wait transition is resolved automatically; `--transition <id>` picks one when several are available. Exit `0` on submit, `2` when nothing is pending or the input is Studio-only. The agent loop is: `run … --json` exits `3` → `runs <run-id> --json` shows `pendingPrompt` → relay the question → `answer <run-id> --arg …` → re-check `runs <run-id>`.
 
-`loopstack attach` rejoins a run the way `docker attach` joins a container: the transcript so far, then live output and interactive prompts — including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; with `--json` each event is one NDJSON line.
+`loopstack attach` rejoins a run the way `docker attach` joins a container: the transcript so far, then live output and interactive prompts — including runs that are already waiting for input when you attach (started from Studio, cron, or another shell). `watch` streams every event of the environment as it happens; `--workflow <id>` keeps only the events of one workflow run, `--type <type>` (repeatable) only the events of that type, and with `--json` each event is one NDJSON line.
 
 ## Output conventions
 

@@ -43,10 +43,11 @@ export function buildFormSkeleton(content: unknown, schema?: Record<string, unkn
 }
 
 /**
- * Opens `$EDITOR` on a temp JSON file seeded with `initial` and returns the
- * parsed payload — the escape hatch that makes every form answerable in the
- * terminal. Invalid JSON reopens the editor with the error noted; an emptied
- * file or a non-zero editor exit cancels (returns undefined).
+ * Opens `$EDITOR` (else `$VISUAL`, else `vi`) on a temp JSON file seeded with
+ * `initial` and returns the parsed payload — the escape hatch that makes every
+ * form answerable in the terminal. Invalid JSON reopens the editor with the
+ * error noted; an emptied file or a non-zero editor exit cancels (returns
+ * undefined).
  */
 export function editPayloadInEditor(initial: Record<string, unknown>, out: NodeJS.WritableStream): unknown {
   const editor = process.env.EDITOR || process.env.VISUAL || 'vi';
