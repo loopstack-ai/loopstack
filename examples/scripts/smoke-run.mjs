@@ -19,7 +19,7 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** @type {Array<{ workflow: string; expect: 'completed' | 'waiting' | 'failed'; error?: string }>} */
+/** @type {Array<{ workflow: string; expect: 'completed' | 'waiting' | 'failed'; error?: string; place?: string }>} */
 const SMOKE_WORKFLOWS = [
   // Advanced workflows — state, result, routing, batching
   { workflow: 'workflow_state', expect: 'completed' },
@@ -42,13 +42,14 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'default_greeting', expect: 'completed' },
   { workflow: 'french_greeting', expect: 'completed' },
   { workflow: 'nested_greeting', expect: 'completed' },
-  // Error handling — auto-retries run on the queue backoff and succeed; the other modes end failed as designed
+  // Error handling — auto-retries run on the queue backoff and succeed; the error modes end failed as designed;
+  // a parent that handles its child's failure in onFailure parks at the place that transition leads to
   { workflow: 'auto_retry_example', expect: 'completed' },
   { workflow: 'retry_target_example', expect: 'completed' },
   { workflow: 'error_place_example', expect: 'failed', error: 'Simulated external service error' },
   { workflow: 'manual_retry_example', expect: 'failed', error: 'Simulated external service error' },
   { workflow: 'transition_timeout_example', expect: 'failed', error: 'timed out after 2000ms' },
-  { workflow: 'sub_workflow_error_place_example', expect: 'failed', error: 'Child workflow failed' },
+  { workflow: 'sub_workflow_failure_example', expect: 'waiting', place: 'child_failed' },
   // Scheduling
   { workflow: 'call_direct_run', expect: 'completed' },
   { workflow: 'call_webhook', expect: 'completed' },
@@ -124,9 +125,8 @@ async function waitForBackend(backend) {
   throw new Error(`Backend did not answer ${baseUrl}/api/v1/config/apps with 2xx within ${READY_TIMEOUT_MS / 1000}s`);
 }
 
-function runWorkflow({ workflow }) {
+function runCli(cliArgs) {
   return new Promise((resolveRun) => {
-    const cliArgs = ['run', workflow, '--json', '--quiet', '--url', baseUrl];
     const cli = spawn(process.execPath, [cliBin, ...cliArgs], { cwd: appDir, stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
@@ -146,6 +146,16 @@ function runWorkflow({ workflow }) {
   });
 }
 
+/** Starts the workflow; for an entry that expects a place, also reads the place the run stopped at. */
+async function runWorkflow({ workflow, place }) {
+  const run = await runCli(['run', workflow, '--json', '--quiet', '--url', baseUrl]);
+  if (place && run.result?.workflowId) {
+    const inspected = await runCli(['runs', run.result.workflowId, '--json', '--url', baseUrl]);
+    run.place = inspected.result?.workflow?.place;
+  }
+  return run;
+}
+
 function check(entry, run) {
   if (run.timedOut) return `timed out after ${RUN_TIMEOUT_MS / 1000}s`;
   const status = run.result?.status;
@@ -154,6 +164,9 @@ function check(entry, run) {
   }
   if (entry.error && !run.result.errorMessage?.includes(entry.error)) {
     return `expected error "${entry.error}", got "${run.result.errorMessage}"`;
+  }
+  if (entry.place && run.place !== entry.place) {
+    return `expected place ${entry.place}, got ${run.place ?? 'none'}`;
   }
   return undefined;
 }
