@@ -38,6 +38,8 @@ const SMOKE_WORKFLOWS = [
   { workflow: 'run_sub_workflow_example_sequence', expect: 'completed' },
   // LLM — a custom provider that needs no API key
   { workflow: 'custom_provider_example', expect: 'completed' },
+  // OAuth — a custom provider for the app's own mock server; the run parks at its OAuth sub-workflow
+  { workflow: 'custom_oauth_provider_example', expect: 'waiting', place: 'awaiting_auth' },
   // Module config — forRoot / forFeature scopes mounted side by side in one app
   { workflow: 'default_greeting', expect: 'completed' },
   { workflow: 'french_greeting', expect: 'completed' },

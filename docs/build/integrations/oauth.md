@@ -191,3 +191,4 @@ The token store also reads `REDIS_HOST`, `REDIS_PORT`, and `REDIS_PASSWORD` — 
 
 - [Google Workspace examples](/docs/examples/google-workspace) — Google Calendar fetch with OAuth sub-workflow and Google Workspace agent with tool calling
 - [GitHub examples](/docs/examples/github) — GitHub OAuth integration with repos overview and GitHub agent with 25 tools
+- [OAuth examples](/docs/examples/oauth) — a custom OAuth provider for a mock authorization server, run through `OAuthWorkflow`, with an API call using the token from `OAuthTokenStore`

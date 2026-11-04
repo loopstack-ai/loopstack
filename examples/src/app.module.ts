@@ -17,6 +17,7 @@ import { IntegrationExamplesModule } from './integrations/integration-examples.m
 import { LlmExamplesModule } from './llm/llm-examples.module';
 import { LocalFileExplorerExamplesModule } from './local-file-explorer/local-file-explorer-examples.module';
 import { McpExamplesModule } from './mcp/mcp-examples.module';
+import { OAuthExamplesModule } from './oauth/oauth-examples.module';
 import { ObservabilityExamplesModule } from './observability/observability-examples.module';
 import { RemoteClientExamplesModule } from './remote-client/remote-client-examples.module';
 import { SandboxExamplesModule } from './sandbox/sandbox-examples.module';
@@ -52,6 +53,7 @@ import { WebSearchExamplesModule } from './web-search/web-search-examples.module
     HitlExamplesModule,
     GitHubExamplesModule,
     GoogleWorkspaceExamplesModule,
+    OAuthExamplesModule,
     GitExamplesModule,
     SecretsExamplesModule,
     SandboxExamplesModule,

@@ -305,41 +305,93 @@ interface OAuthTokenSet {
 | `exchangeCode` | Exchange the authorization code for tokens after redirect   |
 | `refreshToken` | Refresh an expired access token using the refresh token     |
 
-The provider self-registers via NestJS `OnModuleInit`:
+The provider self-registers via NestJS `OnModuleInit`. This one, from the [OAuth example](https://loopstack.ai/docs/examples/oauth), signs in to a mock authorization server inside the examples app; its client credentials and URLs come from `mock-provider.config.ts`:
 
 ```typescript
-@Injectable()
-export class MyOAuthProvider implements OAuthProviderInterface, OnModuleInit {
-  readonly providerId = 'my-provider';
-  readonly defaultScopes = ['read', 'write'];
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { OAuthProviderInterface, OAuthProviderRegistry, OAuthTokenSet } from '@loopstack/oauth';
+import { MOCK_CLIENT_ID, MOCK_CLIENT_SECRET, mockServerUrl, oauthCallbackUrl } from './mock-provider.config';
 
-  constructor(private readonly registry: OAuthProviderRegistry) {}
+/** The token endpoint's response, in the OAuth 2.0 format. */
+interface TokenResponse {
+  access_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
+  scope?: string;
+  error?: string;
+  error_description?: string;
+}
+
+@Injectable()
+export class MockOAuthProvider implements OAuthProviderInterface, OnModuleInit {
+  readonly providerId = 'mock';
+  readonly defaultScopes = ['profile'];
+
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly providerRegistry: OAuthProviderRegistry,
+  ) {}
 
   onModuleInit(): void {
-    this.registry.register(this);
+    this.providerRegistry.register(this);
   }
 
   buildAuthUrl(scopes: string[], state: string): string {
-    /* ... */
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: MOCK_CLIENT_ID,
+      redirect_uri: oauthCallbackUrl(this.configService),
+      scope: scopes.join(' '),
+      state,
+    });
+    return `${mockServerUrl(this.configService)}/authorize?${params.toString()}`;
   }
-  async exchangeCode(code: string): Promise<OAuthTokenSet> {
-    /* ... */
+
+  exchangeCode(code: string): Promise<OAuthTokenSet> {
+    return this.requestTokens({
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: oauthCallbackUrl(this.configService),
+    });
   }
-  async refreshToken(refreshToken: string): Promise<OAuthTokenSet> {
-    /* ... */
+
+  refreshToken(refreshToken: string): Promise<OAuthTokenSet> {
+    return this.requestTokens({ grant_type: 'refresh_token', refresh_token: refreshToken });
+  }
+
+  private async requestTokens(grant: Record<string, string>): Promise<OAuthTokenSet> {
+    const response = await fetch(`${mockServerUrl(this.configService)}/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+      body: new URLSearchParams({ ...grant, client_id: MOCK_CLIENT_ID, client_secret: MOCK_CLIENT_SECRET }),
+    });
+    const tokens = (await response.json()) as TokenResponse;
+
+    if (!response.ok || !tokens.access_token) {
+      throw new Error(`Mock token request failed: ${tokens.error_description ?? tokens.error ?? response.statusText}`);
+    }
+
+    return {
+      accessToken: tokens.access_token,
+      // Present after a code exchange; a refresh returns none, and the token store keeps the old one.
+      refreshToken: tokens.refresh_token,
+      expiresIn: tokens.expires_in,
+      scope: tokens.scope ?? '',
+    };
   }
 }
 ```
 
-Wrap it in a module that imports `OAuthModule`:
+Wrap it in a module that imports `OAuthModule`. The example's `MockProviderModule` also declares the mock server and its API client:
 
 ```typescript
 @Module({
   imports: [OAuthModule],
-  providers: [MyOAuthProvider],
-  exports: [MyOAuthProvider],
+  providers: [MockOAuthProvider],
+  exports: [MockOAuthProvider],
 })
-export class MyOAuthModule {}
+export class MockProviderModule {}
 ```
 
 ### Existing Providers
@@ -408,6 +460,7 @@ Rendered by the `oauth-prompt` widget. Used internally by the `OAuthWorkflow` to
 - [Creating OAuth Providers](https://loopstack.ai/docs/extend/oauth-providers) — step-by-step guide for implementing `OAuthProviderInterface`
 - [google-workspace examples](/docs/examples/google-workspace) — Google Calendar fetch with OAuth sub-workflow and Google Workspace agent
 - [github examples](/docs/examples/github) — GitHub OAuth with repos overview workflow and 25+ GitHub tools
+- [oauth examples](/docs/examples/oauth) — a custom OAuth provider for a mock authorization server, with `OAuthWorkflow` and `OAuthTokenStore`
 
 ## About
 
