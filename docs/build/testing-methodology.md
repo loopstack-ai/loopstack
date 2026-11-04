@@ -70,11 +70,11 @@ With criterion IDs in test names, the criterion → scenario → result matrix n
 
 A scenario written against `fixture` runs in all three modes without changes:
 
-| Mode         | How                                                           | When                                                        |
-| ------------ | ------------------------------------------------------------- | ----------------------------------------------------------- |
-| **Hermetic** | fixture exists → replayed, milliseconds, no keys              | The default. CI gate, every local run                       |
-| **Record**   | fixture missing (non-CI) → tools run live, responses captured | First run, and re-recording after intended behavior changes |
-| **Live**     | separate spec without `fixture`, sampled, rubric-asserted     | Rare, deliberate — semantic quality regression checks       |
+| Mode         | How                                                                                                                                                              | When                                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Hermetic** | fixture exists → replayed, milliseconds, no keys                                                                                                                 | The default. CI gate, every local run                       |
+| **Record**   | fixture missing (non-CI) → tools run live, responses captured                                                                                                    | First run, and re-recording after intended behavior changes |
+| **Live**     | separate `*.live.spec.ts` without `fixture`, run by `npm run test:live` ([setup](/docs/build/testing#keep-live-tests-out-of-npm-test)), sampled, rubric-asserted | Rare, deliberate — semantic quality regression checks       |
 
 Drift protection keeps the modes honest: replayed runs assert recorded args/config against the live call and validate envelopes against `resultSchema` — a stale fixture fails loudly instead of proving nothing.
 

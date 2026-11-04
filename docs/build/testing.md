@@ -1,6 +1,6 @@
 ---
 title: Testing Workflows and Tools
-description: How to test Loopstack workflows and tools — runWorkflow() in-process workflow tests with scripted HITL answers (queue() for cyclic workflows), provider overrides, contract-validated tool fakes (createContractFake) and tool mocks (createToolMock), state-machine coverage (coverage), trace diffing (diffTraces), park-view assertions (parkView — what the user would see at a park, shared rules with the CLI), and inline sub-workflows; testTool() unit tests; strict-sequence record/replay of tool responses (the fixture option with automatic record/replay and CI guard, record, the replayTools mock boundary, the --trace flag and LOOPSTACK_TRACE, loopstack runs --record --tools, replay()); live-LLM regression tests; and CI smoke runs with loopstack run --json. Covers @loopstack/testing, TestRun assertions (status, path, result, document, recordings, the run trace via trace and toolCalls), replay fixtures as ordered response scripts with metadata assertions, drift detection, resultSchema contract validation of replayed envelopes, replay boundaries (envelope-declared documents replay, pending envelopes, async tools always live), and the three strategies for scripting an async tool's answer.
+description: How to test Loopstack workflows and tools — runWorkflow() in-process workflow tests with scripted HITL answers (queue() for cyclic workflows), provider overrides, contract-validated tool fakes (createContractFake) and tool mocks (createToolMock), state-machine coverage (coverage), trace diffing (diffTraces), park-view assertions (parkView — what the user would see at a park, shared rules with the CLI), and inline sub-workflows; testTool() unit tests; strict-sequence record/replay of tool responses (the fixture option with automatic record/replay and CI guard, record, the replayTools mock boundary, the --trace flag and LOOPSTACK_TRACE, loopstack runs --record --tools, replay()); live-LLM regression tests kept out of npm test (the *.live.spec.ts suffix, vitest.live.config.ts, the test:live script); and CI smoke runs with loopstack run --json. Covers @loopstack/testing, TestRun assertions (status, path, result, document, recordings, the run trace via trace and toolCalls), replay fixtures as ordered response scripts with metadata assertions, drift detection, resultSchema contract validation of replayed envelopes, replay boundaries (envelope-declared documents replay, pending envelopes, async tools always live), and the three strategies for scripting an async tool's answer.
 ---
 
 # Testing Workflows and Tools
@@ -217,6 +217,34 @@ expect(run.document('triage_report')).toBeDefined();
 ```
 
 Live tests are non-deterministic and cost money: keep assertions structural (path taken, schema shape, allowed value sets, key facts present), run them **on demand** after prompt/model changes or nightly — never in the PR gate. The loop closes neatly: a replay **drift failure** in CI is your signal that fixtures are stale → run the live tests → when green, re-record the fixtures with `--record`.
+
+### Keep live tests out of `npm test`
+
+Name live specs `*.live.spec.ts` and give them their own vitest config, so `npm test` — and with it the PR gate — never runs them. The default `vitest.config.ts` excludes the suffix (setting `exclude` replaces vitest's defaults, so keep `node_modules` in it):
+
+```ts
+test: {
+  include: ['**/*.spec.ts'],
+  exclude: ['**/*.live.spec.ts', '**/node_modules/**'],
+},
+```
+
+A second config, `vitest.live.config.ts`, includes only the live specs and allows a longer timeout for real provider calls:
+
+```ts
+test: {
+  include: ['**/*.live.spec.ts'],
+  testTimeout: 120_000,
+},
+```
+
+A `test:live` script in `package.json` runs it on demand:
+
+```json
+"test:live": "vitest run --config vitest.live.config.ts"
+```
+
+`npm run test:live` needs the provider credentials (for example `ANTHROPIC_API_KEY`) in the environment. The examples app uses exactly this setup — its [HITL examples](/docs/examples/hitl) ship live specs next to their replayed tests.
 
 ## Smoke runs in CI
 
