@@ -4,6 +4,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'jsdom',
+    // Workspace packages are symlinked, so their dist resolves outside node_modules and vitest would
+    // transform it again in every worker. Load it natively, like any other dependency.
+    server: { deps: { external: [/\/(packages|registry)\/[^/]+\/dist\//] } },
     globals: true,
     setupFiles: ['setupTests.ts'],
     passWithNoTests: true,
