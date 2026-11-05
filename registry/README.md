@@ -26,7 +26,7 @@ Full overview with install and usage notes: [loopstack.ai/docs/registry](https:/
 | [`agent`](agent/)           | Generic agent workflow — configurable agent loop with tool calling, error handling and cancel support |
 | [`code-agent`](code-agent/) | Codebase exploration agent built on `agent`                                                           |
 | [`hitl`](hitl/)             | Human-in-the-loop — ask questions, present options and request confirmations during a run             |
-| [`handoff`](handoff/)       | Hand-off documents that drive the Studio Handoff panel and the CLI terminal hand-off                  |
+| [`handoff`](handoff/)       | Hand-off documents: Studio cards for commands, URLs and changed files, and the CLI terminal hand-off  |
 
 ### Tools
 

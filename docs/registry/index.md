@@ -27,7 +27,7 @@ Every registry package is a NestJS module. Its directory in the repository, its 
 | [`@loopstack/agent`](/docs/registry/agent)           | Generic agent workflow — configurable agent loop with tool calling, error handling and cancel support |
 | [`@loopstack/code-agent`](/docs/registry/code-agent) | Codebase exploration agent built on `@loopstack/agent`                                                |
 | [`@loopstack/hitl`](/docs/registry/hitl)             | Human-in-the-loop — ask questions, present options and request confirmations during a run             |
-| [`@loopstack/handoff`](/docs/registry/handoff)       | Hand-off documents that drive the Studio Handoff panel and the CLI terminal hand-off                  |
+| [`@loopstack/handoff`](/docs/registry/handoff)       | Hand-off documents: Studio cards for commands, URLs and changed files, and the CLI terminal hand-off  |
 
 ### Tools
 

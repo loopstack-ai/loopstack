@@ -9,14 +9,16 @@ import { useDocumentConfigs } from '@/hooks/useConfig';
 interface TerminalHandoffContent {
   command: string;
   cwd?: string;
+  title?: string;
+  description?: string;
 }
 
 /**
  * Renderer for the `terminal-handoff` document: the command a `loopstack run` follower hands its terminal
  * to, shown as a copy-to-clipboard block, plus a button that fires the document's transition by hand. The
  * CLI fires that transition when the handed-over process exits; the button is for when no CLI is following
- * the run — the terminal was closed, or the session was started from Studio — so the run can still be
- * released and tear its container down.
+ * the run — the terminal was closed, or the run was started from Studio — so the run can still continue.
+ * The emitting workflow sets the title and description; the defaults name no use case.
  */
 export function TerminalHandoffCard({ parentWorkflow, workflow, document, isActive }: DocumentRendererProps) {
   const content = (document.content ?? {}) as TerminalHandoffContent;
@@ -39,10 +41,14 @@ export function TerminalHandoffCard({ parentWorkflow, workflow, document, isActi
     <CompletionMessagePaper document={document} fullWidth={true}>
       <div className="flex flex-col gap-3 p-1">
         <div className="space-y-1">
-          <div className="text-sm font-medium">Interactive session</div>
+          <div className="text-sm font-medium">{content.title ?? 'Run in a terminal'}</div>
           <p className="text-muted-foreground text-xs">
-            Run this in a terminal to continue the session. Following the run with <code>loopstack run</code> does it
-            for you and ends the session when the command exits.
+            {content.description ?? (
+              <>
+                Run this command in a terminal. Following the run with <code>loopstack run</code> runs it for you and
+                continues the run when the command exits.
+              </>
+            )}
             {content.cwd && (
               <>
                 {' '}
@@ -65,7 +71,7 @@ export function TerminalHandoffCard({ parentWorkflow, workflow, document, isActi
         {open ? (
           <div className="flex items-center justify-between gap-3">
             <p className="text-muted-foreground text-xs">
-              Closed the terminal without finishing? End the session here to release the run.
+              Not running it in a terminal, or closed the terminal before the command ended? Continue the run here.
             </p>
             <Button
               type="button"
@@ -75,11 +81,11 @@ export function TerminalHandoffCard({ parentWorkflow, workflow, document, isActi
               className="shrink-0"
             >
               {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              End session
+              Continue the run
             </Button>
           </div>
         ) : (
-          <div className="text-muted-foreground text-xs">Session ended.</div>
+          <div className="text-muted-foreground text-xs">Done.</div>
         )}
       </div>
     </CompletionMessagePaper>

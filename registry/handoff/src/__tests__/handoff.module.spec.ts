@@ -5,7 +5,6 @@ import {
   ChangedFilesDocument,
   ChangedFilesSchema,
   HANDOFF_DONE_TRANSITION,
-  HANDOFF_TAG,
   HandoffDocument,
   HandoffModule,
   HandoffSchema,
@@ -30,24 +29,18 @@ describe('HandoffModule.forFeature', () => {
 });
 
 describe('hand-off documents', () => {
-  it('HandoffDocument renders with the `handoff` widget and shows in the panel', () => {
-    expect(HANDOFF_TAG).toBe('handoff');
-    expect(getBlockOptions(HandoffDocument)).toMatchObject({
-      name: 'handoff',
-      tags: ['handoff'],
-      widget: { widget: 'handoff' },
-    });
+  it('HandoffDocument renders with the `handoff` widget', () => {
+    expect(getBlockOptions(HandoffDocument)).toMatchObject({ name: 'handoff', widget: { widget: 'handoff' } });
   });
 
-  it('ChangedFilesDocument renders with the `changed-files` widget and shows in the panel', () => {
+  it('ChangedFilesDocument renders with the `changed-files` widget', () => {
     expect(getBlockOptions(ChangedFilesDocument)).toMatchObject({
       name: 'changed_files',
-      tags: ['handoff'],
       widget: { widget: 'changed-files' },
     });
   });
 
-  it('TerminalHandoffDocument drives the CLI `terminal-handoff` widget via `handoffDone`', () => {
+  it('TerminalHandoffDocument drives the `terminal-handoff` widget via `handoffDone`', () => {
     expect(HANDOFF_DONE_TRANSITION).toBe('handoffDone');
     expect(getBlockOptions(TerminalHandoffDocument)).toMatchObject({
       name: 'terminal_handoff',
@@ -62,7 +55,21 @@ describe('hand-off documents', () => {
     expect(ChangedFilesSchema.safeParse({ hostRoot: '/home/me/repo', paths: ['src/a.ts'] }).success).toBe(true);
     expect(ChangedFilesSchema.safeParse({ root: '/home/me/repo', paths: [] }).success).toBe(false);
 
-    expect(TerminalHandoffSchema.safeParse({ command: 'bash', cwd: '/workspace' }).success).toBe(true);
+    expect(TerminalHandoffSchema.safeParse({ command: 'bash', cwd: '/workspace', title: 'Shell' }).success).toBe(true);
     expect(TerminalHandoffSchema.safeParse({ cwd: '/workspace' }).success).toBe(false);
+  });
+
+  it('a changed-files action is a command or a URL, never both or neither', () => {
+    const withActions = (actions: unknown[]) =>
+      ChangedFilesSchema.safeParse({ hostRoot: '/home/me/repo', paths: ['src/a.ts'], actions }).success;
+
+    expect(
+      withActions([
+        { label: "Copy 'zed' command", command: 'zed "{path}"' },
+        { label: 'Open in VS Code', url: 'vscode://file{path}' },
+      ]),
+    ).toBe(true);
+    expect(withActions([{ label: 'Open', command: 'zed "{path}"', url: 'vscode://file{path}' }])).toBe(false);
+    expect(withActions([{ label: 'Open' }])).toBe(false);
   });
 });

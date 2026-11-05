@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/handoff",
   "displayName": "Loopstack Handoff Module",
-  "description": "Hand-off documents for Loopstack workflows — lights up the Studio Handoff panel (copy-a-command, open-a-URL and changed-files cards) and drives the CLI terminal-handoff widget",
+  "description": "Hand-off documents for Loopstack workflows — Studio cards to copy a command, open a URL or open changed files, and the CLI terminal-handoff widget",
   "keywords": [
     "loopstack",
     "handoff",

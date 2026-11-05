@@ -1,9 +1,6 @@
 import { z } from 'zod';
 import { Document } from '@loopstack/common';
 
-/** Tag marking a document for the Studio "Handoff" sidebar panel (and its inline card renderer). */
-export const HANDOFF_TAG = 'handoff';
-
 /**
  * Content of a {@link HandoffDocument}: a prepared, fully-resolved hand-off to a local tool — either a
  * command to copy and run (a terminal session, an IDE, …) or a URL to open in the browser (a running app's
@@ -13,7 +10,7 @@ export const HANDOFF_TAG = 'handoff';
  */
 export const HandoffSchema = z
   .object({
-    /** Short heading for the card (e.g. "Continue in terminal", "Open in Zed", "Open the app"). */
+    /** Short heading for the card (e.g. "Open the app"). */
     title: z.string(),
     /** Optional one-line explanation. */
     description: z.string().optional(),
@@ -25,17 +22,14 @@ export const HandoffSchema = z
   .strict();
 
 /**
- * A per-run hand-off command surfaced in the Studio "Handoff" sidebar panel. A workflow emits one (fully
- * resolved — it knows its own workspace/workflow ids and host paths) when a hand-off becomes relevant; the
- * panel shows every non-invalidated `handoff`-tagged document for the run in view, live via SSE, and the run
- * timeline renders the same card inline. Generic: any workflow can emit these, and any future document type
- * carrying the {@link HANDOFF_TAG} tag renders in the panel via its own widget.
+ * A hand-off card in the run timeline: a command to copy or a URL to open. The emitting workflow resolves it
+ * fully (it knows its own workspace and workflow ids and host paths) and decides every text on it. Rendered by
+ * the `handoff` widget.
  *
  * @public
  */
 @Document({
   name: 'handoff',
-  tags: [HANDOFF_TAG],
   schema: HandoffSchema,
   widget: { widget: 'handoff' },
 })

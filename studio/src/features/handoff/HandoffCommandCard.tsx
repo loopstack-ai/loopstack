@@ -10,9 +10,8 @@ interface HandoffContent {
 }
 
 /**
- * Renderer for `handoff`-tagged documents. Two shapes: a `command` renders a copy-to-clipboard card; a `url`
- * renders an "open in a new tab" link card. Used both inline in the run timeline (via the widget registry)
- * and in the Handoff sidebar panel.
+ * Renderer for the `handoff` document. Two shapes: a `command` renders a copy-to-clipboard card; a `url`
+ * renders an "open in a new tab" link card. Used inline in the run timeline.
  */
 export function HandoffCommandCard({ document }: DocumentRendererProps) {
   const content = (document.content ?? {}) as HandoffContent;

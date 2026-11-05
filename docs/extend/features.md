@@ -47,12 +47,15 @@ Importing `GitModule` alone provides the Git tools. Calling `GitModule.forFeatur
 
 ## Example — Hand-offs to the User's Machine
 
-`HandoffModule.forFeature()` from `@loopstack/handoff` registers the `handoff` feature. Studio then shows a "Handoff" sidebar panel with every document tagged `handoff` for the run in view, and renders two document widgets:
+`HandoffModule.forFeature()` from `@loopstack/handoff` registers the `handoff` feature. Studio then renders three document widgets in the run timeline:
 
-| Document               | Widget          | Content                                                                           |
-| ---------------------- | --------------- | --------------------------------------------------------------------------------- |
-| `HandoffDocument`      | `handoff`       | `title`, `description?`, and a `command` to copy or a `url` to open               |
-| `ChangedFilesDocument` | `changed-files` | `hostRoot` (absolute path on the user's machine) and the changed `paths` under it |
+| Document                  | Widget             | Content                                                                                                    |
+| ------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `HandoffDocument`         | `handoff`          | `title`, `description?`, and a `command` to copy or a `url` to open                                        |
+| `ChangedFilesDocument`    | `changed-files`    | `hostRoot` (absolute path on the user's machine), the changed `paths` under it, and the `actions` per node |
+| `TerminalHandoffDocument` | `terminal-handoff` | a local `command`, `cwd?`, `title?` and `description?`                                                     |
+
+The documents name no tool: the workflow decides every command, URL and text. A `ChangedFilesDocument` action is a `label` plus a `command` to copy or a `url` to open, where `{path}` stands for the node's host path — for example `{ label: 'Open in VS Code', url: 'vscode://file{path}' }`.
 
 ```typescript
 import { HandoffDocument } from '@loopstack/handoff';
@@ -64,7 +67,7 @@ await this.documentStore.save(
 );
 ```
 
-The package also ships `TerminalHandoffDocument`, which drives the CLI's `terminal-handoff` widget: under `loopstack run` it hands the terminal to a local `command` and fires the `handoffDone` transition when it exits. With the feature enabled, Studio renders the same document as a copy-the-command card with an "End session" button that fires `handoffDone` by hand, for a run nobody is following.
+`TerminalHandoffDocument` also drives the CLI's `terminal-handoff` widget: under `loopstack run` it hands the terminal to the local `command` and fires the `handoffDone` transition when the command exits. The workflow owns a `handoffDone` wait transition at the place where it saves the document. With the feature enabled, Studio renders the same document as a copy-the-command card with a button that fires `handoffDone` by hand, for a run nobody is following.
 
 ## Defining a Custom Feature
 

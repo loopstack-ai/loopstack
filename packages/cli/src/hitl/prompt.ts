@@ -97,6 +97,8 @@ export function describePrompt(prompt: ActivePrompt): string {
   const content = (prompt.document?.content ?? {}) as Record<string, unknown>;
   if (typeof content.question === 'string') return content.question;
   if (typeof content.markdown === 'string') return content.markdown.split('\n')[0];
+  // A document that carries its own heading (e.g. a terminal hand-off) is described by it.
+  if (typeof content.title === 'string' && content.title.trim()) return content.title;
   // Workflow-level widgets carry no document — their label is the
   // human-facing description (e.g. "Send Message" for a chat input).
   const label = prompt.widget?.options?.label;

@@ -78,7 +78,7 @@ Some registry modules light up additional Studio surfaces when imported by your 
 | `localFileExplorer`  | `@loopstack/local-file-explorer` (`LocalFileExplorerModule.forFeature(config)`)   | "Files" sidebar panel for browsing the local workspace filesystem                            |
 | `remoteFileExplorer` | `@loopstack/remote-file-explorer` (`RemoteFileExplorerModule.forFeature(config)`) | "Remote Files" sidebar panel for browsing a remote workspace (requires `RemoteClientModule`) |
 | `secrets`            | `@loopstack/secrets` (`SecretsModule.forFeature(config)`)                         | Workspace secrets management UI                                                              |
-| `handoff`            | `@loopstack/handoff` (`HandoffModule.forFeature(config)`)                         | Handoff panel and the `handoff` / `changed-files` document widgets                           |
+| `handoff`            | `@loopstack/handoff` (`HandoffModule.forFeature(config)`)                         | The `handoff`, `changed-files` and `terminal-handoff` document widgets                       |
 
 To enable a feature, import the corresponding module's `forFeature()` (or `forRoot()`) in your app's module graph. Features that aren't imported simply don't appear — Studio degrades gracefully and never assumes a feature is present.
 

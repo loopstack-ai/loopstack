@@ -1,11 +1,14 @@
-import { Check, Code2, Copy, FileText, FolderOpen, PanelRight } from 'lucide-react';
+import { Check, Copy, ExternalLink, FileText, FolderOpen, PanelRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { DocumentRendererProps } from '@/features/documents/DocumentRenderer';
 import { useOptionalWorkbenchLayout } from '@/features/workbench';
 
+type ChangedFilesAction = { label: string; command: string } | { label: string; url: string };
+
 interface ChangedFilesContent {
   hostRoot: string;
   paths: string[];
+  actions?: ChangedFilesAction[];
 }
 
 interface TreeNode {
@@ -43,9 +46,9 @@ function buildTree(paths: string[]): TreeNode[] {
 }
 
 /**
- * Renderer for the `changed-files` document: the run's edited files as a tree, each node openable in Zed
- * (copy `zed "<hostRoot>/<path>"`) and — for files — in the in-Studio file explorer. Used in the Handoff
- * panel and inline in the run timeline.
+ * Renderer for the `changed-files` document: the run's edited files as a tree. Every node offers the actions
+ * the emitting workflow chose, with `{path}` replaced by the node's host path (`<hostRoot>/<path>`): a command
+ * to copy or a URL to open. Files also open in the in-Studio file explorer. Used inline in the run timeline.
  */
 export function ChangedFilesCard({ document }: DocumentRendererProps) {
   const content = (document.content ?? {}) as ChangedFilesContent;
@@ -55,11 +58,40 @@ export function ChangedFilesCard({ document }: DocumentRendererProps) {
 
   if (!content.paths?.length) return null;
 
-  const copyZed = async (nodePath: string) => {
-    await navigator.clipboard.writeText(`zed "${content.hostRoot}/${nodePath}"`);
-    setCopied(nodePath);
-    setTimeout(() => setCopied((c) => (c === nodePath ? null : c)), 1500);
+  const copy = async (id: string, command: string) => {
+    await navigator.clipboard.writeText(command);
+    setCopied(id);
+    setTimeout(() => setCopied((c) => (c === id ? null : c)), 1500);
   };
+
+  const renderActions = (node: TreeNode) =>
+    (content.actions ?? []).map((action, i) => {
+      const hostPath = `${content.hostRoot}/${node.path}`;
+      if ('url' in action) {
+        return (
+          <a
+            key={i}
+            href={action.url.replaceAll('{path}', encodeURI(hostPath))}
+            title={action.label}
+            className="text-muted-foreground hover:text-foreground p-0.5"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        );
+      }
+      const id = `${i}:${node.path}`;
+      return (
+        <button
+          key={i}
+          type="button"
+          title={action.label}
+          onClick={() => void copy(id, action.command.replaceAll('{path}', hostPath))}
+          className="text-muted-foreground hover:text-foreground p-0.5"
+        >
+          {copied === id ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+      );
+    });
 
   const renderNodes = (nodes: TreeNode[], depth: number): React.ReactNode =>
     nodes.map((node) => (
@@ -85,27 +117,7 @@ export function ChangedFilesCard({ document }: DocumentRendererProps) {
                 <PanelRight className="h-3.5 w-3.5" />
               </button>
             )}
-            {node.type === 'file' && (
-              <a
-                href={encodeURI(`vscode://file${content.hostRoot}/${node.path}`)}
-                title="Open in VS Code"
-                className="text-muted-foreground hover:text-foreground p-0.5"
-              >
-                <Code2 className="h-3.5 w-3.5" />
-              </a>
-            )}
-            <button
-              type="button"
-              title="Copy 'zed' command"
-              onClick={() => void copyZed(node.path)}
-              className="text-muted-foreground hover:text-foreground p-0.5"
-            >
-              {copied === node.path ? (
-                <Check className="h-3.5 w-3.5 text-green-600" />
-              ) : (
-                <Copy className="h-3.5 w-3.5" />
-              )}
-            </button>
+            {renderActions(node)}
           </span>
         </div>
         {node.children.length > 0 && renderNodes(node.children, depth + 1)}
