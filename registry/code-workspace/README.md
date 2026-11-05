@@ -66,6 +66,13 @@ constructor(@Inject(CODE_WORKSPACE_PROVISIONER) private readonly workspace: Code
   rewrite, so a workspace never mutates the base).
 - **Containers** mount the checkout and are explicitly torn down, so a crashed one keeps its logs until
   something removes it. Containers and dind volumes belong to the run that started them.
+- **Readiness** is the container's to report. `provision()` returns when the agent's `/health` answers, and
+  an image that answers `{ "ready": false, "phase": "…" }` keeps the wait going and says what it is doing —
+  so an entry point that brings up services, an inner Docker daemon and an image store takes the time it
+  needs. What the wait bounds is silence, not duration: three minutes without a new phase, fifteen for a
+  whole boot. An image whose health route carries no `ready` field is ready as soon as it answers. A
+  container that exits while its agent starts fails at once, with its exit code and the last lines of its own
+  log, read out before the half-provisioned container is removed.
 
 ## Reclamation
 

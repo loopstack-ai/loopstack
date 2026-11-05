@@ -5,7 +5,7 @@ import * as path from 'node:path';
 import { Readable } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_NAMESPACE, type ResolvedCodeWorkspaceOptions } from '../code-workspace.options.js';
-import { LocalDockerProvisioner } from '../local-docker.provisioner.js';
+import { LocalDockerProvisioner, demuxDockerLog } from '../local-docker.provisioner.js';
 
 /**
  * The labels and name prefix the default namespace produces. Derived here rather than written out, because
@@ -719,6 +719,120 @@ describe('LocalDockerProvisioner — checkout lifecycle', () => {
       const hostConfig = payloads[0].HostConfig as { Privileged?: boolean; Binds?: string[] };
       expect(hostConfig.Privileged).toBeUndefined();
       expect(docker.createVolume).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('provision — waiting for readiness', () => {
+    /** What the agent answers on one poll: a health body, or nothing because the port is not open yet. */
+    type Answer = { ready?: boolean; phase?: string } | 'unreachable';
+
+    /**
+     * A container double driven by two queues — what `inspect` reports and what `/health` answers — each
+     * holding its last entry once the test runs past it. That is the shape of the thing under test: the wait
+     * reads the container and the agent on every poll, and what it does depends on the pair.
+     */
+    function stubBoot(script: { states?: { Running: boolean; ExitCode?: number }[]; health: Answer[]; log?: Buffer }) {
+      const remove = vi.fn(async () => {});
+      const logs = vi.fn(async () => script.log ?? Buffer.alloc(0));
+      let poll = 0;
+      const at = <T>(queue: T[], index: number): T => queue[Math.min(index, queue.length - 1)];
+
+      docker.createContainer.mockImplementation(async () => ({
+        id: 'c'.repeat(64),
+        start: vi.fn(async () => {}),
+        logs,
+        inspect: vi.fn(async () => ({
+          State: at(script.states ?? [{ Running: true }], poll),
+          NetworkSettings: { Ports: { '3001/tcp': [{ HostPort: '40001' }] } },
+        })),
+      }));
+      docker.getContainer.mockReturnValue({ remove });
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => {
+          // `resolveHostPort` inspects before the first health poll, so the queues are stepped here.
+          const answer = at(script.health, poll++);
+          if (answer === 'unreachable') throw new Error('ECONNREFUSED');
+          return { ok: true, json: async () => answer };
+        }),
+      );
+      return { remove, logs, polls: () => poll };
+    }
+
+    /** A line of container log as Docker frames it on a non-TTY container. */
+    function framed(text: string, stream = 1): Buffer {
+      const payload = Buffer.from(text, 'utf8');
+      const header = Buffer.alloc(8);
+      header[0] = stream;
+      header.writeUInt32BE(payload.length, 4);
+      return Buffer.concat([header, payload]);
+    }
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('takes an image that reports no readiness as ready the moment it answers', async () => {
+      stubBoot({ health: [{ status: 'ok' } as never] });
+
+      await expect(provisioner.provision({ image: 'img:latest' })).resolves.toMatchObject({
+        agentUrl: 'http://localhost:40001',
+      });
+    });
+
+    it('keeps waiting through the phases a booting agent reports, and returns when it is ready', async () => {
+      vi.useFakeTimers();
+      const { polls } = stubBoot({
+        health: [
+          'unreachable',
+          { ready: false, phase: 'services' },
+          { ready: false, phase: 'docker' },
+          { ready: true },
+        ],
+      });
+
+      const provisioned = provisioner.provision({ image: 'img:latest' });
+      await vi.advanceTimersByTimeAsync(5000);
+
+      await expect(provisioned).resolves.toMatchObject({ agentUrl: 'http://localhost:40001' });
+      expect(polls()).toBe(4);
+    });
+
+    it('fails as soon as the container is gone, with its exit code and its own log', async () => {
+      vi.useFakeTimers();
+      const { remove } = stubBoot({
+        states: [{ Running: true }, { Running: false, ExitCode: 1 }],
+        health: ['unreachable'],
+        log: framed('[boot-docker] dockerd did not become ready in time\n', 2),
+      });
+
+      const provisioned = provisioner.provision({ image: 'img:latest' });
+      const rejects = expect(provisioned).rejects;
+      const assertions = Promise.all([
+        rejects.toThrow(/Container exited while the agent was starting \(exit code 1/),
+        rejects.toThrow(/dockerd did not become ready in time/),
+      ]);
+      await vi.advanceTimersByTimeAsync(2000);
+      await assertions;
+
+      // The log is read before the half-provisioned container is given back.
+      expect(remove).toHaveBeenCalledWith({ force: true });
+    });
+
+    it('gives up on a phase that stops advancing, naming it', async () => {
+      vi.useFakeTimers();
+      stubBoot({ health: [{ ready: false, phase: 'docker' }] });
+
+      const provisioned = provisioner.provision({ image: 'img:latest' });
+      const rejects = expect(provisioned).rejects.toThrow(/got no further than "docker" in 180s/);
+      await vi.advanceTimersByTimeAsync(185_000);
+      await rejects;
+    });
+
+    it('reads a framed container log, and an unframed one as it is', () => {
+      expect(demuxDockerLog(Buffer.concat([framed('out\n'), framed('err\n', 2)]))).toBe('out\nerr\n');
+      expect(demuxDockerLog(Buffer.from('plain tty output\n'))).toBe('plain tty output\n');
+      expect(demuxDockerLog(Buffer.alloc(0))).toBe('');
     });
   });
 

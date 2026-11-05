@@ -37,6 +37,40 @@ const run = promisify(execFile);
 
 /** The base-provisioning container's workflow label — a fixed key, not a workflow row. */
 const BASE_WORKFLOW_KEY = 'base';
+
+/** How often the health wait asks the agent and the container where they are. */
+const HEALTH_POLL_MS = 1000;
+/**
+ * How long a boot may go without reporting anything new. An agent that answers `ready: false` with a phase
+ * is making progress, so this budget starts again on every change of phase — what it bounds is a boot that
+ * has stopped moving, not one that is slow. An image that reports no phase at all has one budget to open
+ * its port in.
+ */
+const PHASE_BUDGET_MS = 180_000;
+/** The bound on a whole boot, however much it reports — the net under a phase sequence that never settles. */
+const HEALTH_CEILING_MS = 900_000;
+/** How many lines of the container's own log a provisioning failure carries. */
+const LOG_TAIL_LINES = 40;
+
+/**
+ * Strip Docker's stream framing from a non-TTY container log: every chunk is an 8-byte header (stream id,
+ * three zero bytes, a big-endian payload length) followed by that many bytes. The raw buffer is unreadable
+ * in an error message, which is where these logs go. A log that does not look framed — a TTY container's,
+ * which has no headers — is returned as it is.
+ */
+export function demuxDockerLog(buffer: Buffer): string {
+  const parts: string[] = [];
+  let offset = 0;
+  while (offset + 8 <= buffer.length) {
+    const stream = buffer[offset];
+    const length = buffer.readUInt32BE(offset + 4);
+    if (stream > 2 || offset + 8 + length > buffer.length) return buffer.toString('utf8');
+    parts.push(buffer.subarray(offset + 8, offset + 8 + length).toString('utf8'));
+    offset += 8 + length;
+  }
+  return offset === 0 ? buffer.toString('utf8') : parts.join('');
+}
+
 /**
  * Local-Docker implementation of {@link CodeWorkspaceProvisioner}: dockerode container lifecycle over
  * host-filesystem base/checkout dirs, using host `git clone --local` + `cp -al` hardlinks. Uses an explicit
@@ -132,7 +166,7 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
 
     try {
       const agentUrl = `http://localhost:${await this.resolveHostPort(container, agentPort)}`;
-      await this.waitForHealth(agentUrl);
+      await this.waitForHealth(container, agentUrl);
 
       let portUrls: Record<number, string> | undefined;
       if (opts.extraPorts?.length) {
@@ -145,9 +179,15 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
       this.logger.log(`Provisioned container ${container.id.slice(0, 12)} from ${opts.image} at ${agentUrl}`);
       return { containerId: container.id, agentUrl, portUrls };
     } catch (error) {
-      // Best-effort cleanup of the half-provisioned container — never mask the original failure.
+      // The container's own log is the only account of a boot that failed inside it, and the cleanup below
+      // removes the container — so the log is read into the failure first. Both steps are best-effort and
+      // neither masks the original reason.
+      const reason = error instanceof Error ? error.message : String(error);
+      const log = await this.containerLogTail(container);
       await this.teardown(container.id).catch(() => undefined);
-      throw error;
+      throw new Error(log ? `${reason}\n\nContainer log (last ${LOG_TAIL_LINES} lines):\n${log}` : reason, {
+        cause: error,
+      });
     }
   }
 
@@ -1090,17 +1130,72 @@ export class LocalDockerProvisioner implements CodeWorkspaceProvisioner {
     throw new Error(`Container did not publish a host port for ${port} in time`);
   }
 
-  private async waitForHealth(agentUrl: string, attempts = 60, delayMs = 1000): Promise<void> {
-    for (let i = 0; i < attempts; i++) {
-      try {
-        const response = await fetch(`${agentUrl}/health`);
-        if (response.ok) return;
-      } catch {
-        /* not ready yet */
+  /**
+   * Wait until the agent reports itself ready.
+   *
+   * Three things end the wait: the agent is ready, the container is gone, or the boot has stopped reporting
+   * anything new. Watching the container is what tells a slow boot from a dead one — an entry point that
+   * brings up services, an inner Docker daemon and an image store takes as long as it takes, while a
+   * container that died says so at once and says with which exit code.
+   *
+   * Readiness is the container's to report: `/health` answering `{ ready: false, phase }` keeps the wait
+   * going and names what is happening. An image that answers without a `ready` field is ready as soon as it
+   * answers at all, which is what an image serving a plain health route does.
+   */
+  private async waitForHealth(container: Docker.Container, agentUrl: string): Promise<void> {
+    const startedAt = Date.now();
+    let phase = 'starting';
+    let phaseStartedAt = startedAt;
+
+    while (Date.now() - startedAt < HEALTH_CEILING_MS) {
+      const info = await container.inspect();
+      if (!info.State?.Running) {
+        throw new Error(
+          `Container exited while the agent was starting (exit code ${info.State?.ExitCode ?? 'unknown'}` +
+            `, reached phase "${phase}")`,
+        );
       }
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+      const health = await this.readHealth(agentUrl);
+      if (health && health.ready !== false) return;
+      if (health?.phase && health.phase !== phase) {
+        phase = health.phase;
+        phaseStartedAt = Date.now();
+      }
+      if (Date.now() - phaseStartedAt >= PHASE_BUDGET_MS) {
+        throw new Error(`The agent got no further than "${phase}" in ${PHASE_BUDGET_MS / 1000}s`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, HEALTH_POLL_MS));
     }
-    throw new Error(`Agent at ${agentUrl} did not become healthy in time`);
+    throw new Error(
+      `The agent at ${agentUrl} did not become ready in ${HEALTH_CEILING_MS / 1000}s (reached phase "${phase}")`,
+    );
+  }
+
+  /** What the agent reports, or `undefined` while it cannot be reached. A body it serves but this cannot read counts as ready. */
+  private async readHealth(agentUrl: string): Promise<{ ready?: boolean; phase?: string } | undefined> {
+    let response: Response;
+    try {
+      response = await fetch(`${agentUrl}/health`);
+    } catch {
+      return undefined;
+    }
+    if (!response.ok) return undefined;
+    try {
+      return ((await response.json()) as { ready?: boolean; phase?: string } | null) ?? {};
+    } catch {
+      return {};
+    }
+  }
+
+  /** The tail of a container's log, de-multiplexed and ready to read. Empty when the log cannot be had. */
+  private async containerLogTail(container: Docker.Container, lines = LOG_TAIL_LINES): Promise<string> {
+    try {
+      const raw = (await container.logs({ stdout: true, stderr: true, tail: lines })) as unknown as Buffer;
+      return demuxDockerLog(Buffer.from(raw)).trim();
+    } catch {
+      return '';
+    }
   }
 
   /**
