@@ -12,9 +12,6 @@ import { ConditionalButtonsExampleWorkflow } from './workflows/conditional-butto
 import { ConfirmContentExampleWorkflow } from './workflows/confirm-content/confirm-content-example.workflow';
 import { FeedbackFormDocument } from './workflows/inline-form/feedback-form-document';
 import { InlineFormExampleWorkflow } from './workflows/inline-form/inline-form-example.workflow';
-import { MeetingNotesDocument } from './workflows/meeting-notes/documents/meeting-notes-document';
-import { OptimizedNotesDocument } from './workflows/meeting-notes/documents/optimized-notes-document';
-import { MeetingNotesExampleWorkflow } from './workflows/meeting-notes/meeting-notes-example.workflow';
 import { PromptInputChatExampleWorkflow } from './workflows/prompt-input-chat/prompt-input-chat-example.workflow';
 
 const WORKFLOWS = [
@@ -27,7 +24,6 @@ const WORKFLOWS = [
   ConfirmContentExampleWorkflow,
   AgentAskClarificationExampleWorkflow,
   AgentAskForApprovalExampleWorkflow,
-  MeetingNotesExampleWorkflow,
 ];
 
 @StudioApp({
@@ -69,7 +65,7 @@ const WORKFLOWS = [
 })
 @Module({
   imports: [HitlModule, AgentModule, ClaudeModule],
-  providers: [FeedbackFormDocument, MeetingNotesDocument, OptimizedNotesDocument, ...WORKFLOWS],
+  providers: [FeedbackFormDocument, ...WORKFLOWS],
   exports: WORKFLOWS,
 })
 export class HitlExamplesModule {}

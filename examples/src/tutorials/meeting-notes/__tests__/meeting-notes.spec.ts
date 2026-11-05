@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { LlmProviderModule } from '@loopstack/llm-provider';
 import { type TestRun, coverage, replay, runWorkflow } from '@loopstack/testing';
-import { HitlExamplesModule } from '../../../hitl-examples.module';
-import { MeetingNotesExampleWorkflow } from '../meeting-notes-example.workflow';
+import { TutorialsExamplesModule } from '../../tutorials-examples.module';
+import { MeetingNotesWorkflow } from '../meeting-notes.workflow';
 
 const OPTIMIZED = {
   date: '2025-01-01',
@@ -27,15 +27,15 @@ const extraction = () =>
     ],
   });
 
-describe('MeetingNotesExampleWorkflow', () => {
+describe('MeetingNotesWorkflow', () => {
   const runs: TestRun[] = [];
 
   it('runs the full review flow: edit notes → scripted LLM extraction → confirm', async () => {
     const run = await runWorkflow(
-      MeetingNotesExampleWorkflow,
+      MeetingNotesWorkflow,
       { inputText: 'budget: cut costs; anna follows up on vendor pricing' },
       {
-        imports: [LlmProviderModule, HitlExamplesModule],
+        imports: [LlmProviderModule, TutorialsExamplesModule],
         answers: {
           userResponse: { text: 'Reviewed notes: cut costs, Anna follows up on vendor pricing.' },
           confirm: OPTIMIZED,
@@ -47,14 +47,14 @@ describe('MeetingNotesExampleWorkflow', () => {
 
     expect(run.error).toBeUndefined();
     expect(run.status).toBe('completed');
-    expect(run.path).toEqual(['createForm', 'userResponse', 'optimizeNotes', 'confirm']);
+    expect(run.path).toEqual(['showNotes', 'userResponse', 'optimizeNotes', 'confirm']);
     expect(run.result).toEqual({ optimizedNotes: OPTIMIZED });
     expect(run.document('final')).toEqual(OPTIMIZED);
   });
 
   it('parks on the notes review form (first park)', async () => {
-    const run = await runWorkflow(MeetingNotesExampleWorkflow, undefined, {
-      imports: [LlmProviderModule, HitlExamplesModule],
+    const run = await runWorkflow(MeetingNotesWorkflow, undefined, {
+      imports: [LlmProviderModule, TutorialsExamplesModule],
     });
     runs.push(run);
 
@@ -65,7 +65,7 @@ describe('MeetingNotesExampleWorkflow', () => {
     expect(view).toMatchObject({
       widget: 'form',
       documentName: 'meeting_notes',
-      content: { text: expect.stringContaining('Unstructured Notes:') },
+      content: { text: expect.stringContaining('- meeting 1.1.2025') },
       actions: ['Optimize Notes'],
       defaultTransition: 'userResponse',
     });
@@ -73,10 +73,10 @@ describe('MeetingNotesExampleWorkflow', () => {
 
   it('parks on the optimized-notes confirm form (second park)', async () => {
     const run = await runWorkflow(
-      MeetingNotesExampleWorkflow,
+      MeetingNotesWorkflow,
       { inputText: 'budget: cut costs' },
       {
-        imports: [LlmProviderModule, HitlExamplesModule],
+        imports: [LlmProviderModule, TutorialsExamplesModule],
         // Answer the first park but not the second — the run advances through the LLM
         // extraction and parks again on the confirmation form.
         answers: { userResponse: { text: 'Reviewed notes.' } },
@@ -98,7 +98,7 @@ describe('MeetingNotesExampleWorkflow', () => {
   });
 
   it('covers every transition and both parks (coverage gate)', () => {
-    const cov = coverage(runs, MeetingNotesExampleWorkflow);
+    const cov = coverage(runs, MeetingNotesWorkflow);
     expect(cov.missingTransitions).toEqual([]);
     expect(cov.missingParks).toEqual([]);
   });

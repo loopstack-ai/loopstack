@@ -75,7 +75,7 @@ Conventions:
 - **`index.ts`** re-exports public symbols (used when this module is consumed as a package)
 - Document classes (`*.ts`) and their widget config (`*.yaml`) sit side by side
 
-Smaller modules can collapse this — a one-workflow module often keeps everything flat under `src/`. Use this layout as the upper bound, not a requirement. See the [Custom Tool example](/docs/examples/advanced-workflows#custom-tool) and the [Meeting Notes example](/docs/examples/hitl#meeting-notes) for concrete references.
+Smaller modules can collapse this — a one-workflow module often keeps everything flat under `src/`. Use this layout as the upper bound, not a requirement. See the [Custom Tool example](/docs/examples/advanced-workflows#custom-tool) and the [Meeting Notes tutorial source](/docs/examples/tutorials#meeting-notes) for concrete references.
 
 ### App Modules vs Feature Modules
 

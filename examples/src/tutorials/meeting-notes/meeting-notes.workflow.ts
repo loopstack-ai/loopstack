@@ -8,7 +8,6 @@ import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './d
 
 interface MeetingNotesState {
   meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
-  optimizedNotes?: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
 }
 
 const MeetingNotesArgsSchema = z.object({
@@ -18,42 +17,40 @@ const MeetingNotesArgsSchema = z.object({
       '- meeting 1.1.2025\n- budget: need 2 cut costs sarah said\n- hire new person?? --> marketing\n- vendor pricing - follow up needed by anna',
     ),
 });
-
 type MeetingNotesArgs = z.infer<typeof MeetingNotesArgsSchema>;
 
 @Workflow({
-  title: 'HITL - Meeting Notes Example',
-  description: 'A demo workflow showing how to use AI to structure meeting notes, with HITL review steps.',
+  title: 'Tutorial - Meeting Notes Example',
+  description: 'Structures raw meeting notes using AI, with human review at each step.',
   schema: MeetingNotesArgsSchema,
 })
-export class MeetingNotesExampleWorkflow extends BaseWorkflow<MeetingNotesArgs> {
+export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   constructor(private readonly llmGenerateObject: LlmGenerateObjectTool) {
     super();
   }
 
+  // Step 1: Display raw notes as an editable form and wait
   @Transition({ to: 'waiting_for_response' })
-  async createForm(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>) {
-    await this.documentStore.save(
-      MeetingNotesDocument,
-      { text: `Unstructured Notes:\n\n${ctx.args.inputText}` },
-      { key: 'input', position: 'keep' },
-    );
+  async showNotes(state: MeetingNotesState, ctx: RunContext<MeetingNotesArgs>) {
+    await this.documentStore.save(MeetingNotesDocument, { text: ctx.args.inputText }, { key: 'input' });
   }
 
+  // Step 2: User clicks "Optimize Notes" — input.data is the edited form content
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
   async userResponse(state: MeetingNotesState, input: TransitionInput<z.infer<typeof MeetingNotesDocumentSchema>>) {
-    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { key: 'input', position: 'keep' });
+    // Persist whatever the user may have edited before clicking the button
+    const result = await this.documentStore.save(MeetingNotesDocument, input.data, { key: 'input' });
     this.assignState({ meetingNotes: result.content as z.infer<typeof MeetingNotesDocumentSchema> });
   }
 
+  // Step 3: Send notes to LLM, save the structured result
   @Transition({ from: 'response_received', to: 'notes_optimized' })
   async optimizeNotes(state: MeetingNotesState) {
     const result = await this.llmGenerateObject.call(
       {
+        // The LLM must return an object that matches this Zod schema
         outputSchema: OptimizedMeetingNotesDocumentSchema,
-        prompt: this.render(join(__dirname, 'templates', 'extract-notes.md'), {
-          text: state.meetingNotes?.text,
-        }),
+        prompt: this.render(join(__dirname, 'templates', 'extract-notes.md'), { text: state.meetingNotes?.text }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
@@ -61,18 +58,15 @@ export class MeetingNotesExampleWorkflow extends BaseWorkflow<MeetingNotesArgs> 
     await this.documentStore.save(
       OptimizedNotesDocument,
       result.data.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-      { key: 'final', position: 'keep' },
+      { key: 'final' },
     );
   }
 
+  // Step 4: User reviews the structured output and clicks "Confirm"
   @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
   async confirm(state: MeetingNotesState, input: TransitionInput<z.infer<typeof OptimizedMeetingNotesDocumentSchema>>) {
-    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, {
-      key: 'final',
-      position: 'keep',
-    });
-    this.setResult({
-      optimizedNotes: result.content as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-    } as unknown as Record<string, unknown>);
+    // Save final confirmed version and publish it as the workflow output
+    const result = await this.documentStore.save(OptimizedNotesDocument, input.data, { key: 'final' });
+    this.setResult({ optimizedNotes: result.content });
   }
 }

@@ -96,9 +96,8 @@ Show AI-generated content for user review before proceeding:
 
 ```typescript
 import { z } from 'zod';
-import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { RunContext } from '@loopstack/common';
+import type { RunContext, TransitionInput } from '@loopstack/common';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider';
 
 interface MeetingNotesState {
@@ -134,17 +133,16 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   async optimizeNotes(state: MeetingNotesState) {
     const result = await this.llmGenerateObject.call(
       {
-        outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
+        outputSchema: OptimizedMeetingNotesDocumentSchema,
         prompt: `Structure these notes: ${state.meetingNotes?.text}`,
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
 
-    const objectResult = result.data as LlmGenerateObjectResult;
     await this.documentStore.save(
       OptimizedNotesDocument,
-      objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-      { key: 'final', validate: 'skip' },
+      result.data.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+      { key: 'final' },
     );
   }
 
@@ -362,5 +360,5 @@ See [`@loopstack/hitl`](/docs/registry/hitl) for the full tool args reference.
 
 - [HITL examples](/docs/examples/hitl) — Side-by-side examples of every HITL pattern: custom document with widget, all `AskUserWorkflow` modes, `ConfirmUserWorkflow`, and both agent tools
 - [@loopstack/hitl](/docs/registry/hitl) — The underlying HITL module: `AskUserWorkflow`, `ConfirmUserWorkflow`, `ask_clarification`, `ask_for_approval`
-- [Meeting Notes example](/docs/examples/hitl#meeting-notes) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
+- [Meeting Notes tutorial source](/docs/examples/tutorials#meeting-notes) — Full human-in-the-loop workflow with editable form, AI optimization, and user confirmation
 - [Prompt Input Chat example](/docs/examples/hitl#prompt-input-chat) — Chat input pattern with prompt-input widget

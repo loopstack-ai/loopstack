@@ -5,7 +5,7 @@ description: Forcing LLMs to return structured JSON data using LlmGenerateObject
 
 # AI Structured Output
 
-Use `LlmGenerateObjectTool` from `@loopstack/llm-provider` to generate structured data conforming to a JSON Schema. Provider-agnostic — works with Claude, OpenAI, and other providers.
+Use `LlmGenerateObjectTool` from `@loopstack/llm-provider` to generate structured data conforming to a Zod schema. Provider-agnostic — works with Claude, OpenAI, and other providers.
 
 ## Define a Document
 
@@ -37,10 +37,10 @@ export class FileDocument {
 ## Workflow Example
 
 ```typescript
-import { toJSONSchema, z } from 'zod';
+import { join } from 'node:path';
+import { z } from 'zod';
 import { BaseWorkflow, DocumentEntity, Transition, Workflow } from '@loopstack/common';
 import type { RunContext } from '@loopstack/common';
-import type { LlmGenerateObjectResult } from '@loopstack/llm-provider';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
 
@@ -76,16 +76,13 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<StructuredOutpu
   async prompt(state: StructuredOutputState) {
     const result = await this.llmGenerateObject.call(
       {
-        outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
+        outputSchema: FileDocumentSchema,
         prompt: this.render(join(__dirname, 'templates', 'prompt.md'), { language: state.language }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
 
-    const objectResult = result.data as LlmGenerateObjectResult;
-    const llmResult = await this.documentStore.save(FileDocument, objectResult.data as FileDocumentType, {
-      validate: 'skip',
-    });
+    const llmResult = await this.documentStore.save(FileDocument, result.data.data as FileDocumentType);
     this.assignState({ llmResult });
   }
 
@@ -102,9 +99,9 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<StructuredOutpu
 
 ## How It Works
 
-1. Convert your Zod schema to JSON Schema using `toJSONSchema()`
-2. Pass the JSON Schema as `outputSchema` to `llmGenerateObject.call()`
-3. The provider forces the LLM to return data matching the schema
+1. Pass your Zod schema as `outputSchema` to `llmGenerateObject.call()`
+2. The tool converts it to JSON Schema, and the provider forces the LLM to return data matching it
+3. The tool validates the LLM's answer against the Zod schema and returns it as `result.data.data`
 4. Save the result as a typed document using `this.documentStore.save()`
 
 ## Key Parameters
@@ -112,7 +109,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<StructuredOutpu
 ```typescript
 await this.llmGenerateObject.call(
   {
-    outputSchema: toJSONSchema(MyDocumentSchema) as Record<string, unknown>,
+    outputSchema: MyDocumentSchema,
     prompt: 'Generate structured data.',
   },
   { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },

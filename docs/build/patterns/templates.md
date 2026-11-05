@@ -146,4 +146,4 @@ ui:
 ## Registry References
 
 - [Prompt example](/docs/examples/llm#prompt) — Uses `this.render()` for Handlebars prompt templates
-- [Meeting Notes example](/docs/examples/hitl#meeting-notes) — Renders the LLM prompt that extracts structured notes from a template
+- [Meeting Notes tutorial source](/docs/examples/tutorials#meeting-notes) — Renders the LLM prompt that extracts structured notes from a template

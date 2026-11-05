@@ -321,7 +321,7 @@ Used in a workflow:
 ```typescript
 const result = await this.llmGenerateObject.call(
   {
-    outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
+    outputSchema: FileDocumentSchema,
     prompt: 'Generate a Hello World script in Python',
   },
   { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
@@ -331,7 +331,7 @@ const result = await this.llmGenerateObject.call(
 ## Registry References
 
 - [Structured Output example](/docs/examples/llm#structured-output) — FileDocument with code-view widget for AI-generated code
-- [Meeting Notes example](/docs/examples/hitl#meeting-notes) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
+- [Meeting Notes tutorial source](/docs/examples/tutorials#meeting-notes) — MeetingNotesDocument and OptimizedNotesDocument with form widgets and action buttons
 - [UI Documents example](/docs/examples/documents#ui-documents) — Demonstrates all core UI document types: MessageDocument, ErrorDocument, MarkdownDocument, PlainDocument
 - [Keep Revision example](/docs/examples/documents#keep-revision) — A keyed revision saved with `meta: { invalidate: false }` that stays live after later saves under its key
 

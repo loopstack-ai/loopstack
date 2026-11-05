@@ -1,6 +1,6 @@
 ---
 title: HITL Examples
-description: Workflow examples for Human-in-the-Loop patterns in Loopstack — custom Document with a form widget, AskUserWorkflow / ConfirmUserWorkflow sub-workflow shortcuts, LLM agent loops with ask_clarification / ask_for_approval, and an end-to-end meeting-notes review flow.
+description: Workflow examples for Human-in-the-Loop patterns in Loopstack — custom Document with a form widget, AskUserWorkflow / ConfirmUserWorkflow sub-workflow shortcuts, and LLM agent loops with ask_clarification / ask_for_approval.
 ---
 
 # HITL Examples
@@ -34,13 +34,13 @@ export class AppModule {}
 
 | You are building...                                                                                                                     | Use                                                                                                 | Examples                                                           |
 | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| A predefined workflow with known user-input steps — form fields, structured data, a record the user edits                               | **Custom document with a widget** — your workflow owns the document and the `wait: true` transition | Inline Form, Prompt Input Chat, Meeting Notes                      |
+| A predefined workflow with known user-input steps — form fields, structured data, a record the user edits                               | **Custom document with a widget** — your workflow owns the document and the `wait: true` transition | Inline Form, Prompt Input Chat                                     |
 | An LLM agent loop where the LLM dynamically decides to ask the user something or request approval                                       | **Agent tools** `ask_clarification` / `ask_for_approval` from `@loopstack/hitl`                     | Agent Ask Clarification, Agent Ask For Approval                    |
 | A predefined workflow that just needs a quick generic ask — one free-text field, yes/no, pick-one — and you don't want to design a form | **Sub-workflow shortcut** — `AskUserWorkflow` / `ConfirmUserWorkflow` from `@loopstack/hitl`        | Ask User Text, Ask User Options, Ask User Confirm, Confirm Content |
 
 ## Required app-module configuration
 
-`HitlExamplesModule` brings its own `HitlModule`, `AgentModule`, and `ClaudeModule`. The Meeting Notes and Agent examples additionally call `LlmGenerateObjectTool` / `LlmGenerateTextTool` from `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
+`HitlExamplesModule` brings its own `HitlModule`, `AgentModule`, and `ClaudeModule`. The Agent examples additionally call `LlmGenerateTextTool` from `@loopstack/llm-provider`. That module is `@Global` and must be configured once in your root module to set the default model:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -58,7 +58,7 @@ export class AppModule {}
 
 ## Environment
 
-The agent and meeting-notes examples require Claude credentials:
+The agent examples require Claude credentials:
 
 ```bash
 ANTHROPIC_API_KEY=sk-ant-...
@@ -108,7 +108,6 @@ The cards are `start-form` widgets in the `ui` option of `@StudioApp` in `hitl-e
 | [Confirm Content](#confirm-content)                 | `HITL - Confirm Content Example`         | `ConfirmUserWorkflow` to show a pre-rendered markdown blob for explicit approval      |
 | [Agent Ask Clarification](#agent-ask-clarification) | `HITL - Agent Ask Clarification Example` | LLM agent with `ask_clarification` tool — pauses to request missing info              |
 | [Agent Ask For Approval](#agent-ask-for-approval)   | `HITL - Agent Ask For Approval Example`  | LLM agent with `ask_for_approval` tool — drafts content and pauses for confirm/deny   |
-| [Meeting Notes](#meeting-notes)                     | `HITL - Meeting Notes Example`           | End-to-end document-review flow: user notes → LLM-extracted structure → user approval |
 
 ---
 
@@ -190,25 +189,6 @@ Launches `AgentWorkflow` with `tools: ['ask_for_approval']`. The LLM drafts cont
 
 - `agent-ask-for-approval-example.workflow.ts` — workflow class
 
-## Meeting Notes
-
-A complete HITL document-review flow:
-
-1. Save a `MeetingNotesDocument` with the user's raw notes (form widget for edits)
-2. User reviews/edits and submits via `wait: true` transition
-3. `LlmGenerateObjectTool` extracts structured data via Zod schema
-4. Save `OptimizedNotesDocument` for the user to review/approve
-5. Final approval via second `wait: true` transition
-
-Combines custom documents, LLM-driven structured output, and two HITL review steps.
-
-### Files
-
-- `meeting-notes-example.workflow.ts` — workflow class
-- `documents/meeting-notes-document.{ts,yaml}` — input form document
-- `documents/optimized-notes-document.{ts,yaml}` — structured output document
-- `templates/extract-notes.md` — LLM prompt template
-
 ## Testing
 
 Every workflow ships with an inner-loop spec in its `__tests__/` folder — run them with `npm run test` (in-process, no backend, no API key). The specs double as the reference for **how to test each HITL flavor**, extending the decision matrix above:
@@ -219,7 +199,6 @@ Every workflow ships with an inner-loop spec in its `__tests__/` folder — run 
 | Workflow-level buttons gated by place                             | Answer one wait transition at a time; `parkView()` shows which button is the active prompt at each place                                                          | `conditional-buttons`                               |
 | Sub-workflow shortcut (`AskUserWorkflow` / `ConfirmUserWorkflow`) | Script the _child's_ wait transition (`userAnswered`, `userConfirmed` / `userDenied`) — `answers` reaches inline sub-workflows at any depth                       | `ask-user-*`, `confirm-content`                     |
 | Chat loop (same wait transition parks repeatedly)                 | `queue('first', 'second')` submits one message per park, then the run parks again; scripted LLM replies via `replay`                                              | `prompt-input-chat`                                 |
-| LLM step inside a predefined workflow                             | `replay` scripts the LLM response; `answers` drives the surrounding HITL steps                                                                                    | `meeting-notes`                                     |
 | Agent HITL (`ask_clarification` / `ask_for_approval`)             | `replayTools: [LlmGenerateTextTool]` scripts only the LLM turns; the agent loop, delegation, and the real HITL child run live; `answers` resumes the nested child | `agent-ask-clarification`, `agent-ask-for-approval` |
 
 **The record/refresh loop.** The replay specs here use hand-written LLM turns for readability; for your own workflows, record fixtures from a real run instead: run the test once with `fixture: '<path>'` and live providers (records on the first run, replays afterwards — delete the file to re-record), or derive one from a backend run started with `loopstack run --trace` via `loopstack runs <run-id> --record <file> --tools llm_generate_text`. When a replayed test fails with a drift error after a prompt change, that is the signal: run the live check-ups, and re-record when green.

@@ -25,6 +25,8 @@ start → show raw notes → [user clicks "Optimize"] → LLM structures the not
 
 **Time:** ~30 minutes
 
+**Finished code:** the complete workflow from this tutorial, with its tests, is in the [Tutorial Examples](/docs/examples/tutorials#meeting-notes).
+
 ---
 
 ## 1. Install Dependencies
@@ -65,11 +67,12 @@ Register it in `src/app.module.ts`:
 
 ```typescript
 import { Module } from '@nestjs/common';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { MeetingNotesModule } from './meeting-notes/meeting-notes.module';
 
 @Module({
-  imports: [LoopstackModule.forRoot(), MeetingNotesModule],
+  imports: [LoopstackModule.forRoot(), LlmProviderModule, MeetingNotesModule],
 })
 export class AppModule {}
 ```
@@ -220,11 +223,10 @@ Now all the pieces are ready. The workflow ties them together as a state machine
 Create `src/meeting-notes/meeting-notes.workflow.ts`:
 
 ```typescript
+import { join } from 'node:path';
 import { z } from 'zod';
-import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { RunContext, TransitionInput } from '@loopstack/common';
-import type { LlmGenerateObjectResult } from '@loopstack/llm-provider';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
@@ -271,18 +273,17 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
   async optimizeNotes(state: MeetingNotesState) {
     const result = await this.llmGenerateObject.call(
       {
-        // Convert the Zod schema to JSON Schema — the LLM uses this to constrain its output
-        outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
+        // The LLM must return an object that matches this Zod schema
+        outputSchema: OptimizedMeetingNotesDocumentSchema,
         prompt: this.render(join(__dirname, 'templates', 'extract-notes.md'), { text: state.meetingNotes?.text }),
       },
       { config: { provider: 'claude', model: 'claude-sonnet-4-6' } },
     );
 
-    const objectResult = result.data as LlmGenerateObjectResult;
     await this.documentStore.save(
       OptimizedNotesDocument,
-      objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
-      { key: 'final', validate: 'skip' },
+      result.data.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+      { key: 'final' },
     );
   }
 
@@ -296,7 +297,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<MeetingNotesArgs> {
 }
 ```
 
-**Why `validate: 'skip'` when saving the LLM result:** LLM output can occasionally deviate from the schema in minor ways (empty strings, null values). Using `validate: 'skip'` saves it anyway so the user can review and correct it in the form before confirming.
+**Why `result.data.data` matches the schema:** `LlmGenerateObjectTool` converts `outputSchema` to JSON Schema for the provider, then validates the LLM's answer against the Zod schema before it returns. `result.data` is the tool result and `result.data.data` is the validated object, so the document save validates content that already matches.
 
 **Why the final transition calls `this.setResult(...)`:** The published `result` becomes the workflow's output. If this workflow is later used as a sub-workflow, the parent receives `input.data.optimizedNotes` in its callback envelope.
 
@@ -356,4 +357,4 @@ Each `wait: true` transition is a checkpoint. The workflow can pause here for se
 - **[Sub-Workflows](../build/patterns/sub-workflows.md)** — Use this workflow as a step inside a larger workflow
 - **[Dynamic Routing](../build/patterns/dynamic-routing.md)** — Add a guard to route differently if the LLM output confidence is low
 - **[Error Handling](../build/patterns/error-handling.md)** — Add retry logic to the `optimizeNotes` transition in case the LLM call fails
-- **[Meeting Notes example](/docs/examples/hitl#meeting-notes)** — The complete source for this workflow
+- **[Meeting Notes source](/docs/examples/tutorials#meeting-notes)** — The complete, tested source for this workflow

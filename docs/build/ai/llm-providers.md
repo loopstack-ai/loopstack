@@ -82,16 +82,16 @@ const result = await this.llmGenerateText.call(
 
 LLM tools separate **args** (per-request data) from **config** (provider/model/behavior settings). For `LlmGenerateTextTool`, the input args are `prompt` and `messages`; `outputSchema` applies only to `LlmGenerateObjectTool`. See [Text Generation](./text-generation.md) for full call examples.
 
-| Parameter           | Location | Description                                |
-| ------------------- | -------- | ------------------------------------------ |
-| `prompt`            | args     | Simple prompt string                       |
-| `messages`          | args     | Explicit message array                     |
-| `outputSchema`      | args     | JSON Schema (`LlmGenerateObjectTool` only) |
-| `provider`          | config   | LLM provider name (e.g. `'claude'`)        |
-| `model`             | config   | Model name (e.g. `'claude-sonnet-4-6'`)    |
-| `system`            | config   | System prompt                              |
-| `messagesSearchTag` | config   | Load messages from documents by tag        |
-| `tools`             | config   | Tool names the LLM can call                |
+| Parameter           | Location | Description                               |
+| ------------------- | -------- | ----------------------------------------- |
+| `prompt`            | args     | Simple prompt string                      |
+| `messages`          | args     | Explicit message array                    |
+| `outputSchema`      | args     | Zod schema (`LlmGenerateObjectTool` only) |
+| `provider`          | config   | LLM provider name (e.g. `'claude'`)       |
+| `model`             | config   | Model name (e.g. `'claude-sonnet-4-6'`)   |
+| `system`            | config   | System prompt                             |
+| `messagesSearchTag` | config   | Load messages from documents by tag       |
+| `tools`             | config   | Tool names the LLM can call               |
 
 ## Using Multiple Providers
 

@@ -68,11 +68,12 @@ Register it in `src/app.module.ts`:
 
 ```typescript
 import { Module } from '@nestjs/common';
+import { LlmProviderModule } from '@loopstack/llm-provider';
 import { LoopstackModule } from '@loopstack/loopstack-module';
 import { WeatherChatModule } from './weather-chat/weather-chat.module';
 
 @Module({
-  imports: [LoopstackModule.forRoot(), WeatherChatModule],
+  imports: [LoopstackModule.forRoot(), LlmProviderModule, WeatherChatModule],
 })
 export class AppModule {}
 ```

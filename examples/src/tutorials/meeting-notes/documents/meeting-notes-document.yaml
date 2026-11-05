@@ -2,7 +2,7 @@ widget: form
 options:
   properties:
     text:
-      title: Text
+      title: Notes
       widget: textarea
   actions:
     - type: button
