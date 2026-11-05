@@ -7,12 +7,13 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  // Global ignores
+  // Global ignores. `sandbox/` holds local apps that are not part of this repo; each one lints itself.
   {
     ignores: [
       '.changeset',
       '.turbo',
       'node_modules',
+      'sandbox/**',
       'templates',
       '**/.turbo/**',
       '**/dist/**',
@@ -59,7 +60,7 @@ export default tseslint.config(
 
   // Backend (NestJS) - Node globals
   {
-    files: ['packages/**/*.ts', 'registry/**/*.ts', 'examples/**/*.ts', 'sandbox/**/*.ts'],
+    files: ['packages/**/*.ts', 'registry/**/*.ts', 'examples/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -85,7 +86,7 @@ export default tseslint.config(
 
   // Node scripts written as CommonJS — `require`, `__dirname` and `module` are globals here
   {
-    files: ['**/*.cjs', 'scripts/**/*.js', 'packages/*/scripts/**/*.js', 'sandbox/*/scripts/**/*.js'],
+    files: ['**/*.cjs', 'scripts/**/*.js', 'packages/*/scripts/**/*.js'],
     languageOptions: {
       sourceType: 'commonjs',
       globals: {
