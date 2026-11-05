@@ -104,10 +104,12 @@ describe('GitHubOAuthProvider', () => {
       expect(tokens).toEqual({ accessToken: 'gho_token', expiresIn: 315360000, scope: 'repo,read:org' });
     });
 
-    it('throws with the status text when the exchange fails', async () => {
+    it('throws with the status and what GitHub said when the exchange fails', async () => {
       fetchMock.mockResolvedValue(new Response('bad', { status: 400, statusText: 'Bad Request' }));
 
-      await expect(provider.exchangeCode('code-xyz')).rejects.toThrow('GitHub token exchange failed: Bad Request');
+      await expect(provider.exchangeCode('code-xyz')).rejects.toThrow(
+        'GitHub token exchange failed: 400 Bad Request — bad',
+      );
     });
 
     it("throws with GitHub's error description when the exchange is rejected with HTTP 200", async () => {

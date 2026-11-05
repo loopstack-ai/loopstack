@@ -153,8 +153,8 @@ describe('GitHubGetRepoTool', () => {
 
       const result = await execute({ owner: 'octo', repo: 'hello' });
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Server Error' });
-      expect(result.error).toBe('GitHub API error: Server Error');
+      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: 500 Server Error — boom' });
+      expect(result.error).toBe('GitHub API error: 500 Server Error — boom');
     });
   });
 });

@@ -118,8 +118,11 @@ describe('GitHubRemoveIssueLabelTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Internal Server Error' });
-      expect(result.error).toBe('GitHub API error: Internal Server Error');
+      expect(result.data).toEqual({
+        error: 'api_error',
+        message: 'GitHub API error: 500 Internal Server Error — boom',
+      });
+      expect(result.error).toBe('GitHub API error: 500 Internal Server Error — boom');
     });
   });
 });

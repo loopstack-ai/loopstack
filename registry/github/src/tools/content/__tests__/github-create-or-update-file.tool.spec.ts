@@ -164,8 +164,9 @@ describe('GitHubCreateOrUpdateFileTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: `GitHub API error: ${statusText}` });
-      expect(result.error).toBe(`GitHub API error: ${statusText}`);
+      const error = `GitHub API error: ${status} ${statusText} — sha mismatch`;
+      expect(result.data).toEqual({ error: 'api_error', message: error });
+      expect(result.error).toBe(error);
     });
   });
 });

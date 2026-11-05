@@ -140,8 +140,8 @@ describe('GitHubUpdateIssueTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Not Found' });
-      expect(result.error).toBe('GitHub API error: Not Found');
+      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: 404 Not Found — missing' });
+      expect(result.error).toBe('GitHub API error: 404 Not Found — missing');
     });
   });
 });

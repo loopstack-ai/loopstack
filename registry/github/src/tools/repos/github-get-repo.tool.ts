@@ -2,6 +2,7 @@ import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { githubApiError } from '../../api-error.js';
 import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
@@ -147,14 +148,14 @@ export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, GitHubToolCon
     }
 
     if (!response.ok) {
-      const body = await response.text();
-      this.logger.error(`GitHub API error: ${response.status} ${body}`);
+      const error = await githubApiError(response);
+      this.logger.error(error);
       return {
         data: {
           error: 'api_error',
-          message: `GitHub API error: ${response.statusText}`,
+          message: error,
         },
-        error: `GitHub API error: ${response.statusText}`,
+        error,
       };
     }
 

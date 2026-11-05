@@ -127,8 +127,11 @@ describe('GitHubSearchCodeTool', () => {
 
       const result = await execute({ query: 'foo' });
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Unprocessable Entity' });
-      expect(result.error).toBe('GitHub API error: Unprocessable Entity');
+      expect(result.data).toEqual({
+        error: 'api_error',
+        message: 'GitHub API error: 422 Unprocessable Entity — invalid query',
+      });
+      expect(result.error).toBe('GitHub API error: 422 Unprocessable Entity — invalid query');
     });
   });
 });

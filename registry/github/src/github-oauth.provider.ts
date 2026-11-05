@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OAuthProviderInterface, OAuthProviderRegistry, OAuthTokenSet } from '@loopstack/oauth';
+import { githubApiError } from './api-error.js';
 
 @Injectable()
 export class GitHubOAuthProvider implements OAuthProviderInterface, OnModuleInit {
@@ -61,9 +62,9 @@ export class GitHubOAuthProvider implements OAuthProviderInterface, OnModuleInit
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      this.logger.error(`Token exchange failed: ${response.status} ${errorBody}`);
-      throw new Error(`GitHub token exchange failed: ${response.statusText}`);
+      const error = await githubApiError(response, 'GitHub token exchange failed');
+      this.logger.error(error);
+      throw new Error(error);
     }
 
     // GitHub reports a rejected exchange (bad code, wrong secret, redirect mismatch) with HTTP 200 and an error body.

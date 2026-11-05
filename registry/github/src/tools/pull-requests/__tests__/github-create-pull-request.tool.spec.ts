@@ -147,8 +147,10 @@ describe('GitHubCreatePullRequestTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Unprocessable Entity' });
-      expect(result.error).toBe('GitHub API error: Unprocessable Entity');
+      const expected = 'GitHub API error: 422 Unprocessable Entity — No commits between main and feature/x';
+
+      expect(result.data).toEqual({ error: 'api_error', message: expected });
+      expect(result.error).toBe(expected);
     });
   });
 });

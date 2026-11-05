@@ -146,8 +146,11 @@ describe('GitHubCreateRepoTool', () => {
 
       const result = await execute({ name: 'new-repo' });
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Unprocessable Entity' });
-      expect(result.error).toBe('GitHub API error: Unprocessable Entity');
+      expect(result.data).toEqual({
+        error: 'api_error',
+        message: 'GitHub API error: 422 Unprocessable Entity — name already exists',
+      });
+      expect(result.error).toBe('GitHub API error: 422 Unprocessable Entity — name already exists');
     });
   });
 });

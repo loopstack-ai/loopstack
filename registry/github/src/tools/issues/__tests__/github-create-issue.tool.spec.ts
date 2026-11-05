@@ -140,8 +140,11 @@ describe('GitHubCreateIssueTool', () => {
 
       const result = await execute({ owner: 'octo', repo: 'hello', title: 'Bug' });
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Unprocessable Entity' });
-      expect(result.error).toBe('GitHub API error: Unprocessable Entity');
+      expect(result.data).toEqual({
+        error: 'api_error',
+        message: 'GitHub API error: 422 Unprocessable Entity — invalid',
+      });
+      expect(result.error).toBe('GitHub API error: 422 Unprocessable Entity — invalid');
     });
 
     it("sends the organization's issue type when one is given", async () => {

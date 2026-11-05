@@ -151,8 +151,9 @@ describe('GitHubGetCommitTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Unprocessable Entity' });
-      expect(result.error).toBe('GitHub API error: Unprocessable Entity');
+      const error = 'GitHub API error: 422 Unprocessable Entity — bad sha';
+      expect(result.data).toEqual({ error: 'api_error', message: error });
+      expect(result.error).toBe(error);
     });
   });
 });

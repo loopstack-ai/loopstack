@@ -1,3 +1,4 @@
+export * from './api-error.js';
 export * from './github.module.js';
 export * from './github-oauth.provider.js';
 export * from './token/index.js';

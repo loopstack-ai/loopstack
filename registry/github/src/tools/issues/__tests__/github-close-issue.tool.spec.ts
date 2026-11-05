@@ -112,8 +112,8 @@ describe('GitHubCloseIssueTool', () => {
       const result = await execute({ ...args, duplicateOf: 3 });
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Not Found' });
-      expect(result.error).toBe('GitHub API error: Not Found');
+      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: 404 Not Found — missing' });
+      expect(result.error).toBe('GitHub API error: 404 Not Found — missing');
     });
 
     it('reports a null state reason as null', async () => {
@@ -159,8 +159,11 @@ describe('GitHubCloseIssueTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Internal Server Error' });
-      expect(result.error).toBe('GitHub API error: Internal Server Error');
+      expect(result.data).toEqual({
+        error: 'api_error',
+        message: 'GitHub API error: 500 Internal Server Error — boom',
+      });
+      expect(result.error).toBe('GitHub API error: 500 Internal Server Error — boom');
     });
   });
 });

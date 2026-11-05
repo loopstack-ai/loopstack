@@ -137,8 +137,10 @@ describe('GitHubMergePullRequestTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: `GitHub API error: ${statusText}` });
-      expect(result.error).toBe(`GitHub API error: ${statusText}`);
+      const expected = `GitHub API error: ${status} ${statusText} — not mergeable`;
+
+      expect(result.data).toEqual({ error: 'api_error', message: expected });
+      expect(result.error).toBe(expected);
     });
   });
 });

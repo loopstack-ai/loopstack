@@ -127,11 +127,9 @@ describe('GitHubAddIssueDependencyTool', () => {
       const result = await execute(args);
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(result.data).toEqual({
-        error: 'blocker_not_found',
-        message: 'Could not read issue #4 on octo/hello: Not Found',
-      });
-      expect(result.error).toBe('Could not read issue #4 on octo/hello: Not Found');
+      const message = 'Could not read issue #4 on octo/hello: 404 Not Found — missing';
+      expect(result.data).toEqual({ error: 'blocker_not_found', message });
+      expect(result.error).toBe(message);
     });
 
     it('reports other API failures of the write as api_error', async () => {
@@ -141,8 +139,8 @@ describe('GitHubAddIssueDependencyTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Unprocessable Entity' });
-      expect(result.error).toBe('GitHub API error: Unprocessable Entity');
+      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: 422 Unprocessable Entity — bad' });
+      expect(result.error).toBe('GitHub API error: 422 Unprocessable Entity — bad');
     });
   });
 });

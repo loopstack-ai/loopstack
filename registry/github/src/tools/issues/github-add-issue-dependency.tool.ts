@@ -2,6 +2,7 @@ import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { githubApiError } from '../../api-error.js';
 import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
@@ -115,9 +116,12 @@ export class GitHubAddIssueDependencyTool extends BaseTool<
     }
 
     if (!blockerResponse.ok) {
-      const errorBody = await blockerResponse.text();
-      this.logger.error(`GitHub API error: ${blockerResponse.status} ${errorBody}`);
-      const message = `Could not read issue #${args.blockerNumber} on ${args.owner}/${args.repo}: ${blockerResponse.statusText}`;
+      // Its own prefix: which issue could not be read is the point here, and the status and reason follow it.
+      const message = await githubApiError(
+        blockerResponse,
+        `Could not read issue #${args.blockerNumber} on ${args.owner}/${args.repo}`,
+      );
+      this.logger.error(message);
       return { data: { error: 'blocker_not_found', message }, error: message };
     }
 
@@ -144,14 +148,14 @@ export class GitHubAddIssueDependencyTool extends BaseTool<
     }
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      this.logger.error(`GitHub API error: ${response.status} ${errorBody}`);
+      const error = await githubApiError(response);
+      this.logger.error(error);
       return {
         data: {
           error: 'api_error',
-          message: `GitHub API error: ${response.statusText}`,
+          message: error,
         },
-        error: `GitHub API error: ${response.statusText}`,
+        error,
       };
     }
 

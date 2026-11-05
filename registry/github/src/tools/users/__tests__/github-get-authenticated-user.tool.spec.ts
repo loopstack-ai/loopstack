@@ -116,8 +116,10 @@ describe('GitHubGetAuthenticatedUserTool', () => {
 
       const result = await execute();
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Internal Server Error' });
-      expect(result.error).toBe('GitHub API error: Internal Server Error');
+      const expected = 'GitHub API error: 500 Internal Server Error — boom';
+
+      expect(result.data).toEqual({ error: 'api_error', message: expected });
+      expect(result.error).toBe(expected);
     });
   });
 });

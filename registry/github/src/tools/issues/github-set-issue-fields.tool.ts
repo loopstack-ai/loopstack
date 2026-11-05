@@ -2,6 +2,7 @@ import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { githubApiError } from '../../api-error.js';
 import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
@@ -195,14 +196,14 @@ export class GitHubSetIssueFieldsTool extends BaseTool<
     }
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      this.logger.error(`GitHub API error: ${response.status} ${errorBody}`);
+      const error = await githubApiError(response);
+      this.logger.error(error);
       return {
         data: {
           error: 'api_error',
-          message: `GitHub API error: ${response.statusText}`,
+          message: error,
         },
-        error: `GitHub API error: ${response.statusText}`,
+        error,
       };
     }
 
@@ -238,9 +239,9 @@ export class GitHubSetIssueFieldsTool extends BaseTool<
     }
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      this.logger.error(`GitHub API error: ${response.status} ${errorBody}`);
-      return { error: 'api_error', message: `GitHub API error: ${response.statusText}` };
+      const error = await githubApiError(response);
+      this.logger.error(error);
+      return { error: 'api_error', message: error };
     }
 
     // GraphQL answers 200 even when it reports errors, so the body has to be checked as well.

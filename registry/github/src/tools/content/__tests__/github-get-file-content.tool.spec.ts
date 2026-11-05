@@ -182,8 +182,8 @@ describe('GitHubGetFileContentTool', () => {
 
       const result = await execute(args);
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Server Error' });
-      expect(result.error).toBe('GitHub API error: Server Error');
+      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: 500 Server Error — boom' });
+      expect(result.error).toBe('GitHub API error: 500 Server Error — boom');
     });
   });
 });

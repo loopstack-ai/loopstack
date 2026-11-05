@@ -2,6 +2,7 @@ import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolEnvelope } from '@loopstack/common';
 import type { RunContext, ToolCallOptions } from '@loopstack/common';
+import { githubApiError } from '../../api-error.js';
 import { GitHubTokenService, type GitHubToolConfig, GitHubToolConfigSchema } from '../../token/index.js';
 
 const inputSchema = z
@@ -122,13 +123,14 @@ export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, GitHubT
         },
       });
       if (!whoami.ok) {
-        this.logger.error(`GitHub API error reading the token's account: ${whoami.status}`);
+        const error = await githubApiError(whoami);
+        this.logger.error(error);
         return {
           data: {
             error: 'api_error',
-            message: `GitHub API error: ${whoami.statusText}`,
+            message: error,
           },
-          error: `GitHub API error: ${whoami.statusText}`,
+          error,
         };
       }
       const { login } = (await whoami.json()) as { login: string };
@@ -158,14 +160,14 @@ export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, GitHubT
     }
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      this.logger.error(`GitHub API error: ${response.status} ${errorBody}`);
+      const error = await githubApiError(response);
+      this.logger.error(error);
       return {
         data: {
           error: 'api_error',
-          message: `GitHub API error: ${response.statusText}`,
+          message: error,
         },
-        error: `GitHub API error: ${response.statusText}`,
+        error,
       };
     }
 

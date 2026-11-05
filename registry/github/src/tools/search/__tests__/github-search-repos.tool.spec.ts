@@ -159,8 +159,11 @@ describe('GitHubSearchReposTool', () => {
 
       const result = await execute({ query: 'nestjs' });
 
-      expect(result.data).toEqual({ error: 'api_error', message: 'GitHub API error: Service Unavailable' });
-      expect(result.error).toBe('GitHub API error: Service Unavailable');
+      expect(result.data).toEqual({
+        error: 'api_error',
+        message: 'GitHub API error: 503 Service Unavailable — unavailable',
+      });
+      expect(result.error).toBe('GitHub API error: 503 Service Unavailable — unavailable');
     });
   });
 });
